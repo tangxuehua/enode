@@ -10,7 +10,7 @@
     <description>An open-source framework which provide the ability to develop ddd+cqrs+event sourcing+in memory style applications.</description>
     <projectUrl>https://github.com/tangxuehua/enode</projectUrl>
     <licenseUrl>https://github.com/tangxuehua/enode/blob/master/license.txt</licenseUrl>
-    <iconUrl>https://raw.github.com/tangxuehua/enode/master/doc/enode.png</iconUrl>
+    <iconUrl>https://raw.github.com/tangxuehua/enode/master/doc/logo.png</iconUrl>
     <tags>DDD EDA EventSourcing CQRS in-memory</tags>
     <copyright>2013</copyright>
     <language>zh-CN</language>
