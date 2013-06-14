@@ -1,0 +1,248 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F884F01A-ED67-4F21-8576-FD2588491B24}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ENode</RootNamespace>
+    <AssemblyName>ENode</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Command\Impl\CommandInfo.cs" />
+    <Compile Include="Command\ICommandQueue.cs" />
+    <Compile Include="Command\ICommandProcessor.cs" />
+    <Compile Include="Command\ICommandExecutor.cs" />
+    <Compile Include="Command\Impl\DefaultCommandQueue.cs" />
+    <Compile Include="Command\Impl\DefaultCommandProcessor.cs" />
+    <Compile Include="Command\Impl\DefaultCommandExecutor.cs" />
+    <Compile Include="Command\Impl\DefaultRetryCommandService.cs" />
+    <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
+    <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
+    <Compile Include="Domain\Impl\RedisMemoryCache.cs" />
+    <Compile Include="Event\Impl\ConcurrentException.cs" />
+    <Compile Include="Event\EventStream.cs" />
+    <Compile Include="Event\IEvent.cs" />
+    <Compile Include="Event\IEventExecutor.cs" />
+    <Compile Include="Event\IEventProcessor.cs" />
+    <Compile Include="Event\IEventPublisher.cs" />
+    <Compile Include="Event\IEventQueue.cs" />
+    <Compile Include="Event\IEventStore.cs" />
+    <Compile Include="Event\IEventHandler.cs" />
+    <Compile Include="Event\IEventHandlerProvider.cs" />
+    <Compile Include="Event\IEventHandlerWrapper.cs" />
+    <Compile Include="Event\Impl\DefaultEventExecutor.cs" />
+    <Compile Include="Event\Impl\DefaultEventProcessor.cs" />
+    <Compile Include="Event\Impl\DefaultEventPublisher.cs" />
+    <Compile Include="Event\Impl\DefaultEventQueueRouter.cs" />
+    <Compile Include="Event\Impl\DefaultEventQueue.cs" />
+    <Compile Include="Event\Impl\DefaultEventHandlerProvider.cs" />
+    <Compile Include="Event\Impl\EventHandlerWrapper.cs" />
+    <Compile Include="Event\Impl\Event.cs" />
+    <Compile Include="Event\Impl\InMemory\InMemoryEventPublishInfoStore.cs" />
+    <Compile Include="Event\Impl\InMemory\InMemoryEventStore.cs" />
+    <Compile Include="Event\Impl\MongoDB\AggregatePerEventCollectionNameProvider.cs" />
+    <Compile Include="Event\Impl\MongoDB\DefaultEventCollectionNameProvider.cs" />
+    <Compile Include="Event\Impl\MongoDB\IMongoCollectionNameProvider.cs" />
+    <Compile Include="Event\Impl\MongoDB\MongoEventStore.cs" />
+    <Compile Include="Event\Impl\MongoDB\MongoEventHandleInfoStore.cs" />
+    <Compile Include="Event\Impl\MongoDB\MongoEventPublishInfoStore.cs" />
+    <Compile Include="Event\Impl\SQL\SqlEventHandleInfoStore.cs" />
+    <Compile Include="Event\Impl\SQL\SqlEventPublishInfoStore.cs" />
+    <Compile Include="Event\Impl\SQL\AggregatePerEventTableNameProvider.cs" />
+    <Compile Include="Event\Impl\SQL\DefaultEventTableNameProvider.cs" />
+    <Compile Include="Event\Impl\SQL\IEventTableNameProvider.cs" />
+    <Compile Include="Event\Impl\SQL\SqlEventStore.cs" />
+    <Compile Include="Event\Impl\InMemory\InMemoryEventHandleInfoStore.cs" />
+    <Compile Include="Event\IEventPublishInfoStore.cs" />
+    <Compile Include="Event\IEventQueueRouter.cs" />
+    <Compile Include="Event\IEventHandleInfoStore.cs" />
+    <Compile Include="Messaging\Impl\MongoDB\DefaultQueueCollectionNameProvider.cs" />
+    <Compile Include="Messaging\Impl\MongoDB\IQueueCollectionNameProvider.cs" />
+    <Compile Include="Messaging\Impl\MongoDB\MongoMessageStore.cs" />
+    <Compile Include="Messaging\Impl\SQL\DefaultQueueTableNameProvider.cs" />
+    <Compile Include="Messaging\Impl\EmptyMessageStore.cs" />
+    <Compile Include="Messaging\Impl\SQL\IQueueTableNameProvider.cs" />
+    <Compile Include="Messaging\Impl\MessageProcessor.cs" />
+    <Compile Include="Messaging\Impl\SQL\SqlMessageStore.cs" />
+    <Compile Include="Messaging\IMessageProcessor.cs" />
+    <Compile Include="Messaging\IQueue.cs" />
+    <Compile Include="Messaging\Impl\QueueBase.cs" />
+    <Compile Include="Command\IRetryCommandService.cs" />
+    <Compile Include="Domain\Impl\DefaultMemoryCacheRefreshService.cs" />
+    <Compile Include="Domain\IMemoryCacheRefreshService.cs" />
+    <Compile Include="Command\ICommandHandlerWrapper.cs" />
+    <Compile Include="Command\Impl\DefaultCommandQueueRouter.cs" />
+    <Compile Include="Command\ITrackingContext.cs" />
+    <Compile Include="Command\ICommandQueueRouter.cs" />
+    <Compile Include="Domain\Impl\EventSourcingRepository.cs" />
+    <Compile Include="Domain\IRepository.cs" />
+    <Compile Include="Command\ICommandAsyncResultManager.cs" />
+    <Compile Include="Command\Impl\CommandHandlerWrapper.cs" />
+    <Compile Include="Command\Impl\DefaultCommandHandlerProvider.cs" />
+    <Compile Include="Command\Impl\DefaultCommandContext.cs" />
+    <Compile Include="Command\Impl\DefaultCommandAsyncResultManager.cs" />
+    <Compile Include="Command\Impl\DefaultProcessingCommandCache.cs" />
+    <Compile Include="Infrastructure\Impl\ReaderWriterLockSlimExtensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Impl\DefaultBinarySerializer.cs" />
+    <Compile Include="Infrastructure\IStringSerializer.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultStringSerializer.cs" />
+    <Compile Include="Messaging\IMessageExecutor.cs" />
+    <Compile Include="Messaging\IMessageStore.cs" />
+    <Compile Include="Messaging\IMessage.cs" />
+    <Compile Include="Infrastructure\Impl\Dapper\SqlMapper_Extensions.cs" />
+    <Compile Include="Infrastructure\Impl\LockUtility.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Impl\ObjectHelper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Impl\Log4Net\Log4NetLogger.cs" />
+    <Compile Include="Infrastructure\Impl\Log4Net\Log4NetLoggerFactory.cs" />
+    <Compile Include="Infrastructure\Impl\NetSerializer\CodeGenContext.cs" />
+    <Compile Include="Infrastructure\Impl\NetSerializer\DeserializerCodegen.cs" />
+    <Compile Include="Infrastructure\Impl\NetSerializer\Helpers.cs" />
+    <Compile Include="Infrastructure\Impl\NetSerializer\Main.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Impl\NetSerializer\Primitives.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Impl\Dapper\SqlMapper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Impl\TimeRecorderManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Impl\TypeUtils.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Infrastructure\Impl\Worker.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Command\ICommandHandlerProvider.cs" />
+    <Compile Include="Command\IProcessingCommandCache.cs" />
+    <Compile Include="Infrastructure\Impl\EmptyLogger.cs" />
+    <Compile Include="Infrastructure\Impl\EmptyLoggerFactory.cs" />
+    <Compile Include="Domain\IAggregateRootTypeProvider.cs" />
+    <Compile Include="Domain\IAggregateRootFactory.cs" />
+    <Compile Include="Domain\IAggregateRootInternalHandlerProvider.cs" />
+    <Compile Include="Command\ICommand.cs" />
+    <Compile Include="Command\Impl\Command.cs" />
+    <Compile Include="Infrastructure\Impl\NetSerializer\SerializerCodegen.cs" />
+    <Compile Include="Infrastructure\Impl\NetSerializer\TypeFilter.cs" />
+    <Compile Include="Infrastructure\Impl\TinyIoC\TinyIoC.cs" />
+    <Compile Include="Infrastructure\Impl\TinyIoC\TinyObjectContainer.cs" />
+    <Compile Include="Infrastructure\IBinarySerializer.cs" />
+    <Compile Include="Infrastructure\Impl\NetSerializer\NetBinarySerializer.cs" />
+    <Compile Include="Command\ICommandService.cs" />
+    <Compile Include="Command\ICommandHandler.cs" />
+    <Compile Include="Infrastructure\Impl\ComponentAttribute.cs" />
+    <Compile Include="Infrastructure\IObjectContainer.cs" />
+    <Compile Include="Infrastructure\Impl\ObjectContainer.cs" />
+    <Compile Include="Snapshot\Impl\EmptySnapshotStore.cs" />
+    <Compile Include="Domain\IMemoryCache.cs" />
+    <Compile Include="Domain\Impl\DefaultMemoryCache.cs" />
+    <Compile Include="Domain\Impl\DefaultAggregateRootTypeProvider.cs" />
+    <Compile Include="Command\ICommandContext.cs" />
+    <Compile Include="Domain\ValueObject.cs" />
+    <Compile Include="Configuration\Configuration.cs" />
+    <Compile Include="Domain\AggregateRoot.cs" />
+    <Compile Include="Infrastructure\IJsonSerializer.cs" />
+    <Compile Include="Infrastructure\ILogger.cs" />
+    <Compile Include="Infrastructure\ILoggerFactory.cs" />
+    <Compile Include="Domain\Impl\DefaultAggregateRootInternalHandlerProvider.cs" />
+    <Compile Include="Domain\Impl\DefaultAggregateRootFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Snapshot\ISnapshotable.cs" />
+    <Compile Include="Snapshot\Snapshot.cs" />
+    <Compile Include="Snapshot\ISnapshotPolicy.cs" />
+    <Compile Include="Snapshot\Impl\NoSnapshotPolicy.cs" />
+    <Compile Include="Snapshot\Impl\DefaultSnapshotter.cs" />
+    <Compile Include="Snapshot\ISnapshotter.cs" />
+    <Compile Include="Snapshot\ISnapshotStore.cs" />
+    <Compile Include="Infrastructure\IDbConnectionFactory.cs" />
+    <Compile Include="Infrastructure\Impl\SqlDbConnectionFactory.cs" />
+    <Compile Include="Command\Impl\AggregateRootNotFoundException.cs" />
+    <Compile Include="Command\Impl\CommandTimeoutException.cs" />
+    <Compile Include="Infrastructure\Impl\NewtonsoftJsonSerializer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="log4net">
+      <HintPath>..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="MongoDB.Bson">
+      <HintPath>..\..\packages\mongocsharpdriver.1.8.1\lib\net35\MongoDB.Bson.dll</HintPath>
+    </Reference>
+    <Reference Include="MongoDB.Driver">
+      <HintPath>..\..\packages\mongocsharpdriver.1.8.1\lib\net35\MongoDB.Driver.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Common">
+      <HintPath>..\..\packages\ServiceStack.Common.3.9.49\lib\net35\ServiceStack.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Interfaces">
+      <HintPath>..\..\packages\ServiceStack.Common.3.9.49\lib\net35\ServiceStack.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Redis">
+      <HintPath>..\..\packages\ServiceStack.Redis.3.9.49\lib\net35\ServiceStack.Redis.dll</HintPath>
+    </Reference>
+    <Reference Include="ServiceStack.Text">
+      <HintPath>..\..\packages\ServiceStack.Text.3.9.49\lib\net35\ServiceStack.Text.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.XML" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SqlScripts\TableGenerateSQL.sql" />
+    <Compile Include="Command\Impl\CommandAsyncResult.cs" />
+    <Compile Include="Command\Impl\DefaultCommandService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
