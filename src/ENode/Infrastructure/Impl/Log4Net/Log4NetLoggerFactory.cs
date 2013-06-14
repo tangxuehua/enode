@@ -4,7 +4,7 @@ using ENode.Infrastructure;
 using log4net;
 using log4net.Config;
 
-namespace ENode.ThirdParty
+namespace ENode.Infrastructure
 {
     public class Log4NetLoggerFactory : ILoggerFactory
     {

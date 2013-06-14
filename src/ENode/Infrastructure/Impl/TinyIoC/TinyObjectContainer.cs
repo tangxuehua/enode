@@ -4,7 +4,7 @@ using System.Reflection;
 using ENode.Infrastructure;
 using TinyIoC;
 
-namespace ENode.ThirdParty
+namespace ENode.Infrastructure
 {
     public class TinyObjectContainer : IObjectContainer
     {

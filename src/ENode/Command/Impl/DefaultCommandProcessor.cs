@@ -3,7 +3,7 @@
 namespace ENode.Commanding
 {
     public class DefaultCommandProcessor :
-        Processor<ICommandQueue, ICommandExecutor, ICommand>,
+        MessageProcessor<ICommandQueue, ICommandExecutor, ICommand>,
         ICommandProcessor
     {
         public DefaultCommandProcessor(ICommandQueue bindingQueue, int workerCount = 1)

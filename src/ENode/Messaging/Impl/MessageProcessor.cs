@@ -6,7 +6,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Messaging
 {
-    public abstract class Processor<TQueue, TMessageExecutor, TMessage> : IProcessor<TQueue, TMessage>
+    public abstract class MessageProcessor<TQueue, TMessageExecutor, TMessage> : IMessageProcessor<TQueue, TMessage>
         where TQueue : IQueue<TMessage>
         where TMessageExecutor : class, IMessageExecutor<TMessage>
         where TMessage : class, IMessage
@@ -23,7 +23,7 @@ namespace ENode.Messaging
             get { return _bindingQueue; }
         }
 
-        public Processor(TQueue bindingQueue, int messageExecutorCount)
+        public MessageProcessor(TQueue bindingQueue, int messageExecutorCount)
         {
             if (bindingQueue == null)
             {

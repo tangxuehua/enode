@@ -6,7 +6,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace ENode.ThirdParty
+namespace ENode.Infrastructure
 {
     public class NewtonsoftJsonSerializer : IJsonSerializer
     {

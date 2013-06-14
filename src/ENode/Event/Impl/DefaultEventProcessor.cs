@@ -3,7 +3,7 @@
 namespace ENode.Eventing
 {
     public class DefaultEventProcessor :
-        Processor<IEventQueue, IEventExecutor, EventStream>,
+        MessageProcessor<IEventQueue, IEventExecutor, EventStream>,
         IEventProcessor
     {
         public DefaultEventProcessor(IEventQueue bindingQueue,  int workerCount = 1)

@@ -12,7 +12,6 @@ using ENode.Messaging;
 using ENode.Messaging.Storage.Sql;
 using ENode.Messaging.Storage.MongoDB;
 using ENode.Snapshoting;
-using ENode.ThirdParty;
 
 namespace ENode
 {

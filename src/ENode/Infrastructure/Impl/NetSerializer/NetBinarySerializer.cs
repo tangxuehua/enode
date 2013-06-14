@@ -8,7 +8,7 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using NetSerializer;
 
-namespace ENode.ThirdParty
+namespace ENode.Infrastructure
 {
     public class NetBinarySerializer : IBinarySerializer
     {

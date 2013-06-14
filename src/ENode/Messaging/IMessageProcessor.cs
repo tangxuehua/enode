@@ -4,7 +4,7 @@ namespace ENode.Messaging
 {
     /// <summary>Represents a message processor.
     /// </summary>
-    public interface IProcessor<TQueue, TMessage>
+    public interface IMessageProcessor<TQueue, TMessage>
         where TQueue : IQueue<TMessage>
         where TMessage : class, IMessage
     {
