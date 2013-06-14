@@ -1,26 +1,20 @@
 <?xml version="1.0"?>
 <project name="enode" default="clean">
-  <!--parameter-->
+  <!--properties-->
   <property name="project.config" value="${args0}" dynamic="true" />
-
-  <!--path-->
   <property name="dir" value="."/>
   <property name="dir.tools" value=".\tools"/>
   <property name="build.base" value="build/${project.config}"/>
   <property name="build.absolutepath" value="${path::get-full-path(build.base)}" />
-
-  <!--nuget-->
   <property name="nuget" value="${path::get-full-path(dir.tools)}" />
   <property name="nuget.packages" value="${dir}\packages" />
   <property name="nuget.cache" value="C:\Users\${environment::get-user-name()}\AppData\Local\NuGet\Cache" />
   <property name="nuget.install" value="${dir}\nuget.install.bat" />
   <property name="nuget.params.install" value="${nuget} ${path::get-full-path(nuget.packages)}" />
-  
   <!--clean-->
   <target name="clean" description="clean build folder">
     <delete dir="${build.absolutepath}"></delete>
   </target>
-
   <!--nuget-->
   <target name="nuget" description="nuget install and update">
     <delete dir="${nuget.packages}"></delete>
