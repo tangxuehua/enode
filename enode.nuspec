@@ -24,6 +24,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="build\enode.dll" target="lib\net40\enode.dll" />
+    <file src="build\ENode.dll" target="lib\net40\ENode.dll" />
   </files>
 </package>
