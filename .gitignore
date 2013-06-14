@@ -1,0 +1,15 @@
+build
+packages
+
+# dotnet
+%APPDATA%
+TestResults
+bin
+obj
+*.suo
+*.user
+*.sln.cache
+*.nupkg
+*.testsettings
+*.vsmdi
+TestResult.xml
