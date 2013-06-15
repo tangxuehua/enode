@@ -59,7 +59,7 @@ namespace ENode.Eventing
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute<long>((connection) =>
             {
-                return connection.GetValue<long>(new { AggregateRootId = aggregateRootId }, "PublishedEventStreamVersion", _tableName);
+                return connection.GetValue<long>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedEventStreamVersion");
             });
         }
     }
