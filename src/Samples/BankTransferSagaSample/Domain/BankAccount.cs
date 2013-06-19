@@ -28,6 +28,10 @@ namespace BankTransferSagaSample.Domain
         }
         public void TransferOut(BankAccount targetAccount, double amount, Guid processId)
         {
+            if (Balance < amount)
+            {
+                throw new Exception(string.Format("账户{0}余额不足，不能转账！", AccountNumber));
+            }
             RaiseEvent(new TransferedOut(processId, Id, targetAccount.Id, amount, string.Format("{0}向账户{1}转出金额{2}", AccountNumber, targetAccount.AccountNumber, amount)));
         }
         public void TransferIn(BankAccount sourceAccount, double amount, Guid processId)

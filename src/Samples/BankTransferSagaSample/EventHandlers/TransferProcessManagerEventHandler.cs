@@ -9,7 +9,8 @@ namespace BankTransferSagaSample.EventHandlers
     public class TransferProcessManagerEventHandler :
         IEventHandler<TransferProcessStarted>,
         IEventHandler<TransferOutRequested>,
-        IEventHandler<TransferInRequested>
+        IEventHandler<TransferInRequested>,
+        IEventHandler<TransferProcessFailed>
     {
         private ICommandService _commandService;
 
@@ -31,6 +32,12 @@ namespace BankTransferSagaSample.EventHandlers
                     SourceAccountId = evnt.SourceAccountId,
                     TargetAccountId = evnt.TargetAccountId,
                     Amount = evnt.Amount
+                }, (result) =>
+                {
+                    if (result.Exception != null)
+                    {
+                        _commandService.Send(new CompleteFailedTransfer { ProcessId = evnt.ProcessId, ErrorMessage = result.Exception.Message });
+                    }
                 });
         }
         void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt)
@@ -42,7 +49,17 @@ namespace BankTransferSagaSample.EventHandlers
                     SourceAccountId = evnt.SourceAccountId,
                     TargetAccountId = evnt.TargetAccountId,
                     Amount = evnt.Amount
+                }, (result) =>
+                {
+                    if (result.Exception != null)
+                    {
+                        _commandService.Send(new CompleteFailedTransfer { ProcessId = evnt.ProcessId, ErrorMessage = result.Exception.Message });
+                    }
                 });
+        }
+        void IEventHandler<TransferProcessFailed>.Handle(TransferProcessFailed evnt)
+        {
+            Console.WriteLine(evnt.ErrorMessage);
         }
     }
 }

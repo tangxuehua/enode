@@ -81,6 +81,8 @@
     <Compile Include="Events\TransferInRequested.cs" />
     <Compile Include="Events\TransferedOutHandled.cs" />
     <Compile Include="Events\TransferedInHandled.cs" />
+    <Compile Include="Events\TransferProcessCompleted.cs" />
+    <Compile Include="Events\TransferProcessFailed.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -31,6 +31,12 @@ namespace BankTransferSagaSample.Commands
         }
     }
     [Serializable]
+    public class CompleteFailedTransfer : Command
+    {
+        public Guid ProcessId { get; set; }
+        public string ErrorMessage { get; set; }
+    }
+    [Serializable]
     public class TransferOut : Command
     {
         public Guid ProcessId { get; set; }

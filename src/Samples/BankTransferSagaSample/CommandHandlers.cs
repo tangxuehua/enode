@@ -11,7 +11,8 @@ namespace BankTransferSagaSample.CommandHandlers
         ICommandHandler<TransferOut>,
         ICommandHandler<HandleTransferedOut>,
         ICommandHandler<TransferIn>,
-        ICommandHandler<HandleTransferedIn>
+        ICommandHandler<HandleTransferedIn>,
+        ICommandHandler<CompleteFailedTransfer>
     {
         public void Handle(ICommandContext context, OpenAccount command)
         {
@@ -46,6 +47,10 @@ namespace BankTransferSagaSample.CommandHandlers
         public void Handle(ICommandContext context, HandleTransferedIn command)
         {
             context.Get<TransferProcessManager>(command.Event.ProcessId).HandleTransferedIn(command.Event);
+        }
+        public void Handle(ICommandContext context, CompleteFailedTransfer command)
+        {
+            context.Get<TransferProcessManager>(command.ProcessId).CompleteWithError(command.ErrorMessage);
         }
     }
 }

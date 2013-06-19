@@ -11,10 +11,13 @@ namespace BankTransferSagaSample.Domain
         IEventHandler<TransferOutRequested>,
         IEventHandler<TransferedOutHandled>,
         IEventHandler<TransferInRequested>,
-        IEventHandler<TransferedInHandled>
+        IEventHandler<TransferedInHandled>,
+        IEventHandler<TransferProcessCompleted>,
+        IEventHandler<TransferProcessFailed>
     {
         public TransferState CurrentTransferState { get; private set; }
         public ProcessState CurrentProcessState { get; private set; }
+        public string ErrorMessage { get; private set; }
 
         public TransferProcessManager() : base() { }
         public TransferProcessManager(BankAccount sourceAccount, BankAccount targetAccount, double amount) : base(Guid.NewGuid())
@@ -36,6 +39,11 @@ namespace BankTransferSagaSample.Domain
         public void HandleTransferedIn(TransferedIn evnt)
         {
             RaiseEvent(new TransferedInHandled(Id, evnt.SourceAccountId, evnt.TargetAccountId, evnt.Amount));
+            RaiseEvent(new TransferProcessCompleted(Id));
+        }
+        public void CompleteWithError(string errorMessage)
+        {
+            RaiseEvent(new TransferProcessFailed(Id, errorMessage));
         }
 
         void IEventHandler<TransferProcessStarted>.Handle(TransferProcessStarted evnt)
@@ -57,7 +65,15 @@ namespace BankTransferSagaSample.Domain
         void IEventHandler<TransferedInHandled>.Handle(TransferedInHandled evnt)
         {
             CurrentTransferState = TransferState.TransferedIn;
+        }
+        void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
+        {
             CurrentProcessState = ProcessState.Completed;
+        }
+        void IEventHandler<TransferProcessFailed>.Handle(TransferProcessFailed evnt)
+        {
+            CurrentProcessState = ProcessState.Failed;
+            ErrorMessage = evnt.ErrorMessage;
         }
 
         public enum ProcessState
@@ -66,7 +82,8 @@ namespace BankTransferSagaSample.Domain
             Started,
             TransferOutRequested,
             TransferInRequested,
-            Completed
+            Completed,
+            Failed
         }
         public enum TransferState
         {
