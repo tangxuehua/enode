@@ -3,6 +3,8 @@ using BankTransferSagaSample.Domain;
 
 namespace BankTransferSagaSample.Events
 {
+    /// <summary>转出的请求已发起
+    /// </summary>
     [Serializable]
     public class TransferOutRequested : AbstractTransferEvent
     {

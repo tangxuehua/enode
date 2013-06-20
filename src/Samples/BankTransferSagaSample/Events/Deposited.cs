@@ -3,6 +3,8 @@ using ENode.Eventing;
 
 namespace BankTransferSagaSample.Events
 {
+    /// <summary>钱已存入
+    /// </summary>
     [Serializable]
     public class Deposited : Event
     {

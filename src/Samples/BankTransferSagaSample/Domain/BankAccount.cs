@@ -5,22 +5,30 @@ using ENode.Eventing;
 
 namespace BankTransferSagaSample.Domain
 {
+    /// <summary>银行账号聚合根
+    /// </summary>
     [Serializable]
     public class BankAccount : AggregateRoot<Guid>,
-        IEventHandler<AccountOpened>,
-        IEventHandler<Deposited>,
-        IEventHandler<TransferedOut>,
-        IEventHandler<TransferedIn>,
-        IEventHandler<TransferOutRollbacked>
+        IEventHandler<AccountOpened>,         //银行账户已开
+        IEventHandler<Deposited>,             //钱已存入
+        IEventHandler<TransferedOut>,         //钱已转出
+        IEventHandler<TransferedIn>,          //钱已转入
+        IEventHandler<TransferOutRolledback>  //转出已回滚
     {
+        /// <summary>账号（卡号）
+        /// </summary>
         public string AccountNumber { get; private set; }
-        public string Customer { get; private set; }
+        /// <summary>拥有者
+        /// </summary>
+        public string Owner { get; private set; }
+        /// <summary>当前余额
+        /// </summary>
         public double Balance { get; private set; }
 
         public BankAccount() : base() { }
-        public BankAccount(Guid accountId, string accountNumber, string customer) : base(accountId)
+        public BankAccount(Guid accountId, string accountNumber, string owner) : base(accountId)
         {
-            RaiseEvent(new AccountOpened(Id, accountNumber, customer));
+            RaiseEvent(new AccountOpened(Id, accountNumber, owner));
         }
 
         public void Deposit(double amount)
@@ -41,13 +49,13 @@ namespace BankTransferSagaSample.Domain
         }
         public void RollbackTransferOut(Guid processId, TransferInfo transferInfo)
         {
-            RaiseEvent(new TransferOutRollbacked(processId, transferInfo, string.Format("账户{0}取消转出金额{1}", AccountNumber, transferInfo.Amount)));
+            RaiseEvent(new TransferOutRolledback(processId, transferInfo, string.Format("账户{0}取消转出金额{1}", AccountNumber, transferInfo.Amount)));
         }
 
         void IEventHandler<AccountOpened>.Handle(AccountOpened evnt)
         {
             AccountNumber = evnt.AccountNumber;
-            Customer = evnt.Customer;
+            Owner = evnt.Owner;
         }
         void IEventHandler<Deposited>.Handle(Deposited evnt)
         {
@@ -61,7 +69,7 @@ namespace BankTransferSagaSample.Domain
         {
             Balance += evnt.TransferInfo.Amount;
         }
-        void IEventHandler<TransferOutRollbacked>.Handle(TransferOutRollbacked evnt)
+        void IEventHandler<TransferOutRolledback>.Handle(TransferOutRolledback evnt)
         {
             Balance += evnt.TransferInfo.Amount;
         }

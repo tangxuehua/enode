@@ -8,6 +8,6 @@ namespace BankTransferSample.Commands
     {
         public Guid AccountId { get; set; }
         public string AccountNumber { get; set; }
-        public string Customer { get; set; }
+        public string Owner { get; set; }
     }
 }

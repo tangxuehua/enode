@@ -4,6 +4,8 @@ using ENode.Eventing;
 
 namespace BankTransferSagaSample.Events
 {
+    /// <summary>转账流程已开始
+    /// </summary>
     [Serializable]
     public class TransferProcessStarted : AbstractTransferEvent
     {

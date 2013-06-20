@@ -6,12 +6,14 @@ using ENode.Eventing;
 
 namespace BankTransferSagaSample.EventHandlers
 {
+    /// <summary>事件订阅者，用于监听和响应银行账号聚合根产生的事件
+    /// </summary>
     public class BankAccountEventHandler :
-        IEventHandler<AccountOpened>,
-        IEventHandler<Deposited>,
-        IEventHandler<TransferedOut>,
-        IEventHandler<TransferedIn>,
-        IEventHandler<TransferOutRollbacked>
+        IEventHandler<AccountOpened>,         //银行账户已开
+        IEventHandler<Deposited>,             //钱已存入
+        IEventHandler<TransferedOut>,         //钱已转出
+        IEventHandler<TransferedIn>,          //钱已转入
+        IEventHandler<TransferOutRolledback>  //转出已回滚
     {
         private ICommandService _commandService;
 
@@ -22,7 +24,7 @@ namespace BankTransferSagaSample.EventHandlers
 
         void IEventHandler<AccountOpened>.Handle(AccountOpened evnt)
         {
-            Console.WriteLine(string.Format("创建账户{0}", evnt.AccountNumber));
+            Console.WriteLine(string.Format("创建银行账户{0}", evnt.AccountNumber));
         }
         void IEventHandler<Deposited>.Handle(Deposited evnt)
         {
@@ -38,10 +40,10 @@ namespace BankTransferSagaSample.EventHandlers
             Console.WriteLine(evnt.Description);
             _commandService.Send(new HandleTransferedIn { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
         }
-        void IEventHandler<TransferOutRollbacked>.Handle(TransferOutRollbacked evnt)
+        void IEventHandler<TransferOutRolledback>.Handle(TransferOutRolledback evnt)
         {
             Console.WriteLine(evnt.Description);
-            _commandService.Send(new CompleteTransfer { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
+            _commandService.Send(new HandleTransferOutRolledback { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
         }
     }
 }

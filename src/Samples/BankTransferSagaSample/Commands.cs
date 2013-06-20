@@ -10,7 +10,7 @@ namespace BankTransferSagaSample.Commands
     {
         public Guid AccountId { get; set; }
         public string AccountNumber { get; set; }
-        public string Customer { get; set; }
+        public string Owner { get; set; }
     }
     [Serializable]
     public class Deposit : Command
@@ -27,9 +27,9 @@ namespace BankTransferSagaSample.Commands
     }
 
     [Serializable]
-    public class Transfer : AbstractTransferCommand
+    public class StartTransfer : AbstractTransferCommand
     {
-        public Transfer()
+        public StartTransfer()
         {
             ProcessId = Guid.NewGuid();
         }
@@ -51,21 +51,19 @@ namespace BankTransferSagaSample.Commands
     {
     }
     [Serializable]
-    public class HandleTransferOutFail : AbstractTransferCommand
+    public class HandleFailedTransferOut : AbstractTransferCommand
     {
-        public string ErrorMessage { get; set; }
     }
     [Serializable]
-    public class HandleTransferInFail : AbstractTransferCommand
+    public class HandleFailedTransferIn : AbstractTransferCommand
     {
-        public string ErrorMessage { get; set; }
     }
     [Serializable]
     public class RollbackTransferOut : AbstractTransferCommand
     {
     }
     [Serializable]
-    public class CompleteTransfer : AbstractTransferCommand
+    public class HandleTransferOutRolledback : AbstractTransferCommand
     {
     }
 }

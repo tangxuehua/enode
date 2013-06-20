@@ -23,8 +23,8 @@ namespace BankTransferSample
             var bankAccountId2 = Guid.NewGuid();
 
             //开两个银行账户
-            var openAccountCommand1 = new OpenAccount { AccountId = bankAccountId1, AccountNumber = "00001", Customer = "雪华" };
-            var openAccountCommand2 = new OpenAccount { AccountId = bankAccountId2, AccountNumber = "00002", Customer = "凯锋" };
+            var openAccountCommand1 = new OpenAccount { AccountId = bankAccountId1, AccountNumber = "00001", Owner = "雪华" };
+            var openAccountCommand2 = new OpenAccount { AccountId = bankAccountId2, AccountNumber = "00002", Owner = "凯锋" };
             commandService.Execute(openAccountCommand1);
             commandService.Execute(openAccountCommand2);
 

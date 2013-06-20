@@ -13,13 +13,13 @@ namespace BankTransferSample.Domain
         IEventHandler<TransferedIn>
     {
         public string AccountNumber { get; private set; }
-        public string Customer { get; private set; }
+        public string Owner { get; private set; }
         public double Balance { get; private set; }
 
         public BankAccount() : base() { }
-        public BankAccount(Guid accountId, string accountNumber, string customer) : base(accountId)
+        public BankAccount(Guid accountId, string accountNumber, string owner) : base(accountId)
         {
-            RaiseEvent(new AccountOpened(Id, accountNumber, customer));
+            RaiseEvent(new AccountOpened(Id, accountNumber, owner));
         }
 
         public void Deposit(double amount)
@@ -38,7 +38,7 @@ namespace BankTransferSample.Domain
         void IEventHandler<AccountOpened>.Handle(AccountOpened evnt)
         {
             AccountNumber = evnt.AccountNumber;
-            Customer = evnt.Customer;
+            Owner = evnt.Owner;
         }
         void IEventHandler<Deposited>.Handle(Deposited evnt)
         {

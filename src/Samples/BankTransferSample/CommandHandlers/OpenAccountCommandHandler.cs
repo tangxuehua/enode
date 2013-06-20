@@ -8,7 +8,7 @@ namespace BankTransferSample.CommandHandlers
     {
         public void Handle(ICommandContext context, OpenAccount command)
         {
-            context.Add(new BankAccount(command.AccountId, command.AccountNumber, command.Customer));
+            context.Add(new BankAccount(command.AccountId, command.AccountNumber, command.Owner));
         }
     }
 }
