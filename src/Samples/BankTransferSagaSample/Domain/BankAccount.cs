@@ -10,7 +10,8 @@ namespace BankTransferSagaSample.Domain
         IEventHandler<AccountOpened>,
         IEventHandler<Deposited>,
         IEventHandler<TransferedOut>,
-        IEventHandler<TransferedIn>
+        IEventHandler<TransferedIn>,
+        IEventHandler<TransferOutRollbacked>
     {
         public string AccountNumber { get; private set; }
         public string Customer { get; private set; }
@@ -26,17 +27,21 @@ namespace BankTransferSagaSample.Domain
         {
             RaiseEvent(new Deposited(Id, amount, string.Format("向账户{0}存入金额{1}", AccountNumber, amount)));
         }
-        public void TransferOut(BankAccount targetAccount, double amount, Guid processId)
+        public void TransferOut(BankAccount targetAccount, Guid processId, TransferInfo transferInfo)
         {
-            if (Balance < amount)
+            if (Balance < transferInfo.Amount)
             {
                 throw new Exception(string.Format("账户{0}余额不足，不能转账！", AccountNumber));
             }
-            RaiseEvent(new TransferedOut(processId, Id, targetAccount.Id, amount, string.Format("{0}向账户{1}转出金额{2}", AccountNumber, targetAccount.AccountNumber, amount)));
+            RaiseEvent(new TransferedOut(processId, transferInfo, string.Format("{0}向账户{1}转出金额{2}", AccountNumber, targetAccount.AccountNumber, transferInfo.Amount)));
         }
-        public void TransferIn(BankAccount sourceAccount, double amount, Guid processId)
+        public void TransferIn(BankAccount sourceAccount, Guid processId, TransferInfo transferInfo)
         {
-            RaiseEvent(new TransferedIn(processId, sourceAccount.Id, Id, amount, string.Format("{0}从账户{1}转入金额{2}", AccountNumber, sourceAccount.AccountNumber, amount)));
+            RaiseEvent(new TransferedIn(processId, transferInfo, string.Format("{0}从账户{1}转入金额{2}", AccountNumber, sourceAccount.AccountNumber, transferInfo.Amount)));
+        }
+        public void RollbackTransferOut(Guid processId, TransferInfo transferInfo)
+        {
+            RaiseEvent(new TransferOutRollbacked(processId, transferInfo, string.Format("账户{0}取消转出金额{1}", AccountNumber, transferInfo.Amount)));
         }
 
         void IEventHandler<AccountOpened>.Handle(AccountOpened evnt)
@@ -50,11 +55,15 @@ namespace BankTransferSagaSample.Domain
         }
         void IEventHandler<TransferedOut>.Handle(TransferedOut evnt)
         {
-            Balance -= evnt.Amount;
+            Balance -= evnt.TransferInfo.Amount;
         }
         void IEventHandler<TransferedIn>.Handle(TransferedIn evnt)
         {
-            Balance += evnt.Amount;
+            Balance += evnt.TransferInfo.Amount;
+        }
+        void IEventHandler<TransferOutRollbacked>.Handle(TransferOutRollbacked evnt)
+        {
+            Balance += evnt.TransferInfo.Amount;
         }
     }
 }

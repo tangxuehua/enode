@@ -4,9 +4,9 @@ using BankTransferSagaSample.Domain;
 namespace BankTransferSagaSample.Events
 {
     [Serializable]
-    public class TransferedIn : AbstractTransferEvent
+    public class TransferOutRollbacked : AbstractTransferEvent
     {
-        public TransferedIn(Guid processId, TransferInfo transferInfo, string description)
+        public TransferOutRollbacked(Guid processId, TransferInfo transferInfo, string description)
             : base(processId, transferInfo, description)
         {
         }

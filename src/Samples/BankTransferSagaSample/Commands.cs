@@ -1,4 +1,5 @@
 ﻿using System;
+using BankTransferSagaSample.Domain;
 using BankTransferSagaSample.Events;
 using ENode.Commanding;
 
@@ -17,59 +18,54 @@ namespace BankTransferSagaSample.Commands
         public Guid AccountId { get; set; }
         public long Amount { get; set; }
     }
+
     [Serializable]
-    public class Transfer : Command
+    public abstract class AbstractTransferCommand : Command
     {
         public Guid ProcessId { get; set; }
-        public Guid SourceAccountId { get; set; }
-        public Guid TargetAccountId { get; set; }
-        public long Amount { get; set; }
+        public TransferInfo TransferInfo { get; set; }
+    }
 
+    [Serializable]
+    public class Transfer : AbstractTransferCommand
+    {
         public Transfer()
         {
             ProcessId = Guid.NewGuid();
         }
     }
     [Serializable]
-    public class CompleteFailedTransfer : Command
+    public class TransferOut : AbstractTransferCommand
     {
-        public Guid ProcessId { get; set; }
+    }
+    [Serializable]
+    public class TransferIn : AbstractTransferCommand
+    {
+    }
+    [Serializable]
+    public class HandleTransferedOut : AbstractTransferCommand
+    {
+    }
+    [Serializable]
+    public class HandleTransferedIn : AbstractTransferCommand
+    {
+    }
+    [Serializable]
+    public class HandleTransferOutFail : AbstractTransferCommand
+    {
         public string ErrorMessage { get; set; }
     }
     [Serializable]
-    public class TransferOut : Command
+    public class HandleTransferInFail : AbstractTransferCommand
     {
-        public Guid ProcessId { get; set; }
-        public Guid SourceAccountId { get; set; }
-        public Guid TargetAccountId { get; set; }
-        public double Amount { get; set; }
+        public string ErrorMessage { get; set; }
     }
     [Serializable]
-    public class TransferIn : Command
+    public class RollbackTransferOut : AbstractTransferCommand
     {
-        public Guid ProcessId { get; set; }
-        public Guid SourceAccountId { get; set; }
-        public Guid TargetAccountId { get; set; }
-        public double Amount { get; set; }
     }
     [Serializable]
-    public class HandleTransferedOut : Command
+    public class CompleteTransfer : AbstractTransferCommand
     {
-        public TransferedOut Event { get; private set; }
-
-        public HandleTransferedOut(TransferedOut evnt)
-        {
-            Event = evnt;
-        }
-    }
-    [Serializable]
-    public class HandleTransferedIn : Command
-    {
-        public TransferedIn Event { get; private set; }
-
-        public HandleTransferedIn(TransferedIn evnt)
-        {
-            Event = evnt;
-        }
     }
 }

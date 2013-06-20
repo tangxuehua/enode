@@ -10,7 +10,8 @@ namespace BankTransferSagaSample.EventHandlers
         IEventHandler<AccountOpened>,
         IEventHandler<Deposited>,
         IEventHandler<TransferedOut>,
-        IEventHandler<TransferedIn>
+        IEventHandler<TransferedIn>,
+        IEventHandler<TransferOutRollbacked>
     {
         private ICommandService _commandService;
 
@@ -30,12 +31,17 @@ namespace BankTransferSagaSample.EventHandlers
         void IEventHandler<TransferedOut>.Handle(TransferedOut evnt)
         {
             Console.WriteLine(evnt.Description);
-            _commandService.Send(new HandleTransferedOut(evnt));
+            _commandService.Send(new HandleTransferedOut { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
         }
         void IEventHandler<TransferedIn>.Handle(TransferedIn evnt)
         {
             Console.WriteLine(evnt.Description);
-            _commandService.Send(new HandleTransferedIn(evnt));
+            _commandService.Send(new HandleTransferedIn { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
+        }
+        void IEventHandler<TransferOutRollbacked>.Handle(TransferOutRollbacked evnt)
+        {
+            Console.WriteLine(evnt.Description);
+            _commandService.Send(new CompleteTransfer { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
         }
     }
 }

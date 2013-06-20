@@ -10,7 +10,9 @@ namespace BankTransferSagaSample.EventHandlers
         IEventHandler<TransferProcessStarted>,
         IEventHandler<TransferOutRequested>,
         IEventHandler<TransferInRequested>,
-        IEventHandler<TransferProcessFailed>
+        IEventHandler<TransferOutFailHandled>,
+        IEventHandler<TransferInFailHandled>,
+        IEventHandler<RollbackTransferOutRequested>
     {
         private ICommandService _commandService;
 
@@ -25,41 +27,35 @@ namespace BankTransferSagaSample.EventHandlers
         }
         void IEventHandler<TransferOutRequested>.Handle(TransferOutRequested evnt)
         {
-            _commandService.Send(
-                new TransferOut
+            _commandService.Send(new TransferOut { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo }, (result) =>
+            {
+                if (result.Exception != null)
                 {
-                    ProcessId = evnt.ProcessId,
-                    SourceAccountId = evnt.SourceAccountId,
-                    TargetAccountId = evnt.TargetAccountId,
-                    Amount = evnt.Amount
-                }, (result) =>
-                {
-                    if (result.Exception != null)
-                    {
-                        _commandService.Send(new CompleteFailedTransfer { ProcessId = evnt.ProcessId, ErrorMessage = result.Exception.Message });
-                    }
-                });
+                    _commandService.Send(new HandleTransferOutFail { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo, ErrorMessage = result.Exception.Message });
+                }
+            });
         }
         void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt)
         {
-            _commandService.Send(
-                new TransferIn
+            _commandService.Send(new TransferIn { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo }, (result) =>
+            {
+                if (result.Exception != null)
                 {
-                    ProcessId = evnt.ProcessId,
-                    SourceAccountId = evnt.SourceAccountId,
-                    TargetAccountId = evnt.TargetAccountId,
-                    Amount = evnt.Amount
-                }, (result) =>
-                {
-                    if (result.Exception != null)
-                    {
-                        _commandService.Send(new CompleteFailedTransfer { ProcessId = evnt.ProcessId, ErrorMessage = result.Exception.Message });
-                    }
-                });
+                    _commandService.Send(new HandleTransferInFail { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo, ErrorMessage = result.Exception.Message });
+                }
+            });
         }
-        void IEventHandler<TransferProcessFailed>.Handle(TransferProcessFailed evnt)
+        void IEventHandler<TransferOutFailHandled>.Handle(TransferOutFailHandled evnt)
         {
             Console.WriteLine(evnt.ErrorMessage);
+        }
+        void IEventHandler<TransferInFailHandled>.Handle(TransferInFailHandled evnt)
+        {
+            Console.WriteLine(evnt.ErrorMessage);
+        }
+        void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt)
+        {
+            _commandService.Send(new RollbackTransferOut { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
         }
     }
 }

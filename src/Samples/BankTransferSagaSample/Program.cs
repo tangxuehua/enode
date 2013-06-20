@@ -35,11 +35,11 @@ namespace BankTransferSagaSample
             commandService.Execute(depositCommand2);
 
             //账户1向账户2转账300元
-            commandService.Send(new Transfer { SourceAccountId = bankAccountId1, TargetAccountId = bankAccountId2, Amount = 300 });
+            commandService.Send(new Transfer { TransferInfo = new TransferInfo(bankAccountId1, bankAccountId2, 300) });
             Thread.Sleep(1000);
 
             //账户2向账户1转账500元
-            commandService.Send(new Transfer { SourceAccountId = bankAccountId2, TargetAccountId = bankAccountId1, Amount = 500 });
+            commandService.Send(new Transfer { TransferInfo = new TransferInfo(bankAccountId2, bankAccountId1, 500) });
             Thread.Sleep(1000);
 
             //从内存获取账户信息，检查余额是否正确
