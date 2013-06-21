@@ -66,8 +66,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandHandlers.cs" />
-    <Compile Include="Commands.cs" />
+    <Compile Include="CommandHandlers\BankAccountCommandHandlers.cs" />
+    <Compile Include="CommandHandlers\TransferProcessCommandHandlers.cs" />
+    <Compile Include="Commands\BankAccountCommands.cs" />
+    <Compile Include="Commands\TransferProcessCommands.cs" />
     <Compile Include="Domain\BankAccount.cs" />
     <Compile Include="Domain\TransferProcess.cs" />
     <Compile Include="EventHandlers\BankAccountEventHandler.cs" />

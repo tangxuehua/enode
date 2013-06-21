@@ -4,7 +4,7 @@ using ENode.Eventing;
 
 namespace BankTransferSagaSample.Events
 {
-    /// <summary>与转账流程相关的抽象事件，包含基本的转账信息
+    /// <summary>与转账流程相关的抽象事件，包含转账流程ID和基本的转账信息
     /// </summary>
     [Serializable]
     public abstract class AbstractTransferEvent : Event
