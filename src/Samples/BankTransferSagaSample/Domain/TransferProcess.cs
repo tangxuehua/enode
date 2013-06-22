@@ -5,6 +5,34 @@ using ENode.Eventing;
 
 namespace BankTransferSagaSample.Domain
 {
+    /// <summary>转账流程状态
+    /// </summary>
+    public enum ProcessState
+    {
+        NotStarted,
+        Started,
+        TransferOutRequested,
+        TransferInRequested,
+        RollbackTransferOutRequested,
+        Completed,
+        Aborted
+    }
+    /// <summary>转账信息值对象，包含了转账的基本信息
+    /// </summary>
+    [Serializable]
+    public class TransferInfo
+    {
+        public Guid SourceAccountId { get; private set; }
+        public Guid TargetAccountId { get; private set; }
+        public double Amount { get; private set; }
+
+        public TransferInfo(Guid sourceAccountId, Guid targetAccountId, double amount)
+        {
+            SourceAccountId = sourceAccountId;
+            TargetAccountId = targetAccountId;
+            Amount = amount;
+        }
+    }
     /// <summary>银行转账流程聚合根，负责控制整个转账的过程，包括遇到异常时的回滚处理
     /// </summary>
     [Serializable]
@@ -30,22 +58,37 @@ namespace BankTransferSagaSample.Domain
             RaiseEvent(new TransferOutRequested(Id, transferInfo));
         }
 
+        /// <summary>处理已转出事件
+        /// </summary>
+        /// <param name="transferInfo"></param>
         public void HandleTransferedOut(TransferInfo transferInfo)
         {
             RaiseEvent(new TransferInRequested(Id, transferInfo));
         }
+        /// <summary>处理已转入事件
+        /// </summary>
+        /// <param name="transferInfo"></param>
         public void HandleTransferedIn(TransferInfo transferInfo)
         {
             RaiseEvent(new TransferProcessCompleted(Id, transferInfo));
         }
+        /// <summary>处理转出失败的情况
+        /// </summary>
+        /// <param name="transferInfo"></param>
         public void HandleFailedTransferOut(TransferInfo transferInfo)
         {
             RaiseEvent(new TransferProcessAborted(Id, transferInfo));
         }
+        /// <summary>处理转入失败的情况
+        /// </summary>
+        /// <param name="transferInfo"></param>
         public void HandleFailedTransferIn(TransferInfo transferInfo)
         {
             RaiseEvent(new RollbackTransferOutRequested(Id, transferInfo));
         }
+        /// <summary>处理转出已回滚事件
+        /// </summary>
+        /// <param name="transferInfo"></param>
         public void HandleTransferOutRolledback(TransferInfo transferInfo)
         {
             RaiseEvent(new TransferProcessAborted(Id, transferInfo));
@@ -74,33 +117,6 @@ namespace BankTransferSagaSample.Domain
         void IEventHandler<TransferProcessAborted>.Handle(TransferProcessAborted evnt)
         {
             State = ProcessState.Aborted;
-        }
-    }
-    public enum ProcessState
-    {
-        NotStarted,
-        Started,
-        TransferOutRequested,
-        TransferInRequested,
-        RollbackTransferOutRequested,
-        Completed,
-        Aborted
-    }
-
-    /// <summary>转账信息值对象
-    /// </summary>
-    [Serializable]
-    public class TransferInfo
-    {
-        public Guid SourceAccountId { get; private set; }
-        public Guid TargetAccountId { get; private set; }
-        public double Amount { get; private set; }
-
-        public TransferInfo(Guid sourceAccountId, Guid targetAccountId, double amount)
-        {
-            SourceAccountId = sourceAccountId;
-            TargetAccountId = targetAccountId;
-            Amount = amount;
         }
     }
 }
