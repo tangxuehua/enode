@@ -14,6 +14,7 @@ namespace NoteSample
             Configuration
                 .Create()
                 .UseTinyObjectContainer()
+                .RegisterAllDefaultFrameworkComponents()
                 .UseLog4Net("log4net.config")
                 .UseDefaultCommandHandlerProvider(assemblies)
                 .UseDefaultAggregateRootTypeProvider(assemblies)

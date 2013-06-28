@@ -78,7 +78,6 @@ namespace ENode
         public Configuration UseTinyObjectContainer()
         {
             ObjectContainer.SetCurrentContainer(new TinyObjectContainer());
-            RegisterAllDefaultFrameworkComponents();
             return this;
         }
         /// <summary>Use the Log4NetLoggerFactory as ILoggerFactory.
@@ -361,8 +360,10 @@ namespace ENode
 
             return this;
         }
-
-        private void RegisterAllDefaultFrameworkComponents()
+        /// <summary>Register all the default components of enode framework.
+        /// </summary>
+        /// <returns></returns>
+        public Configuration RegisterAllDefaultFrameworkComponents()
         {
             ObjectContainer.Register<ILoggerFactory, EmptyLoggerFactory>();
             ObjectContainer.Register<IJsonSerializer, NewtonsoftJsonSerializer>();
@@ -397,7 +398,10 @@ namespace ENode
             ObjectContainer.Register<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
             ObjectContainer.Register<ICommandExecutor, DefaultCommandExecutor>(LifeStyle.Transient);
             ObjectContainer.Register<IEventExecutor, DefaultEventExecutor>(LifeStyle.Transient);
+
+            return this;
         }
+
         private void ValidateProcessors()
         {
             if (_commandProcessors.Count == 0)
