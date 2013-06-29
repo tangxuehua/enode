@@ -68,7 +68,11 @@ namespace ENode.Commanding
                 _trackingContext.Clear();
                 _processingCommandCache.Add(command);
                 commandHandler.Handle(_commandContext, command);
-                return CommitContextChanges(command);
+                var eventStream = BuildEventStream(_trackingContext, command);
+                if (eventStream != null)
+                {
+                    return SubmitChanges(eventStream);
+                }
             }
             catch (Exception ex)
             {
@@ -84,27 +88,60 @@ namespace ENode.Commanding
 
             return true;
         }
-
-        private bool CommitContextChanges(ICommand command)
+        public void Execute(ICommandContext context, ICommand command)
         {
-            var trackedAggregateRoots = _trackingContext.GetTrackedAggregateRoots();
+            var trackingContext = context as ITrackingContext;
+            if (trackingContext == null)
+            {
+                throw new Exception("Command context must also implement ITrackingContext interface.");
+            }
+
+            var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
+            if (commandHandler == null)
+            {
+                throw new Exception(string.Format("Command handler not found for {0}", command.GetType().FullName));
+            }
+
+            commandHandler.Handle(context, command);
+
+            var eventStream = BuildEventStream(trackingContext, command);
+            if (eventStream != null)
+            {
+                //Persist event stream.
+                _eventStore.Append(eventStream);
+
+                //Refresh memory cache.
+                try { _memoryCacheRefreshService.Refresh(eventStream); }
+                catch (Exception ex)
+                {
+                    _logger.Error(string.Format("Unknown exception raised when refreshing memory cache for event stream:{0}", eventStream.GetStreamInformation()), ex);
+                }
+
+                //Publish event stream.
+                try { _eventPublisher.Publish(eventStream); }
+                catch (Exception ex)
+                {
+                    _logger.Error(string.Format("Unknown exception raised when publishing event stream:{0}", eventStream.GetStreamInformation()), ex);
+                }
+            }
+        }
+
+        private EventStream BuildEventStream(ITrackingContext trackingContext, ICommand command)
+        {
+            var trackedAggregateRoots = trackingContext.GetTrackedAggregateRoots();
             var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Count() > 0);
             var dirtyAggregateRootCount = dirtyAggregateRoots.Count();
 
             if (dirtyAggregateRootCount == 0)
             {
-                return true;
+                return null;
             }
             else if (dirtyAggregateRootCount > 1)
             {
                 throw new Exception("Detected more than one new or modified aggregates.");
             }
 
-            var eventStream = BuildEventStream(dirtyAggregateRoots.Single(), command);
-            return CommitEventStream(eventStream);
-        }
-        private EventStream BuildEventStream(AggregateRoot dirtyAggregateRoot, ICommand command)
-        {
+            var dirtyAggregateRoot = dirtyAggregateRoots.Single();
             var uncommittedEvents = dirtyAggregateRoot.GetUncommittedEvents();
             var aggregateRootType = dirtyAggregateRoot.GetType();
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
@@ -117,7 +154,7 @@ namespace ENode.Commanding
                 DateTime.UtcNow,
                 uncommittedEvents);
         }
-        private bool CommitEventStream(EventStream stream)
+        private bool SubmitChanges(EventStream stream)
         {
             bool executed = false;
 

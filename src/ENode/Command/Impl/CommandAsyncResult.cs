@@ -5,36 +5,21 @@ namespace ENode.Commanding
 {
     public class CommandAsyncResult
     {
-        public bool IsCompleted { get; private set; }
-        public ManualResetEvent WaitHandle { get; private set; }
-        public Action<CommandAsyncResult> CompleteCallback { get; private set; }
+        private Action<CommandAsyncResult> _callback;
+
         public Exception Exception { get; private set; }
 
-        public CommandAsyncResult(ManualResetEvent waitHandle)
+        public CommandAsyncResult(Action<CommandAsyncResult> callback)
         {
-            if (waitHandle == null)
-            {
-                throw new ArgumentNullException("waitHandle");
-            }
-            WaitHandle = waitHandle;
-        }
-        public CommandAsyncResult(Action<CommandAsyncResult> completeCallback)
-        {
-            CompleteCallback = completeCallback;
+            _callback = callback;
         }
 
         public void Complete(Exception exception)
         {
-            IsCompleted = true;
             Exception = exception;
-
-            if (WaitHandle != null)
+            if (_callback != null)
             {
-                WaitHandle.Set();
-            }
-            else if (CompleteCallback != null)
-            {
-                CompleteCallback(this);
+                _callback(this);
             }
         }
     }
