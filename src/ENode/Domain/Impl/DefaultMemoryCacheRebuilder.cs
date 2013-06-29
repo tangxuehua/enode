@@ -40,7 +40,7 @@ namespace ENode.Domain
                 var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(group.First().AggregateRootName);
                 var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
 
-                aggregateRoot.ReplayEvents(group);
+                aggregateRoot.ReplayEventStreams(group);
 
                 _memoryCache.Set(aggregateRoot);
             }

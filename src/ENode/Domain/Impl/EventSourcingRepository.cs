@@ -71,7 +71,7 @@ namespace ENode.Domain
                         throw new Exception(message);
                     }
                     var commitsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.StreamVersion + 1, long.MaxValue);
-                    aggregateRootFromSnapshot.ReplayEvents(commitsAfterSnapshot);
+                    aggregateRootFromSnapshot.ReplayEventStreams(commitsAfterSnapshot);
                     aggregateRoot = aggregateRootFromSnapshot;
                     return true;
                 }
@@ -88,7 +88,7 @@ namespace ENode.Domain
             if (streams != null && streams.Count() > 0)
             {
                 aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
-                aggregateRoot.ReplayEvents(streams);
+                aggregateRoot.ReplayEventStreams(streams);
             }
 
             return aggregateRoot;

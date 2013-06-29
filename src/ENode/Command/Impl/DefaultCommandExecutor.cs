@@ -14,7 +14,8 @@ namespace ENode.Commanding
         private ICommandAsyncResultManager _commandAsyncResultManager;
         private ICommandHandlerProvider _commandHandlerProvider;
         private IAggregateRootTypeProvider _aggregateRootTypeProvider;
-        private IMemoryCacheRefreshService _memoryCacheRefreshService;
+        private IMemoryCache _memoryCache;
+        private IRepository _repository;
         private IRetryCommandService _retryCommandService;
         private IEventStore _eventStore;
         private IEventPublisher _eventPublisher;
@@ -31,7 +32,8 @@ namespace ENode.Commanding
             ICommandAsyncResultManager commandAsyncResultManager,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
-            IMemoryCacheRefreshService memoryCacheRefreshService,
+            IMemoryCache memoryCache,
+            IRepository repository,
             IRetryCommandService retryCommandService,
             IEventStore eventStore,
             IEventPublisher eventPublisher,
@@ -42,7 +44,8 @@ namespace ENode.Commanding
             _commandAsyncResultManager = commandAsyncResultManager;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
-            _memoryCacheRefreshService = memoryCacheRefreshService;
+            _memoryCache = memoryCache;
+            _repository = repository;
             _retryCommandService = retryCommandService;
             _eventStore = eventStore;
             _eventPublisher = eventPublisher;
@@ -68,10 +71,11 @@ namespace ENode.Commanding
                 _trackingContext.Clear();
                 _processingCommandCache.Add(command);
                 commandHandler.Handle(_commandContext, command);
-                var eventStream = BuildEventStream(_trackingContext, command);
+                var dirtyAggregate = GetDirtyAggregate(_trackingContext);
+                var eventStream = BuildEventStream(dirtyAggregate, command);
                 if (eventStream != null)
                 {
-                    return SubmitChanges(eventStream);
+                    return SubmitChanges(dirtyAggregate, eventStream);
                 }
             }
             catch (Exception ex)
@@ -104,14 +108,15 @@ namespace ENode.Commanding
 
             commandHandler.Handle(context, command);
 
-            var eventStream = BuildEventStream(trackingContext, command);
+            var dirtyAggregate = GetDirtyAggregate(trackingContext);
+            var eventStream = BuildEventStream(dirtyAggregate, command);
             if (eventStream != null)
             {
                 //Persist event stream.
                 _eventStore.Append(eventStream);
 
                 //Refresh memory cache.
-                try { _memoryCacheRefreshService.Refresh(eventStream); }
+                try { RefreshMemoryCache(dirtyAggregate, eventStream); }
                 catch (Exception ex)
                 {
                     _logger.Error(string.Format("Unknown exception raised when refreshing memory cache for event stream:{0}", eventStream.GetStreamInformation()), ex);
@@ -126,7 +131,7 @@ namespace ENode.Commanding
             }
         }
 
-        private EventStream BuildEventStream(ITrackingContext trackingContext, ICommand command)
+        private AggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
         {
             var trackedAggregateRoots = trackingContext.GetTrackedAggregateRoots();
             var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Count() > 0);
@@ -141,44 +146,57 @@ namespace ENode.Commanding
                 throw new Exception("Detected more than one new or modified aggregates.");
             }
 
-            var dirtyAggregateRoot = dirtyAggregateRoots.Single();
-            var uncommittedEvents = dirtyAggregateRoot.GetUncommittedEvents();
-            var aggregateRootType = dirtyAggregateRoot.GetType();
+            return dirtyAggregateRoots.Single();
+        }
+        private EventStream BuildEventStream(AggregateRoot aggregateRoot, ICommand command)
+        {
+            var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
+            var aggregateRootType = aggregateRoot.GetType();
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
 
             return new EventStream(
-                dirtyAggregateRoot.UniqueId,
+                aggregateRoot.UniqueId,
                 aggregateRootName,
-                dirtyAggregateRoot.Version + 1,
+                aggregateRoot.Version + 1,
                 command.Id,
                 DateTime.UtcNow,
                 uncommittedEvents);
         }
-        private bool SubmitChanges(EventStream stream)
+        private bool SubmitChanges(AggregateRoot aggregateRoot, EventStream eventStream)
         {
             bool executed = false;
 
             //Persist event stream.
-            var result = PersistEventStream(stream);
+            EventStreamPersistResult result;
+
+            try
+            {
+                _eventStore.Append(eventStream);
+                result = EventStreamPersistResult.Success;
+            }
+            catch (Exception ex)
+            {
+                result = ProcessException(ex, eventStream);
+            }
 
             if (result == EventStreamPersistResult.Success)
             {
                 //Refresh memory cache.
-                try { _memoryCacheRefreshService.Refresh(stream); }
+                try { RefreshMemoryCache(aggregateRoot, eventStream); }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("Unknown exception raised when refreshing memory cache for event stream:{0}", stream.GetStreamInformation()), ex);
+                    _logger.Error(string.Format("Unknown exception raised when refreshing memory cache for event stream:{0}", eventStream.GetStreamInformation()), ex);
                 }
 
                 //Publish event stream.
-                try { _eventPublisher.Publish(stream); executed = true; }
+                try { _eventPublisher.Publish(eventStream); executed = true; }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("Unknown exception raised when publishing event stream:{0}", stream.GetStreamInformation()), ex);
+                    _logger.Error(string.Format("Unknown exception raised when publishing event stream:{0}", eventStream.GetStreamInformation()), ex);
                 }
 
                 //Complete command async result if exist.
-                _commandAsyncResultManager.TryComplete(stream.CommandId, null);
+                _commandAsyncResultManager.TryComplete(eventStream.CommandId, null);
             }
             else if (result == EventStreamPersistResult.Retried)
             {
@@ -187,37 +205,25 @@ namespace ENode.Commanding
 
             return executed;
         }
-        private EventStreamPersistResult PersistEventStream(EventStream stream)
-        {
-            try
-            {
-                _eventStore.Append(stream);
-                return EventStreamPersistResult.Success;
-            }
-            catch (Exception ex)
-            {
-                return ProcessException(ex, stream);
-            }
-        }
-        private EventStreamPersistResult ProcessException(Exception exception, EventStream stream)
+        private EventStreamPersistResult ProcessException(Exception exception, EventStream eventStream)
         {
             if (exception is ConcurrentException)
             {
-                if (IsEventStreamCommitted(stream))
+                if (IsEventStreamCommitted(eventStream))
                 {
                     return EventStreamPersistResult.Success;
                 }
 
-                var commandInfo = _processingCommandCache.Get(stream.CommandId);
+                var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
 
                 _logger.Error(string.Format(
                     "Concurrent exception raised when persisting event stream, command:{0}, event stream info:{1}",
                     commandInfo.Command.GetType().Name,
-                    stream.GetStreamInformation()), exception);
+                    eventStream.GetStreamInformation()), exception);
 
-                //Enforce to refresh memory cache before retring the command
-                //to enusre that when we retring the command, the memeory cache is at the latest status.
-                _memoryCacheRefreshService.Refresh(_aggregateRootTypeProvider.GetAggregateRootType(stream.AggregateRootName), stream.AggregateRootId);
+                //Enforce to refresh memory cache from repository before retring the command
+                //to ensure that when we retring the command, the memory cache is at the latest state.
+                RefreshMemoryCacheFromRepository(eventStream);
 
                 _retryCommandService.RetryCommand(commandInfo, exception);
 
@@ -225,17 +231,34 @@ namespace ENode.Commanding
             }
             else
             {
-                var commandInfo = _processingCommandCache.Get(stream.CommandId);
+                var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                 _logger.Error(string.Format(
                     "Unknown exception raised when persisting event stream, command:{0}, event stream info:{1}",
                     commandInfo.Command.GetType().Name,
-                    stream.GetStreamInformation()), exception);
+                    eventStream.GetStreamInformation()), exception);
                 return EventStreamPersistResult.UnknownException;
             }
         }
-        private bool IsEventStreamCommitted(EventStream stream)
+        private bool IsEventStreamCommitted(EventStream eventStream)
         {
-            return _eventStore.IsEventStreamExist(stream.AggregateRootId, _aggregateRootTypeProvider.GetAggregateRootType(stream.AggregateRootName), stream.Id);
+            return _eventStore.IsEventStreamExist(
+                eventStream.AggregateRootId,
+                _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName),
+                eventStream.Id);
+        }
+        private void RefreshMemoryCache(AggregateRoot aggregateRoot, EventStream eventStream)
+        {
+            aggregateRoot.AcceptEventStream(eventStream);
+            _memoryCache.Set(aggregateRoot);
+        }
+        private void RefreshMemoryCacheFromRepository(EventStream eventStream)
+        {
+            var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName);
+            var aggregateRoot = _repository.Get(aggregateRootType, eventStream.AggregateRootId);
+            if (aggregateRoot != null)
+            {
+                _memoryCache.Set(aggregateRoot);
+            }
         }
 
         enum EventStreamPersistResult

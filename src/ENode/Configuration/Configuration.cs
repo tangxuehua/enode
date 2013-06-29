@@ -374,7 +374,6 @@ namespace ENode
 
             ObjectContainer.Register<IAggregateRootFactory, DefaultAggregateRootFactory>();
             ObjectContainer.Register<IMemoryCache, DefaultMemoryCache>();
-            ObjectContainer.Register<IMemoryCacheRefreshService, DefaultMemoryCacheRefreshService>();
             ObjectContainer.Register<IRepository, EventSourcingRepository>();
             ObjectContainer.Register<IMemoryCacheRebuilder, DefaultMemoryCacheRebuilder>();
 

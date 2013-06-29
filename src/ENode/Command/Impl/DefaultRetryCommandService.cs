@@ -26,7 +26,7 @@ namespace ENode.Commanding
             {
                 _retryCommandQueue.Enqueue(commandInfo.Command);
                 commandInfo.IncreaseRetriedCount();
-                _logger.InfoFormat("Sent {0} to retry queue for {1} time.", commandInfo.Command.GetType().Name, commandInfo.RetriedCount);
+                _logger.InfoFormat("Sent {0} to command retry queue for {1} time.", commandInfo.Command.GetType().Name, commandInfo.RetriedCount);
             }
             else
             {

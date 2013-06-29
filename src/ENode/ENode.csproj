@@ -98,8 +98,6 @@
     <Compile Include="Messaging\IQueue.cs" />
     <Compile Include="Messaging\Impl\QueueBase.cs" />
     <Compile Include="Command\IRetryCommandService.cs" />
-    <Compile Include="Domain\Impl\DefaultMemoryCacheRefreshService.cs" />
-    <Compile Include="Domain\IMemoryCacheRefreshService.cs" />
     <Compile Include="Command\ICommandHandlerWrapper.cs" />
     <Compile Include="Command\Impl\DefaultCommandQueueRouter.cs" />
     <Compile Include="Command\ITrackingContext.cs" />

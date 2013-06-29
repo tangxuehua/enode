@@ -95,7 +95,7 @@ namespace ENode.Domain
 
         #endregion
 
-        #region Internal Members
+        #region Internal Methods
 
         /// <summary>Get all the uncommitted events of the current aggregate.
         /// </summary>
@@ -105,28 +105,28 @@ namespace ENode.Domain
         }
         /// <summary>Replay the given event stream.
         /// </summary>
-        /// <param name="stream"></param>
-        internal void ReplayEvent(EventStream stream)
+        /// <param name="eventStream"></param>
+        internal void ReplayEventStream(EventStream eventStream)
         {
-            ReplayEvents(new EventStream[] { stream });
+            ReplayEventStreams(new EventStream[] { eventStream });
         }
         /// <summary>Replay the given event streams.
         /// </summary>
-        internal void ReplayEvents(IEnumerable<EventStream> streams)
+        internal void ReplayEventStreams(IEnumerable<EventStream> eventStreams)
         {
             if (_uncommittedEvents.Count() > 0)
             {
                 _uncommittedEvents.Clear();
             }
 
-            foreach (var stream in streams)
+            foreach (var eventStream in eventStreams)
             {
-                if (stream.Version == 1)
+                if (eventStream.Version == 1)
                 {
-                    UniqueId = stream.AggregateRootId;
+                    UniqueId = eventStream.AggregateRootId;
                 }
-                VerifyEvent(stream);
-                ApplyEvent(stream);
+                VerifyEvent(eventStream);
+                ApplyEvent(eventStream);
             }
         }
         /// <summary>Initialize from the given snapshot.
@@ -140,6 +140,14 @@ namespace ENode.Domain
             {
                 _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
             }
+        }
+        /// <summary>Accept the given stream, update the version by the event stream version and clear all the uncommitted events.
+        /// </summary>
+        /// <param name="eventStream"></param>
+        internal void AcceptEventStream(EventStream eventStream)
+        {
+            Version = eventStream.Version;
+            _uncommittedEvents.Clear();
         }
 
         #endregion
@@ -168,36 +176,36 @@ namespace ENode.Domain
         }
         /// <summary>Verify whether the given event stream can be applied on the current aggregate.
         /// </summary>
-        private void VerifyEvent(EventStream stream)
+        private void VerifyEvent(EventStream eventStream)
         {
-            if (stream.AggregateRootId != UniqueId)
+            if (eventStream.AggregateRootId != UniqueId)
             {
                 var errorMessage = string.Format("Cannot apply event stream to aggregate as the AggregateRootId not matched. EventStream Id:{0}, AggregateRootId:{1}; Current AggregateRootId:{2}",
-                                        stream.Id,
-                                        stream.AggregateRootId,
+                                        eventStream.Id,
+                                        eventStream.AggregateRootId,
                                         UniqueId);
                 throw new Exception(errorMessage);
             }
 
-            if (stream.Version != Version + 1)
+            if (eventStream.Version != Version + 1)
             {
                 var errorMessage = string.Format("Cannot apply event stream to aggregate as the StreamVersion not matched. EventStream Id:{0}, Version:{1}; Current AggregateRoot Version:{2}",
-                                        stream.Id,
-                                        stream.Version,
+                                        eventStream.Id,
+                                        eventStream.Version,
                                         Version);
                 throw new Exception(errorMessage);
             }
         }
         /// <summary>Apply all the events of the given event stream to the aggregate.
         /// </summary>
-        /// <param name="stream"></param>
-        private void ApplyEvent(EventStream stream)
+        /// <param name="eventStream"></param>
+        private void ApplyEvent(EventStream eventStream)
         {
-            foreach (var evnt in stream.Events)
+            foreach (var evnt in eventStream.Events)
             {
                 HandleEvent(evnt);
             }
-            Version = stream.Version;
+            Version = eventStream.Version;
         }
         /// <summary>Queue a uncommitted event into the current local queue.
         /// </summary>
