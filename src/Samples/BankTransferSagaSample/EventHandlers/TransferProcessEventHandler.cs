@@ -13,8 +13,7 @@ namespace BankTransferSagaSample.EventHandlers
         IEventHandler<TransferOutRequested>,         //转出的请求已发起
         IEventHandler<TransferInRequested>,          //转入的请求已发起
         IEventHandler<RollbackTransferOutRequested>, //回滚转出的请求已发起
-        IEventHandler<TransferProcessCompleted>,     //转账流程已完成
-        IEventHandler<TransferProcessAborted>        //转账流程已终止
+        IEventHandler<TransferProcessCompleted>      //转账流程已完成
     {
         private ICommandService _commandService;
 
@@ -35,8 +34,13 @@ namespace BankTransferSagaSample.EventHandlers
                 //这里是command的异步回调函数，如果有异常，则发送“处理转出失败”的命令
                 if (result.Exception != null)
                 {
-                    Console.WriteLine(result.Exception.Message);
-                    _commandService.Send(new HandleFailedTransferOut { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
+                    _commandService.Send(
+                        new HandleFailedTransferOut
+                        {
+                            ProcessId = evnt.ProcessId,
+                            TransferInfo = evnt.TransferInfo,
+                            ErrorMessage = result.Exception.Message
+                        });
                 }
             });
         }
@@ -48,8 +52,13 @@ namespace BankTransferSagaSample.EventHandlers
                 //这里是command的异步回调函数，如果有异常，则发送“处理转入失败”的命令
                 if (result.Exception != null)
                 {
-                    Console.WriteLine(result.Exception.Message);
-                    _commandService.Send(new HandleFailedTransferIn { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
+                    _commandService.Send(
+                        new HandleFailedTransferIn
+                        {
+                            ProcessId = evnt.ProcessId,
+                            TransferInfo = evnt.TransferInfo,
+                            ErrorMessage = result.Exception.Message
+                        });
                 }
             });
         }
@@ -60,11 +69,14 @@ namespace BankTransferSagaSample.EventHandlers
         }
         void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
         {
-            Console.WriteLine("转账流程已正常完成！");
-        }
-        void IEventHandler<TransferProcessAborted>.Handle(TransferProcessAborted evnt)
-        {
-            Console.WriteLine("转账流程已异常终止！");
+            if (evnt.ProcessResult.IsSuccess)
+            {
+                Console.WriteLine("转账流程已顺利完成！");
+            }
+            else
+            {
+                Console.WriteLine(string.Format("转账失败，错误信息：{0}", evnt.ProcessResult.ErrorMessage));
+            }
         }
     }
 }

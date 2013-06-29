@@ -8,9 +8,12 @@ namespace BankTransferSagaSample.Events
     [Serializable]
     public class RollbackTransferOutRequested : AbstractTransferEvent
     {
-        public RollbackTransferOutRequested(Guid processId, TransferInfo transferInfo)
+        public string ErrorMessage { get; private set; }
+
+        public RollbackTransferOutRequested(Guid processId, TransferInfo transferInfo, string errorMessage)
             : base(processId, transferInfo)
         {
+            ErrorMessage = errorMessage;
         }
     }
 }

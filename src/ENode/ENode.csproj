@@ -49,6 +49,9 @@
     <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\RedisMemoryCache.cs" />
+    <Compile Include="Domain\IProcess.cs" />
+    <Compile Include="Domain\Process.cs" />
+    <Compile Include="Domain\ProcessResult.cs" />
     <Compile Include="Event\Impl\ConcurrentException.cs" />
     <Compile Include="Event\EventStream.cs" />
     <Compile Include="Event\IEvent.cs" />

@@ -36,13 +36,12 @@ namespace BankTransferSagaSample.Domain
     /// <summary>银行转账流程聚合根，负责控制整个转账的过程，包括遇到异常时的回滚处理
     /// </summary>
     [Serializable]
-    public class TransferProcess : AggregateRoot<Guid>,
+    public class TransferProcess : Process<Guid>,
         IEventHandler<TransferProcessStarted>,       //转账流程已开始
         IEventHandler<TransferOutRequested>,         //转出的请求已发起
         IEventHandler<TransferInRequested>,          //转入的请求已发起
         IEventHandler<RollbackTransferOutRequested>, //回滚转出的请求已发起
-        IEventHandler<TransferProcessCompleted>,     //转账流程已正常完成
-        IEventHandler<TransferProcessAborted>        //转账流程已异常终止
+        IEventHandler<TransferProcessCompleted>      //转账流程已完成
     {
         /// <summary>当前转账流程状态
         /// </summary>
@@ -70,28 +69,28 @@ namespace BankTransferSagaSample.Domain
         /// <param name="transferInfo"></param>
         public void HandleTransferedIn(TransferInfo transferInfo)
         {
-            RaiseEvent(new TransferProcessCompleted(Id, transferInfo));
+            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, ProcessResult.Success));
         }
         /// <summary>处理转出失败的情况
         /// </summary>
         /// <param name="transferInfo"></param>
-        public void HandleFailedTransferOut(TransferInfo transferInfo)
+        public void HandleFailedTransferOut(TransferInfo transferInfo, string errorMessage)
         {
-            RaiseEvent(new TransferProcessAborted(Id, transferInfo));
+            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, new ProcessResult(false, errorMessage)));
         }
         /// <summary>处理转入失败的情况
         /// </summary>
         /// <param name="transferInfo"></param>
-        public void HandleFailedTransferIn(TransferInfo transferInfo)
+        public void HandleFailedTransferIn(TransferInfo transferInfo, string errorMessage)
         {
-            RaiseEvent(new RollbackTransferOutRequested(Id, transferInfo));
+            RaiseEvent(new RollbackTransferOutRequested(Id, transferInfo, errorMessage));
         }
         /// <summary>处理转出已回滚事件
         /// </summary>
         /// <param name="transferInfo"></param>
         public void HandleTransferOutRolledback(TransferInfo transferInfo)
         {
-            RaiseEvent(new TransferProcessAborted(Id, transferInfo));
+            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, Result));
         }
 
         void IEventHandler<TransferProcessStarted>.Handle(TransferProcessStarted evnt)
@@ -109,14 +108,13 @@ namespace BankTransferSagaSample.Domain
         void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt)
         {
             State = ProcessState.RollbackTransferOutRequested;
+            Result = new ProcessResult(false, evnt.ErrorMessage);
         }
         void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
         {
             State = ProcessState.Completed;
-        }
-        void IEventHandler<TransferProcessAborted>.Handle(TransferProcessAborted evnt)
-        {
-            State = ProcessState.Aborted;
+            IsCompleted = true;
+            Result = evnt.ProcessResult;
         }
     }
 }

@@ -67,7 +67,7 @@ namespace BankTransferSagaSample.Domain
         /// <param name="transferInfo"></param>
         public void RollbackTransferOut(Guid processId, TransferInfo transferInfo)
         {
-            RaiseEvent(new TransferOutRolledback(processId, transferInfo, string.Format("账户{0}取消转出金额{1}", AccountNumber, transferInfo.Amount)));
+            RaiseEvent(new TransferOutRolledback(processId, transferInfo, string.Format("账户{0}回滚转出金额{1}", AccountNumber, transferInfo.Amount)));
         }
 
         void IEventHandler<AccountOpened>.Handle(AccountOpened evnt)

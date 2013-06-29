@@ -7,7 +7,7 @@ using ENode.Snapshoting;
 
 namespace ENode.Domain
 {
-    /// <summary>Aggregate root abstract base class.
+    /// <summary>Abstract aggregate root base class.
     /// </summary>
     [Serializable]
     public abstract class AggregateRoot
@@ -220,7 +220,7 @@ namespace ENode.Domain
 
         #endregion
     }
-    /// <summary>Aggregate root abstract base class with strong type aggregate root id.
+    /// <summary>Abstract aggregate root base class with strong type aggregate root id.
     /// </summary>
     [Serializable]
     public abstract class AggregateRoot<TAggregateRootId> : AggregateRoot

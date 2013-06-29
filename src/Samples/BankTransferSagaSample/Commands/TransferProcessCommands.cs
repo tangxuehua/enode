@@ -40,12 +40,14 @@ namespace BankTransferSagaSample.Commands
     [Serializable]
     public class HandleFailedTransferOut : AbstractTransferCommand
     {
+        public string ErrorMessage { get; set; }
     }
     /// <summary>处理“转入失败”
     /// </summary>
     [Serializable]
     public class HandleFailedTransferIn : AbstractTransferCommand
     {
+        public string ErrorMessage { get; set; }
     }
     /// <summary>处理转出已回滚事件
     /// </summary>

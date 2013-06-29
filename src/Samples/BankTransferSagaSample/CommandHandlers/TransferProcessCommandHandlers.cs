@@ -30,11 +30,11 @@ namespace BankTransferSagaSample.CommandHandlers
         }
         public void Handle(ICommandContext context, HandleFailedTransferOut command)
         {
-            context.Get<TransferProcess>(command.ProcessId).HandleFailedTransferOut(command.TransferInfo);
+            context.Get<TransferProcess>(command.ProcessId).HandleFailedTransferOut(command.TransferInfo, command.ErrorMessage);
         }
         public void Handle(ICommandContext context, HandleFailedTransferIn command)
         {
-            context.Get<TransferProcess>(command.ProcessId).HandleFailedTransferIn(command.TransferInfo);
+            context.Get<TransferProcess>(command.ProcessId).HandleFailedTransferIn(command.TransferInfo, command.ErrorMessage);
         }
         public void Handle(ICommandContext context, HandleTransferOutRolledback command)
         {
