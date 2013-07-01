@@ -11,7 +11,6 @@ namespace ENode.Commanding
 
         public DefaultCommandService(
             ICommandQueueRouter commandQueueRouter,
-            IProcessingCommandCache processingCommandCache,
             ICommandAsyncResultManager commandAsyncResultManager)
         {
             _commandQueueRouter = commandQueueRouter;
