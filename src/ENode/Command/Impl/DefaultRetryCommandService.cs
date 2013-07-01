@@ -30,7 +30,7 @@ namespace ENode.Commanding
             }
             else
             {
-                _commandAsyncResultManager.TryComplete(commandInfo.Command.Id, exception);
+                _commandAsyncResultManager.TryComplete(commandInfo.Command.Id, exception.Message, exception);
             }
         }
     }

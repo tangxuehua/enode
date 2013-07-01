@@ -34,19 +34,19 @@ namespace BankTransferSagaSample.EventHandlers
         {
             Console.WriteLine(evnt.Description);
             //响应已转出事件，发送“处理已转出事件”的命令
-            _commandService.Send(new HandleTransferedOut { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
+            _commandService.Send(new HandleTransferedOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
         }
         void IEventHandler<TransferedIn>.Handle(TransferedIn evnt)
         {
             Console.WriteLine(evnt.Description);
             //响应已转入事件，发送“处理已转入事件”的命令
-            _commandService.Send(new HandleTransferedIn { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
+            _commandService.Send(new HandleTransferedIn(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
         }
         void IEventHandler<TransferOutRolledback>.Handle(TransferOutRolledback evnt)
         {
             Console.WriteLine(evnt.Description);
             //响应转出已回滚事件，发送“处理转出已回滚事件”的命令
-            _commandService.Send(new HandleTransferOutRolledback { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
+            _commandService.Send(new HandleTransferOutRolledback(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
         }
     }
 }

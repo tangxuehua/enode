@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using ENode.Infrastructure;
 
 namespace ENode.Commanding
@@ -7,13 +8,14 @@ namespace ENode.Commanding
     {
         private ICommandQueueRouter _commandQueueRouter;
         private ICommandAsyncResultManager _commandAsyncResultManager;
-        private ICommandExecutor _commandExecutor;
 
-        public DefaultCommandService(ICommandQueueRouter commandQueueRouter, ICommandAsyncResultManager commandAsyncResultManager, ICommandExecutor commandExecutor)
+        public DefaultCommandService(
+            ICommandQueueRouter commandQueueRouter,
+            IProcessingCommandCache processingCommandCache,
+            ICommandAsyncResultManager commandAsyncResultManager)
         {
             _commandQueueRouter = commandQueueRouter;
             _commandAsyncResultManager = commandAsyncResultManager;
-            _commandExecutor = commandExecutor;
         }
 
         public void Send(ICommand command, Action<CommandAsyncResult> callback = null)
@@ -32,7 +34,32 @@ namespace ENode.Commanding
         }
         public void Execute(ICommand command)
         {
-            _commandExecutor.Execute(ObjectContainer.Resolve<ICommandContext>(), command);
+            var commandQueue = _commandQueueRouter.Route(command);
+            if (commandQueue == null)
+            {
+                throw new Exception("Could not route the command to an appropriate command queue.");
+            }
+
+            var waitHandle = new ManualResetEvent(false);
+            var commandAsyncResult = new CommandAsyncResult(waitHandle);
+
+            _commandAsyncResultManager.Add(command.Id, commandAsyncResult);
+            commandQueue.Enqueue(command);
+            waitHandle.WaitOne(command.MillisecondsTimeout);
+            _commandAsyncResultManager.Remove(command.Id);
+
+            if (!commandAsyncResult.IsCompleted)
+            {
+                throw new CommandTimeoutException(command.Id, command.GetType());
+            }
+            else if (commandAsyncResult.Exception != null)
+            {
+                throw new CommandExecuteException(command.Id, command.GetType(), commandAsyncResult.Exception);
+            }
+            else if (commandAsyncResult.ErrorMessage != null)
+            {
+                throw new CommandExecuteException(command.Id, command.GetType(), commandAsyncResult.ErrorMessage);
+            }
         }
     }
 }

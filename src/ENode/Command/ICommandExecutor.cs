@@ -6,6 +6,5 @@ namespace ENode.Commanding
     /// </summary>
     public interface ICommandExecutor : IMessageExecutor<ICommand>
     {
-        void Execute(ICommandContext context, ICommand command);
     }
 }

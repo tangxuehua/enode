@@ -62,7 +62,7 @@ namespace ENode.Commanding
 
             if (commandHandler == null)
             {
-                _logger.ErrorFormat("Command handler not found for {0}", command.GetType().FullName);
+                _logger.FatalFormat("Command handler not found for {0}", command.GetType().FullName);
                 return true;
             }
 
@@ -72,17 +72,21 @@ namespace ENode.Commanding
                 _processingCommandCache.Add(command);
                 commandHandler.Handle(_commandContext, command);
                 var dirtyAggregate = GetDirtyAggregate(_trackingContext);
-                var eventStream = BuildEventStream(dirtyAggregate, command);
-                if (eventStream != null)
+                if (dirtyAggregate != null)
                 {
-                    return SubmitChanges(dirtyAggregate, eventStream);
+                    var eventStream = BuildEventStream(dirtyAggregate, command);
+                    if (eventStream != null)
+                    {
+                        return SubmitChanges(dirtyAggregate, eventStream, command);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 var commandHandlerType = (commandHandler as ICommandHandlerWrapper).GetInnerCommandHandler().GetType();
-                _logger.Error(string.Format("Unknown exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id), ex);
-                _commandAsyncResultManager.TryComplete(command.Id, ex);
+                var errorMessage = string.Format("Unknown exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
+                _logger.Error(errorMessage, ex);
+                _commandAsyncResultManager.TryComplete(command.Id, errorMessage, ex);
             }
             finally
             {
@@ -91,44 +95,6 @@ namespace ENode.Commanding
             }
 
             return true;
-        }
-        public void Execute(ICommandContext context, ICommand command)
-        {
-            var trackingContext = context as ITrackingContext;
-            if (trackingContext == null)
-            {
-                throw new Exception("Command context must also implement ITrackingContext interface.");
-            }
-
-            var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
-            if (commandHandler == null)
-            {
-                throw new Exception(string.Format("Command handler not found for {0}", command.GetType().FullName));
-            }
-
-            commandHandler.Handle(context, command);
-
-            var dirtyAggregate = GetDirtyAggregate(trackingContext);
-            var eventStream = BuildEventStream(dirtyAggregate, command);
-            if (eventStream != null)
-            {
-                //Persist event stream.
-                _eventStore.Append(eventStream);
-
-                //Refresh memory cache.
-                try { RefreshMemoryCache(dirtyAggregate, eventStream); }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Unknown exception raised when refreshing memory cache for event stream:{0}", eventStream.GetStreamInformation()), ex);
-                }
-
-                //Publish event stream.
-                try { _eventPublisher.Publish(eventStream); }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Unknown exception raised when publishing event stream:{0}", eventStream.GetStreamInformation()), ex);
-                }
-            }
         }
 
         private AggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
@@ -162,7 +128,7 @@ namespace ENode.Commanding
                 DateTime.UtcNow,
                 uncommittedEvents);
         }
-        private bool SubmitChanges(AggregateRoot aggregateRoot, EventStream eventStream)
+        private bool SubmitChanges(AggregateRoot aggregateRoot, EventStream eventStream, ICommand command)
         {
             bool executed = false;
 
@@ -196,7 +162,7 @@ namespace ENode.Commanding
                 }
 
                 //Complete command async result if exist.
-                _commandAsyncResultManager.TryComplete(eventStream.CommandId, null);
+                _commandAsyncResultManager.TryComplete(command.Id, null, null);
             }
             else if (result == EventStreamPersistResult.Retried)
             {

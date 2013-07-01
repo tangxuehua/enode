@@ -29,17 +29,16 @@ namespace BankTransferSagaSample.EventHandlers
         void IEventHandler<TransferOutRequested>.Handle(TransferOutRequested evnt)
         {
             //响应“转出的命令请求已发起”这个事件，发送“转出”命令
-            _commandService.Send(new TransferOut { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo }, (result) =>
+            _commandService.Send(new TransferOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo }, (result) =>
             {
                 //这里是command的异步回调函数，如果有异常，则发送“处理转出失败”的命令
                 if (result.Exception != null)
                 {
                     _commandService.Send(
-                        new HandleFailedTransferOut
+                        new HandleFailedTransferOut(evnt.ProcessId)
                         {
-                            ProcessId = evnt.ProcessId,
                             TransferInfo = evnt.TransferInfo,
-                            ErrorMessage = result.Exception.Message
+                            Exception = result.Exception
                         });
                 }
             });
@@ -47,17 +46,16 @@ namespace BankTransferSagaSample.EventHandlers
         void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt)
         {
             //响应“转入的命令请求已发起”这个事件，发送“转入”命令
-            _commandService.Send(new TransferIn { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo }, (result) =>
+            _commandService.Send(new TransferIn(evnt.ProcessId) { TransferInfo = evnt.TransferInfo }, (result) =>
             {
                 //这里是command的异步回调函数，如果有异常，则发送“处理转入失败”的命令
                 if (result.Exception != null)
                 {
                     _commandService.Send(
-                        new HandleFailedTransferIn
+                        new HandleFailedTransferIn(evnt.ProcessId)
                         {
-                            ProcessId = evnt.ProcessId,
                             TransferInfo = evnt.TransferInfo,
-                            ErrorMessage = result.Exception.Message
+                            Exception = result.Exception
                         });
                 }
             });
@@ -65,7 +63,7 @@ namespace BankTransferSagaSample.EventHandlers
         void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt)
         {
             //响应“回滚转出的命令请求已发起”这个事件，发送“回滚转出”命令
-            _commandService.Send(new RollbackTransferOut { ProcessId = evnt.ProcessId, TransferInfo = evnt.TransferInfo });
+            _commandService.Send(new RollbackTransferOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
         }
         void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
         {

@@ -22,22 +22,4 @@ namespace BankTransferSagaSample.Commands
         public Guid AccountId { get; set; }
         public long Amount { get; set; }
     }
-    /// <summary>转出
-    /// </summary>
-    [Serializable]
-    public class TransferOut : AbstractTransferCommand
-    {
-    }
-    /// <summary>转入
-    /// </summary>
-    [Serializable]
-    public class TransferIn : AbstractTransferCommand
-    {
-    }
-    /// <summary>回滚转出
-    /// </summary>
-    [Serializable]
-    public class RollbackTransferOut : AbstractTransferCommand
-    {
-    }
 }

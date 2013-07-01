@@ -1,6 +1,5 @@
 ﻿using System;
 using BankTransferSagaSample.Domain;
-using ENode.Domain;
 
 namespace BankTransferSagaSample.Events
 {
@@ -11,9 +10,9 @@ namespace BankTransferSagaSample.Events
     {
         /// <summary>Represents the process result.
         /// </summary>
-        public ProcessResult ProcessResult { get; protected set; }
+        public TransferProcessResult ProcessResult { get; protected set; }
 
-        public TransferProcessCompleted(Guid processId, TransferInfo transferInfo, ProcessResult processResult)
+        public TransferProcessCompleted(Guid processId, TransferInfo transferInfo, TransferProcessResult processResult)
             : base(processId, transferInfo)
         {
             ProcessResult = processResult;

@@ -14,12 +14,17 @@ namespace ENode.Commanding
                 throw new Exception(string.Format("Command with id '{0}' is already exist.", commandId));
             }
         }
-        public void TryComplete(Guid commandId, Exception exception)
+        public void Remove(Guid commandId)
+        {
+            CommandAsyncResult commandAsyncResult;
+            _commandAsyncResultDict.TryRemove(commandId, out commandAsyncResult);
+        }
+        public void TryComplete(Guid commandId, string errorMessage, Exception exception)
         {
             CommandAsyncResult commandAsyncResult;
             if (_commandAsyncResultDict.TryRemove(commandId, out commandAsyncResult))
             {
-                commandAsyncResult.Complete(exception);
+                commandAsyncResult.Complete(errorMessage, exception);
             }
         }
     }
