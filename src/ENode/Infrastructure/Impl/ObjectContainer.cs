@@ -9,10 +9,10 @@ namespace ENode.Infrastructure
     {
         private static IObjectContainer _container;
 
-        /// <summary>Set the current object container.
+        /// <summary>Set the object container for the framework.
         /// </summary>
         /// <param name="container"></param>
-        internal static void SetCurrentContainer(IObjectContainer container)
+        public static void SetCurrentContainer(IObjectContainer container)
         {
             _container = container;
         }
