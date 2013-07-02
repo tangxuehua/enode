@@ -20,6 +20,7 @@ namespace NoteSample
                 .UseDefaultAggregateRootTypeProvider(assemblies)
                 .UseDefaultAggregateRootInternalHandlerProvider(assemblies)
                 .UseDefaultEventHandlerProvider(assemblies)
+                .UseDefaultEventPersistenceSynchronizerProvider(assemblies)
                 .UseAllDefaultProcessors(
                     new string[] { "CommandQueue" },
                     "RetryCommandQueue",

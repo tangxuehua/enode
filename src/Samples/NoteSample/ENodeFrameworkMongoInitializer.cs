@@ -23,6 +23,7 @@ namespace NoteSample
                 .UseDefaultAggregateRootTypeProvider(assemblies)
                 .UseDefaultAggregateRootInternalHandlerProvider(assemblies)
                 .UseDefaultEventHandlerProvider(assemblies)
+                .UseDefaultEventPersistenceSynchronizerProvider(assemblies)
 
                 //使用MongoDB来支持持久化
                 .UseDefaultEventCollectionNameProvider(eventCollection)

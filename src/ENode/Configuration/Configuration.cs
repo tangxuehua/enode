@@ -162,6 +162,14 @@ namespace ENode
             ObjectContainer.Register<IEventHandlerProvider>(new DefaultEventHandlerProvider(assemblies));
             return this;
         }
+        /// <summary>Use the DefaultEventPersistenceSynchronizerProvider as IEventPersistenceSynchronizerProvider.
+        /// </summary>
+        /// <returns></returns>
+        public Configuration UseDefaultEventPersistenceSynchronizerProvider(params Assembly[] assemblies)
+        {
+            ObjectContainer.Register<IEventPersistenceSynchronizerProvider>(new DefaultEventPersistenceSynchronizerProvider(assemblies));
+            return this;
+        }
 
         /// <summary>Use the RedisMemoryCache as IMemoryCache.
         /// </summary>

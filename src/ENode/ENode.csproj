@@ -50,7 +50,7 @@
     <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\RedisMemoryCache.cs" />
-    <Compile Include="Event\IEventIntecepter.cs" />
+    <Compile Include="Event\IEventPersistenceSynchronizer.cs" />
     <Compile Include="Event\Impl\ConcurrentException.cs" />
     <Compile Include="Event\EventStream.cs" />
     <Compile Include="Event\IEvent.cs" />
@@ -88,6 +88,8 @@
     <Compile Include="Event\IEventPublishInfoStore.cs" />
     <Compile Include="Event\IEventQueueRouter.cs" />
     <Compile Include="Event\IEventHandleInfoStore.cs" />
+    <Compile Include="Event\IEventPersistenceSynchronizerProvider.cs" />
+    <Compile Include="Event\Impl\DefaultEventPersistenceSynchronizerProvider.cs" />
     <Compile Include="Messaging\Impl\MongoDB\DefaultQueueCollectionNameProvider.cs" />
     <Compile Include="Messaging\Impl\MongoDB\IQueueCollectionNameProvider.cs" />
     <Compile Include="Messaging\Impl\MongoDB\MongoMessageStore.cs" />

@@ -18,6 +18,7 @@ namespace NoteSample
                 .UseDefaultAggregateRootTypeProvider(assemblies)
                 .UseDefaultAggregateRootInternalHandlerProvider(assemblies)
                 .UseDefaultEventHandlerProvider(assemblies)
+                .UseDefaultEventPersistenceSynchronizerProvider(assemblies)
 
                 //使用Redis作为Domain的内存缓存
                 .UseRedisMemoryCache("127.0.0.1", 6379)

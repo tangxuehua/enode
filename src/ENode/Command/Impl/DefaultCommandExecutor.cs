@@ -19,6 +19,7 @@ namespace ENode.Commanding
         private IRetryCommandService _retryCommandService;
         private IEventStore _eventStore;
         private IEventPublisher _eventPublisher;
+        private IEventPersistenceSynchronizerProvider _eventPersistenceSynchronizerProvider;
         private ICommandContext _commandContext;
         private ITrackingContext _trackingContext;
         private ILogger _logger;
@@ -37,6 +38,7 @@ namespace ENode.Commanding
             IRetryCommandService retryCommandService,
             IEventStore eventStore,
             IEventPublisher eventPublisher,
+            IEventPersistenceSynchronizerProvider eventPersistenceSynchronizerProvider,
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)
         {
@@ -49,9 +51,15 @@ namespace ENode.Commanding
             _retryCommandService = retryCommandService;
             _eventStore = eventStore;
             _eventPublisher = eventPublisher;
+            _eventPersistenceSynchronizerProvider = eventPersistenceSynchronizerProvider;
             _commandContext = commandContext;
             _trackingContext = commandContext as ITrackingContext;
             _logger = loggerFactory.Create(GetType().Name);
+
+            if (_trackingContext == null)
+            {
+                throw new Exception("command context must also implement ITrackingContext interface.");
+            }
         }
 
         #endregion
@@ -133,7 +141,29 @@ namespace ENode.Commanding
             bool executed = false;
 
             //Persist event stream.
-            EventStreamPersistResult result;
+            EventStreamPersistResult result = EventStreamPersistResult.None;
+
+            var synchronizers = _eventPersistenceSynchronizerProvider.GetSynchronizers(eventStream);
+            if (synchronizers != null && synchronizers.Count() > 0)
+            {
+                foreach (var synchronizer in synchronizers)
+                {
+                    try
+                    {
+                        synchronizer.OnBeforePersisting(eventStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
+                        _logger.Error(string.Format(
+                            "Unknown exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, command:{1}, event stream info:{2}",
+                            synchronizer.GetType().Name,
+                            commandInfo.Command.GetType().Name,
+                            eventStream.GetStreamInformation()), ex);
+                        return true;
+                    }
+                }
+            }
 
             try
             {
@@ -163,6 +193,26 @@ namespace ENode.Commanding
 
                 //Complete command async result if exist.
                 _commandAsyncResultManager.TryComplete(command.Id, null, null);
+
+                if (synchronizers != null && synchronizers.Count() > 0)
+                {
+                    foreach (var synchronizer in synchronizers)
+                    {
+                        try
+                        {
+                            synchronizer.OnAfterPersisted(eventStream);
+                        }
+                        catch (Exception ex)
+                        {
+                            var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
+                            _logger.Error(string.Format(
+                                "Unknown exception raised when calling synchronizer's OnAfterPersisted method. synchronizer:{0}, command:{1}, event stream info:{2}",
+                                synchronizer.GetType().Name,
+                                commandInfo.Command.GetType().Name,
+                                eventStream.GetStreamInformation()), ex);
+                        }
+                    }
+                }
             }
             else if (result == EventStreamPersistResult.Retried)
             {
@@ -229,6 +279,7 @@ namespace ENode.Commanding
 
         enum EventStreamPersistResult
         {
+            None,
             Success,
             Retried,
             UnknownException
