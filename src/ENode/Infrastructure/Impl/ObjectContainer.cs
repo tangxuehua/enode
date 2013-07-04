@@ -12,7 +12,7 @@ namespace ENode.Infrastructure
         /// <summary>Set the current object container.
         /// </summary>
         /// <param name="container"></param>
-        internal static void SetCurrentContainer(IObjectContainer container)
+        public static void SetCurrentContainer(IObjectContainer container)
         {
             _container = container;
         }
