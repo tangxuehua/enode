@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{473C2B
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniqueValidationSample", "src\Samples\UniqueValidationSample\UniqueValidationSample.csproj", "{BA45FCFF-C9C2-43C8-B651-941C55E022CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,16 @@ Global
 		{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}.Release|x86.ActiveCfg = Release|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +88,7 @@ Global
 		{0F069E27-C089-4EF1-B466-84C78EBA83AD} = {8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}
 		{698A4B5D-9AE1-41AA-992D-FDA944847EEB} = {8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}
 		{63EAC41D-65DA-4E14-95B0-BEAE86442F4F} = {8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}
+		{BA45FCFF-C9C2-43C8-B651-941C55E022CD} = {8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.2\lib\NET35
