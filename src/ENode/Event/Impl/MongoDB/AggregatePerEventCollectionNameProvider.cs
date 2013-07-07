@@ -5,7 +5,7 @@ using ENode.Domain;
 
 namespace ENode.Eventing.Storage.MongoDB
 {
-    public class AggregatePerEventCollectionNameProvider : IMongoCollectionNameProvider
+    public class AggregatePerEventCollectionNameProvider : IEventCollectionNameProvider
     {
         private IAggregateRootTypeProvider _aggregateRootTypeProvider;
 

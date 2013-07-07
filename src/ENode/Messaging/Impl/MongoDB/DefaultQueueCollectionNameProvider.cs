@@ -4,17 +4,17 @@ namespace ENode.Messaging.Storage.MongoDB
 {
     public class DefaultQueueCollectionNameProvider : IQueueCollectionNameProvider
     {
-        private string _collectionNameFormat;
+        private string _queueNameFormat;
 
-        public DefaultQueueCollectionNameProvider(string collectionNameFormat)
+        public DefaultQueueCollectionNameProvider(string queueNameFormat)
         {
-            _collectionNameFormat = collectionNameFormat;
+            _queueNameFormat = queueNameFormat;
         }
         public string GetCollectionName(string queueName)
         {
-            if (!string.IsNullOrEmpty(_collectionNameFormat))
+            if (!string.IsNullOrEmpty(_queueNameFormat))
             {
-                return string.Format(_collectionNameFormat, queueName);
+                return string.Format(_queueNameFormat, queueName);
             }
             return queueName;
         }

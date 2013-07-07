@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using ENode;
+using ENode.Domain;
+using ENode.Infrastructure;
 
 namespace NoteSample
 {
@@ -11,22 +13,16 @@ namespace NoteSample
 
             Configuration
                 .Create()
-                .UseTinyObjectContainer()
-                .RegisterAllDefaultFrameworkComponents()
-                .UseLog4Net("log4net.config")
-                .UseDefaultCommandHandlerProvider(assemblies)
-                .UseDefaultAggregateRootTypeProvider(assemblies)
-                .UseDefaultAggregateRootInternalHandlerProvider(assemblies)
-                .UseDefaultEventHandlerProvider(assemblies)
-                .UseDefaultEventPersistenceSynchronizerProvider(assemblies)
-
-                //使用Redis作为Domain的内存缓存
-                .UseRedisMemoryCache("127.0.0.1", 6379)
-
-                .UseAllDefaultProcessors(
+                .UseAutofacContainer()
+                .RegisterFrameworkComponents()
+                .RegisterBusinessComponents(assemblies)
+                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
+                .SetDefault<IMemoryCache, RedisMemoryCache>(new RedisMemoryCache("127.0.0.1", 6379))
+                .CreateAllDefaultProcessors(
                     new string[] { "CommandQueue" },
                     "RetryCommandQueue",
                     new string[] { "EventQueue" })
+                .Initialize(assemblies)
                 .Start();
         }
     }

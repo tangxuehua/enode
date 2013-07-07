@@ -5,7 +5,7 @@ namespace ENode.Eventing.Storage.MongoDB
 {
     /// <summary>Represents a provider to provide a mongo collection name.
     /// </summary>
-    public interface IMongoCollectionNameProvider
+    public interface IEventCollectionNameProvider
     {
         string GetCollectionName(string aggregateRootId, Type aggregateRootType);
         /// <summary>Get all the collection names of the eventstore.

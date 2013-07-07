@@ -7,6 +7,10 @@
     /// </summary>
     public interface IEventPersistenceSynchronizer
     {
+        /// <summary>Indicates whether the synchronizer want to synchronize the given event stream.
+        /// </summary>
+        /// <returns></returns>
+        bool IsSynchronizeTo(EventStream eventStream);
         /// <summary>Executed before persisting the event stream.
         /// </summary>
         void OnBeforePersisting(EventStream eventStream);

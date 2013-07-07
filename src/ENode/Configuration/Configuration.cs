@@ -15,11 +15,12 @@ using ENode.Snapshoting;
 
 namespace ENode
 {
-    /// <summary>enode framework global configuration entry.
+    /// <summary>ENode framework global configuration entry point.
     /// </summary>
     public class Configuration
     {
         private static Configuration _instance;
+        private IList<Type> _assemblyInitializerServiceTypes;
         private IList<ICommandProcessor> _commandProcessors;
         private ICommandProcessor _retryCommandProcessor;
         private IList<IEventProcessor> _eventProcessors;
@@ -53,11 +54,12 @@ namespace ENode
 
         private Configuration()
         {
+            _assemblyInitializerServiceTypes = new List<Type>();
             _commandProcessors = new List<ICommandProcessor>();
             _eventProcessors = new List<IEventProcessor>();
         }
 
-        /// <summary>Create an instance of configuration.
+        /// <summary>Create a new instance of configuration.
         /// </summary>
         /// <returns></returns>
         public static Configuration Create()
@@ -70,237 +72,138 @@ namespace ENode
             return _instance;
         }
 
-        /// <summary>Use the open source Tiny IoC container as the default object container.
+        /// <summary>Use autofac as the object container.
+        /// </summary>
+        public Configuration UseAutofacContainer()
+        {
+            ObjectContainer.SetContainer(new AutofacObjectContainer());
+            return this;
+        }
+        /// <summary>Register a implementer type as a service implementation.
+        /// </summary>
+        /// <typeparam name="TService">The service type.</typeparam>
+        /// <typeparam name="TImplementer">The implementer type.</typeparam>
+        /// <param name="life">The life cycle of the implementer type.</param>
+        public Configuration Register<TService, TImplementer>(LifeStyle life = LifeStyle.Singleton) where TService : class where TImplementer : class, TService
+        {
+            ObjectContainer.Register<TService, TImplementer>(life);
+            if (IsAssemblyInitializer<TImplementer>())
+            {
+                _assemblyInitializerServiceTypes.Add(typeof(TService));
+            }
+            return this;
+        }
+        /// <summary>Set the default service instance.
         /// <remarks>
-        /// Register all the default service implementation types of the framework into the container.
+        /// The life cycle of the instance is singleton.
         /// </remarks>
         /// </summary>
-        public Configuration UseTinyObjectContainer()
+        public Configuration SetDefault<TService, TImplementer>(TImplementer instance) where TService : class where TImplementer : class, TService
         {
-            ObjectContainer.SetCurrentContainer(new TinyObjectContainer());
+            ObjectContainer.RegisterInstance<TService, TImplementer>(instance);
+            if (IsAssemblyInitializer(instance))
+            {
+                _assemblyInitializerServiceTypes.Add(typeof(TService));
+            }
             return this;
         }
-        /// <summary>Use the Log4NetLoggerFactory as ILoggerFactory.
+        /// <summary>Register all the default components of enode framework.
         /// </summary>
-        /// <returns></returns>
-        public Configuration UseLog4Net(string configFile)
+        public Configuration RegisterFrameworkComponents()
         {
-            ObjectContainer.Register<ILoggerFactory>(new Log4NetLoggerFactory(configFile));
-            return this;
-        }
-        /// <summary>Use an efficient open source binary serializer.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseNetBinarySerializer(params Assembly[] assemblies)
-        {
-            ObjectContainer.Register<IBinarySerializer>(new NetBinarySerializer(assemblies));
-            return this;
-        }
+            Register<ILoggerFactory, EmptyLoggerFactory>();
+            Register<IJsonSerializer, NewtonsoftJsonSerializer>();
+            Register<IBinarySerializer, DefaultBinarySerializer>();
+            Register<IStringSerializer, DefaultStringSerializer>();
+            Register<IDbConnectionFactory, SqlDbConnectionFactory>();
+            Register<IMessageStore, EmptyMessageStore>();
 
-        /// <summary>Register all the service types in the assemblies.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration RegisterServiceTypes(params Assembly[] assemblies)
-        {
-            ObjectContainer.RegisterTypes(TypeUtils.IsService, assemblies);
-            return this;
-        }
-        /// <summary>Register all the component types in the assemblies.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration RegisterComponentTypes(params Assembly[] assemblies)
-        {
-            ObjectContainer.RegisterTypes(TypeUtils.IsComponent, assemblies);
-            return this;
-        }
-        /// <summary>Register all the repository types in the assemblies.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration RegisterRepositoryTypes(params Assembly[] assemblies)
-        {
-            ObjectContainer.RegisterTypes(TypeUtils.IsRepository, assemblies);
-            return this;
-        }
-        /// <summary>Register all the event handler types in the assemblies.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration RegisterEventHandlerTypes(params Assembly[] assemblies)
-        {
-            ObjectContainer.RegisterTypes(TypeUtils.IsEventHandler, assemblies);
-            return this;
-        }
+            Register<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();
+            Register<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
+            Register<IAggregateRootFactory, DefaultAggregateRootFactory>();
+            Register<IMemoryCache, DefaultMemoryCache>();
+            Register<IRepository, EventSourcingRepository>();
+            Register<IMemoryCacheRebuilder, DefaultMemoryCacheRebuilder>();
 
-        /// <summary>Use the DefaultCommandHandlerProvider as ICommandHandlerProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultCommandHandlerProvider(params Assembly[] assemblies)
-        {
-            ObjectContainer.Register<ICommandHandlerProvider>(new DefaultCommandHandlerProvider(assemblies));
-            return this;
-        }
-        /// <summary>Use the DefaultAggregateRootInternalHandlerProvider as IAggregateRootInternalHandlerProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultAggregateRootInternalHandlerProvider(params Assembly[] assemblies)
-        {
-            ObjectContainer.Register<IAggregateRootInternalHandlerProvider>(new DefaultAggregateRootInternalHandlerProvider(assemblies));
-            return this;
-        }
-        /// <summary>Use the DefaultAggregateRootTypeProvider as IAggregateRootTypeProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultAggregateRootTypeProvider(params Assembly[] assemblies)
-        {
-            ObjectContainer.Register<IAggregateRootTypeProvider>(new DefaultAggregateRootTypeProvider(assemblies));
-            return this;
-        }
-        /// <summary>Use the DefaultEventHandlerProvider as IEventHandlerProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultEventHandlerProvider(params Assembly[] assemblies)
-        {
-            ObjectContainer.Register<IEventHandlerProvider>(new DefaultEventHandlerProvider(assemblies));
-            return this;
-        }
-        /// <summary>Use the DefaultEventPersistenceSynchronizerProvider as IEventPersistenceSynchronizerProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultEventPersistenceSynchronizerProvider(params Assembly[] assemblies)
-        {
-            ObjectContainer.Register<IEventPersistenceSynchronizerProvider>(new DefaultEventPersistenceSynchronizerProvider(assemblies));
-            return this;
-        }
+            Register<ISnapshotter, DefaultSnapshotter>();
+            Register<ISnapshotPolicy, NoSnapshotPolicy>();
+            Register<ISnapshotStore, EmptySnapshotStore>();
 
-        /// <summary>Use the RedisMemoryCache as IMemoryCache.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseRedisMemoryCache(string host, int port)
-        {
-            ObjectContainer.Register<IMemoryCache>(new RedisMemoryCache(host, port));
-            return this;
-        }
+            Register<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
+            Register<ICommandQueueRouter, DefaultCommandQueueRouter>();
+            Register<IProcessingCommandCache, DefaultProcessingCommandCache>();
+            Register<ICommandAsyncResultManager, DefaultCommandAsyncResultManager>();
+            Register<ICommandService, DefaultCommandService>();
+            Register<IRetryCommandService, DefaultRetryCommandService>();
 
-        #region SQL Config
+            Register<IEventHandlerProvider, DefaultEventHandlerProvider>();
+            Register<IEventPersistenceSynchronizerProvider, DefaultEventPersistenceSynchronizerProvider>();
+            Register<IEventStore, InMemoryEventStore>();
+            Register<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
+            Register<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
+            Register<IEventQueueRouter, DefaultEventQueueRouter>();
+            Register<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
+            Register<IEventPublisher, DefaultEventPublisher>();
 
-        /// <summary>Use the SqlEventStore as IEventStore.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseSqlEventStore(string connectionString)
-        {
-            ObjectContainer.Register<IEventStore>(new SqlEventStore(connectionString));
-            return this;
-        }
-        /// <summary>Use the SqlMessageStore as IMessageStore.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseSqlMessageStore(string connectionString)
-        {
-            ObjectContainer.Register<IMessageStore>(new SqlMessageStore(connectionString));
-            return this;
-        }
-        /// <summary>Use the SqlEventPublishInfoStore as IEventPublishInfoStore.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseSqlEventPublishInfoStore(string connectionString, string tableName)
-        {
-            ObjectContainer.Register<IEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, tableName));
-            return this;
-        }
-        /// <summary>Use the SqlEventHandleInfoStore as IEventHandleInfoStore.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseSqlEventHandleInfoStore(string connectionString, string tableName)
-        {
-            ObjectContainer.Register<IEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, tableName));
-            return this;
-        }
-        /// <summary>Use the DefaultEventTableNameProvider as IEventTableNameProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultEventTableNameProvider(string tableName)
-        {
-            ObjectContainer.Register<IEventTableNameProvider>(new DefaultEventTableNameProvider(tableName));
-            return this;
-        }
-        /// <summary>Use the AggregatePerEventTableNameProvider as IEventTableNameProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseAggregatePerEventTableNameProvider(string tableName)
-        {
-            ObjectContainer.Register<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
-            return this;
-        }
-        /// <summary>Use the DefaultQueueTableNameProvider as IQueueTableNameProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultQueueTableNameProvider(string tableNameFormat = null)
-        {
-            ObjectContainer.Register<IQueueTableNameProvider>(new DefaultQueueTableNameProvider(tableNameFormat));
-            return this;
-        }
+            Register<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
+            Register<ICommandExecutor, DefaultCommandExecutor>(LifeStyle.Transient);
+            Register<IEventExecutor, DefaultEventExecutor>(LifeStyle.Transient);
 
-        #endregion
-
-        #region MongoDB Config
-
-        /// <summary>Use MongoEventStore as IEventStore.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseMongoEventStore(string connectionString)
-        {
-            ObjectContainer.Register<IEventStore>(new MongoEventStore(connectionString));
             return this;
         }
-        /// <summary>Use MongoMessageStore as IMessageStore.
+        /// <summary>Register all the business components from the given assemblies.
         /// </summary>
-        /// <returns></returns>
-        public Configuration UseMongoMessageStore(string connectionString)
+        public Configuration RegisterBusinessComponents(params Assembly[] assemblies)
         {
-            ObjectContainer.Register<IMessageStore>(new MongoMessageStore(connectionString));
+            foreach (var assembly in assemblies)
+            {
+                foreach (var type in assembly.GetExportedTypes().Where(TypeUtils.IsComponent))
+                {
+                    ObjectContainer.RegisterType(type, ParseLife(type));
+                    if (IsAssemblyInitializer(type))
+                    {
+                        _assemblyInitializerServiceTypes.Add(type);
+                    }
+                }
+            }
             return this;
         }
-        /// <summary>Use the MongoEventPublishInfoStore as IEventPublishInfoStore.
+        /// <summary>Use SQL DB as the storage of the whole framework.
         /// </summary>
+        /// <param name="connectionString">The connection string of the DB.</param>
+        /// <param name="eventTable">The table used to store all the domain events.</param>
+        /// <param name="queueNameFormat">The format of the queue name.</param>
+        /// <param name="eventPublishInfoTable">The table used to store all the event publish information.</param>
+        /// <param name="eventHandleInfoTable">The table used to store all the event handle information.</param>
         /// <returns></returns>
-        public Configuration UseMongoEventPublishInfoStore(string connectionString, string collectionName)
+        public Configuration UseSqlAsStorage(string connectionString, string eventTable, string queueNameFormat, string eventPublishInfoTable, string eventHandleInfoTable)
         {
-            ObjectContainer.Register<IEventPublishInfoStore>(new MongoEventPublishInfoStore(connectionString, collectionName));
+            SetDefault<IEventTableNameProvider, DefaultEventTableNameProvider>(new DefaultEventTableNameProvider(eventTable));
+            SetDefault<IQueueTableNameProvider, DefaultQueueTableNameProvider>(new DefaultQueueTableNameProvider(queueNameFormat));
+            SetDefault<IMessageStore, SqlMessageStore>(new SqlMessageStore(connectionString));
+            SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
+            SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
+            SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
             return this;
         }
-        /// <summary>Use the MongoEventHandleInfoStore as IEventHandleInfoStore.
+        /// <summary>Use MongoDB as the storage of the whole framework.
         /// </summary>
+        /// <param name="connectionString">The connection string of the mongodb server.</param>
+        /// <param name="eventCollectionName">The mongo collection used to store all the domain event.</param>
+        /// <param name="queueNameFormat">The format of the queue name.</param>
+        /// <param name="eventPublishInfoCollectionName">The collection used to store all the event publish information.</param>
+        /// <param name="eventHandleInfoCollectionName">The collection used to store all the event handle information.</param>
         /// <returns></returns>
-        public Configuration UseMongoEventHandleInfoStore(string connectionString, string collectionName)
+        public Configuration UseMongoAsStorage(string connectionString, string eventCollectionName, string queueNameFormat, string eventPublishInfoCollectionName, string eventHandleInfoCollectionName)
         {
-            ObjectContainer.Register<IEventHandleInfoStore>(new MongoEventHandleInfoStore(connectionString, collectionName));
+            SetDefault<IEventCollectionNameProvider, DefaultEventCollectionNameProvider>(new DefaultEventCollectionNameProvider(eventCollectionName));
+            SetDefault<IQueueCollectionNameProvider, DefaultQueueCollectionNameProvider>(new DefaultQueueCollectionNameProvider(queueNameFormat));
+            SetDefault<IMessageStore, MongoMessageStore>(new MongoMessageStore(connectionString));
+            SetDefault<IEventStore, MongoEventStore>(new MongoEventStore(connectionString));
+            SetDefault<IEventPublishInfoStore, MongoEventPublishInfoStore>(new MongoEventPublishInfoStore(connectionString, eventPublishInfoCollectionName));
+            SetDefault<IEventHandleInfoStore, MongoEventHandleInfoStore>(new MongoEventHandleInfoStore(connectionString, eventHandleInfoCollectionName));
             return this;
         }
-        /// <summary>Use the DefaultEventCollectionNameProvider as IMongoCollectionNameProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultEventCollectionNameProvider(string collectionName)
-        {
-            ObjectContainer.Register<IMongoCollectionNameProvider>(new DefaultEventCollectionNameProvider(collectionName));
-            return this;
-        }
-        /// <summary>Use the AggregatePerEventCollectionNameProvider as IMongoCollectionNameProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseAggregatePerEventCollectionNameProvider()
-        {
-            ObjectContainer.Register<IMongoCollectionNameProvider, AggregatePerEventCollectionNameProvider>();
-            return this;
-        }
-        /// <summary>Use the DefaultQueueCollectionNameProvider as IQueueCollectionNameProvider.
-        /// </summary>
-        /// <returns></returns>
-        public Configuration UseDefaultQueueCollectionNameProvider(string collectionNameFormat = null)
-        {
-            ObjectContainer.Register<IQueueCollectionNameProvider>(new DefaultQueueCollectionNameProvider(collectionNameFormat));
-            return this;
-        }
-
-        #endregion
 
         /// <summary>Add a command processor.
         /// </summary>
@@ -329,13 +232,13 @@ namespace ENode
             _eventProcessors.Add(eventProcessor);
             return this;
         }
-        /// <summary>Config all the message processors with the given queue names at once.
+        /// <summary>Create all the message processors with the given queue names at once.
         /// </summary>
         /// <param name="commandQueueNames">Represents the command queue names.</param>
         /// <param name="retryCommandQueueName">Represents the retry command queue name.</param>
         /// <param name="eventQueueNames">Represents the committed event queue names.</param>
         /// <returns></returns>
-        public Configuration UseAllDefaultProcessors(IEnumerable<string> commandQueueNames, string retryCommandQueueName, IEnumerable<string> eventQueueNames, MessageProcessorOption option = null)
+        public Configuration CreateAllDefaultProcessors(IEnumerable<string> commandQueueNames, string retryCommandQueueName, IEnumerable<string> eventQueueNames, MessageProcessorOption option = null)
         {
             var messageProcessorOption = option;
             if (messageProcessorOption == null)
@@ -355,7 +258,17 @@ namespace ENode
 
             return this;
         }
-
+        /// <summary>Initialize all the assembly initializers with the given assemblies.
+        /// </summary>
+        /// <returns></returns>
+        public Configuration Initialize(params Assembly[] assemblies)
+        {
+            foreach (var serviceType in _assemblyInitializerServiceTypes)
+            {
+                (ObjectContainer.Resolve(serviceType) as IAssemblyInitializer).Initialize(assemblies);
+            }
+            return this;
+        }
         /// <summary>Start the enode framework.
         /// </summary>
         /// <returns></returns>
@@ -368,45 +281,23 @@ namespace ENode
 
             return this;
         }
-        /// <summary>Register all the default components of enode framework.
+        /// <summary>Start the framework with all the default configuration.
         /// </summary>
         /// <returns></returns>
-        public Configuration RegisterAllDefaultFrameworkComponents()
+        public static Configuration StartWithAllDefault(params Assembly[] assemblies)
         {
-            ObjectContainer.Register<ILoggerFactory, EmptyLoggerFactory>();
-            ObjectContainer.Register<IJsonSerializer, NewtonsoftJsonSerializer>();
-            ObjectContainer.Register<IBinarySerializer, DefaultBinarySerializer>();
-            ObjectContainer.Register<IStringSerializer, DefaultStringSerializer>();
-            ObjectContainer.Register<IDbConnectionFactory, SqlDbConnectionFactory>();
-            ObjectContainer.Register<IMessageStore, EmptyMessageStore>();
-
-            ObjectContainer.Register<IAggregateRootFactory, DefaultAggregateRootFactory>();
-            ObjectContainer.Register<IMemoryCache, DefaultMemoryCache>();
-            ObjectContainer.Register<IRepository, EventSourcingRepository>();
-            ObjectContainer.Register<IMemoryCacheRebuilder, DefaultMemoryCacheRebuilder>();
-
-            ObjectContainer.Register<ISnapshotter, DefaultSnapshotter>();
-            ObjectContainer.Register<ISnapshotPolicy, NoSnapshotPolicy>();
-            ObjectContainer.Register<ISnapshotStore, EmptySnapshotStore>();
-
-            ObjectContainer.Register<ICommandQueueRouter, DefaultCommandQueueRouter>();
-            ObjectContainer.Register<IProcessingCommandCache, DefaultProcessingCommandCache>();
-            ObjectContainer.Register<ICommandAsyncResultManager, DefaultCommandAsyncResultManager>();
-            ObjectContainer.Register<ICommandService, DefaultCommandService>();
-            ObjectContainer.Register<IRetryCommandService, DefaultRetryCommandService>();
-
-            ObjectContainer.Register<IEventStore, InMemoryEventStore>();
-            ObjectContainer.Register<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
-            ObjectContainer.Register<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
-            ObjectContainer.Register<IEventQueueRouter, DefaultEventQueueRouter>();
-            ObjectContainer.Register<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
-            ObjectContainer.Register<IEventPublisher, DefaultEventPublisher>();
-
-            ObjectContainer.Register<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
-            ObjectContainer.Register<ICommandExecutor, DefaultCommandExecutor>(LifeStyle.Transient);
-            ObjectContainer.Register<IEventExecutor, DefaultEventExecutor>(LifeStyle.Transient);
-
-            return this;
+            return Configuration
+                .Create()
+                .UseAutofacContainer()
+                .RegisterFrameworkComponents()
+                .RegisterBusinessComponents(assemblies)
+                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
+                .CreateAllDefaultProcessors(
+                    new string[] { "CommandQueue" },
+                    "RetryCommandQueue",
+                    new string[] { "EventQueue" })
+                .Initialize(assemblies)
+                .Start();
         }
 
         private void ValidateProcessors()
@@ -447,6 +338,24 @@ namespace ENode
             {
                 eventProcessor.Start();
             }
+        }
+
+        private LifeStyle ParseLife(Type type)
+        {
+            var componentAttributes = type.GetCustomAttributes(typeof(ComponentAttribute), false);
+            return componentAttributes.Count() <= 0 ? LifeStyle.Transient : (componentAttributes[0] as ComponentAttribute).LifeStyle;
+        }
+        private bool IsAssemblyInitializer<T>()
+        {
+            return typeof(IAssemblyInitializer).IsAssignableFrom(typeof(T));
+        }
+        private bool IsAssemblyInitializer(Type type)
+        {
+            return typeof(IAssemblyInitializer).IsAssignableFrom(type);
+        }
+        private bool IsAssemblyInitializer(object instance)
+        {
+            return instance is IAssemblyInitializer;
         }
     }
 

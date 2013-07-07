@@ -12,7 +12,7 @@ namespace ENode.Eventing.Storage.MongoDB
 {
     public class MongoEventStore : IEventStore
     {
-        private IMongoCollectionNameProvider _collectionNameProvider;
+        private IEventCollectionNameProvider _eventCollectionNameProvider;
         private IBinarySerializer _binarySerializer;
         private IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private string _connectionString;
@@ -26,7 +26,7 @@ namespace ENode.Eventing.Storage.MongoDB
 
             _connectionString = connectionString;
 
-            _collectionNameProvider = ObjectContainer.Resolve<IMongoCollectionNameProvider>();
+            _eventCollectionNameProvider = ObjectContainer.Resolve<IEventCollectionNameProvider>();
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _aggregateRootTypeProvider = ObjectContainer.Resolve<IAggregateRootTypeProvider>();
         }
@@ -41,7 +41,7 @@ namespace ENode.Eventing.Storage.MongoDB
             try
             {
                 var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(stream.AggregateRootName);
-                var collectionName = _collectionNameProvider.GetCollectionName(stream.AggregateRootId, aggregateRootType);
+                var collectionName = _eventCollectionNameProvider.GetCollectionName(stream.AggregateRootId, aggregateRootType);
                 var collection = GetMongoCollection(collectionName);
                 collection.Insert(ToMongoEventStream(stream));
             }
@@ -59,7 +59,7 @@ namespace ENode.Eventing.Storage.MongoDB
         }
         public IEnumerable<EventStream> Query(string aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
         {
-            var collectionName = _collectionNameProvider.GetCollectionName(aggregateRootId, aggregateRootType);
+            var collectionName = _eventCollectionNameProvider.GetCollectionName(aggregateRootId, aggregateRootType);
             var collection = GetMongoCollection(collectionName);
 
             var query = MongoQuery.And(
@@ -74,7 +74,7 @@ namespace ENode.Eventing.Storage.MongoDB
         }
         public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
         {
-            var collectionName = _collectionNameProvider.GetCollectionName(aggregateRootId, aggregateRootType);
+            var collectionName = _eventCollectionNameProvider.GetCollectionName(aggregateRootId, aggregateRootType);
             var collection = GetMongoCollection(collectionName);
             var query = MongoQuery.EQ("Id", id.ToString());
             var count = collection.Count(query);
@@ -83,7 +83,7 @@ namespace ENode.Eventing.Storage.MongoDB
         }
         public IEnumerable<EventStream> QueryAll()
         {
-            var collectionNames = _collectionNameProvider.GetAllCollectionNames();
+            var collectionNames = _eventCollectionNameProvider.GetAllCollectionNames();
             var streams = new List<EventStream>();
 
             foreach (var collectionName in collectionNames)

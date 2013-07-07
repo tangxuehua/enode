@@ -1,5 +1,6 @@
 ﻿using System;
 using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Eventing
 {
@@ -25,69 +26,76 @@ namespace ENode.Eventing
             _logger = loggerFactory.Create(GetType().Name);
         }
 
-        public bool Execute(EventStream stream)
+        public MessageExecuteResult Execute(EventStream stream)
         {
             //If it is the first event stream of the aggregate, then do the event dispatching logic directly.
             if (stream.Version == 1)
             {
                 var result = DoDispatchingLogic(stream);
-                if (result == DispatchEventStreamResult.Success || result == DispatchEventStreamResult.RePublished)
+                if (result == DispatchResult.None ||
+                    result == DispatchResult.Success ||
+                    result == DispatchResult.RePublished)
                 {
-                    return true;
+                    return MessageExecuteResult.Executed;
                 }
-                else
+                else if (result == DispatchResult.Failed)
                 {
-                    return false;
+                    return MessageExecuteResult.Failed;
                 }
             }
 
-            var eventPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(stream.AggregateRootId);
+            var lastEventPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(stream.AggregateRootId);
 
             //If the last published event stream version + 1 is smaller than the current event stream version.
             //That means there must be some event streams which before the current event stream have not been published yet.
             //So in this case, we should retry to publish the event stream.
-            if (eventPublishedVersion + 1 < stream.Version)
+            if (lastEventPublishedVersion + 1 < stream.Version)
             {
                 RePublishEventStream(stream);
-                return true;
+                return MessageExecuteResult.Executed;
             }
-
             //If the current event stream is exactly the next event stream version, then do the event dispatching logic.
-            if (eventPublishedVersion + 1 == stream.Version)
+            else if (lastEventPublishedVersion + 1 == stream.Version)
             {
                 var result = DoDispatchingLogic(stream);
-                if (result == DispatchEventStreamResult.Success || result == DispatchEventStreamResult.RePublished)
+                if (result == DispatchResult.None ||
+                    result == DispatchResult.Success ||
+                    result == DispatchResult.RePublished)
                 {
-                    return true;
+                    return MessageExecuteResult.Executed;
+                }
+                else if (result == DispatchResult.Failed)
+                {
+                    return MessageExecuteResult.Failed;
                 }
             }
 
-            return false;
+            return MessageExecuteResult.Executed;
         }
 
-        private DispatchEventStreamResult DoDispatchingLogic(EventStream stream)
+        private DispatchResult DoDispatchingLogic(EventStream eventStream)
         {
             var isDispatched = false;
 
             try
             {
-                DispatchEventStreamToEventHandlers(stream);
+                DispatchEventStreamToEventHandlers(eventStream);
                 isDispatched = true;
-                UpdatePublishedEventStreamVersion(stream);
-                return DispatchEventStreamResult.Success;
+                UpdatePublishedEventStreamVersion(eventStream);
+                return DispatchResult.Success;
             }
             catch (Exception ex)
             {
-                _logger.Error(ex);
+                _logger.Error(string.Format("Unknown exception raised when dispatching event stream:{0}", eventStream.GetStreamInformation()), ex);
 
                 if (!isDispatched)
                 {
-                    RePublishEventStream(stream);
-                    return DispatchEventStreamResult.RePublished;
+                    RePublishEventStream(eventStream);
+                    return DispatchResult.RePublished;
                 }
                 else
                 {
-                    return DispatchEventStreamResult.Failed;
+                    return DispatchResult.Failed;
                 }
             }
         }
@@ -148,8 +156,9 @@ namespace ENode.Eventing
                 exception);
         }
 
-        enum DispatchEventStreamResult
+        enum DispatchResult
         {
+            None,
             Success,
             RePublished,
             Failed

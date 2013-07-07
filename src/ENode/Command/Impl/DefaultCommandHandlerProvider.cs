@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
-    public class DefaultCommandHandlerProvider : ICommandHandlerProvider
+    public class DefaultCommandHandlerProvider : ICommandHandlerProvider, IAssemblyInitializer
     {
         private ConcurrentDictionary<Type, ICommandHandler> _commandHandlerDict = new ConcurrentDictionary<Type, ICommandHandler>();
 
-        public DefaultCommandHandlerProvider(params Assembly[] assemblies)
+        public void Initialize(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
@@ -30,7 +30,7 @@ namespace ENode.Commanding
         private void RegisterAllCommandHandlersInAssembly(Assembly assembly)
         {
             var targetType = typeof(ICommandHandler<>);
-            var types = assembly.GetExportedTypes();
+            var types = assembly.GetTypes();
             var commandHandlerTypes = types.Where(x => x.IsInterface == false && x.IsAbstract == false && x.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == targetType));
 
             foreach (var commandHandlerType in commandHandlerTypes)
@@ -41,7 +41,7 @@ namespace ENode.Commanding
                 {
                     var commandType = handlerType.GetGenericArguments().Single();
                     var commandHandlerWrapperType = typeof(CommandHandlerWrapper<>).MakeGenericType(commandType);
-                    var commandHandler = Activator.CreateInstance(commandHandlerType);
+                    var commandHandler = ObjectContainer.Resolve(commandHandlerType);
                     var commandHandlerWrapper = Activator.CreateInstance(commandHandlerWrapperType, new object[] { commandHandler }) as ICommandHandler;
                     RegisterCommandHandler(commandType, commandHandlerWrapper);
                 }

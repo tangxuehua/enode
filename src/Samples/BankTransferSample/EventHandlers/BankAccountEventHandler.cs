@@ -3,9 +3,11 @@ using BankTransferSample.Commands;
 using BankTransferSample.Events;
 using ENode.Commanding;
 using ENode.Eventing;
+using ENode.Infrastructure;
 
 namespace BankTransferSample.EventHandlers
 {
+    [Component]
     public class BankAccountEventHandler :
         IEventHandler<AccountOpened>,
         IEventHandler<Deposited>,

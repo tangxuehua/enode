@@ -3,11 +3,13 @@ using BankTransferSagaSample.Commands;
 using BankTransferSagaSample.Events;
 using ENode.Commanding;
 using ENode.Eventing;
+using ENode.Infrastructure;
 
 namespace BankTransferSagaSample.EventHandlers
 {
     /// <summary>事件订阅者，用于监听和响应转账流程聚合根产生的事件
     /// </summary>
+    [Component]
     public class TransferProcessEventHandler :
         IEventHandler<TransferProcessStarted>,       //转账流程已开始
         IEventHandler<TransferOutRequested>,         //转出的请求已发起

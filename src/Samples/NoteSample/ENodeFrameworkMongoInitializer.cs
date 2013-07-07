@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using ENode;
+using ENode.Infrastructure;
 
 namespace NoteSample
 {
@@ -7,7 +8,7 @@ namespace NoteSample
     {
         public void Initialize()
         {
-            var connectionString = "mongodb://localhost/EventDB";
+            var connectionString = "mongodb://localhost/NoteDB";
             var eventCollection = "Event";
             var eventPublishInfoCollection = "EventPublishInfo";
             var eventHandleInfoCollection = "EventHandleInfo";
@@ -16,27 +17,16 @@ namespace NoteSample
 
             Configuration
                 .Create()
-                .UseTinyObjectContainer()
-                .RegisterAllDefaultFrameworkComponents()
-                .UseLog4Net("log4net.config")
-                .UseDefaultCommandHandlerProvider(assemblies)
-                .UseDefaultAggregateRootTypeProvider(assemblies)
-                .UseDefaultAggregateRootInternalHandlerProvider(assemblies)
-                .UseDefaultEventHandlerProvider(assemblies)
-                .UseDefaultEventPersistenceSynchronizerProvider(assemblies)
-
-                //使用MongoDB来支持持久化
-                .UseDefaultEventCollectionNameProvider(eventCollection)
-                .UseDefaultQueueCollectionNameProvider()
-                .UseMongoMessageStore(connectionString)
-                .UseMongoEventStore(connectionString)
-                .UseMongoEventPublishInfoStore(connectionString, eventPublishInfoCollection)
-                .UseMongoEventHandleInfoStore(connectionString, eventHandleInfoCollection)
-
-                .UseAllDefaultProcessors(
+                .UseAutofacContainer()
+                .RegisterFrameworkComponents()
+                .RegisterBusinessComponents(assemblies)
+                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
+                .UseMongoAsStorage(connectionString, eventCollection, null, eventPublishInfoCollection, eventHandleInfoCollection)
+                .CreateAllDefaultProcessors(
                     new string[] { "CommandQueue" },
                     "RetryCommandQueue",
                     new string[] { "EventQueue" })
+                .Initialize(assemblies)
                 .Start();
         }
     }

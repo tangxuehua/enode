@@ -39,5 +39,10 @@ namespace ENode.Commanding
             MillisecondsTimeout = millisecondsTimeout;
             RetryCount = retryCount;
         }
+
+        public override string ToString()
+        {
+            return string.Format("CommandType:{0},Id:{1}", GetType().FullName, Id);
+        }
     }
 }

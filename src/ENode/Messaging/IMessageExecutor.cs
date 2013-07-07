@@ -9,14 +9,14 @@ namespace ENode.Messaging
         /// <summary>Execute the given queue message.
         /// <remarks>
         /// The message executor will determine that whether the message was execute successfully,
-        /// If the message was executed successful, then return true; otherwise, return false;
-        /// If return false, then the message will be re-executed again for 3 times by default.
-        /// If still return false, then the message will be put to a queue within the messag processor,
-        /// and a worker thread will execute the message later with some interval.
+        /// If the message was executed successfully, then return MessageExecuteResult.Executed; otherwise, return MessageExecuteResult.Failed;
+        /// If return MessageExecuteResult.Failed, then the message will be re-executed again for 3 times by default.
+        /// If still return MessageExecuteResult.Failed, then the message will be put to a local retry queue within the messag processor,
+        /// and a worker thread will execute the message later with some interval repeatedly until the message was executed successfully.
         /// </remarks>
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        bool Execute(T message);
+        MessageExecuteResult Execute(T message);
     }
 }

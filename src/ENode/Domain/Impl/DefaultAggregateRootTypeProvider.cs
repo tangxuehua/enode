@@ -6,11 +6,11 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain
 {
-    public class DefaultAggregateRootTypeProvider : IAggregateRootTypeProvider
+    public class DefaultAggregateRootTypeProvider : IAggregateRootTypeProvider, IAssemblyInitializer
     {
         private IDictionary<string, Type> _mappings = new Dictionary<string, Type>();
 
-        public DefaultAggregateRootTypeProvider(params Assembly[] assemblies)
+        public void Initialize(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {

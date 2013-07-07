@@ -7,11 +7,11 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain
 {
-    public class DefaultAggregateRootInternalHandlerProvider : IAggregateRootInternalHandlerProvider
+    public class DefaultAggregateRootInternalHandlerProvider : IAggregateRootInternalHandlerProvider, IAssemblyInitializer
     {
         private IDictionary<Type, IDictionary<Type, MethodInfo>> _mappings = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
 
-        public DefaultAggregateRootInternalHandlerProvider(params Assembly[] assemblies)
+        public void Initialize(params Assembly[] assemblies)
         {
             var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
             foreach (var assembly in assemblies)

@@ -3,11 +3,13 @@ using BankTransferSagaSample.Commands;
 using BankTransferSagaSample.Events;
 using ENode.Commanding;
 using ENode.Eventing;
+using ENode.Infrastructure;
 
 namespace BankTransferSagaSample.EventHandlers
 {
     /// <summary>事件订阅者，用于监听和响应银行账号聚合根产生的事件
     /// </summary>
+    [Component]
     public class BankAccountEventHandler :
         IEventHandler<AccountOpened>,         //银行账户已开
         IEventHandler<Deposited>,             //钱已存入

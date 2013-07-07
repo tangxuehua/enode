@@ -30,48 +30,12 @@ namespace ENode.Infrastructure
                 return (T)Convert.ChangeType(value, typeof(T));
             }
         }
-        /// <summary>Check whether a type is a controller.
-        /// </summary>
-        public static bool IsController(Type type)
-        {
-            return type != null
-                   && type.Name.EndsWith("Controller", StringComparison.InvariantCultureIgnoreCase)
-                   && !type.IsAbstract
-                   && !type.IsInterface;
-        }
-        /// <summary>Check whether a type is a repository.
-        /// </summary>
-        public static bool IsRepository(Type type)
-        {
-            return type != null
-                 && type.Name.EndsWith("Repository", StringComparison.InvariantCultureIgnoreCase)
-                 && !type.IsAbstract
-                 && !type.IsInterface;
-        }
-        /// <summary>Check whether a type is a service.
-        /// </summary>
-        public static bool IsService(Type type)
-        {
-            return type != null
-                 && type.Name.EndsWith("Service", StringComparison.InvariantCultureIgnoreCase)
-                 && !type.IsAbstract
-                 && !type.IsInterface;
-        }
         /// <summary>Check whether a type is a component.
         /// </summary>
         public static bool IsComponent(Type type)
         {
             return type != null
                  && type.GetCustomAttributes(typeof(ComponentAttribute), false).Count() > 0
-                 && !type.IsAbstract
-                 && !type.IsInterface;
-        }
-        /// <summary>Check whether a type is an event handler.
-        /// </summary>
-        public static bool IsEventHandler(Type type)
-        {
-            return type != null
-                 && type.Name.EndsWith("EventHandler", StringComparison.InvariantCultureIgnoreCase)
                  && !type.IsAbstract
                  && !type.IsInterface;
         }

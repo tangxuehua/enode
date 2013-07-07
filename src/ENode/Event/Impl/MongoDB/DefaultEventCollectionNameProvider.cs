@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ENode.Eventing.Storage.MongoDB
 {
-    public class DefaultEventCollectionNameProvider : IMongoCollectionNameProvider
+    public class DefaultEventCollectionNameProvider : IEventCollectionNameProvider
     {
         private string _collectionName;
 

@@ -1,84 +1,41 @@
 ﻿using System;
-using System.Reflection;
 
 namespace ENode.Infrastructure
 {
-    /// <summary>Represents a ioc object container.
+    /// <summary>Represents an object container interface.
     /// </summary>
     public interface IObjectContainer
     {
-        /// <summary>Register a type and all its interfaces.
+        /// <summary>Register a implementation type.
         /// </summary>
-        /// <param name="type"></param>
-        void RegisterType(Type type);
-        /// <summary>Register a type and all its interfaces with a specific key.
+        /// <param name="implementationType">The implementation type.</param>
+        /// <param name="life">The life cycle of the implementer type.</param>
+        void RegisterType(Type implementationType, LifeStyle life = LifeStyle.Singleton);
+        /// <summary>Register a implementer type as a service implementation.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="key"></param>
-        void RegisterType(Type type, string key);
-        /// <summary>Scan the given assemblies and register all the types which match the predicate condition.
+        /// <typeparam name="TService">The service type.</typeparam>
+        /// <typeparam name="TImplementer">The implementer type.</typeparam>
+        /// <param name="life">The life cycle of the implementer type.</param>
+        void Register<TService, TImplementer>(LifeStyle life = LifeStyle.Singleton)
+            where TService : class
+            where TImplementer : class, TService;
+        /// <summary>Register a implementer type instance as a service implementation.
         /// </summary>
-        /// <param name="typePredicate"></param>
-        /// <param name="assemblies"></param>
-        void RegisterTypes(Func<Type, bool> typePredicate, params Assembly[] assemblies);
-        /// <summary>Register the service type's default implementation type.
+        /// <typeparam name="TService">The service type.</typeparam>
+        /// <typeparam name="TImplementer">The implementer type.</typeparam>
+        /// <param name="instance">The implementer type instance.</param>
+        void RegisterInstance<TService, TImplementer>(TImplementer instance)
+            where TService : class
+            where TImplementer : class, TService;
+        /// <summary>Resolve a service.
         /// </summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <typeparam name="TImpl"></typeparam>
-        /// <param name="life"></param>
-        void Register<TService, TImpl>(LifeStyle life) where TService : class where TImpl : class, TService;
-        /// <summary>Register the service type's default implementation type and specified a specific key.
+        /// <typeparam name="TService">The service type.</typeparam>
+        /// <returns>The component instance that provides the service.</returns>
+        TService Resolve<TService>() where TService : class;
+        /// <summary>Resolve a service.
         /// </summary>
-        /// <typeparam name="TService"></typeparam>
-        /// <typeparam name="TImpl"></typeparam>
-        /// <param name="key"></param>
-        /// <param name="life"></param>
-        void Register<TService, TImpl>(string key, LifeStyle life) where TService : class where TImpl : class, TService;
-        /// <summary>Register the service type's default implementation instance.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="instance"></param>
-        /// <param name="life"></param>
-        void Register<T>(T instance, LifeStyle life) where T : class;
-        /// <summary>Register the service type's default implementation instance and specified a specific key.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="instance"></param>
-        /// <param name="key"></param>
-        /// <param name="life"></param>
-        void Register<T>(T instance, string key, LifeStyle life) where T : class;
-        /// <summary>Check whether a type is registered in the container.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        bool IsRegistered(Type type);
-        /// <summary>Check whether a type with the given key is registered in the container.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        bool IsRegistered(Type type, string key);
-        /// <summary>Resolve a type.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        T Resolve<T>() where T : class;
-        /// <summary>Resolve a type with the given key.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        T Resolve<T>(string key) where T : class;
-        /// <summary>Resolve a type.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        object Resolve(Type type);
-        /// <summary>Resolve a type with the given key.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        object Resolve(string key, Type type);
+        /// <param name="serviceType">The service type.</param>
+        /// <returns>The component instance that provides the service.</returns>
+        object Resolve(Type serviceType);
     }
 }

@@ -7,15 +7,15 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
-    public class DefaultEventHandlerProvider : IEventHandlerProvider
+    public class DefaultEventHandlerProvider : IEventHandlerProvider, IAssemblyInitializer
     {
         private readonly IDictionary<Type, IList<IEventHandler>> _eventHandlerDict = new Dictionary<Type, IList<IEventHandler>>();
 
-        public DefaultEventHandlerProvider(params Assembly[] assemblies)
+        public void Initialize(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var handlerType in assembly.GetExportedTypes().Where(x => IsEventHandler(x)))
+                foreach (var handlerType in assembly.GetTypes().Where(x => IsEventHandler(x)))
                 {
                     RegisterEventHandler(handlerType);
                 }

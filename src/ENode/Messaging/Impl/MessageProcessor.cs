@@ -81,20 +81,23 @@ namespace ENode.Messaging
         }
         private void ProcessMessageRecursively(TMessageExecutor messageExecutor, TMessage message, int retriedCount, int maxRetryCount)
         {
-            var success = ExecuteMessage(messageExecutor, message);
+            var result = ExecuteMessage(messageExecutor, message);
 
-            if (success)
+            if (result == MessageExecuteResult.Executed)
             {
                 _bindingQueue.Complete(message);
             }
-            else if (retriedCount < maxRetryCount)
+            else if (result == MessageExecuteResult.Failed)
             {
-                _logger.InfoFormat("Retring to handling message:{0} for {1} times.", message.ToString(), retriedCount + 1);
-                ProcessMessageRecursively(messageExecutor, message, retriedCount + 1, maxRetryCount);
-            }
-            else
-            {
-                _retryQueue.Add(message);
+                if (retriedCount < maxRetryCount)
+                {
+                    _logger.InfoFormat("Retring to handle message:{0} for {1} times.", message.ToString(), retriedCount + 1);
+                    ProcessMessageRecursively(messageExecutor, message, retriedCount + 1, maxRetryCount);
+                }
+                else
+                {
+                    _retryQueue.Add(message);
+                }
             }
         }
         private void RetryMessage(TMessageExecutor messageExecutor)
@@ -105,29 +108,30 @@ namespace ENode.Messaging
                 //Sleep 5 senconds to prevent CPU busy if execute message always not success.
                 Thread.Sleep(5000);
 
-                var success = ExecuteMessage(messageExecutor, message);
-                if (success)
+                var result = ExecuteMessage(messageExecutor, message);
+                if (result == MessageExecuteResult.Executed)
                 {
                     _bindingQueue.Complete(message);
                 }
-                else
+                else if (result == MessageExecuteResult.Failed)
                 {
                     _retryQueue.Add(message);
                 }
             }
         }
-        private bool ExecuteMessage(TMessageExecutor messageExecutor, TMessage message)
+        private MessageExecuteResult ExecuteMessage(TMessageExecutor messageExecutor, TMessage message)
         {
-            var success = false;
+            var result = MessageExecuteResult.None;
             try
             {
-                success = messageExecutor.Execute(message);
+                result = messageExecutor.Execute(message);
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Unknown exception raised when handling message:{0}.", message.ToString()), ex);
+                _logger.Error(string.Format("Unknown exception raised when handling queue message:{0}.", message.ToString()), ex);
+                result = MessageExecuteResult.Failed;
             }
-            return success;
+            return result;
         }
     }
 }

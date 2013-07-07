@@ -1,11 +1,13 @@
 ﻿using BankTransferSagaSample.Commands;
 using BankTransferSagaSample.Domain;
 using ENode.Commanding;
+using ENode.Infrastructure;
 
 namespace BankTransferSagaSample.CommandHandlers
 {
     /// <summary>银行账户相关命令处理
     /// </summary>
+    [Component]
     public class BankAccountCommandHandlers :
         ICommandHandler<OpenAccount>,         //开户
         ICommandHandler<Deposit>,             //存钱

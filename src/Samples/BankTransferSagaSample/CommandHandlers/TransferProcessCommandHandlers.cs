@@ -1,11 +1,13 @@
 ﻿using BankTransferSagaSample.Commands;
 using BankTransferSagaSample.Domain;
 using ENode.Commanding;
+using ENode.Infrastructure;
 
 namespace BankTransferSagaSample.CommandHandlers
 {
     /// <summary>银行转账流程相关命令处理
     /// </summary>
+    [Component]
     public class TransferProcessCommandHandlers :
         ICommandHandler<StartTransfer>,                //开始转账
         ICommandHandler<HandleTransferedOut>,          //处理已转出事件

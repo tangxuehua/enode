@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using ENode;
+using ENode.Infrastructure;
 
 namespace NoteSample
 {
@@ -16,27 +17,16 @@ namespace NoteSample
 
             Configuration
                 .Create()
-                .UseTinyObjectContainer()
-                .RegisterAllDefaultFrameworkComponents()
-                .UseLog4Net("log4net.config")
-                .UseDefaultCommandHandlerProvider(assemblies)
-                .UseDefaultAggregateRootTypeProvider(assemblies)
-                .UseDefaultAggregateRootInternalHandlerProvider(assemblies)
-                .UseDefaultEventHandlerProvider(assemblies)
-                .UseDefaultEventPersistenceSynchronizerProvider(assemblies)
-
-                //使用Sql来支持持久化
-                .UseDefaultEventTableNameProvider(eventTable)
-                .UseDefaultQueueTableNameProvider()
-                .UseSqlMessageStore(connectionString)
-                .UseSqlEventStore(connectionString)
-                .UseSqlEventPublishInfoStore(connectionString, eventPublishInfoTable)
-                .UseSqlEventHandleInfoStore(connectionString, eventHandleInfoTable)
-
-                .UseAllDefaultProcessors(
+                .UseAutofacContainer()
+                .RegisterFrameworkComponents()
+                .RegisterBusinessComponents(assemblies)
+                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
+                .UseSqlAsStorage(connectionString, eventTable, null, eventPublishInfoTable, eventHandleInfoTable)
+                .CreateAllDefaultProcessors(
                     new string[] { "CommandQueue" },
                     "RetryCommandQueue",
                     new string[] { "EventQueue" })
+                .Initialize(assemblies)
                 .Start();
         }
     }

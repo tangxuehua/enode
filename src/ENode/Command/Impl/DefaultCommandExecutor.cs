@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Commanding
 {
@@ -64,45 +66,72 @@ namespace ENode.Commanding
 
         #endregion
 
-        public bool Execute(ICommand command)
+        public MessageExecuteResult Execute(ICommand command)
         {
-            var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
+            var executeResult = MessageExecuteResult.None;
+            var errorInfo = new ErrorInfo();
 
+            var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
             if (commandHandler == null)
             {
-                _logger.FatalFormat("Command handler not found for {0}", command.GetType().FullName);
-                return true;
+                var errorMessage = string.Format("Command handler not found for {0}", command.GetType().FullName);
+                _logger.Fatal(errorMessage);
+                _commandAsyncResultManager.TryComplete(command.Id, errorMessage, null);
+                return MessageExecuteResult.Executed;
             }
+
+            var submitResult = SubmitResult.None;
+            AggregateRoot dirtyAggregate = null;
 
             try
             {
                 _trackingContext.Clear();
                 _processingCommandCache.Add(command);
                 commandHandler.Handle(_commandContext, command);
-                var dirtyAggregate = GetDirtyAggregate(_trackingContext);
+                dirtyAggregate = GetDirtyAggregate(_trackingContext);
                 if (dirtyAggregate != null)
                 {
-                    var eventStream = BuildEventStream(dirtyAggregate, command);
-                    if (eventStream != null)
-                    {
-                        return SubmitChanges(dirtyAggregate, eventStream, command);
-                    }
+                    submitResult = SubmitChanges(dirtyAggregate, BuildEventStream(dirtyAggregate, command), command, errorInfo);
                 }
             }
             catch (Exception ex)
             {
                 var commandHandlerType = (commandHandler as ICommandHandlerWrapper).GetInnerCommandHandler().GetType();
-                var errorMessage = string.Format("Unknown exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
-                _logger.Error(errorMessage, ex);
-                _commandAsyncResultManager.TryComplete(command.Id, errorMessage, ex);
+                errorInfo.ErrorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
+                errorInfo.Exception = ex;
+                _logger.Error(errorInfo.ErrorMessage, ex);
             }
             finally
             {
                 _trackingContext.Clear();
                 _processingCommandCache.TryRemove(command.Id);
+
+                if (dirtyAggregate == null)
+                {
+                    _commandAsyncResultManager.TryComplete(command.Id, errorInfo.ErrorMessage, errorInfo.Exception);
+                    executeResult = MessageExecuteResult.Executed;
+                }
+                else
+                {
+                    if (submitResult == SubmitResult.None ||
+                        submitResult == SubmitResult.Success ||
+                        submitResult == SubmitResult.SynchronizerFailed)
+                    {
+                        _commandAsyncResultManager.TryComplete(command.Id, errorInfo.ErrorMessage, errorInfo.Exception);
+                        executeResult = MessageExecuteResult.Executed;
+                    }
+                    else if (submitResult == SubmitResult.Retried)
+                    {
+                        executeResult = MessageExecuteResult.Executed;
+                    }
+                    else if (submitResult == SubmitResult.PublishFailed || submitResult == SubmitResult.Failed)
+                    {
+                        executeResult = MessageExecuteResult.Failed;
+                    }
+                }
             }
 
-            return true;
+            return executeResult;
         }
 
         private AggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
@@ -136,14 +165,117 @@ namespace ENode.Commanding
                 DateTime.UtcNow,
                 uncommittedEvents);
         }
-        private bool SubmitChanges(AggregateRoot aggregateRoot, EventStream eventStream, ICommand command)
+        private SubmitResult SubmitChanges(AggregateRoot aggregateRoot, EventStream eventStream, ICommand command, ErrorInfo errorInfo)
         {
-            bool executed = false;
-
-            //Persist event stream.
-            EventStreamPersistResult result = EventStreamPersistResult.None;
+            var submitResult = SubmitResult.None;
 
             var synchronizers = _eventPersistenceSynchronizerProvider.GetSynchronizers(eventStream);
+            var success = TryCallSynchronizersBeforeEventPersisting(synchronizers, eventStream, errorInfo);
+            if (!success)
+            {
+                return SubmitResult.SynchronizerFailed;
+            }
+
+            var persistResult = PersistResult.None;
+            try
+            {
+                _eventStore.Append(eventStream);
+                persistResult = PersistResult.Success;
+            }
+            catch (Exception ex)
+            {
+                persistResult = ProcessException(ex, eventStream, errorInfo);
+            }
+
+            if (persistResult == PersistResult.Success)
+            {
+                TryRefreshMemoryCache(aggregateRoot, eventStream);
+                TryCallSynchronizersAfterEventPersisted(synchronizers, eventStream);
+                if (TryPublishEventStream(eventStream))
+                {
+                    submitResult = SubmitResult.Success;
+                }
+                else
+                {
+                    submitResult = SubmitResult.PublishFailed;
+                }
+            }
+            else if (persistResult == PersistResult.Retried)
+            {
+                submitResult = SubmitResult.Retried;
+            }
+            else if (persistResult == PersistResult.Failed)
+            {
+                submitResult = SubmitResult.Failed;
+            }
+
+            return submitResult;
+        }
+        private PersistResult ProcessException(Exception exception, EventStream eventStream, ErrorInfo errorInfo)
+        {
+            if (exception is ConcurrentException)
+            {
+                if (IsEventStreamCommitted(eventStream))
+                {
+                    return PersistResult.Success;
+                }
+
+                var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
+
+                _logger.Error(string.Format(
+                    "Concurrent exception raised when persisting event stream, command:{0}, event stream:{1}",
+                    commandInfo.Command.GetType().Name,
+                    eventStream.GetStreamInformation()), exception);
+
+                _retryCommandService.RetryCommand(commandInfo, exception);
+
+                return PersistResult.Retried;
+            }
+            else
+            {
+                var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
+                _logger.Error(string.Format(
+                    "Unknown exception raised when persisting event stream, command:{0}, event stream:{1}",
+                    commandInfo.Command.GetType().Name,
+                    eventStream.GetStreamInformation()), exception);
+                return PersistResult.Failed;
+            }
+        }
+        private bool IsEventStreamCommitted(EventStream eventStream)
+        {
+            return _eventStore.IsEventStreamExist(
+                eventStream.AggregateRootId,
+                _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName),
+                eventStream.Id);
+        }
+        private void TryRefreshMemoryCache(AggregateRoot aggregateRoot, EventStream eventStream)
+        {
+            try
+            {
+                aggregateRoot.AcceptEventStream(eventStream);
+                _memoryCache.Set(aggregateRoot);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Unknown exception raised when refreshing memory cache by event stream:{0}", eventStream.GetStreamInformation()), ex);
+            }
+        }
+        private bool TryPublishEventStream(EventStream eventStream)
+        {
+            var success = false;
+            try
+            {
+                _eventPublisher.Publish(eventStream);
+                success = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Unknown exception raised when publishing event stream:{0}", eventStream.GetStreamInformation()), ex);
+            }
+            return success;
+        }
+        private bool TryCallSynchronizersBeforeEventPersisting(IEnumerable<IEventPersistenceSynchronizer> synchronizers, EventStream eventStream, ErrorInfo errorInfo)
+        {
             if (synchronizers != null && synchronizers.Count() > 0)
             {
                 foreach (var synchronizer in synchronizers)
@@ -155,134 +287,63 @@ namespace ENode.Commanding
                     catch (Exception ex)
                     {
                         var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
+                        errorInfo.Exception = ex;
+                        errorInfo.ErrorMessage = string.Format(
+                            "Unknown exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, command:{1}, event stream:{2}",
+                            synchronizer.GetType().Name,
+                            commandInfo.Command.GetType().Name,
+                            eventStream.GetStreamInformation());
+                        _logger.Error(errorInfo.ErrorMessage, ex);
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+        private void TryCallSynchronizersAfterEventPersisted(IEnumerable<IEventPersistenceSynchronizer> synchronizers, EventStream eventStream)
+        {
+            if (synchronizers != null && synchronizers.Count() > 0)
+            {
+                foreach (var synchronizer in synchronizers)
+                {
+                    try
+                    {
+                        synchronizer.OnAfterPersisted(eventStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                         _logger.Error(string.Format(
-                            "Unknown exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, command:{1}, event stream info:{2}",
+                            "Unknown exception raised when calling synchronizer's OnAfterPersisted method. synchronizer:{0}, command:{1}, event stream:{2}",
                             synchronizer.GetType().Name,
                             commandInfo.Command.GetType().Name,
                             eventStream.GetStreamInformation()), ex);
-                        return true;
                     }
                 }
             }
-
-            try
-            {
-                _eventStore.Append(eventStream);
-                result = EventStreamPersistResult.Success;
-            }
-            catch (Exception ex)
-            {
-                result = ProcessException(ex, eventStream);
-            }
-
-            if (result == EventStreamPersistResult.Success)
-            {
-                //Refresh memory cache.
-                try { RefreshMemoryCache(aggregateRoot, eventStream); }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Unknown exception raised when refreshing memory cache for event stream:{0}", eventStream.GetStreamInformation()), ex);
-                }
-
-                //Publish event stream.
-                try { _eventPublisher.Publish(eventStream); executed = true; }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Unknown exception raised when publishing event stream:{0}", eventStream.GetStreamInformation()), ex);
-                }
-
-                //Complete command async result if exist.
-                _commandAsyncResultManager.TryComplete(command.Id, null, null);
-
-                if (synchronizers != null && synchronizers.Count() > 0)
-                {
-                    foreach (var synchronizer in synchronizers)
-                    {
-                        try
-                        {
-                            synchronizer.OnAfterPersisted(eventStream);
-                        }
-                        catch (Exception ex)
-                        {
-                            var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
-                            _logger.Error(string.Format(
-                                "Unknown exception raised when calling synchronizer's OnAfterPersisted method. synchronizer:{0}, command:{1}, event stream info:{2}",
-                                synchronizer.GetType().Name,
-                                commandInfo.Command.GetType().Name,
-                                eventStream.GetStreamInformation()), ex);
-                        }
-                    }
-                }
-            }
-            else if (result == EventStreamPersistResult.Retried)
-            {
-                executed = true;
-            }
-
-            return executed;
         }
-        private EventStreamPersistResult ProcessException(Exception exception, EventStream eventStream)
+
+        class ErrorInfo
         {
-            if (exception is ConcurrentException)
-            {
-                if (IsEventStreamCommitted(eventStream))
-                {
-                    return EventStreamPersistResult.Success;
-                }
-
-                var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
-
-                _logger.Error(string.Format(
-                    "Concurrent exception raised when persisting event stream, command:{0}, event stream info:{1}",
-                    commandInfo.Command.GetType().Name,
-                    eventStream.GetStreamInformation()), exception);
-
-                //Enforce to refresh memory cache from repository before retring the command
-                //to ensure that when we retring the command, the memory cache is at the latest state.
-                RefreshMemoryCacheFromRepository(eventStream);
-
-                _retryCommandService.RetryCommand(commandInfo, exception);
-
-                return EventStreamPersistResult.Retried;
-            }
-            else
-            {
-                var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
-                _logger.Error(string.Format(
-                    "Unknown exception raised when persisting event stream, command:{0}, event stream info:{1}",
-                    commandInfo.Command.GetType().Name,
-                    eventStream.GetStreamInformation()), exception);
-                return EventStreamPersistResult.UnknownException;
-            }
+            public string ErrorMessage { get; set; }
+            public Exception Exception { get; set; }
         }
-        private bool IsEventStreamCommitted(EventStream eventStream)
-        {
-            return _eventStore.IsEventStreamExist(
-                eventStream.AggregateRootId,
-                _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName),
-                eventStream.Id);
-        }
-        private void RefreshMemoryCache(AggregateRoot aggregateRoot, EventStream eventStream)
-        {
-            aggregateRoot.AcceptEventStream(eventStream);
-            _memoryCache.Set(aggregateRoot);
-        }
-        private void RefreshMemoryCacheFromRepository(EventStream eventStream)
-        {
-            var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName);
-            var aggregateRoot = _repository.Get(aggregateRootType, eventStream.AggregateRootId);
-            if (aggregateRoot != null)
-            {
-                _memoryCache.Set(aggregateRoot);
-            }
-        }
-
-        enum EventStreamPersistResult
+        enum SubmitResult
         {
             None,
             Success,
             Retried,
-            UnknownException
+            SynchronizerFailed,
+            PublishFailed,
+            Failed
+        }
+        enum PersistResult
+        {
+            None,
+            Success,
+            Retried,
+            Failed
         }
     }
 }
