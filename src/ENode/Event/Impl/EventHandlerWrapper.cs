@@ -1,6 +1,6 @@
 ﻿namespace ENode.Eventing
 {
-    public class EventHandlerWrapper<T> : IEventHandlerWrapper, IEventHandler where T : class, IEvent
+    public class EventHandlerWrapper<T> : IEventHandler where T : class, IEvent
     {
         private IEventHandler<T> _eventHandler;
 
@@ -9,13 +9,13 @@
             _eventHandler = eventHandler;
         }
 
-        public object GetInnerEventHandler()
-        {
-            return _eventHandler;
-        }
         public void Handle(object evnt)
         {
             _eventHandler.Handle(evnt as T);
+        }
+        public object GetInnerEventHandler()
+        {
+            return _eventHandler;
         }
     }
 }

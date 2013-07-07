@@ -124,7 +124,7 @@ namespace ENode.Eventing
         {
             try
             {
-                var eventHandlerTypeName = (eventHandler as IEventHandlerWrapper).GetInnerEventHandler().GetType().FullName;
+                var eventHandlerTypeName = eventHandler.GetInnerEventHandler().GetType().FullName;
                 if (!_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName))
                 {
                     eventHandler.Handle(evnt);
@@ -146,7 +146,7 @@ namespace ENode.Eventing
         }
         private void LogError(IEventHandler eventHandler, IEvent evnt, Exception exception, int handleCount)
         {
-            var eventHandlerType = (eventHandler as IEventHandlerWrapper).GetInnerEventHandler().GetType();
+            var eventHandlerType = eventHandler.GetInnerEventHandler().GetType();
             _logger.Error(
                 string.Format(
                     "Unknown exception raised when {0} handling {1}, handled count:{2}.",

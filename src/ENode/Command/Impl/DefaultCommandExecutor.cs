@@ -96,7 +96,7 @@ namespace ENode.Commanding
             }
             catch (Exception ex)
             {
-                var commandHandlerType = (commandHandler as ICommandHandlerWrapper).GetInnerCommandHandler().GetType();
+                var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
                 errorInfo.ErrorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
                 errorInfo.Exception = ex;
                 _logger.Error(errorInfo.ErrorMessage, ex);

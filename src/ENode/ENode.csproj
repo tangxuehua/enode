@@ -61,7 +61,6 @@
     <Compile Include="Event\IEventStore.cs" />
     <Compile Include="Event\IEventHandler.cs" />
     <Compile Include="Event\IEventHandlerProvider.cs" />
-    <Compile Include="Event\IEventHandlerWrapper.cs" />
     <Compile Include="Event\Impl\DefaultEventExecutor.cs" />
     <Compile Include="Event\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Event\Impl\DefaultEventPublisher.cs" />
@@ -105,7 +104,6 @@
     <Compile Include="Messaging\IQueue.cs" />
     <Compile Include="Messaging\Impl\QueueBase.cs" />
     <Compile Include="Command\IRetryCommandService.cs" />
-    <Compile Include="Command\ICommandHandlerWrapper.cs" />
     <Compile Include="Command\Impl\DefaultCommandQueueRouter.cs" />
     <Compile Include="Command\ITrackingContext.cs" />
     <Compile Include="Command\ICommandQueueRouter.cs" />

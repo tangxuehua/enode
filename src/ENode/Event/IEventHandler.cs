@@ -5,6 +5,7 @@
     public interface IEventHandler
     {
         void Handle(object evnt);
+        object GetInnerEventHandler();
     }
     /// <summary>Represents a event handler.
     /// </summary>

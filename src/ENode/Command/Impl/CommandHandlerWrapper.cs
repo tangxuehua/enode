@@ -1,6 +1,6 @@
 ﻿namespace ENode.Commanding
 {
-    public class CommandHandlerWrapper<T> : ICommandHandlerWrapper, ICommandHandler where T : class, ICommand
+    public class CommandHandlerWrapper<T> : ICommandHandler where T : class, ICommand
     {
         private ICommandHandler<T> _commandHandler;
 

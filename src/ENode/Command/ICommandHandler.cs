@@ -5,6 +5,7 @@
     public interface ICommandHandler
     {
         void Handle(ICommandContext context, ICommand command);
+        object GetInnerCommandHandler();
     }
     /// <summary>Represents a command handler interface.
     /// </summary>

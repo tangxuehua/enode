@@ -48,14 +48,9 @@ namespace ENode.Eventing
                     _eventHandlerDict.Add(eventType, eventHandlers);
                 }
 
-                if (!eventHandlers.Any(x => (x as IEventHandlerWrapper).GetInnerEventHandler().GetType() == eventHandlerType))
+                if (!eventHandlers.Any(x => x.GetInnerEventHandler().GetType() == eventHandlerType))
                 {
                     var eventHandler = ObjectContainer.Resolve(eventHandlerType);
-                    if (eventHandler == null)
-                    {
-                        throw new Exception(string.Format("Cannot resolve type {0}", eventHandlerType.FullName));
-                    }
-
                     var eventHandlerWrapper = Activator.CreateInstance(eventHandlerWrapperType, new object[] { eventHandler }) as IEventHandler;
                     eventHandlers.Add(eventHandlerWrapper);
                 }
