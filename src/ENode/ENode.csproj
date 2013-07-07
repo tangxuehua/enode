@@ -74,7 +74,7 @@
     <Compile Include="Event\Impl\InMemory\InMemoryEventStore.cs" />
     <Compile Include="Event\Impl\MongoDB\AggregatePerEventCollectionNameProvider.cs" />
     <Compile Include="Event\Impl\MongoDB\DefaultEventCollectionNameProvider.cs" />
-    <Compile Include="Event\Impl\MongoDB\IMongoCollectionNameProvider.cs" />
+    <Compile Include="Event\Impl\MongoDB\IEventCollectionNameProvider.cs" />
     <Compile Include="Event\Impl\MongoDB\MongoEventStore.cs" />
     <Compile Include="Event\Impl\MongoDB\MongoEventHandleInfoStore.cs" />
     <Compile Include="Event\Impl\MongoDB\MongoEventPublishInfoStore.cs" />

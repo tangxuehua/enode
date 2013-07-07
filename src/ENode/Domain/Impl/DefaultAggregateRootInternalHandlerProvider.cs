@@ -13,16 +13,10 @@ namespace ENode.Domain
 
         public void Initialize(params Assembly[] assemblies)
         {
-            var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
             foreach (var assembly in assemblies)
             {
                 foreach (var aggregateRootType in assembly.GetTypes().Where(t => TypeUtils.IsAggregateRoot(t)))
                 {
-                    var entries = from method in aggregateRootType.GetMethods(bindingFlags)
-                                  let parameters = method.GetParameters()
-                                  where (method.Name == "Handle" || method.Name.StartsWith("On")) && parameters.Length == 1
-                                  select new { Method = method, EventType = parameters.First().ParameterType };
-
                     foreach (var eventHandlerInterface in ScanEventHandlerInterfaces(aggregateRootType))
                     {
                         var mapping = aggregateRootType.GetInterfaceMap(eventHandlerInterface);
