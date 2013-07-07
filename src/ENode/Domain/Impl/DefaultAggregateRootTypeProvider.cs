@@ -14,7 +14,7 @@ namespace ENode.Domain
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetTypes().Where(t => TypeUtils.IsAggregateRoot(t)))
+                foreach (var type in assembly.GetExportedTypes().Where(t => TypeUtils.IsAggregateRoot(t)))
                 {
                     _mappings.Add(type.FullName, type);
                 }

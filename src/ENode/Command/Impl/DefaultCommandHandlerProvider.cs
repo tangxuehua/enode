@@ -29,13 +29,9 @@ namespace ENode.Commanding
 
         private void RegisterAllCommandHandlersInAssembly(Assembly assembly)
         {
-            var targetType = typeof(ICommandHandler<>);
-            var types = assembly.GetTypes();
-            var commandHandlerTypes = types.Where(x => x.IsInterface == false && x.IsAbstract == false && x.GetInterfaces().Any(y => y.IsGenericType && y.GetGenericTypeDefinition() == targetType));
-
-            foreach (var commandHandlerType in commandHandlerTypes)
+            foreach (var commandHandlerType in assembly.GetExportedTypes().Where(x => IsCommandHandler(x)))
             {
-                var handlerTypes = commandHandlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == targetType);
+                var handlerTypes = commandHandlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<>));
 
                 foreach (var handlerType in handlerTypes)
                 {
@@ -50,6 +46,10 @@ namespace ENode.Commanding
         private void RegisterCommandHandler(Type commandType, ICommandHandler commandHandler)
         {
             _commandHandlerDict[commandType] = commandHandler;
+        }
+        private bool IsCommandHandler(Type type)
+        {
+            return type.IsInterface == false && type.IsAbstract == false && type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<>));
         }
     }
 }

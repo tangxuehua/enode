@@ -15,7 +15,7 @@ namespace ENode.Domain
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var aggregateRootType in assembly.GetTypes().Where(t => TypeUtils.IsAggregateRoot(t)))
+                foreach (var aggregateRootType in assembly.GetExportedTypes().Where(t => TypeUtils.IsAggregateRoot(t)))
                 {
                     foreach (var eventHandlerInterface in ScanEventHandlerInterfaces(aggregateRootType))
                     {

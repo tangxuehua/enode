@@ -15,7 +15,7 @@ namespace ENode.Eventing
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var handlerType in assembly.GetTypes().Where(x => IsEventHandler(x)))
+                foreach (var handlerType in assembly.GetExportedTypes().Where(x => IsEventHandler(x)))
                 {
                     RegisterEventHandler(handlerType);
                 }

@@ -14,7 +14,7 @@ namespace ENode.Eventing
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var synchronizerType in assembly.GetTypes().Where(x => IsEventPersistenceSynchronizer(x)))
+                foreach (var synchronizerType in assembly.GetExportedTypes().Where(x => IsEventPersistenceSynchronizer(x)))
                 {
                     RegisterSynchronizer(synchronizerType);
                 }
@@ -30,12 +30,7 @@ namespace ENode.Eventing
         {
             if (!_synchronizerList.Any(x => x.GetType() == synchronizerType))
             {
-                var obj = ObjectContainer.Resolve(synchronizerType);
-                if (obj == null)
-                {
-                    throw new Exception(string.Format("Cannot resolve type {0}", synchronizerType.FullName));
-                }
-                _synchronizerList.Add(obj as IEventPersistenceSynchronizer);
+                _synchronizerList.Add(ObjectContainer.Resolve(synchronizerType) as IEventPersistenceSynchronizer);
             }
         }
         private bool IsEventPersistenceSynchronizer(Type type)
