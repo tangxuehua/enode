@@ -128,7 +128,7 @@ namespace ENode.Messaging
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Unknown exception raised when handling queue message:{0}.", message.ToString()), ex);
+                _logger.Error(string.Format("Exception raised when handling queue message:{0}.", message.ToString()), ex);
                 result = MessageExecuteResult.Failed;
             }
             return result;

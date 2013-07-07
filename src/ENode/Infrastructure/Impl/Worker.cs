@@ -70,7 +70,7 @@ namespace ENode.Infrastructure
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error("Unknown exception raised when executing worker delegate.", ex);
+                    _logger.Error("Exception raised when executing worker delegate.", ex);
                 }
             }
         }

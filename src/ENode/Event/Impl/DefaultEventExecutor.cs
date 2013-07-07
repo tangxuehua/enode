@@ -86,7 +86,7 @@ namespace ENode.Eventing
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Unknown exception raised when dispatching event stream:{0}", eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when dispatching event stream:{0}", eventStream.GetStreamInformation()), ex);
 
                 if (!isDispatched)
                 {
@@ -149,7 +149,7 @@ namespace ENode.Eventing
             var eventHandlerType = eventHandler.GetInnerEventHandler().GetType();
             _logger.Error(
                 string.Format(
-                    "Unknown exception raised when {0} handling {1}, handled count:{2}.",
+                    "Exception raised when {0} handling {1}, handled count:{2}.",
                     eventHandlerType.Name,
                     evnt.GetType().Name,
                     handleCount),

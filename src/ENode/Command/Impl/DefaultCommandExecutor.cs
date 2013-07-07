@@ -235,7 +235,7 @@ namespace ENode.Commanding
             {
                 var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                 _logger.Error(string.Format(
-                    "Unknown exception raised when persisting event stream, command:{0}, event stream:{1}",
+                    "Exception raised when persisting event stream, command:{0}, event stream:{1}",
                     commandInfo.Command.GetType().Name,
                     eventStream.GetStreamInformation()), exception);
                 return PersistResult.Failed;
@@ -257,7 +257,7 @@ namespace ENode.Commanding
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Unknown exception raised when refreshing memory cache by event stream:{0}", eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when refreshing memory cache by event stream:{0}", eventStream.GetStreamInformation()), ex);
             }
         }
         private bool TryPublishEventStream(EventStream eventStream)
@@ -270,7 +270,7 @@ namespace ENode.Commanding
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Unknown exception raised when publishing event stream:{0}", eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when publishing event stream:{0}", eventStream.GetStreamInformation()), ex);
             }
             return success;
         }
@@ -289,7 +289,7 @@ namespace ENode.Commanding
                         var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                         errorInfo.Exception = ex;
                         errorInfo.ErrorMessage = string.Format(
-                            "Unknown exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, command:{1}, event stream:{2}",
+                            "Exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, command:{1}, event stream:{2}",
                             synchronizer.GetType().Name,
                             commandInfo.Command.GetType().Name,
                             eventStream.GetStreamInformation());
@@ -315,7 +315,7 @@ namespace ENode.Commanding
                     {
                         var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                         _logger.Error(string.Format(
-                            "Unknown exception raised when calling synchronizer's OnAfterPersisted method. synchronizer:{0}, command:{1}, event stream:{2}",
+                            "Exception raised when calling synchronizer's OnAfterPersisted method. synchronizer:{0}, command:{1}, event stream:{2}",
                             synchronizer.GetType().Name,
                             commandInfo.Command.GetType().Name,
                             eventStream.GetStreamInformation()), ex);

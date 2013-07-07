@@ -36,6 +36,14 @@ namespace ENode.Eventing
         public DateTime Timestamp { get; private set; }
         public IEnumerable<IEvent> Events { get; private set; }
 
+        public bool HasEvent<TEvent>() where TEvent : class, IEvent
+        {
+            return Events.Any(x => x.GetType() == typeof(TEvent));
+        }
+        public TEvent FindEvent<TEvent>() where TEvent : class, IEvent
+        {
+            return Events.Single(x => x.GetType() == typeof(TEvent)) as TEvent;
+        }
         public string GetEventInformation()
         {
             return string.Join(",", Events.Select(x => x.GetType().Name));

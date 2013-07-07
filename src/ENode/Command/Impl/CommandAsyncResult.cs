@@ -41,5 +41,12 @@ namespace ENode.Commanding
                 _callback(this);
             }
         }
+        public bool HasError
+        {
+            get
+            {
+                return ErrorMessage != null || Exception != null;
+            }
+        }
     }
 }
