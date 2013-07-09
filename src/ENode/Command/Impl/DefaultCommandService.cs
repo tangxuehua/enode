@@ -19,6 +19,11 @@ namespace ENode.Commanding
 
         public void Send(ICommand command, Action<CommandAsyncResult> callback = null)
         {
+            if (command == null)
+            {
+                throw new ArgumentNullException("command");
+            }
+
             var commandQueue = _commandQueueRouter.Route(command);
             if (commandQueue == null)
             {
@@ -33,6 +38,11 @@ namespace ENode.Commanding
         }
         public void Execute(ICommand command)
         {
+            if (command == null)
+            {
+                throw new ArgumentNullException("command");
+            }
+
             var commandQueue = _commandQueueRouter.Route(command);
             if (commandQueue == null)
             {
