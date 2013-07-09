@@ -282,6 +282,9 @@ namespace ENode
             return this;
         }
         /// <summary>Start the framework with all the default configuration.
+        /// <remarks>
+        /// Not use this api only when you just want to do some in-memory based testing.
+        /// </remarks>
         /// </summary>
         /// <returns></returns>
         public static Configuration StartWithAllDefault(params Assembly[] assemblies)

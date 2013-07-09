@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
-using ENode.Infrastructure;
 using log4net;
+using log4net.Appender;
 using log4net.Config;
+using log4net.Layout;
 
 namespace ENode.Infrastructure
 {
@@ -15,11 +16,15 @@ namespace ENode.Infrastructure
             {
                 file = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configFile));
             }
-            if (!file.Exists)
+
+            if (file.Exists)
             {
-                throw new FileNotFoundException("Log4Net config file not exist.", configFile);
+                XmlConfigurator.ConfigureAndWatch(file);
             }
-            XmlConfigurator.ConfigureAndWatch(file);
+            else
+            {
+                BasicConfigurator.Configure(new TraceAppender { Layout = new PatternLayout() });
+            }
         }
 
         public ILogger Create(string name)
