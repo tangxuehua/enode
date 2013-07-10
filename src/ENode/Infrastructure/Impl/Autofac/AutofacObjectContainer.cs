@@ -12,6 +12,16 @@ namespace ENode.Infrastructure
             _container = new ContainerBuilder().Build();
         }
 
+        /// <summary>Represents the inner autofac container.
+        /// </summary>
+        public IContainer Container
+        {
+            get
+            {
+                return _container;
+            }
+        }
+
         public void RegisterType(Type implementationType, LifeStyle life = LifeStyle.Singleton)
         {
             var builder = new ContainerBuilder();

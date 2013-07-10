@@ -8,6 +8,16 @@ namespace ENode.Infrastructure
     {
         private static IObjectContainer _container;
 
+        /// <summary>Represents the current object container.
+        /// </summary>
+        public static IObjectContainer Current
+        {
+            get
+            {
+                return _container;
+            }
+        }
+
         /// <summary>Set the object container.
         /// </summary>
         /// <param name="container"></param>
