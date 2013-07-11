@@ -89,6 +89,7 @@
     <Compile Include="Event\IEventHandleInfoStore.cs" />
     <Compile Include="Event\IEventPersistenceSynchronizerProvider.cs" />
     <Compile Include="Event\Impl\DefaultEventPersistenceSynchronizerProvider.cs" />
+    <Compile Include="Event\Impl\EventPersistenceSynchronizerWrapper.cs" />
     <Compile Include="Infrastructure\IObjectContainer.cs" />
     <Compile Include="Infrastructure\Impl\Autofac\AutofacObjectContainer.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />

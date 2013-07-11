@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ENode.Eventing
 {
@@ -6,10 +7,10 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventPersistenceSynchronizerProvider
     {
-        /// <summary>Get all the event persistence synchronizers for the given event stream.
+        /// <summary>Get all the event persistence synchronizers for the given event type.
         /// </summary>
-        /// <param name="eventStream"></param>
+        /// <param name="eventType"></param>
         /// <returns></returns>
-        IEnumerable<IEventPersistenceSynchronizer> GetSynchronizers(EventStream eventStream);
+        IEnumerable<IEventPersistenceSynchronizer> GetSynchronizers(Type eventType);
     }
 }

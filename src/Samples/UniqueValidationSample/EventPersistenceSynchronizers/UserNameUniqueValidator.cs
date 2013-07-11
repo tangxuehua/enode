@@ -9,19 +9,14 @@ using UniqueValidationSample.Events;
 namespace UniqueValidationSample.EventPersistenceSynchronizers
 {
     [Component(LifeStyle.Singleton)]
-    public class UserNameUniqueValidator : IEventPersistenceSynchronizer
+    public class UserNameUniqueValidator : IEventPersistenceSynchronizer<UserRegistered>
     {
         private string _connectionString = "mongodb://localhost/UniqueValidationSampleDB";
         private string _usernameCollectionName = "UserNameCollection";
         private ConcurrentDictionary<string, MongoCollection<BsonDocument>> _collectionDict = new ConcurrentDictionary<string, MongoCollection<BsonDocument>>();
 
-        public bool IsSynchronizeTo(EventStream eventStream)
+        public void OnBeforePersisting(UserRegistered evnt)
         {
-            return eventStream.HasEvent<UserRegistered>();
-        }
-        public void OnBeforePersisting(EventStream eventStream)
-        {
-            var evnt = eventStream.FindEvent<UserRegistered>();
             GetMongoCollection().Insert(new BsonDocument
             {
                 { "_id", evnt.UserId.ToString() },
@@ -29,9 +24,8 @@ namespace UniqueValidationSample.EventPersistenceSynchronizers
                 { "Status", 1 }
             });
         }
-        public void OnAfterPersisted(EventStream eventStream)
+        public void OnAfterPersisted(UserRegistered evnt)
         {
-            var evnt = eventStream.FindEvent<UserRegistered>();
             var collection = GetMongoCollection();
             var document = collection.FindOneById(new BsonString(evnt.UserId.ToString()));
             document["Status"] = 2;

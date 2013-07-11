@@ -42,7 +42,7 @@ namespace ENode.Eventing
         }
         public TEvent FindEvent<TEvent>() where TEvent : class, IEvent
         {
-            return Events.Single(x => x.GetType() == typeof(TEvent)) as TEvent;
+            return Events.SingleOrDefault(x => x.GetType() == typeof(TEvent)) as TEvent;
         }
         public string GetEventInformation()
         {

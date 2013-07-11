@@ -2,20 +2,35 @@
 {
     /// <summary>Represents a event persistence synchronizer.
     /// <remarks>
-    ///  Code can be executed before and after the event stream persistence completion.
+    ///  Code can be executed before and after the event persistence.
     /// </remarks>
     /// </summary>
     public interface IEventPersistenceSynchronizer
     {
-        /// <summary>Indicates whether the synchronizer want to synchronize the given event stream.
+        /// <summary>Executed before persisting the event.
         /// </summary>
-        /// <returns></returns>
-        bool IsSynchronizeTo(EventStream eventStream);
-        /// <summary>Executed before persisting the event stream.
+        void OnBeforePersisting(IEvent evnt);
+        /// <summary>Executed after the event was persisted.
         /// </summary>
-        void OnBeforePersisting(EventStream eventStream);
-        /// <summary>Executed after the event stream was persisted.
+        void OnAfterPersisted(IEvent evnt);
+        /// <summary>Represents the inner generic IEventPersistenceSynchronizer.
         /// </summary>
-        void OnAfterPersisted(EventStream eventStream);
+        object GetInnerSynchronizer();
+    }
+
+    /// <summary>Represents a event persistence synchronizer.
+    /// <remarks>
+    ///  Code can be executed before and after the event persistence.
+    /// </remarks>
+    /// </summary>
+    /// <typeparam name="TEvent"></typeparam>
+    public interface IEventPersistenceSynchronizer<TEvent> where TEvent : class, IEvent
+    {
+        /// <summary>Executed before persisting the event.
+        /// </summary>
+        void OnBeforePersisting(TEvent evnt);
+        /// <summary>Executed after the event was persisted.
+        /// </summary>
+        void OnAfterPersisted(TEvent evnt);
     }
 }

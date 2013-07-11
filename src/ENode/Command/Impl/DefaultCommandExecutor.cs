@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
 using ENode.Eventing;
@@ -169,8 +168,7 @@ namespace ENode.Commanding
         {
             var submitResult = SubmitResult.None;
 
-            var synchronizers = _eventPersistenceSynchronizerProvider.GetSynchronizers(eventStream);
-            var success = TryCallSynchronizersBeforeEventPersisting(synchronizers, eventStream, errorInfo);
+            var success = TryCallSynchronizersBeforeEventPersisting(eventStream, errorInfo);
             if (!success)
             {
                 return SubmitResult.SynchronizerFailed;
@@ -190,7 +188,7 @@ namespace ENode.Commanding
             if (persistResult == PersistResult.Success)
             {
                 TryRefreshMemoryCache(aggregateRoot, eventStream);
-                TryCallSynchronizersAfterEventPersisted(synchronizers, eventStream);
+                TryCallSynchronizersAfterEventPersisted(eventStream);
                 if (TryPublishEventStream(eventStream))
                 {
                     submitResult = SubmitResult.Success;
@@ -274,15 +272,16 @@ namespace ENode.Commanding
             }
             return success;
         }
-        private bool TryCallSynchronizersBeforeEventPersisting(IEnumerable<IEventPersistenceSynchronizer> synchronizers, EventStream eventStream, ErrorInfo errorInfo)
+        private bool TryCallSynchronizersBeforeEventPersisting(EventStream eventStream, ErrorInfo errorInfo)
         {
-            if (synchronizers != null && synchronizers.Count() > 0)
+            foreach (var evnt in eventStream.Events)
             {
+                var synchronizers = _eventPersistenceSynchronizerProvider.GetSynchronizers(evnt.GetType());
                 foreach (var synchronizer in synchronizers)
                 {
                     try
                     {
-                        synchronizer.OnBeforePersisting(eventStream);
+                        synchronizer.OnBeforePersisting(evnt);
                     }
                     catch (Exception ex)
                     {
@@ -290,7 +289,7 @@ namespace ENode.Commanding
                         errorInfo.Exception = ex;
                         errorInfo.ErrorMessage = string.Format(
                             "Exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, command:{1}, event stream:{2}",
-                            synchronizer.GetType().Name,
+                            synchronizer.GetInnerSynchronizer().GetType().Name,
                             commandInfo.Command.GetType().Name,
                             eventStream.GetStreamInformation());
                         _logger.Error(errorInfo.ErrorMessage, ex);
@@ -301,22 +300,23 @@ namespace ENode.Commanding
 
             return true;
         }
-        private void TryCallSynchronizersAfterEventPersisted(IEnumerable<IEventPersistenceSynchronizer> synchronizers, EventStream eventStream)
+        private void TryCallSynchronizersAfterEventPersisted(EventStream eventStream)
         {
-            if (synchronizers != null && synchronizers.Count() > 0)
+            foreach (var evnt in eventStream.Events)
             {
+                var synchronizers = _eventPersistenceSynchronizerProvider.GetSynchronizers(evnt.GetType());
                 foreach (var synchronizer in synchronizers)
                 {
                     try
                     {
-                        synchronizer.OnAfterPersisted(eventStream);
+                        synchronizer.OnAfterPersisted(evnt);
                     }
                     catch (Exception ex)
                     {
                         var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                         _logger.Error(string.Format(
                             "Exception raised when calling synchronizer's OnAfterPersisted method. synchronizer:{0}, command:{1}, event stream:{2}",
-                            synchronizer.GetType().Name,
+                            synchronizer.GetInnerSynchronizer().GetType().Name,
                             commandInfo.Command.GetType().Name,
                             eventStream.GetStreamInformation()), ex);
                     }
