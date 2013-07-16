@@ -23,5 +23,17 @@ namespace ENode.Commanding
         /// <param name="id"></param>
         /// <returns></returns>
         T Get<T>(object id) where T : AggregateRoot;
+        /// <summary>Get an aggregate from the current context.
+        /// <remarks>
+        /// 1. If the aggregate already exist in the current context, then return it directly;
+        /// 2. If not exist then try to get it from memory cache;
+        /// 3. If still not exist then try to get it from event store;
+        /// Finally, if the specified aggregate not found, return null; otherwise, return the found aggregate.
+        /// </remarks>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        T GetOrDefault<T>(object id) where T : AggregateRoot;
     }
 }

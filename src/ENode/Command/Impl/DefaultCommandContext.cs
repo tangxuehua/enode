@@ -29,6 +29,17 @@ namespace ENode.Commanding
         }
         public T Get<T>(object id) where T : AggregateRoot
         {
+            var aggregateRoot = GetOrDefault<T>(id);
+
+            if (aggregateRoot == null)
+            {
+                throw new AggregateRootNotFoundException(id.ToString(), typeof(T));
+            }
+
+            return aggregateRoot;
+        }
+        public T GetOrDefault<T>(object id) where T : AggregateRoot
+        {
             if (id == null)
             {
                 throw new ArgumentNullException("id");
@@ -49,12 +60,10 @@ namespace ENode.Commanding
                 aggregateRoot = _repository.Get<T>(aggregateRootId);
             }
 
-            if (aggregateRoot == null)
+            if (aggregateRoot != null)
             {
-                throw new AggregateRootNotFoundException(aggregateRootId, typeof(T));
+                _trackingAggregateRoots.Add(aggregateRoot);
             }
-
-            _trackingAggregateRoots.Add(aggregateRoot);
 
             return aggregateRoot as T;
         }
