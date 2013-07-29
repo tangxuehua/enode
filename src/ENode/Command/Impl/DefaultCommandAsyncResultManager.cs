@@ -19,6 +19,10 @@ namespace ENode.Commanding
             CommandAsyncResult commandAsyncResult;
             _commandAsyncResultDict.TryRemove(commandId, out commandAsyncResult);
         }
+        public void TryComplete(Guid commandId)
+        {
+            TryComplete(commandId, null, null);
+        }
         public void TryComplete(Guid commandId, string errorMessage, Exception exception)
         {
             CommandAsyncResult commandAsyncResult;

@@ -11,15 +11,14 @@ namespace ENode.Eventing
     /// </remarks>
     /// </summary>
     [Serializable]
-    public class EventStream : IMessage
+    public class EventStream : Message, IMessage
     {
         public EventStream(string aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
             : this(Guid.NewGuid(), aggregateRootId, aggregateRootName, version, commandId, timestamp, events)
         {
         }
-        public EventStream(Guid id, string aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
+        public EventStream(Guid id, string aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events) : base(id)
         {
-            this.Id = id;
             this.AggregateRootId = aggregateRootId;
             this.AggregateRootName = aggregateRootName;
             this.CommandId = commandId;
@@ -28,7 +27,6 @@ namespace ENode.Eventing
             this.Events = events ?? new List<IEvent>();
         }
 
-        public Guid Id { get; private set; }
         public string AggregateRootId { get; private set; }
         public string AggregateRootName { get; private set; }
         public Guid CommandId { get; private set; }

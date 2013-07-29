@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using ENode.Infrastructure;
 
 namespace ENode.Messaging
 {
     public abstract class MessageProcessor<TQueue, TMessageExecutor, TMessage> : IMessageProcessor<TQueue, TMessage>
-        where TQueue : IQueue<TMessage>
+        where TQueue : IMessageQueue<TMessage>
         where TMessageExecutor : class, IMessageExecutor<TMessage>
         where TMessage : class, IMessage
     {
         private IList<TMessageExecutor> _messageExecutors;
         private IList<Worker> _workers;
         private TQueue _bindingQueue;
-        private BlockingCollection<TMessage> _retryQueue;
         private ILogger _logger;
         private bool _started;
 
@@ -35,8 +32,6 @@ namespace ENode.Messaging
             }
 
             _bindingQueue = bindingQueue;
-            _retryQueue = new BlockingCollection<TMessage>(new ConcurrentQueue<TMessage>());
-
             _messageExecutors = new List<TMessageExecutor>();
             _workers = new List<Worker>();
 
@@ -46,10 +41,6 @@ namespace ENode.Messaging
                 _messageExecutors.Add(messageExecutor);
                 _workers.Add(new Worker(() => ProcessMessage(messageExecutor)));
             }
-
-            var retryMessageExecutor = ObjectContainer.Resolve<TMessageExecutor>();
-            _messageExecutors.Add(retryMessageExecutor);
-            _workers.Add(new Worker(() => RetryMessage(retryMessageExecutor)));
 
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
             _started = false;
@@ -68,7 +59,7 @@ namespace ENode.Messaging
                 worker.Start();
             }
             _started = true;
-            _logger.InfoFormat("Processor started, binding queue {0}, worker count:{1}.", _bindingQueue.Name, _workers.Count - 1);
+            _logger.InfoFormat("Processor started, binding queue {0}, worker count:{1}.", _bindingQueue.Name, _workers.Count);
         }
 
         private void ProcessMessage(TMessageExecutor messageExecutor)
@@ -76,62 +67,15 @@ namespace ENode.Messaging
             var message = _bindingQueue.Dequeue();
             if (message != null)
             {
-                ProcessMessageRecursively(messageExecutor, message, 0, 3);
-            }
-        }
-        private void ProcessMessageRecursively(TMessageExecutor messageExecutor, TMessage message, int retriedCount, int maxRetryCount)
-        {
-            var result = ExecuteMessage(messageExecutor, message);
-
-            if (result == MessageExecuteResult.Executed)
-            {
-                _bindingQueue.Complete(message);
-            }
-            else if (result == MessageExecuteResult.Failed)
-            {
-                if (retriedCount < maxRetryCount)
+                try
                 {
-                    _logger.InfoFormat("Retring to handle message:{0} for {1} times.", message.ToString(), retriedCount + 1);
-                    ProcessMessageRecursively(messageExecutor, message, retriedCount + 1, maxRetryCount);
+                    messageExecutor.Execute(message, _bindingQueue);
                 }
-                else
+                catch (Exception ex)
                 {
-                    _retryQueue.Add(message);
+                    _logger.Error(string.Format("Exception raised when handling queue message:{0}.", message.ToString()), ex);
                 }
             }
-        }
-        private void RetryMessage(TMessageExecutor messageExecutor)
-        {
-            var message = _retryQueue.Take();
-            if (message != null)
-            {
-                //Sleep 5 senconds to prevent CPU busy if execute message always not success.
-                Thread.Sleep(5000);
-
-                var result = ExecuteMessage(messageExecutor, message);
-                if (result == MessageExecuteResult.Executed)
-                {
-                    _bindingQueue.Complete(message);
-                }
-                else if (result == MessageExecuteResult.Failed)
-                {
-                    _retryQueue.Add(message);
-                }
-            }
-        }
-        private MessageExecuteResult ExecuteMessage(TMessageExecutor messageExecutor, TMessage message)
-        {
-            var result = MessageExecuteResult.None;
-            try
-            {
-                result = messageExecutor.Execute(message);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("Exception raised when handling queue message:{0}.", message.ToString()), ex);
-                result = MessageExecuteResult.Failed;
-            }
-            return result;
         }
     }
 }

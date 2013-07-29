@@ -6,7 +6,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Messaging
 {
-    public abstract class QueueBase<T> : IQueue<T> where T : class, IMessage
+    public abstract class MessageQueue<T> : IMessageQueue<T> where T : class, IMessage
     {
         #region Private Variables
 
@@ -20,7 +20,7 @@ namespace ENode.Messaging
         public string Name { get; private set; }
         protected ILogger Logger { get; private set; }
 
-        public QueueBase(string name)
+        public MessageQueue(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -38,6 +38,7 @@ namespace ENode.Messaging
             var messages = _messageStore.GetMessages<T>(Name);
             foreach (var message in messages)
             {
+                message.IsRestoreFromStorage = true;
                 _queue.Add(message);
             }
             OnInitialized(messages);

@@ -3,16 +3,16 @@ using System.Threading;
 
 namespace ENode.Eventing
 {
-    public class DefaultEventQueueRouter : IEventQueueRouter
+    public class DefaultCommittedEventQueueRouter : ICommittedEventQueueRouter
     {
-        private IEventQueue[] _eventQueues;
+        private ICommittedEventQueue[] _eventQueues;
         private int _index;
 
-        public IEventQueue Route(EventStream stream)
+        public ICommittedEventQueue Route(EventStream stream)
         {
             if (_eventQueues == null)
             {
-                _eventQueues = Configuration.Instance.GetEventQueues().ToArray();
+                _eventQueues = Configuration.Instance.GetCommitedEventQueues().ToArray();
             }
 
             if (_eventQueues.Length > 0)

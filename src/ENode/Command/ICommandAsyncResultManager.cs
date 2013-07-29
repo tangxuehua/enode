@@ -13,7 +13,11 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="commandId"></param>
         void Remove(Guid commandId);
-        /// <summary>Complete a command async result if exists.
+        /// <summary>Try to complete a command async result if exist;
+        /// </summary>
+        /// <param name="commandId"></param>
+        void TryComplete(Guid commandId);
+        /// <summary>Try to complete a command async result if exist.
         /// </summary>
         /// <param name="commandId"></param>
         /// <param name="errorMessage"></param>

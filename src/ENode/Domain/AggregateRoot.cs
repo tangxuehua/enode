@@ -141,14 +141,6 @@ namespace ENode.Domain
                 _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
             }
         }
-        /// <summary>Accept the given stream, update the version by the event stream version and clear all the uncommitted events.
-        /// </summary>
-        /// <param name="eventStream"></param>
-        internal void AcceptEventStream(EventStream eventStream)
-        {
-            Version = eventStream.Version;
-            _uncommittedEvents.Clear();
-        }
 
         #endregion
 

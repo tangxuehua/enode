@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace ENode.Eventing
+namespace ENode.Infrastructure
 {
-    /// <summary>Represents a concurrent exception when persisting the domain event.
+    /// <summary>Represents a concurrent exception.
     /// </summary>
     [Serializable]
     public class ConcurrentException : Exception

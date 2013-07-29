@@ -1,4 +1,5 @@
 ﻿using System;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
@@ -8,6 +9,6 @@ namespace ENode.Commanding
     {
         /// <summary>Retry the given command.
         /// </summary>
-        void RetryCommand(CommandInfo commandInfo, Exception exception);
+        void RetryCommand(CommandInfo commandInfo, ErrorInfo errorInfo, ActionInfo retrySuccessCallbackAction);
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace ENode.Messaging
 {
-    /// <summary>Represents a queue for storing messages and also support transaction and durable messages.
+    /// <summary>Represents a message queue for storing messages and also support transaction and durable messages.
     /// </summary>
-    public interface IQueue<T> where T : class, IMessage
+    public interface IMessageQueue<T> where T : class, IMessage
     {
         /// <summary>The name of the queue.
         /// </summary>

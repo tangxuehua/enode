@@ -53,7 +53,8 @@ namespace UniqueValidationSample
                 .CreateAllDefaultProcessors(
                     new string[] { "CommandQueue" },
                     "RetryCommandQueue",
-                    new string[] { "EventQueue" })
+                    new string[] { "UncommittedEventQueue" },
+                    new string[] { "CommittedEventQueue" })
                 .Initialize(assemblies)
                 .Start();
         }

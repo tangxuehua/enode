@@ -23,7 +23,8 @@ namespace ENode
         private IList<Type> _assemblyInitializerServiceTypes;
         private IList<ICommandProcessor> _commandProcessors;
         private ICommandProcessor _retryCommandProcessor;
-        private IList<IEventProcessor> _eventProcessors;
+        private IList<IUncommittedEventProcessor> _uncommittedEventProcessors;
+        private IList<ICommittedEventProcessor> _committedEventProcessors;
 
         /// <summary>The single access point of the configuration.
         /// </summary>
@@ -45,18 +46,25 @@ namespace ENode
             }
             return _retryCommandProcessor.BindingQueue;
         }
-        /// <summary>Get all the event queues.
+        /// <summary>Get all the uncommitted event queues.
         /// </summary>
-        public IEnumerable<IEventQueue> GetEventQueues()
+        public IEnumerable<IUncommittedEventQueue> GetUncommitedEventQueues()
         {
-            return _eventProcessors.Select(x => x.BindingQueue);
+            return _uncommittedEventProcessors.Select(x => x.BindingQueue);
+        }
+        /// <summary>Get all the committed event queues.
+        /// </summary>
+        public IEnumerable<ICommittedEventQueue> GetCommitedEventQueues()
+        {
+            return _committedEventProcessors.Select(x => x.BindingQueue);
         }
 
         private Configuration()
         {
             _assemblyInitializerServiceTypes = new List<Type>();
             _commandProcessors = new List<ICommandProcessor>();
-            _eventProcessors = new List<IEventProcessor>();
+            _uncommittedEventProcessors = new List<IUncommittedEventProcessor>();
+            _committedEventProcessors = new List<ICommittedEventProcessor>();
         }
 
         /// <summary>Create a new instance of configuration.
@@ -141,13 +149,17 @@ namespace ENode
             Register<IEventStore, InMemoryEventStore>();
             Register<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             Register<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
-            Register<IEventQueueRouter, DefaultEventQueueRouter>();
+            Register<IUncommittedEventQueueRouter, DefaultUncommittedEventQueueRouter>();
+            Register<ICommittedEventQueueRouter, DefaultCommittedEventQueueRouter>();
             Register<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
+            Register<IEventSender, DefaultEventSender>();
             Register<IEventPublisher, DefaultEventPublisher>();
 
+            Register<IRetryService, DefaultRetryService>(LifeStyle.Transient);
             Register<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
             Register<ICommandExecutor, DefaultCommandExecutor>(LifeStyle.Transient);
-            Register<IEventExecutor, DefaultEventExecutor>(LifeStyle.Transient);
+            Register<IUncommittedEventExecutor, DefaultUncommittedEventExecutor>(LifeStyle.Transient);
+            Register<ICommittedEventExecutor, DefaultCommittedEventExecutor>(LifeStyle.Transient);
 
             return this;
         }
@@ -223,22 +235,31 @@ namespace ENode
             _retryCommandProcessor = commandProcessor;
             return this;
         }
-        /// <summary>Add a event processor.
+        /// <summary>Add an uncommitted event processor.
         /// </summary>
         /// <param name="eventProcessor"></param>
         /// <returns></returns>
-        public Configuration AddEventProcessor(IEventProcessor eventProcessor)
+        public Configuration AddUncommittedEventProcessor(IUncommittedEventProcessor eventProcessor)
         {
-            _eventProcessors.Add(eventProcessor);
+            _uncommittedEventProcessors.Add(eventProcessor);
+            return this;
+        }
+        /// <summary>Add a committed event processor.
+        /// </summary>
+        /// <param name="eventProcessor"></param>
+        /// <returns></returns>
+        public Configuration AddCommittedEventProcessor(ICommittedEventProcessor eventProcessor)
+        {
+            _committedEventProcessors.Add(eventProcessor);
             return this;
         }
         /// <summary>Create all the message processors with the given queue names at once.
         /// </summary>
         /// <param name="commandQueueNames">Represents the command queue names.</param>
         /// <param name="retryCommandQueueName">Represents the retry command queue name.</param>
-        /// <param name="eventQueueNames">Represents the committed event queue names.</param>
+        /// <param name="committedEventQueueNames">Represents the committed event queue names.</param>
         /// <returns></returns>
-        public Configuration CreateAllDefaultProcessors(IEnumerable<string> commandQueueNames, string retryCommandQueueName, IEnumerable<string> eventQueueNames, MessageProcessorOption option = null)
+        public Configuration CreateAllDefaultProcessors(IEnumerable<string> commandQueueNames, string retryCommandQueueName, IEnumerable<string> uncommittedEventQueueNames, IEnumerable<string> committedEventQueueNames, MessageProcessorOption option = null)
         {
             var messageProcessorOption = option;
             if (messageProcessorOption == null)
@@ -251,9 +272,13 @@ namespace ENode
                 _commandProcessors.Add(new DefaultCommandProcessor(new DefaultCommandQueue(queueName), messageProcessorOption.CommandExecutorCount));
             }
             _retryCommandProcessor = new DefaultCommandProcessor(new DefaultCommandQueue(retryCommandQueueName), messageProcessorOption.RetryCommandExecutorCount);
-            foreach (var queueName in eventQueueNames)
+            foreach (var queueName in uncommittedEventQueueNames)
             {
-                _eventProcessors.Add(new DefaultEventProcessor(new DefaultEventQueue(queueName), messageProcessorOption.EventExecutorCount));
+                _uncommittedEventProcessors.Add(new DefaultUncommittedEventProcessor(new DefaultUncommittedEventQueue(queueName), messageProcessorOption.UncommittedEventExecutorCount));
+            }
+            foreach (var queueName in committedEventQueueNames)
+            {
+                _committedEventProcessors.Add(new DefaultCommittedEventProcessor(new DefaultCommittedEventQueue(queueName), messageProcessorOption.CommittedEventExecutorCount));
             }
 
             return this;
@@ -298,7 +323,8 @@ namespace ENode
                 .CreateAllDefaultProcessors(
                     new string[] { "CommandQueue" },
                     "RetryCommandQueue",
-                    new string[] { "EventQueue" })
+                    new string[] { "UncommittedEventQueue" },
+                    new string[] { "CommittedEventQueue" })
                 .Initialize(assemblies)
                 .Start();
         }
@@ -313,9 +339,13 @@ namespace ENode
             {
                 throw new Exception("Retry command processor count cannot be null.");
             }
-            if (_eventProcessors.Count == 0)
+            if (_uncommittedEventProcessors.Count == 0)
             {
-                throw new Exception("Event processor count cannot be zero.");
+                throw new Exception("Uncommitted event processor count cannot be zero.");
+            }
+            if (_committedEventProcessors.Count == 0)
+            {
+                throw new Exception("Committed event processor count cannot be zero.");
             }
         }
         private void InitializeProcessors()
@@ -325,7 +355,11 @@ namespace ENode
                 commandProcessor.Initialize();
             }
             _retryCommandProcessor.Initialize();
-            foreach (var eventProcessor in _eventProcessors)
+            foreach (var eventProcessor in _uncommittedEventProcessors)
+            {
+                eventProcessor.Initialize();
+            }
+            foreach (var eventProcessor in _committedEventProcessors)
             {
                 eventProcessor.Initialize();
             }
@@ -337,7 +371,11 @@ namespace ENode
                 commandProcessor.Start();
             }
             _retryCommandProcessor.Start();
-            foreach (var eventProcessor in _eventProcessors)
+            foreach (var eventProcessor in _uncommittedEventProcessors)
+            {
+                eventProcessor.Start();
+            }
+            foreach (var eventProcessor in _committedEventProcessors)
             {
                 eventProcessor.Start();
             }
@@ -368,18 +406,20 @@ namespace ENode
 
         public int CommandExecutorCount { get; set; }
         public int RetryCommandExecutorCount { get; set; }
-        public int EventExecutorCount { get; set; }
+        public int UncommittedEventExecutorCount { get; set; }
+        public int CommittedEventExecutorCount { get; set; }
 
         public static MessageProcessorOption Default
         {
             get { return _default; }
         }
 
-        public MessageProcessorOption(int commandExecutorCount = 1, int retryCommandExecutorCount = 1, int eventExecutorCount = 1)
+        public MessageProcessorOption(int commandExecutorCount = 1, int retryCommandExecutorCount = 1, int uncommittedEventExecutorCount = 1, int committedEventExecutorCount = 1)
         {
             CommandExecutorCount = commandExecutorCount;
             RetryCommandExecutorCount = retryCommandExecutorCount;
-            EventExecutorCount = eventExecutorCount;
+            UncommittedEventExecutorCount = uncommittedEventExecutorCount;
+            CommittedEventExecutorCount = committedEventExecutorCount;
         }
     }
 }
