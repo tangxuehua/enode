@@ -4,6 +4,7 @@ namespace ENode.Messaging
 {
     /// <summary>Represents a message.
     /// </summary>
+    [Serializable]
     public class Message : IMessage
     {
         /// <summary>Represents the unique identifier for the message.
