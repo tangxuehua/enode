@@ -87,7 +87,8 @@ namespace ENode.Eventing
 
         private bool CommitEvents(EventStreamContext eventStreamContext)
         {
-            var synchronizeResult = TryCallSynchronizersBeforeEventPersisting(eventStreamContext.EventStream);
+            var errorInfo = new ErrorInfo();
+            var synchronizeResult = TryCallSynchronizersBeforeEventPersisting(eventStreamContext.EventStream, errorInfo);
 
             if (synchronizeResult == SynchronizeResult.SynchronizerConcurrentException)
             {
@@ -95,7 +96,7 @@ namespace ENode.Eventing
             }
             else if (synchronizeResult == SynchronizeResult.Failed)
             {
-                Clear(eventStreamContext);
+                Clear(eventStreamContext, errorInfo);
                 return true;
             }
             else
@@ -257,7 +258,7 @@ namespace ENode.Eventing
                 _retryService.RetryInQueue(new ActionInfo("TryPublishEvents", (obj) => tryPublishEventsAction(obj as EventStream), eventStream, successActionInfo));
             }
         }
-        private SynchronizeResult TryCallSynchronizersBeforeEventPersisting(EventStream eventStream)
+        private SynchronizeResult TryCallSynchronizersBeforeEventPersisting(EventStream eventStream, ErrorInfo errorInfo)
         {
             foreach (var evnt in eventStream.Events)
             {
@@ -275,6 +276,8 @@ namespace ENode.Eventing
                             synchronizer.GetInnerSynchronizer().GetType().Name,
                             eventStream.GetStreamInformation());
                         _logger.Error(errorMessage, ex);
+                        errorInfo.ErrorMessage = errorMessage;
+                        errorInfo.Exception = ex;
                         if (ex is ConcurrentException)
                         {
                             return SynchronizeResult.SynchronizerConcurrentException;
@@ -328,7 +331,18 @@ namespace ENode.Eventing
         }
         private void Clear(EventStreamContext context)
         {
-            _commandAsyncResultManager.TryComplete(context.EventStream.CommandId);
+            Clear(context, null);
+        }
+        private void Clear(EventStreamContext context, ErrorInfo errorInfo)
+        {
+            if (errorInfo != null)
+            {
+                _commandAsyncResultManager.TryComplete(context.EventStream.CommandId, errorInfo.ErrorMessage, errorInfo.Exception);
+            }
+            else
+            {
+                _commandAsyncResultManager.TryComplete(context.EventStream.CommandId);
+            }
             _processingCommandCache.TryRemove(context.EventStream.CommandId);
             FinishExecution(context.EventStream, context.Queue);
         }
