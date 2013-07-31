@@ -109,12 +109,12 @@ namespace ENode.Eventing.Storage.Sql
                 return streams;
             });
         }
-        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
+        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id, Guid commandId)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute<bool>((connection) =>
             {
                 var eventTable = _eventTableProvider.GetTable(aggregateRootId, aggregateRootType);
-                var count = connection.GetCount(new { CommandId = id }, eventTable);
+                var count = connection.GetCount(new { Id = id, CommandId = commandId }, eventTable, true);
                 return count > 0;
             });
         }

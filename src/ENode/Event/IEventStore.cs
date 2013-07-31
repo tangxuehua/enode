@@ -15,8 +15,9 @@ namespace ENode.Eventing
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
         /// <param name="id"></param>
+        /// <param name="commandId"></param>
         /// <returns></returns>
-        bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id);
+        bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id, Guid commandId);
         /// <summary>Query event streams from event store.
         /// </summary>
         IEnumerable<EventStream> Query(string aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion);

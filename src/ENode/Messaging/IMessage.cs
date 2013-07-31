@@ -9,8 +9,11 @@ namespace ENode.Messaging
         /// <summary>Represents the unique identifier for the message.
         /// </summary>
         Guid Id { get; }
-        /// <summary>Get or set whether the message is restore from the message store.
+        /// <summary>Returns whether the message is restore from the message store.
         /// </summary>
-        bool IsRestoreFromStorage { get; set; }
+        bool IsRestoreFromStorage();
+        /// <summary>Mark the message that is restored from storage.
+        /// </summary>
+        void MarkAsRestoreFromStorage();
     }
 }

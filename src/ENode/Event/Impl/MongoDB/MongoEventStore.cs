@@ -72,11 +72,11 @@ namespace ENode.Eventing.Storage.MongoDB
 
             return events;
         }
-        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
+        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id, Guid commandId)
         {
             var collectionName = _eventCollectionNameProvider.GetCollectionName(aggregateRootId, aggregateRootType);
             var collection = GetMongoCollection(collectionName);
-            var query = MongoQuery.EQ("Id", id.ToString());
+            var query = MongoQuery.Or(MongoQuery.EQ("Id", id.ToString()), MongoQuery.EQ("CommandId", commandId.ToString()));
             var count = collection.Count(query);
 
             return count > 0;

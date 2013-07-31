@@ -54,10 +54,14 @@ namespace ENode.Infrastructure
             try
             {
                 success = action(actionName, retriedCount, maxRetryCount);
+                if (retriedCount > 0)
+                {
+                    _logger.InfoFormat("Retried action {0} for {1} times.", actionName, retriedCount);
+                }
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when tring action {0}.", actionName), ex);
+                _logger.Error(string.Format("Exception raised when tring action {0}, retrid count {1}.", actionName, retriedCount), ex);
             }
 
             if (success)
@@ -66,9 +70,7 @@ namespace ENode.Infrastructure
             }
             else if (retriedCount < maxRetryCount)
             {
-                var result = TryRecursively(actionName, action, retriedCount + 1, maxRetryCount);
-                _logger.InfoFormat("Retried action {0} for {1} times.", actionName, retriedCount + 1);
-                return result;
+                return TryRecursively(actionName, action, retriedCount + 1, maxRetryCount);
             }
             else
             {
@@ -84,11 +86,11 @@ namespace ENode.Infrastructure
                 try
                 {
                     success = actionInfo.Action(actionInfo.Data);
-                    _logger.InfoFormat("Retried action {0} from queue.", actionInfo.Name);
+                    _logger.InfoFormat("Executed action {0} from queue.", actionInfo.Name);
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("Exception raised when retring action {0}.", actionInfo.Name), ex);
+                    _logger.Error(string.Format("Exception raised when executing action {0}.", actionInfo.Name), ex);
                 }
                 finally
                 {

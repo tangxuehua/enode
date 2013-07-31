@@ -49,11 +49,19 @@ namespace Dapper
 
             return SqlMapper.Execute(connection, sql, condition, transaction, commandTimeout);
         }
-        public static int GetCount(this IDbConnection connection, dynamic condition, string table, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int GetCount(this IDbConnection connection, dynamic condition, string table, bool isOr = false, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var obj = condition as object;
             var properties = GetProperties(obj);
-            var whereFields = string.Join(" and ", properties.Select(p => p + " = @" + p));
+            var whereFields = string.Empty;
+            if (isOr)
+            {
+                whereFields = string.Join(" or ", properties.Select(p => p + " = @" + p));
+            }
+            else
+            {
+                whereFields = string.Join(" and ", properties.Select(p => p + " = @" + p));
+            }
             var sql = string.Format("select count(*) from [{0}] where {1}", table, whereFields);
 
             return SqlMapper.Query<int>(connection, sql, obj, transaction, true, commandTimeout).Single();

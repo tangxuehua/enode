@@ -39,7 +39,7 @@ namespace ENode.Commanding
 
         public override string ToString()
         {
-            return string.Format("CommandType:{0},Id:{1}", GetType().FullName, Id);
+            return GetType().Name;
         }
     }
 }

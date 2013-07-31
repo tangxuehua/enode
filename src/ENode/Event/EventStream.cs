@@ -44,7 +44,7 @@ namespace ENode.Eventing
         }
         public string GetEventInformation()
         {
-            return string.Join(",", Events.Select(x => x.GetType().Name));
+            return string.Join("|", Events.Select(x => x.GetType().Name));
         }
         public string GetStreamInformation()
         {
@@ -53,14 +53,14 @@ namespace ENode.Eventing
             items.Add(AggregateRootName);
             items.Add(AggregateRootId);
             items.Add(Version);
-            items.Add(string.Join(",", Events.Select(x => x.GetType().Name)));
+            items.Add(string.Join("-", Events.Select(x => x.GetType().Name)));
             items.Add(CommandId);
             items.Add(Timestamp);
             return string.Join("|", items);
         }
         public override string ToString()
         {
-            return GetStreamInformation();
+            return GetEventInformation();
         }
     }
 }

@@ -38,8 +38,9 @@ namespace ENode.Messaging
             var messages = _messageStore.GetMessages<T>(Name);
             foreach (var message in messages)
             {
-                message.IsRestoreFromStorage = true;
+                message.MarkAsRestoreFromStorage();
                 _queue.Add(message);
+                Logger.InfoFormat("{0} recovered, id:{1}", message.ToString(), message.Id);
             }
             OnInitialized(messages);
         }
@@ -51,6 +52,10 @@ namespace ENode.Messaging
             {
                 _messageStore.AddMessage(Name, message);
                 _queue.Add(message);
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.DebugFormat("{0} enqueued, id:{1}", message.ToString(), message.Id);
+                }
             });
         }
         public T Dequeue()

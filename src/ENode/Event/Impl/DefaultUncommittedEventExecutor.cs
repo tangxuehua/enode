@@ -139,7 +139,8 @@ namespace ENode.Eventing
             return _eventStore.IsEventStreamExist(
                 eventStream.AggregateRootId,
                 _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName),
-                eventStream.Id);
+                eventStream.Id,
+                eventStream.CommandId);
         }
         private void TryPersistEvents(EventStreamContext eventStreamContext, ActionInfo successActionInfo)
         {
@@ -308,7 +309,7 @@ namespace ENode.Eventing
         }
         private void RetryCommand(EventStreamContext eventStreamContext, ErrorInfo errorInfo, ActionInfo successActionInfo)
         {
-            if (!eventStreamContext.EventStream.IsRestoreFromStorage)
+            if (!eventStreamContext.EventStream.IsRestoreFromStorage())
             {
                 var command = _processingCommandCache.Get(eventStreamContext.EventStream.CommandId);
                 if (command != null)
