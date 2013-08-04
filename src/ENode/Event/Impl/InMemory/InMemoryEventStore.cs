@@ -27,9 +27,9 @@ namespace ENode.Eventing
                 .Where(x => x.AggregateRootId == aggregateRootId && x.Version >= minStreamVersion && x.Version <= maxStreamVersion)
                 .OrderBy(x => x.Version);
         }
-        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id, Guid commandId)
+        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
         {
-            return _eventDict.Values.Any(x => x.AggregateRootId == aggregateRootId && (x.Id == id || x.CommandId == commandId));
+            return _eventDict.Values.Any(x => x.AggregateRootId == aggregateRootId && x.Id == id);
         }
         public IEnumerable<EventStream> QueryAll()
         {

@@ -140,8 +140,7 @@ namespace ENode.Eventing
             return _eventStore.IsEventStreamExist(
                 eventStream.AggregateRootId,
                 _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName),
-                eventStream.Id,
-                eventStream.CommandId);
+                eventStream.Id);
         }
         private void TryPersistEvents(EventStreamContext eventStreamContext, ActionInfo successActionInfo)
         {
