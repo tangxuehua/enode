@@ -22,15 +22,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UniqueValidationSample", "s
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{93D62F41-6B3D-4828-BA92-13F6CFB3E388}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.JsonNet", "ENode.JsonNet\ENode.JsonNet.csproj", "{92B95148-23F9-4AA8-B5DD-FCBDE0E0EB88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.JsonNet", "src\Extensions\ENode.JsonNet\ENode.JsonNet.csproj", "{92B95148-23F9-4AA8-B5DD-FCBDE0E0EB88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Mongo", "ENode.Mongo\ENode.Mongo.csproj", "{25DDA9F0-DC61-4446-9364-B29376215155}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Mongo", "src\Extensions\ENode.Mongo\ENode.Mongo.csproj", "{25DDA9F0-DC61-4446-9364-B29376215155}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Redis", "ENode.Redis\ENode.Redis.csproj", "{6C201374-2F02-4134-8098-9D7D8DFCE31A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Redis", "src\Extensions\ENode.Redis\ENode.Redis.csproj", "{6C201374-2F02-4134-8098-9D7D8DFCE31A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Log4Net", "ENode.Log4Net\ENode.Log4Net.csproj", "{0F063898-FB02-47D9-B6C6-7A4CFE4B6C51}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Log4Net", "src\Extensions\ENode.Log4Net\ENode.Log4Net.csproj", "{0F063898-FB02-47D9-B6C6-7A4CFE4B6C51}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Autofac", "ENode.Autofac\ENode.Autofac.csproj", "{B4258B15-71B1-4B3B-960A-6A1C75CA2004}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Autofac", "src\Extensions\ENode.Autofac\ENode.Autofac.csproj", "{B4258B15-71B1-4B3B-960A-6A1C75CA2004}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
