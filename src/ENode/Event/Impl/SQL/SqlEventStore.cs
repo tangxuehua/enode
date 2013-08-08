@@ -6,7 +6,7 @@ using Dapper;
 using ENode.Domain;
 using ENode.Infrastructure;
 
-namespace ENode.Eventing.Storage.Sql
+namespace ENode.Eventing
 {
     public class SqlEventStore : IEventStore
     {

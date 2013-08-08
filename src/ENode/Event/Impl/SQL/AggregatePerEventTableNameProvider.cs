@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
 
-namespace ENode.Eventing.Storage.Sql
+namespace ENode.Eventing
 {
     public class AggregatePerEventTableNameProvider : IEventTableNameProvider
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
 
-namespace ENode.Eventing.Storage.MongoDB
+namespace ENode.Mongo
 {
     public class AggregatePerEventCollectionNameProvider : IEventCollectionNameProvider
     {

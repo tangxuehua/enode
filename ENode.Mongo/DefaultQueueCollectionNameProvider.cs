@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ENode.Messaging.Storage.MongoDB
+namespace ENode.Mongo
 {
     public class DefaultQueueCollectionNameProvider : IQueueCollectionNameProvider
     {

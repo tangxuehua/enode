@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Eventing.Storage.MongoDB
+namespace ENode.Mongo
 {
     /// <summary>Represents a provider to provide a mongo collection name.
     /// </summary>

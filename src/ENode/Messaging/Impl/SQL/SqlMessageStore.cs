@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Dapper;
 using ENode.Infrastructure;
 
-namespace ENode.Messaging.Storage.Sql
+namespace ENode.Messaging
 {
     public class SqlMessageStore : IMessageStore
     {

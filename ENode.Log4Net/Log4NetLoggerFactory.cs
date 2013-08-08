@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using ENode.Infrastructure;
 using log4net;
 using log4net.Appender;
 using log4net.Config;
 using log4net.Layout;
 
-namespace ENode.Infrastructure
+namespace ENode.Log4Net
 {
     public class Log4NetLoggerFactory : ILoggerFactory
     {

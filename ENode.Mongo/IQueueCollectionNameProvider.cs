@@ -1,4 +1,4 @@
-﻿namespace ENode.Messaging.Storage.MongoDB
+﻿namespace ENode.Mongo
 {
     /// <summary>Represents a provider to provide the queue collection name.
     /// </summary>

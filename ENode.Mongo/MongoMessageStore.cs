@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoQuery = MongoDB.Driver.Builders.Query;
 
-namespace ENode.Messaging.Storage.MongoDB
+namespace ENode.Mongo
 {
     public class MongoMessageStore : IMessageStore
     {

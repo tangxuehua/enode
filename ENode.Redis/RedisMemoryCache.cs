@@ -1,8 +1,9 @@
 ﻿using System;
+using ENode.Domain;
 using ENode.Infrastructure;
 using ServiceStack.Redis;
 
-namespace ENode.Domain
+namespace ENode.Redis
 {
     public class RedisMemoryCache : IMemoryCache
     {

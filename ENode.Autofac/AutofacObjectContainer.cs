@@ -1,7 +1,8 @@
 ﻿using System;
 using Autofac;
+using ENode.Infrastructure;
 
-namespace ENode.Infrastructure
+namespace ENode.Autofac
 {
     public class AutofacObjectContainer : IObjectContainer
     {

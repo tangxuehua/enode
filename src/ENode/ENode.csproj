@@ -49,7 +49,6 @@
     <Compile Include="Command\Impl\CommandExecuteException.cs" />
     <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
-    <Compile Include="Domain\Impl\RedisMemoryCache.cs" />
     <Compile Include="Event\IEventPersistenceSynchronizer.cs" />
     <Compile Include="Event\IEventSender.cs" />
     <Compile Include="Event\Impl\DefaultEventSender.cs" />
@@ -82,12 +81,6 @@
     <Compile Include="Event\Impl\Event.cs" />
     <Compile Include="Event\Impl\InMemory\InMemoryEventPublishInfoStore.cs" />
     <Compile Include="Event\Impl\InMemory\InMemoryEventStore.cs" />
-    <Compile Include="Event\Impl\MongoDB\AggregatePerEventCollectionNameProvider.cs" />
-    <Compile Include="Event\Impl\MongoDB\DefaultEventCollectionNameProvider.cs" />
-    <Compile Include="Event\Impl\MongoDB\IEventCollectionNameProvider.cs" />
-    <Compile Include="Event\Impl\MongoDB\MongoEventStore.cs" />
-    <Compile Include="Event\Impl\MongoDB\MongoEventHandleInfoStore.cs" />
-    <Compile Include="Event\Impl\MongoDB\MongoEventPublishInfoStore.cs" />
     <Compile Include="Event\Impl\SQL\SqlEventHandleInfoStore.cs" />
     <Compile Include="Event\Impl\SQL\SqlEventPublishInfoStore.cs" />
     <Compile Include="Event\Impl\SQL\AggregatePerEventTableNameProvider.cs" />
@@ -104,14 +97,10 @@
     <Compile Include="Infrastructure\Impl\ErrorInfo.cs" />
     <Compile Include="Infrastructure\Impl\DefaultRetryService.cs" />
     <Compile Include="Infrastructure\IObjectContainer.cs" />
-    <Compile Include="Infrastructure\Impl\Autofac\AutofacObjectContainer.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Infrastructure\ActionInfo.cs" />
     <Compile Include="Infrastructure\IRetryService.cs" />
     <Compile Include="Messaging\Impl\Message.cs" />
-    <Compile Include="Messaging\Impl\MongoDB\DefaultQueueCollectionNameProvider.cs" />
-    <Compile Include="Messaging\Impl\MongoDB\IQueueCollectionNameProvider.cs" />
-    <Compile Include="Messaging\Impl\MongoDB\MongoMessageStore.cs" />
     <Compile Include="Messaging\Impl\SQL\DefaultQueueTableNameProvider.cs" />
     <Compile Include="Messaging\Impl\EmptyMessageStore.cs" />
     <Compile Include="Messaging\Impl\SQL\IQueueTableNameProvider.cs" />
@@ -149,8 +138,6 @@
     <Compile Include="Infrastructure\Impl\ObjectHelper.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Infrastructure\Impl\Log4Net\Log4NetLogger.cs" />
-    <Compile Include="Infrastructure\Impl\Log4Net\Log4NetLoggerFactory.cs" />
     <Compile Include="Infrastructure\Impl\Dapper\SqlMapper.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -202,40 +189,9 @@
     <Compile Include="Infrastructure\Impl\SqlDbConnectionFactory.cs" />
     <Compile Include="Command\Impl\AggregateRootNotFoundException.cs" />
     <Compile Include="Command\Impl\CommandTimeoutException.cs" />
-    <Compile Include="Infrastructure\Impl\NewtonsoftJsonSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Autofac">
-      <HintPath>..\..\packages\Autofac.3.0.2\lib\net40\Autofac.dll</HintPath>
-    </Reference>
-    <Reference Include="Autofac.Configuration">
-      <HintPath>..\..\packages\Autofac.3.0.2\lib\net40\Autofac.Configuration.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="MongoDB.Bson">
-      <HintPath>..\..\packages\mongocsharpdriver.1.8.1\lib\net35\MongoDB.Bson.dll</HintPath>
-    </Reference>
-    <Reference Include="MongoDB.Driver">
-      <HintPath>..\..\packages\mongocsharpdriver.1.8.1\lib\net35\MongoDB.Driver.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceStack.Common">
-      <HintPath>..\..\packages\ServiceStack.Common.3.9.49\lib\net35\ServiceStack.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceStack.Interfaces">
-      <HintPath>..\..\packages\ServiceStack.Common.3.9.49\lib\net35\ServiceStack.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceStack.Redis">
-      <HintPath>..\..\packages\ServiceStack.Redis.3.9.51\lib\net35\ServiceStack.Redis.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceStack.Text">
-      <HintPath>..\..\packages\ServiceStack.Text.3.9.49\lib\net35\ServiceStack.Text.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.XML" />

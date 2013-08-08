@@ -2,8 +2,12 @@
 using System.Reflection;
 using System.Threading;
 using ENode;
+using ENode.Autofac;
 using ENode.Commanding;
 using ENode.Infrastructure;
+using ENode.JsonNet;
+using ENode.Log4Net;
+using ENode.Mongo;
 using UniqueValidationSample.Commands;
 
 namespace UniqueValidationSample
@@ -36,25 +40,18 @@ namespace UniqueValidationSample
 
         static void InitializeENodeFramework()
         {
-            var connectionString = "mongodb://localhost/UniqueValidationSampleDB";
-            var eventCollection = "Event";
-            var eventPublishInfoCollection = "EventPublishInfo";
-            var eventHandleInfoCollection = "EventHandleInfo";
-
             var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
+            var connectionString = "mongodb://localhost/UniqueValidationSampleDB";
 
             Configuration
                 .Create()
-                .UseAutofacContainer()
+                .UseAutofac()
                 .RegisterFrameworkComponents()
                 .RegisterBusinessComponents(assemblies)
-                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
-                .UseMongoAsStorage(connectionString, eventCollection, null, eventPublishInfoCollection, eventHandleInfoCollection)
-                .CreateAllDefaultProcessors(
-                    new string[] { "CommandQueue" },
-                    "RetryCommandQueue",
-                    new string[] { "UncommittedEventQueue" },
-                    new string[] { "CommittedEventQueue" })
+                .UseLog4Net()
+                .UseJsonNet()
+                .UseMongo(connectionString)
+                .CreateAllDefaultProcessors()
                 .Initialize(assemblies)
                 .Start();
         }

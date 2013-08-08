@@ -2,7 +2,7 @@
 using ENode.Infrastructure;
 using log4net;
 
-namespace ENode.Infrastructure
+namespace ENode.Log4Net
 {
     /// <summary>
     /// Log4Net提供的日志记录器

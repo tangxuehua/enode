@@ -5,12 +5,8 @@ using System.Reflection;
 using ENode.Commanding;
 using ENode.Domain;
 using ENode.Eventing;
-using ENode.Eventing.Storage.MongoDB;
-using ENode.Eventing.Storage.Sql;
 using ENode.Infrastructure;
 using ENode.Messaging;
-using ENode.Messaging.Storage.Sql;
-using ENode.Messaging.Storage.MongoDB;
 using ENode.Snapshoting;
 
 namespace ENode
@@ -80,13 +76,6 @@ namespace ENode
             return _instance;
         }
 
-        /// <summary>Use autofac as the object container.
-        /// </summary>
-        public Configuration UseAutofacContainer()
-        {
-            ObjectContainer.SetContainer(new AutofacObjectContainer());
-            return this;
-        }
         /// <summary>Register a implementer type as a service implementation.
         /// </summary>
         /// <typeparam name="TService">The service type.</typeparam>
@@ -120,7 +109,6 @@ namespace ENode
         public Configuration RegisterFrameworkComponents()
         {
             Register<ILoggerFactory, EmptyLoggerFactory>();
-            Register<IJsonSerializer, NewtonsoftJsonSerializer>();
             Register<IBinarySerializer, DefaultBinarySerializer>();
             Register<IStringSerializer, DefaultStringSerializer>();
             Register<IDbConnectionFactory, SqlDbConnectionFactory>();
@@ -183,12 +171,20 @@ namespace ENode
         /// <summary>Use SQL DB as the storage of the whole framework.
         /// </summary>
         /// <param name="connectionString">The connection string of the DB.</param>
+        /// <returns></returns>
+        public Configuration UseSql(string connectionString)
+        {
+            return UseSql(connectionString, "Event", null, "EventPublishInfo", "EventHandleInfo");
+        }
+        /// <summary>Use SQL DB as the storage of the whole framework.
+        /// </summary>
+        /// <param name="connectionString">The connection string of the DB.</param>
         /// <param name="eventTable">The table used to store all the domain events.</param>
         /// <param name="queueNameFormat">The format of the queue name.</param>
         /// <param name="eventPublishInfoTable">The table used to store all the event publish information.</param>
         /// <param name="eventHandleInfoTable">The table used to store all the event handle information.</param>
         /// <returns></returns>
-        public Configuration UseSqlAsStorage(string connectionString, string eventTable, string queueNameFormat, string eventPublishInfoTable, string eventHandleInfoTable)
+        public Configuration UseSql(string connectionString, string eventTable, string queueNameFormat, string eventPublishInfoTable, string eventHandleInfoTable)
         {
             SetDefault<IEventTableNameProvider, DefaultEventTableNameProvider>(new DefaultEventTableNameProvider(eventTable));
             SetDefault<IQueueTableNameProvider, DefaultQueueTableNameProvider>(new DefaultQueueTableNameProvider(queueNameFormat));
@@ -196,24 +192,6 @@ namespace ENode
             SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
             SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
             SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
-            return this;
-        }
-        /// <summary>Use MongoDB as the storage of the whole framework.
-        /// </summary>
-        /// <param name="connectionString">The connection string of the mongodb server.</param>
-        /// <param name="eventCollectionName">The mongo collection used to store all the domain event.</param>
-        /// <param name="queueNameFormat">The format of the queue name.</param>
-        /// <param name="eventPublishInfoCollectionName">The collection used to store all the event publish information.</param>
-        /// <param name="eventHandleInfoCollectionName">The collection used to store all the event handle information.</param>
-        /// <returns></returns>
-        public Configuration UseMongoAsStorage(string connectionString, string eventCollectionName, string queueNameFormat, string eventPublishInfoCollectionName, string eventHandleInfoCollectionName)
-        {
-            SetDefault<IEventCollectionNameProvider, DefaultEventCollectionNameProvider>(new DefaultEventCollectionNameProvider(eventCollectionName));
-            SetDefault<IQueueCollectionNameProvider, DefaultQueueCollectionNameProvider>(new DefaultQueueCollectionNameProvider(queueNameFormat));
-            SetDefault<IMessageStore, MongoMessageStore>(new MongoMessageStore(connectionString));
-            SetDefault<IEventStore, MongoEventStore>(new MongoEventStore(connectionString));
-            SetDefault<IEventPublishInfoStore, MongoEventPublishInfoStore>(new MongoEventPublishInfoStore(connectionString, eventPublishInfoCollectionName));
-            SetDefault<IEventHandleInfoStore, MongoEventHandleInfoStore>(new MongoEventHandleInfoStore(connectionString, eventHandleInfoCollectionName));
             return this;
         }
 
@@ -252,6 +230,17 @@ namespace ENode
         {
             _committedEventProcessors.Add(eventProcessor);
             return this;
+        }
+        /// <summary>Create all the message processors with the default queue names at once.
+        /// </summary>
+        /// <returns></returns>
+        public Configuration CreateAllDefaultProcessors()
+        {
+            return CreateAllDefaultProcessors(
+                new string[] { "CommandQueue" },
+                "RetryCommandQueue",
+                new string[] { "UncommittedEventQueue" },
+                new string[] { "CommittedEventQueue" });
         }
         /// <summary>Create all the message processors with the given queue names at once.
         /// </summary>
@@ -306,28 +295,8 @@ namespace ENode
 
             return this;
         }
-        /// <summary>Start the framework with all the default configuration.
-        /// <remarks>
-        /// Not use this api only when you just want to do some in-memory based testing.
-        /// </remarks>
-        /// </summary>
-        /// <returns></returns>
-        public static Configuration StartWithAllDefault(params Assembly[] assemblies)
-        {
-            return Configuration
-                .Create()
-                .UseAutofacContainer()
-                .RegisterFrameworkComponents()
-                .RegisterBusinessComponents(assemblies)
-                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
-                .CreateAllDefaultProcessors(
-                    new string[] { "CommandQueue" },
-                    "RetryCommandQueue",
-                    new string[] { "UncommittedEventQueue" },
-                    new string[] { "CommittedEventQueue" })
-                .Initialize(assemblies)
-                .Start();
-        }
+
+        #region Private Methods
 
         private void ValidateProcessors()
         {
@@ -398,6 +367,8 @@ namespace ENode
         {
             return instance is IAssemblyInitializer;
         }
+
+        #endregion
     }
 
     public class MessageProcessorOption

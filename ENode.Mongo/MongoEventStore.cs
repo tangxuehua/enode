@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
+using ENode.Eventing;
 using ENode.Infrastructure;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoQuery = MongoDB.Driver.Builders.Query;
 
-namespace ENode.Eventing.Storage.MongoDB
+namespace ENode.Mongo
 {
     public class MongoEventStore : IEventStore
     {

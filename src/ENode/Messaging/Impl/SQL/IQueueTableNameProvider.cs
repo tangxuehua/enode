@@ -1,4 +1,4 @@
-﻿namespace ENode.Messaging.Storage.Sql
+﻿namespace ENode.Messaging
 {
     /// <summary>Represents a provider to provide the queue table name.
     /// </summary>

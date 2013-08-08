@@ -4,9 +4,12 @@ using System.Threading;
 using BankTransferSagaSample.Commands;
 using BankTransferSagaSample.Domain;
 using ENode;
+using ENode.Autofac;
 using ENode.Commanding;
 using ENode.Domain;
 using ENode.Infrastructure;
+using ENode.JsonNet;
+using ENode.Log4Net;
 
 namespace BankTransferSagaSample
 {
@@ -55,8 +58,18 @@ namespace BankTransferSagaSample
 
         static void InitializeENodeFramework()
         {
-            //全部使用默认配置，一般单元测试时，可以使用该配置
-            Configuration.StartWithAllDefault(new Assembly[] { Assembly.GetExecutingAssembly() });
+            var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
+
+            Configuration
+                .Create()
+                .UseAutofac()
+                .RegisterFrameworkComponents()
+                .RegisterBusinessComponents(assemblies)
+                .UseLog4Net()
+                .UseJsonNet()
+                .CreateAllDefaultProcessors()
+                .Initialize(assemblies)
+                .Start();
         }
     }
 }

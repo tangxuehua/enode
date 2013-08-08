@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ENode.Messaging.Storage.Sql
+namespace ENode.Messaging
 {
     public class DefaultQueueTableNameProvider : IQueueTableNameProvider
     {

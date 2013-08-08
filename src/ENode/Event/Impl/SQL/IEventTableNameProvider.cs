@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Eventing.Storage.Sql
+namespace ENode.Eventing
 {
     /// <summary>Represents a provider to provide the eventstore event table name.
     /// </summary>

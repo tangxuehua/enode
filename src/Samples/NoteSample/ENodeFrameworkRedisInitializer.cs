@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
 using ENode;
-using ENode.Domain;
-using ENode.Infrastructure;
+using ENode.Autofac;
+using ENode.JsonNet;
+using ENode.Log4Net;
+using ENode.Redis;
 
 namespace NoteSample
 {
@@ -13,16 +15,13 @@ namespace NoteSample
 
             Configuration
                 .Create()
-                .UseAutofacContainer()
+                .UseAutofac()
                 .RegisterFrameworkComponents()
                 .RegisterBusinessComponents(assemblies)
-                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
-                .SetDefault<IMemoryCache, RedisMemoryCache>(new RedisMemoryCache("127.0.0.1", 6379))
-                .CreateAllDefaultProcessors(
-                    new string[] { "CommandQueue" },
-                    "RetryCommandQueue",
-                    new string[] { "UncommittedEventQueue" },
-                    new string[] { "CommittedEventQueue" })
+                .UseLog4Net()
+                .UseJsonNet()
+                .UseRedis()
+                .CreateAllDefaultProcessors()
                 .Initialize(assemblies)
                 .Start();
         }

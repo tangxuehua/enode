@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Eventing.Storage.Sql
+namespace ENode.Eventing
 {
     public class DefaultEventTableNameProvider : IEventTableNameProvider
     {

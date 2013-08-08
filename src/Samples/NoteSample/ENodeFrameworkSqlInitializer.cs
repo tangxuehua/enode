@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using ENode;
-using ENode.Infrastructure;
+using ENode.Autofac;
+using ENode.JsonNet;
+using ENode.Log4Net;
 
 namespace NoteSample
 {
@@ -8,25 +10,18 @@ namespace NoteSample
     {
         public void Initialize()
         {
-            var connectionString = "Data Source=.;Initial Catalog=EventDB;Integrated Security=True;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100";
-            var eventTable = "Event";
-            var eventPublishInfoTable = "EventPublishInfo";
-            var eventHandleInfoTable = "EventHandleInfo";
-
             var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
+            var connectionString = "Data Source=.;Initial Catalog=EventDB;Integrated Security=True;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100";
 
             Configuration
                 .Create()
-                .UseAutofacContainer()
+                .UseAutofac()
                 .RegisterFrameworkComponents()
                 .RegisterBusinessComponents(assemblies)
-                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
-                .UseSqlAsStorage(connectionString, eventTable, null, eventPublishInfoTable, eventHandleInfoTable)
-                .CreateAllDefaultProcessors(
-                    new string[] { "CommandQueue" },
-                    "RetryCommandQueue",
-                    new string[] { "UncommittedEventQueue" },
-                    new string[] { "CommittedEventQueue" })
+                .UseLog4Net()
+                .UseJsonNet()
+                .UseSql(connectionString)
+                .CreateAllDefaultProcessors()
                 .Initialize(assemblies)
                 .Start();
         }

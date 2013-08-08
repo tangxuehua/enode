@@ -1,6 +1,9 @@
 ﻿using System.Reflection;
 using ENode;
-using ENode.Infrastructure;
+using ENode.Autofac;
+using ENode.JsonNet;
+using ENode.Log4Net;
+using ENode.Mongo;
 
 namespace NoteSample
 {
@@ -8,25 +11,18 @@ namespace NoteSample
     {
         public void Initialize()
         {
-            var connectionString = "mongodb://localhost/NoteDB";
-            var eventCollection = "Event";
-            var eventPublishInfoCollection = "EventPublishInfo";
-            var eventHandleInfoCollection = "EventHandleInfo";
-
             var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
+            var connectionString = "mongodb://localhost/NoteDB";
 
             Configuration
                 .Create()
-                .UseAutofacContainer()
+                .UseAutofac()
                 .RegisterFrameworkComponents()
                 .RegisterBusinessComponents(assemblies)
-                .SetDefault<ILoggerFactory, Log4NetLoggerFactory>(new Log4NetLoggerFactory("log4net.config"))
-                .UseMongoAsStorage(connectionString, eventCollection, null, eventPublishInfoCollection, eventHandleInfoCollection)
-                .CreateAllDefaultProcessors(
-                    new string[] { "CommandQueue" },
-                    "RetryCommandQueue",
-                    new string[] { "UncommittedEventQueue" },
-                    new string[] { "CommittedEventQueue" })
+                .UseLog4Net()
+                .UseJsonNet()
+                .UseMongo(connectionString)
+                .CreateAllDefaultProcessors()
                 .Initialize(assemblies)
                 .Start();
         }

@@ -1,11 +1,12 @@
 ﻿using System;
+using ENode.Eventing;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoQuery = MongoDB.Driver.Builders.Query;
 
-namespace ENode.Eventing
+namespace ENode.Mongo
 {
-    public class MongoEventHandleInfoStore : IEventHandleInfoStore
+    public class MongoEventPublishInfoStore : IEventPublishInfoStore
     {
         #region Private Variables
 
@@ -16,7 +17,7 @@ namespace ENode.Eventing
 
         #region Constructors
 
-        public MongoEventHandleInfoStore(string connectionString, string collectionName)
+        public MongoEventPublishInfoStore(string connectionString,string collectionName)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -30,21 +31,30 @@ namespace ENode.Eventing
             _connectionString = connectionString;
             _collectionName = collectionName;
         }
-
+         
         #endregion
 
-        public void AddEventHandleInfo(Guid eventId, string eventHandlerTypeName)
+        public void InsertFirstPublishedVersion(string aggregateRootId)
         {
             var document = new BsonDocument
             {
-                { "_id", new BsonDocument { { "EventId", eventId.ToString() }, { "EventHandlerTypeName", eventHandlerTypeName } } }
+                { "AggregateRootId", aggregateRootId },
+                { "Version", 1L }
             };
+
             GetMongoCollection().Insert(document);
         }
-        public bool IsEventHandleInfoExist(Guid eventId, string eventHandlerTypeName)
+        public void UpdatePublishedVersion(string aggregateRootId, long version)
         {
-            var id = new BsonDocument { { "EventId", eventId.ToString() }, { "EventHandlerTypeName", eventHandlerTypeName } };
-            return GetMongoCollection().FindOneById(id) != null;
+            var collection = GetMongoCollection();
+            var document = collection.FindOne(MongoQuery.EQ("AggregateRootId", aggregateRootId));
+            document["Version"] = version;
+            collection.Save(document);
+        }
+        public long GetEventPublishedVersion(string aggregateRootId)
+        {
+            var document = GetMongoCollection().FindOne(MongoQuery.EQ("AggregateRootId", aggregateRootId));
+            return document["Version"].AsInt64;
         }
 
         private MongoCollection<BsonDocument> GetMongoCollection()

@@ -2,7 +2,7 @@
 using System.Data.SqlClient;
 using ENode.Infrastructure;
 
-namespace ENode.Messaging.Storage.Sql
+namespace ENode.Messaging
 {
     public class SqlDbConnectionFactory : IDbConnectionFactory
     {
