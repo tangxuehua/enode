@@ -11,7 +11,10 @@ namespace ENode.Eventing {
 
         public void Initialize(params Assembly[] assemblies) {
             foreach (var assembly in assemblies) {
-                foreach (var handlerType in assembly.GetExportedTypes().Where(x => IsEventHandler(x))) {
+                foreach (var handlerType in assembly.GetTypes().Where(x => IsEventHandler(x))) {
+                    if (!TypeUtils.IsComponent(handlerType)) {
+                        throw new Exception(string.Format("{0} should be marked as component.", handlerType.FullName));
+                    }
                     RegisterEventHandler(handlerType);
                 }
             }
@@ -25,6 +28,9 @@ namespace ENode.Eventing {
                 }
             }
             return eventHandlers;
+        }
+        public bool IsEventHandler(Type type) {
+            return type != null && type.IsClass && !type.IsAbstract && ScanEventHandlerInterfaces(type).Count() > 0 && !typeof(AggregateRoot).IsAssignableFrom(type);
         }
 
         private void RegisterEventHandler(Type eventHandlerType) {
@@ -43,9 +49,6 @@ namespace ENode.Eventing {
                     eventHandlers.Add(eventHandlerWrapper);
                 }
             }
-        }
-        private bool IsEventHandler(Type type) {
-            return type != null && type.IsClass && !type.IsAbstract && ScanEventHandlerInterfaces(type).Count() > 0 && !typeof(AggregateRoot).IsAssignableFrom(type);
         }
         private IEnumerable<Type> ScanEventHandlerInterfaces(Type eventHandlerType) {
             return eventHandlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEventHandler<>));

@@ -144,7 +144,7 @@ namespace ENode {
         /// </summary>
         public Configuration RegisterBusinessComponents(params Assembly[] assemblies) {
             foreach (var assembly in assemblies) {
-                foreach (var type in assembly.GetExportedTypes().Where(TypeUtils.IsComponent)) {
+                foreach (var type in assembly.GetTypes().Where(TypeUtils.IsComponent)) {
                     ObjectContainer.RegisterType(type, ParseLife(type));
                     if (IsAssemblyInitializer(type)) {
                         _assemblyInitializerServiceTypes.Add(type);
@@ -249,6 +249,7 @@ namespace ENode {
         /// </summary>
         /// <returns></returns>
         public Configuration Initialize(params Assembly[] assemblies) {
+            ValidateMessages(assemblies);
             foreach (var serviceType in _assemblyInitializerServiceTypes) {
                 (ObjectContainer.Resolve(serviceType) as IAssemblyInitializer).Initialize(assemblies);
             }
@@ -268,6 +269,15 @@ namespace ENode {
 
         #region Private Methods
 
+        private void ValidateMessages(params Assembly[] assemblies) {
+            foreach (var assembly in assemblies) {
+                foreach (var type in assembly.GetTypes().Where(x => x.IsClass && typeof(IMessage).IsAssignableFrom(x))) {
+                    if (!type.IsSerializable) {
+                        throw new Exception(string.Format("{0} should be marked as serializable.", type.FullName));
+                    }
+                }
+            }
+        }
         private void ValidateProcessors() {
             if (_commandProcessors.Count == 0) {
                 throw new Exception("Command processor count cannot be zero.");

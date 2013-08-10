@@ -10,7 +10,10 @@ namespace ENode.Domain {
 
         public void Initialize(params Assembly[] assemblies) {
             foreach (var assembly in assemblies) {
-                foreach (var type in assembly.GetExportedTypes().Where(t => TypeUtils.IsAggregateRoot(t))) {
+                foreach (var type in assembly.GetTypes().Where(t => TypeUtils.IsAggregateRoot(t))) {
+                    if (!type.IsSerializable) {
+                        throw new Exception(string.Format("{0} should be marked as serializable.", type.FullName));
+                    }
                     _mappings.Add(type.FullName, type);
                 }
             }

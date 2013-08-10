@@ -10,5 +10,10 @@ namespace ENode.Eventing {
         /// <param name="eventType"></param>
         /// <returns></returns>
         IEnumerable<IEventHandler> GetEventHandlers(Type eventType);
+        /// <summary>Check whether a given type is a event handler type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        bool IsEventHandler(Type type);
     }
 }

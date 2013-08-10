@@ -1,4 +1,5 @@
-﻿namespace ENode.Commanding {
+﻿using System;
+namespace ENode.Commanding {
     /// <summary>Represents a provider which can provide command handler for command.
     /// </summary>
     public interface ICommandHandlerProvider {
@@ -7,5 +8,10 @@
         /// <param name="command"></param>
         /// <returns></returns>
         ICommandHandler GetCommandHandler(ICommand command);
+        /// <summary>Check whether a given type is a command handler type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        bool IsCommandHandler(Type type);
     }
 }

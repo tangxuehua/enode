@@ -10,7 +10,7 @@ namespace ENode.Eventing {
 
         public void Initialize(params Assembly[] assemblies) {
             foreach (var assembly in assemblies) {
-                foreach (var synchronizerType in assembly.GetExportedTypes().Where(x => IsEventPersistenceSynchronizer(x))) {
+                foreach (var synchronizerType in assembly.GetTypes().Where(x => IsEventPersistenceSynchronizer(x))) {
                     RegisterSynchronizer(synchronizerType);
                 }
             }

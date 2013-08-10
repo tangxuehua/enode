@@ -23,28 +23,15 @@ namespace ENode.Infrastructure {
                 return (T)Convert.ChangeType(value, typeof(T));
             }
         }
-        /// <summary>Check whether a type is a component.
+        /// <summary>Check whether a type is a component type.
         /// </summary>
         public static bool IsComponent(Type type) {
-            return type != null
-                 && type.GetCustomAttributes(typeof(ComponentAttribute), false).Count() > 0
-                 && !type.IsAbstract
-                 && !type.IsInterface;
+            return type != null && type.IsClass && type.GetCustomAttributes(typeof(ComponentAttribute), false).Any();
         }
-        /// <summary>Check whether a type is an aggregate root.
+        /// <summary>Check whether a type is an aggregate root type.
         /// </summary>
         public static bool IsAggregateRoot(Type type) {
-            return type.IsClass
-                && !type.IsAbstract
-                && typeof(AggregateRoot).IsAssignableFrom(type);
-        }
-        /// <summary>Check whether a type support serialization.
-        /// </summary>
-        public static bool IsSerializable(Type type) {
-            return type != null
-                 && type.IsSerializable
-                 && !type.IsAbstract
-                 && !type.IsInterface;
+            return type.IsClass && !type.IsAbstract && typeof(AggregateRoot).IsAssignableFrom(type);
         }
     }
 }
