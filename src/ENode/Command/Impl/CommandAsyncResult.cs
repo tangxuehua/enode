@@ -2,10 +2,8 @@
 using System.Threading;
 using ENode.Infrastructure;
 
-namespace ENode.Commanding
-{
-    public class CommandAsyncResult
-    {
+namespace ENode.Commanding {
+    public class CommandAsyncResult {
         private ManualResetEvent _waitHandle;
         private Action<CommandAsyncResult> _callback;
 
@@ -13,38 +11,30 @@ namespace ENode.Commanding
         public string ErrorMessage { get; private set; }
         public Exception Exception { get; private set; }
 
-        public CommandAsyncResult(ManualResetEvent waitHandle)
-        {
-            if (waitHandle == null)
-            {
+        public CommandAsyncResult(ManualResetEvent waitHandle) {
+            if (waitHandle == null) {
                 throw new ArgumentNullException("waitHandle");
             }
             _waitHandle = waitHandle;
         }
-        public CommandAsyncResult(Action<CommandAsyncResult> callback)
-        {
+        public CommandAsyncResult(Action<CommandAsyncResult> callback) {
             _callback = callback;
         }
 
-        public void Complete(string errorMessage, Exception exception)
-        {
+        public void Complete(string errorMessage, Exception exception) {
             IsCompleted = true;
             ErrorMessage = errorMessage;
             Exception = exception;
 
-            if (_waitHandle != null)
-            {
+            if (_waitHandle != null) {
                 _waitHandle.Set();
             }
-            else if (_callback != null)
-            {
+            else if (_callback != null) {
                 _callback(this);
             }
         }
-        public bool HasError
-        {
-            get
-            {
+        public bool HasError {
+            get {
                 return ErrorMessage != null || Exception != null;
             }
         }

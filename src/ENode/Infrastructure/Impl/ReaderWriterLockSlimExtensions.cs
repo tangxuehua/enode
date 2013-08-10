@@ -1,95 +1,73 @@
 using System;
 using System.Threading;
 
-namespace ENode.Infrastructure
-{
-    public static class ReaderWriterLockSlimExtensions
-    {
-        public static void AtomRead(this ReaderWriterLockSlim readerWriterLockSlim, Action action)
-        {
-            if (readerWriterLockSlim == null)
-            {
+namespace ENode.Infrastructure {
+    public static class ReaderWriterLockSlimExtensions {
+        public static void AtomRead(this ReaderWriterLockSlim readerWriterLockSlim, Action action) {
+            if (readerWriterLockSlim == null) {
                 throw new ArgumentNullException("readerWriterLockSlim");
             }
-            if (action == null)
-            {
+            if (action == null) {
                 throw new ArgumentNullException("action");
             }
 
             readerWriterLockSlim.EnterReadLock();
 
-            try
-            {
+            try {
                 action();
             }
-            finally
-            {
+            finally {
                 readerWriterLockSlim.ExitReadLock();
             }
         }
-        public static T AtomRead<T>(this ReaderWriterLockSlim readerWriterLockSlim, Func<T> function)
-        {
-            if (readerWriterLockSlim == null)
-            {
+        public static T AtomRead<T>(this ReaderWriterLockSlim readerWriterLockSlim, Func<T> function) {
+            if (readerWriterLockSlim == null) {
                 throw new ArgumentNullException("readerWriterLockSlim");
             }
-            if (function == null)
-            {
+            if (function == null) {
                 throw new ArgumentNullException("function");
             }
 
             readerWriterLockSlim.EnterReadLock();
 
-            try
-            {
+            try {
                 return function();
             }
-            finally
-            {
+            finally {
                 readerWriterLockSlim.ExitReadLock();
             }
         }
-        public static void AtomWrite(this ReaderWriterLockSlim readerWriterLockSlim, Action action)
-        {
-            if (readerWriterLockSlim == null)
-            {
+        public static void AtomWrite(this ReaderWriterLockSlim readerWriterLockSlim, Action action) {
+            if (readerWriterLockSlim == null) {
                 throw new ArgumentNullException("readerWriterLockSlim");
             }
-            if (action == null)
-            {
+            if (action == null) {
                 throw new ArgumentNullException("action");
             }
 
             readerWriterLockSlim.EnterWriteLock();
 
-            try
-            {
+            try {
                 action();
             }
-            finally
-            {
+            finally {
                 readerWriterLockSlim.ExitWriteLock();
             }
         }
-        public static T AtomWrite<T>(this ReaderWriterLockSlim readerWriterLockSlim, Func<T> function)
-        {
-            if (readerWriterLockSlim == null)
-            {
+        public static T AtomWrite<T>(this ReaderWriterLockSlim readerWriterLockSlim, Func<T> function) {
+            if (readerWriterLockSlim == null) {
                 throw new ArgumentNullException("readerWriterLockSlim");
             }
-            if (function == null)
-            {
+            if (function == null) {
                 throw new ArgumentNullException("function");
             }
 
             readerWriterLockSlim.EnterWriteLock();
 
-            try
-            {
+            try {
                 return function();
             }
-            finally
-            {
+            finally {
                 readerWriterLockSlim.ExitWriteLock();
             }
         }

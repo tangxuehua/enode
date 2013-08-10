@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Messaging
-{
+namespace ENode.Messaging {
     /// <summary>Represents a message store which used to persist queue messages.
     /// </summary>
-    public interface IMessageStore
-    {
+    public interface IMessageStore {
         /// <summary>Initialize the given message queue.
         /// </summary>
         /// <param name="queueName">The name of the queue.</param>

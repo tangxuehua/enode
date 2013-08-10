@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Domain
-{
+namespace ENode.Domain {
     /// <summary>Represents a repository of the building block of Eric Evans's DDD.
     /// </summary>
-    public interface IRepository
-    {
+    public interface IRepository {
         /// <summary>Get a aggregate from event store.
         /// </summary>
         /// <typeparam name="T"></typeparam>

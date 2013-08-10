@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Messaging
-{
+namespace ENode.Messaging {
     /// <summary>Represents a message.
     /// </summary>
-    public interface IMessage
-    {
+    public interface IMessage {
         /// <summary>Represents the unique identifier for the message.
         /// </summary>
         Guid Id { get; }

@@ -1,12 +1,10 @@
-﻿namespace ENode.Eventing
-{
+﻿namespace ENode.Eventing {
     /// <summary>Represents a event persistence synchronizer.
     /// <remarks>
     ///  Code can be executed before and after the event persistence.
     /// </remarks>
     /// </summary>
-    public interface IEventPersistenceSynchronizer
-    {
+    public interface IEventPersistenceSynchronizer {
         /// <summary>Executed before persisting the event.
         /// </summary>
         void OnBeforePersisting(IEvent evnt);
@@ -24,8 +22,7 @@
     /// </remarks>
     /// </summary>
     /// <typeparam name="TEvent"></typeparam>
-    public interface IEventPersistenceSynchronizer<TEvent> where TEvent : class, IEvent
-    {
+    public interface IEventPersistenceSynchronizer<TEvent> where TEvent : class, IEvent {
         /// <summary>Executed before persisting the event.
         /// </summary>
         void OnBeforePersisting(TEvent evnt);

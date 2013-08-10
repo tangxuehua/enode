@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>Represents a logger.
     /// </summary>
-    public interface ILogger
-    {
+    public interface ILogger {
         bool IsDebugEnabled { get; }
         void Debug(object message);
         void DebugFormat(string format, params object[] args);

@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>Represents a logger factory.
     /// </summary>
-    public interface ILoggerFactory
-    {
+    public interface ILoggerFactory {
         /// <summary>Create a logger with the given logger name.
         /// </summary>
         ILogger Create(string name);

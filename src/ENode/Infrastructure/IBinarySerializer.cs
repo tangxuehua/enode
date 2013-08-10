@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>Represents a serializer to serialize object to byte array.
     /// </summary>
-    public interface IBinarySerializer
-    {
+    public interface IBinarySerializer {
         /// <summary>Serialize an object to byte array.
         /// </summary>
         byte[] Serialize(object obj);

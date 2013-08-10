@@ -1,10 +1,8 @@
 ﻿using ENode.Messaging;
 
-namespace ENode.Commanding
-{
+namespace ENode.Commanding {
     /// <summary>Represents a command queue.
     /// </summary>
-    public interface ICommandQueue : IMessageQueue<ICommand>
-    {
+    public interface ICommandQueue : IMessageQueue<ICommand> {
     }
 }

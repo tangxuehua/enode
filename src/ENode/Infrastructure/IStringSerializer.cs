@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>Represents a serializer to serialize object to string.
     /// </summary>
-    public interface IStringSerializer
-    {
+    public interface IStringSerializer {
         /// <summary>Serialize an object to string.
         /// </summary>
         string Serialize(object obj);

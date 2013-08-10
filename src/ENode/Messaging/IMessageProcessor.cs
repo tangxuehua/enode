@@ -1,13 +1,11 @@
 ﻿using System;
 
-namespace ENode.Messaging
-{
+namespace ENode.Messaging {
     /// <summary>Represents a message processor.
     /// </summary>
     public interface IMessageProcessor<TQueue, TMessage>
         where TQueue : IMessageQueue<TMessage>
-        where TMessage : class, IMessage
-    {
+        where TMessage : class, IMessage {
         /// <summary>Represents the binding message queue.
         /// </summary>
         TQueue BindingQueue { get; }

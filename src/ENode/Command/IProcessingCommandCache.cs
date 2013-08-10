@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Commanding
-{
+namespace ENode.Commanding {
     /// <summary>Represents a memory cache for caching all the processing command info.
     /// </summary>
-    public interface IProcessingCommandCache
-    {
+    public interface IProcessingCommandCache {
         /// <summary>Add command into memory cache.
         /// </summary>
         /// <param name="command"></param>

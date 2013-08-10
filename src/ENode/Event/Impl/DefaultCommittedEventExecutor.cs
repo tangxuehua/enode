@@ -2,10 +2,8 @@
 using ENode.Infrastructure;
 using ENode.Messaging;
 
-namespace ENode.Eventing
-{
-    public class DefaultCommittedEventExecutor : MessageExecutor<EventStream>, ICommittedEventExecutor
-    {
+namespace ENode.Eventing {
+    public class DefaultCommittedEventExecutor : MessageExecutor<EventStream>, ICommittedEventExecutor {
         #region Private Variables
 
         private IEventHandlerProvider _eventHandlerProvider;
@@ -23,8 +21,7 @@ namespace ENode.Eventing
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
             IRetryService retryService,
-            ILoggerFactory loggerFactory)
-        {
+            ILoggerFactory loggerFactory) {
             _eventHandlerProvider = eventHandlerProvider;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventHandleInfoStore = eventHandleInfoStore;
@@ -34,31 +31,24 @@ namespace ENode.Eventing
 
         #endregion
 
-        public override void Execute(EventStream eventStream, IMessageQueue<EventStream> queue)
-        {
+        public override void Execute(EventStream eventStream, IMessageQueue<EventStream> queue) {
             TryDispatchEventsToEventHandlers(new EventStreamContext { EventStream = eventStream, Queue = queue });
         }
 
         #region Private Methods
 
-        private void TryDispatchEventsToEventHandlers(EventStreamContext context)
-        {
-            Func<EventStreamContext, bool> tryDispatchEventsAction = (streamContext) =>
-            {
-                if (streamContext.EventStream.Version == 1)
-                {
+        private void TryDispatchEventsToEventHandlers(EventStreamContext context) {
+            Func<EventStreamContext, bool> tryDispatchEventsAction = (streamContext) => {
+                if (streamContext.EventStream.Version == 1) {
                     return DispatchEventsToHandlers(streamContext.EventStream);
                 }
-                else
-                {
+                else {
                     var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(streamContext.EventStream.AggregateRootId);
 
-                    if (lastPublishedVersion + 1 == streamContext.EventStream.Version)
-                    {
+                    if (lastPublishedVersion + 1 == streamContext.EventStream.Version) {
                         return DispatchEventsToHandlers(streamContext.EventStream);
                     }
-                    else if (lastPublishedVersion + 1 > streamContext.EventStream.Version)
-                    {
+                    else if (lastPublishedVersion + 1 > streamContext.EventStream.Version) {
                         return true;
                     }
 
@@ -66,14 +56,11 @@ namespace ENode.Eventing
                 }
             };
 
-            try
-            {
-                if (_retryService.TryAction("TryDispatchEvents", () => tryDispatchEventsAction(context), 3))
-                {
+            try {
+                if (_retryService.TryAction("TryDispatchEvents", () => tryDispatchEventsAction(context), 3)) {
                     Clear(context);
                 }
-                else
-                {
+                else {
                     _retryService.RetryInQueue(
                         new ActionInfo(
                             "TryDispatchEvents",
@@ -87,57 +74,44 @@ namespace ENode.Eventing
                     );
                 }
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.Error(string.Format("Exception raised when dispatching events:{0}", context.EventStream.GetStreamInformation()), ex);
             }
         }
-        private bool DispatchEventsToHandlers(EventStream stream)
-        {
-            foreach (var evnt in stream.Events)
-            {
-                foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
-                {
+        private bool DispatchEventsToHandlers(EventStream stream) {
+            foreach (var evnt in stream.Events) {
+                foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType())) {
                     var success = _retryService.TryAction("DispatchEventToHandler", () => DispatchEventToHandler(evnt, handler), 2);
-                    if (!success)
-                    {
+                    if (!success) {
                         return false;
                     }
                 }
             }
             return true;
         }
-        private bool DispatchEventToHandler(IEvent evnt, IEventHandler handler)
-        {
-            try
-            {
+        private bool DispatchEventToHandler(IEvent evnt, IEventHandler handler) {
+            try {
                 var eventHandlerTypeName = handler.GetInnerEventHandler().GetType().FullName;
-                if (!_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName))
-                {
+                if (!_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName)) {
                     handler.Handle(evnt);
                     _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeName);
                 }
                 return true;
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 _logger.Error(string.Format("Exception raised when {0} handling {1}.", handler.GetInnerEventHandler().GetType().Name, evnt.GetType().Name), ex);
                 return false;
             }
         }
-        private void UpdatePublishedEventStreamVersion(EventStream stream)
-        {
-            if (stream.Version == 1)
-            {
+        private void UpdatePublishedEventStreamVersion(EventStream stream) {
+            if (stream.Version == 1) {
                 _eventPublishInfoStore.InsertFirstPublishedVersion(stream.AggregateRootId);
             }
-            else
-            {
+            else {
                 _eventPublishInfoStore.UpdatePublishedVersion(stream.AggregateRootId, stream.Version);
             }
         }
-        private void Clear(EventStreamContext context)
-        {
+        private void Clear(EventStreamContext context) {
             UpdatePublishedEventStreamVersion(context.EventStream);
             FinishExecution(context.EventStream, context.Queue);
         }

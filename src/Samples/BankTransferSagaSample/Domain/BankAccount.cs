@@ -3,8 +3,7 @@ using BankTransferSagaSample.Events;
 using ENode.Domain;
 using ENode.Eventing;
 
-namespace BankTransferSagaSample.Domain
-{
+namespace BankTransferSagaSample.Domain {
     /// <summary>银行账号聚合根
     /// </summary>
     [Serializable]
@@ -26,16 +25,15 @@ namespace BankTransferSagaSample.Domain
         public double Balance { get; private set; }
 
         public BankAccount() : base() { }
-        public BankAccount(Guid accountId, string accountNumber, string owner) : base(accountId)
-        {
+        public BankAccount(Guid accountId, string accountNumber, string owner)
+            : base(accountId) {
             RaiseEvent(new AccountOpened(Id, accountNumber, owner));
         }
 
         /// <summary>存款
         /// </summary>
         /// <param name="amount"></param>
-        public void Deposit(double amount)
-        {
+        public void Deposit(double amount) {
             RaiseEvent(new Deposited(Id, amount, string.Format("向账户{0}存入金额{1}", AccountNumber, amount)));
         }
         /// <summary>转出
@@ -43,11 +41,9 @@ namespace BankTransferSagaSample.Domain
         /// <param name="targetAccount"></param>
         /// <param name="processId"></param>
         /// <param name="transferInfo"></param>
-        public void TransferOut(BankAccount targetAccount, Guid processId, TransferInfo transferInfo)
-        {
+        public void TransferOut(BankAccount targetAccount, Guid processId, TransferInfo transferInfo) {
             //这里判断当前余额是否足够
-            if (Balance < transferInfo.Amount)
-            {
+            if (Balance < transferInfo.Amount) {
                 throw new Exception(string.Format("账户{0}余额不足，不能转账！", AccountNumber));
             }
             RaiseEvent(new TransferedOut(processId, transferInfo, string.Format("{0}向账户{1}转出金额{2}", AccountNumber, targetAccount.AccountNumber, transferInfo.Amount)));
@@ -57,38 +53,31 @@ namespace BankTransferSagaSample.Domain
         /// <param name="sourceAccount"></param>
         /// <param name="processId"></param>
         /// <param name="transferInfo"></param>
-        public void TransferIn(BankAccount sourceAccount, Guid processId, TransferInfo transferInfo)
-        {
+        public void TransferIn(BankAccount sourceAccount, Guid processId, TransferInfo transferInfo) {
             RaiseEvent(new TransferedIn(processId, transferInfo, string.Format("{0}从账户{1}转入金额{2}", AccountNumber, sourceAccount.AccountNumber, transferInfo.Amount)));
         }
         /// <summary>回滚转出
         /// </summary>
         /// <param name="processId"></param>
         /// <param name="transferInfo"></param>
-        public void RollbackTransferOut(Guid processId, TransferInfo transferInfo)
-        {
+        public void RollbackTransferOut(Guid processId, TransferInfo transferInfo) {
             RaiseEvent(new TransferOutRolledback(processId, transferInfo, string.Format("账户{0}回滚转出金额{1}", AccountNumber, transferInfo.Amount)));
         }
 
-        void IEventHandler<AccountOpened>.Handle(AccountOpened evnt)
-        {
+        void IEventHandler<AccountOpened>.Handle(AccountOpened evnt) {
             AccountNumber = evnt.AccountNumber;
             Owner = evnt.Owner;
         }
-        void IEventHandler<Deposited>.Handle(Deposited evnt)
-        {
+        void IEventHandler<Deposited>.Handle(Deposited evnt) {
             Balance += evnt.Amount;
         }
-        void IEventHandler<TransferedOut>.Handle(TransferedOut evnt)
-        {
+        void IEventHandler<TransferedOut>.Handle(TransferedOut evnt) {
             Balance -= evnt.TransferInfo.Amount;
         }
-        void IEventHandler<TransferedIn>.Handle(TransferedIn evnt)
-        {
+        void IEventHandler<TransferedIn>.Handle(TransferedIn evnt) {
             Balance += evnt.TransferInfo.Amount;
         }
-        void IEventHandler<TransferOutRolledback>.Handle(TransferOutRolledback evnt)
-        {
+        void IEventHandler<TransferOutRolledback>.Handle(TransferOutRolledback evnt) {
             Balance += evnt.TransferInfo.Amount;
         }
     }

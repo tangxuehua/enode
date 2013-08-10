@@ -5,12 +5,9 @@ using ENode.Domain;
 using ENode.Infrastructure;
 using NoteSample.Commands;
 
-namespace NoteSample
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
+namespace NoteSample {
+    class Program {
+        static void Main(string[] args) {
             new ENodeFrameworkUnitTestInitializer().Initialize();
 
             //如果要使用Sql或MongoDB来持久化，请用下面相应的语句来初始化

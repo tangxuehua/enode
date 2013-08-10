@@ -10,12 +10,9 @@ using ENode.Log4Net;
 using ENode.Mongo;
 using UniqueValidationSample.Commands;
 
-namespace UniqueValidationSample
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
+namespace UniqueValidationSample {
+    class Program {
+        static void Main(string[] args) {
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
@@ -25,10 +22,8 @@ namespace UniqueValidationSample
             commandService.Execute(command1);
 
             var command2 = new RegisterUser { UserName = "netfocus_" + suffix };
-            commandService.Send(command2, (result) =>
-            {
-                if (result.HasError)
-                {
+            commandService.Send(command2, (result) => {
+                if (result.HasError) {
                     Console.WriteLine("异常，用户名重复！");
                 }
             });
@@ -38,8 +33,7 @@ namespace UniqueValidationSample
             Console.ReadLine();
         }
 
-        static void InitializeENodeFramework()
-        {
+        static void InitializeENodeFramework() {
             var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
             var connectionString = "mongodb://localhost/UniqueValidationSampleDB";
 

@@ -4,47 +4,38 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>A utility class used to do performance test.
     /// </summary>
-    public class TimeRecorderManager
-    {
+    public class TimeRecorderManager {
         private static TimeRecorderManager _instance = new TimeRecorderManager();
         private Dictionary<string, TimeRecorder> _timeRecorderDictionary = new Dictionary<string, TimeRecorder>();
 
         private TimeRecorderManager() { }
 
-        public static TimeRecorderManager Instance
-        {
-            get
-            {
+        public static TimeRecorderManager Instance {
+            get {
                 return _instance;
             }
         }
 
-        public TimeRecorder GetTimeRecorder(string timeRecorderName)
-        {
+        public TimeRecorder GetTimeRecorder(string timeRecorderName) {
             return GetTimeRecorder(timeRecorderName, false);
         }
-        public TimeRecorder GetTimeRecorder(string timeRecorderName, bool reset)
-        {
-            if (!_timeRecorderDictionary.ContainsKey(timeRecorderName))
-            {
+        public TimeRecorder GetTimeRecorder(string timeRecorderName, bool reset) {
+            if (!_timeRecorderDictionary.ContainsKey(timeRecorderName)) {
                 _timeRecorderDictionary.Add(timeRecorderName, new TimeRecorder(timeRecorderName));
             }
             var recorder = _timeRecorderDictionary[timeRecorderName];
 
-            if (reset)
-            {
+            if (reset) {
                 recorder.Reset();
             }
 
             return recorder;
         }
     }
-    public class TimeRecorder
-    {
+    public class TimeRecorder {
         #region Private Members
 
         private List<RecorderItem> _recorderItemList;
@@ -54,10 +45,8 @@ namespace ENode.Infrastructure
 
         #region Constructors
 
-        public TimeRecorder(string name)
-        {
-            if (name == null)
-            {
+        public TimeRecorder(string name) {
+            if (name == null) {
                 throw new ArgumentNullException("name");
             }
             Name = name;
@@ -75,22 +64,18 @@ namespace ENode.Infrastructure
 
         #region Public Methods
 
-        public void Reset()
-        {
+        public void Reset() {
             _stopWatch.Stop();
             _stopWatch.Reset();
             _recorderItemList.Clear();
         }
-        public RecorderItem BeginRecorderItem(string description)
-        {
-            if (string.IsNullOrEmpty(description))
-            {
+        public RecorderItem BeginRecorderItem(string description) {
+            if (string.IsNullOrEmpty(description)) {
                 throw new ArgumentNullException("description");
             }
             return new RecorderItem(this, description);
         }
-        public string GenerateReport()
-        {
+        public string GenerateReport() {
             StringBuilder reportBuilder = new StringBuilder();
 
             reportBuilder.AppendLine(Environment.NewLine);
@@ -109,15 +94,12 @@ namespace ENode.Infrastructure
 
         #region Internal Methods
 
-        internal void AddCompletedRecorderItem(RecorderItem recorderItem)
-        {
-            if (recorderItem != null && recorderItem.IsCompleted)
-            {
+        internal void AddCompletedRecorderItem(RecorderItem recorderItem) {
+            if (recorderItem != null && recorderItem.IsCompleted) {
                 _recorderItemList.Add(recorderItem);
             }
         }
-        internal double GetCurrentTicks()
-        {
+        internal double GetCurrentTicks() {
             _stopWatch.Stop();
             double currentTicks = (double)_stopWatch.Elapsed.Ticks;
             _stopWatch.Start();
@@ -128,8 +110,7 @@ namespace ENode.Infrastructure
 
         #region Private Methods
 
-        private string GenerateTreeReport()
-        {
+        private string GenerateTreeReport() {
             string totalString = string.Empty;
             string leftSpace = "";
             string unitIndentString = "    ";
@@ -138,22 +119,18 @@ namespace ENode.Infrastructure
 
             topLevelRecorderItems = GetTopLevelRecorderItems();
 
-            foreach (RecorderItem recorderItem in topLevelRecorderItems)
-            {
+            foreach (RecorderItem recorderItem in topLevelRecorderItems) {
                 recorderItem.TreeNodeDeepLevel = 1;
             }
 
-            foreach (RecorderItem recorderItem in topLevelRecorderItems)
-            {
+            foreach (RecorderItem recorderItem in topLevelRecorderItems) {
                 BuildChildRecorderItemTree(recorderItem);
             }
 
-            foreach (RecorderItem recorderItem in topLevelRecorderItems)
-            {
+            foreach (RecorderItem recorderItem in topLevelRecorderItems) {
                 GenerateRecorderItemTimeStrings(recorderItem, leftSpace, unitIndentString, recorderItemTimeStrings);
                 totalString += string.Join(Environment.NewLine, recorderItemTimeStrings.ToArray());
-                if (topLevelRecorderItems.IndexOf(recorderItem) < topLevelRecorderItems.Count() - 1)
-                {
+                if (topLevelRecorderItems.IndexOf(recorderItem) < topLevelRecorderItems.Count() - 1) {
                     totalString += Environment.NewLine;
                 }
                 recorderItemTimeStrings.Clear();
@@ -161,143 +138,109 @@ namespace ENode.Infrastructure
 
             return totalString;
         }
-        private void BuildChildRecorderItemTree(RecorderItem parentRecorderItem)
-        {
+        private void BuildChildRecorderItemTree(RecorderItem parentRecorderItem) {
             List<RecorderItem> childRecorderItems = GetChildRecorderItems(parentRecorderItem);
-            foreach (RecorderItem childRecorderItem in childRecorderItems)
-            {
+            foreach (RecorderItem childRecorderItem in childRecorderItems) {
                 childRecorderItem.TreeNodeDeepLevel = parentRecorderItem.TreeNodeDeepLevel + 1;
                 childRecorderItem.ParentRecorderItem = parentRecorderItem;
                 parentRecorderItem.ChildRecorderItems.Add(childRecorderItem);
                 BuildChildRecorderItemTree(childRecorderItem);
             }
         }
-        private double GetTotalTicks()
-        {
-            if (_recorderItemList.Count == 0)
-            {
+        private double GetTotalTicks() {
+            if (_recorderItemList.Count == 0) {
                 return 0D;
             }
 
             double total = 0;
-            foreach (RecorderItem recorderItem in GetTopLevelRecorderItems())
-            {
+            foreach (RecorderItem recorderItem in GetTopLevelRecorderItems()) {
                 total = total + recorderItem.TotalTicks;
             }
             return total;
         }
-        private bool IsTopLevelRecorderItem(RecorderItem recorderItem)
-        {
-            if (recorderItem == null)
-            {
+        private bool IsTopLevelRecorderItem(RecorderItem recorderItem) {
+            if (recorderItem == null) {
                 return false;
             }
-            foreach (RecorderItem a in _recorderItemList)
-            {
-                if (a.Id == recorderItem.Id)
-                {
+            foreach (RecorderItem a in _recorderItemList) {
+                if (a.Id == recorderItem.Id) {
                     continue;
                 }
-                if (a.StartTicks < recorderItem.StartTicks && a.EndTicks > recorderItem.EndTicks)
-                {
+                if (a.StartTicks < recorderItem.StartTicks && a.EndTicks > recorderItem.EndTicks) {
                     return false;
                 }
             }
             return true;
         }
-        private List<RecorderItem> GetTopLevelRecorderItems()
-        {
+        private List<RecorderItem> GetTopLevelRecorderItems() {
             List<RecorderItem> topLevelRecorderItems = new List<RecorderItem>();
-            foreach (RecorderItem recorderItem in _recorderItemList)
-            {
-                if (IsTopLevelRecorderItem(recorderItem))
-                {
+            foreach (RecorderItem recorderItem in _recorderItemList) {
+                if (IsTopLevelRecorderItem(recorderItem)) {
                     topLevelRecorderItems.Add(recorderItem);
                 }
             }
             return topLevelRecorderItems;
         }
-        private RecorderItem GetDirectParent(RecorderItem recorderItem)
-        {
-            if (recorderItem == null)
-            {
+        private RecorderItem GetDirectParent(RecorderItem recorderItem) {
+            if (recorderItem == null) {
                 return null;
             }
-            foreach (RecorderItem a in _recorderItemList)
-            {
-                if (recorderItem.Id == a.Id)
-                {
+            foreach (RecorderItem a in _recorderItemList) {
+                if (recorderItem.Id == a.Id) {
                     continue;
                 }
-                if (a.StartTicks < recorderItem.StartTicks && a.EndTicks > recorderItem.EndTicks)
-                {
+                if (a.StartTicks < recorderItem.StartTicks && a.EndTicks > recorderItem.EndTicks) {
                     return a;
                 }
             }
             return null;
         }
-        private List<RecorderItem> GetChildRecorderItems(RecorderItem parentRecorderItem)
-        {
-            if (parentRecorderItem == null)
-            {
+        private List<RecorderItem> GetChildRecorderItems(RecorderItem parentRecorderItem) {
+            if (parentRecorderItem == null) {
                 return new List<RecorderItem>();
             }
             List<RecorderItem> childRecorderItems = new List<RecorderItem>();
-            foreach (RecorderItem recorderItem in _recorderItemList)
-            {
-                if (recorderItem.Id == parentRecorderItem.Id)
-                {
+            foreach (RecorderItem recorderItem in _recorderItemList) {
+                if (recorderItem.Id == parentRecorderItem.Id) {
                     continue;
                 }
-                if (recorderItem.StartTicks > parentRecorderItem.StartTicks && recorderItem.EndTicks < parentRecorderItem.EndTicks)
-                {
+                if (recorderItem.StartTicks > parentRecorderItem.StartTicks && recorderItem.EndTicks < parentRecorderItem.EndTicks) {
                     RecorderItem directParent = GetDirectParent(recorderItem);
-                    if (directParent != null && directParent.Id == parentRecorderItem.Id)
-                    {
+                    if (directParent != null && directParent.Id == parentRecorderItem.Id) {
                         childRecorderItems.Add(recorderItem);
                     }
                 }
             }
             return childRecorderItems;
         }
-        private void GenerateRecorderItemTimeStrings(RecorderItem recorderItem, string leftSpace, string unitIndentString, List<string> recorderItemTimeStrings)
-        {
+        private void GenerateRecorderItemTimeStrings(RecorderItem recorderItem, string leftSpace, string unitIndentString, List<string> recorderItemTimeStrings) {
             string recorderItemTimeStringFormat = "{0}{1}({2})  {3}  {4}  {5}";
             string recorderItemTimeLeftSpaceString = leftSpace;
-            for (int i = 0; i <= recorderItem.TreeNodeDeepLevel - 1; i++)
-            {
+            for (int i = 0; i <= recorderItem.TreeNodeDeepLevel - 1; i++) {
                 recorderItemTimeLeftSpaceString += unitIndentString;
             }
 
             recorderItemTimeStrings.Add(string.Format(recorderItemTimeStringFormat, new object[] { recorderItemTimeLeftSpaceString, (recorderItem.TotalTicks / 10000).ToString() + "ms", GetTimePercent(recorderItem), recorderItem.Description, recorderItem.StartTime.ToString() + ":" + recorderItem.StartTime.Millisecond.ToString(), recorderItem.EndTime.ToString() + ":" + recorderItem.EndTime.Millisecond.ToString() }));
 
-            foreach (RecorderItem childRecorderItem in recorderItem.ChildRecorderItems)
-            {
+            foreach (RecorderItem childRecorderItem in recorderItem.ChildRecorderItems) {
                 GenerateRecorderItemTimeStrings(childRecorderItem, leftSpace, unitIndentString, recorderItemTimeStrings);
             }
         }
-        private string GetTimePercent(RecorderItem recorderItem)
-        {
-            if (recorderItem.TreeNodeDeepLevel == 1)
-            {
+        private string GetTimePercent(RecorderItem recorderItem) {
+            if (recorderItem.TreeNodeDeepLevel == 1) {
                 var totalTicks = GetTotalTicks();
-                if (totalTicks == 0D)
-                {
+                if (totalTicks == 0D) {
                     return "0.00%";
                 }
-                else
-                {
+                else {
                     return (recorderItem.TotalTicks / totalTicks).ToString("##.##%");
                 }
             }
-            else if (recorderItem.TreeNodeDeepLevel >= 2)
-            {
-                if (recorderItem.ParentRecorderItem.TotalTicks == 0)
-                {
+            else if (recorderItem.TreeNodeDeepLevel >= 2) {
+                if (recorderItem.ParentRecorderItem.TotalTicks == 0) {
                     return "0.00%";
                 }
-                else
-                {
+                else {
                     return (recorderItem.TotalTicks / recorderItem.ParentRecorderItem.TotalTicks).ToString("##.##%");
                 }
             }
@@ -306,14 +249,11 @@ namespace ENode.Infrastructure
 
         #endregion
     }
-    public class RecorderItem
-    {
+    public class RecorderItem {
         #region Constructors
 
-        public RecorderItem(TimeRecorder timeRecorder, string description)
-        {
-            if (timeRecorder == null)
-            {
+        public RecorderItem(TimeRecorder timeRecorder, string description) {
+            if (timeRecorder == null) {
                 throw new ArgumentNullException("timeRecorder");
             }
 
@@ -341,8 +281,7 @@ namespace ENode.Infrastructure
         public string Description { get; private set; }
         public double StartTicks { get; private set; }
         public double EndTicks { get; private set; }
-        public double TotalTicks
-        {
+        public double TotalTicks {
             get { return EndTicks - StartTicks; }
         }
         public bool IsCompleted { get; private set; }
@@ -351,8 +290,7 @@ namespace ENode.Infrastructure
 
         #region Public Methods
 
-        public void Complete()
-        {
+        public void Complete() {
             EndTicks = TimeRecorder.GetCurrentTicks();
             EndTime = DateTime.Now;
             IsCompleted = true;

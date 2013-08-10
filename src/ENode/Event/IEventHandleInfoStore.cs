@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Eventing
-{
+namespace ENode.Eventing {
     /// <summary>Represents a storage to store the event handle information of aggregate.
     /// </summary>
-    public interface IEventHandleInfoStore
-    {
+    public interface IEventHandleInfoStore {
         /// <summary>Insert an event handle info.
         /// </summary>
         void AddEventHandleInfo(Guid eventId, string eventHandlerTypeName);

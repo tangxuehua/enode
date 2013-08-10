@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Snapshoting
-{
+namespace ENode.Snapshoting {
     /// <summary>定义用于存储聚合根快照的接口
     /// </summary>
-    public interface ISnapshotStore
-    {
+    public interface ISnapshotStore {
         /// <summary>持久化给定的聚合根快照
         /// </summary>
         /// <param name="snapshot">要持久化的聚合根快照</param>

@@ -4,12 +4,9 @@ using ENode.Autofac;
 using ENode.JsonNet;
 using ENode.Log4Net;
 
-namespace NoteSample
-{
-    public class ENodeFrameworkUnitTestInitializer : IENodeFrameworkInitializer
-    {
-        public void Initialize()
-        {
+namespace NoteSample {
+    public class ENodeFrameworkUnitTestInitializer : IENodeFrameworkInitializer {
+        public void Initialize() {
             var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
 
             Configuration

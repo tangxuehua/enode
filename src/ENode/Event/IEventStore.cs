@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Eventing
-{
+namespace ENode.Eventing {
     /// <summary>Represents a event store to store event streams of aggregate.
     /// </summary>
-    public interface IEventStore
-    {
+    public interface IEventStore {
         /// <summary>Append the event stream to the event store.
         /// </summary>
         void Append(EventStream stream);

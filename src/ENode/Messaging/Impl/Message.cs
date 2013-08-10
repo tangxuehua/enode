@@ -1,12 +1,10 @@
 ﻿using System;
 
-namespace ENode.Messaging
-{
+namespace ENode.Messaging {
     /// <summary>Represents a message.
     /// </summary>
     [Serializable]
-    public class Message : IMessage
-    {
+    public class Message : IMessage {
         [NonSerialized]
         private bool _isRestoreFromStorage = false;
 
@@ -14,21 +12,18 @@ namespace ENode.Messaging
         /// </summary>
         public Guid Id { get; private set; }
 
-        public Message(Guid id)
-        {
+        public Message(Guid id) {
             Id = id;
         }
 
         /// <summary>Returns whether the message is restore from the message store.
         /// </summary>
-        public bool IsRestoreFromStorage()
-        {
+        public bool IsRestoreFromStorage() {
             return _isRestoreFromStorage;
         }
         /// <summary>Mark the message that is restored from storage.
         /// </summary>
-        public void MarkAsRestoreFromStorage()
-        {
+        public void MarkAsRestoreFromStorage() {
             _isRestoreFromStorage = true;
         }
     }

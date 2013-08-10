@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 
-namespace ENode.Eventing
-{
+namespace ENode.Eventing {
     /// <summary>Represents a storage to store the event publish information of aggregate.
     /// </summary>
-    public interface IEventPublishInfoStore
-    {
+    public interface IEventPublishInfoStore {
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         void InsertFirstPublishedVersion(string aggregateRootId);

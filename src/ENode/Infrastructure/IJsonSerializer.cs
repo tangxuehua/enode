@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>Represents a serializer to support json serialization or deserialization.
     /// </summary>
-    public interface IJsonSerializer
-    {
+    public interface IJsonSerializer {
         /// <summary>Serialize an object to json string.
         /// </summary>
         string Serialize(object obj);

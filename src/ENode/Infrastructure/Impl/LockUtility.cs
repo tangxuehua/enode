@@ -1,14 +1,11 @@
 using System;
 using System.Collections;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>提供根据值对象锁行为的实用方法
     /// </summary>
-    public static class LockUtility
-    {
-        private class LockObject
-        {
+    public static class LockUtility {
+        private class LockObject {
             public int Counter { get; set; }
         }
 
@@ -25,18 +22,14 @@ namespace ENode.Infrastructure
         /// </summary>
         /// <param name="key"></param>
         /// <param name="action"></param>
-        public static void Lock(object key, Action action)
-        {
+        public static void Lock(object key, Action action) {
             var lockObj = GetLockObject(key);
-            try
-            {
-                lock (lockObj)
-                {
+            try {
+                lock (lockObj) {
                     action();
                 }
             }
-            finally
-            {
+            finally {
                 ReleaseLockObject(key, lockObj);
             }
         }
@@ -45,13 +38,10 @@ namespace ENode.Infrastructure
         /// </summary>
         /// <param name="key"></param>
         /// <param name="lockObj"></param>
-        private static void ReleaseLockObject(object key, LockObject lockObj)
-        {
+        private static void ReleaseLockObject(object key, LockObject lockObj) {
             lockObj.Counter--;
-            lock (_lockPool)
-            {
-                if (lockObj.Counter == 0)
-                {
+            lock (_lockPool) {
+                if (lockObj.Counter == 0) {
                     _lockPool.Remove(key);
                 }
             }
@@ -60,13 +50,10 @@ namespace ENode.Infrastructure
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        private static LockObject GetLockObject(object key)
-        {
-            lock (_lockPool)
-            {
+        private static LockObject GetLockObject(object key) {
+            lock (_lockPool) {
                 var lockObj = _lockPool[key] as LockObject;
-                if (lockObj == null)
-                {
+                if (lockObj == null) {
                     lockObj = new LockObject();
                     _lockPool[key] = lockObj;
                 }

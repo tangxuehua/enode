@@ -1,13 +1,10 @@
 ﻿using System;
 
-namespace ENode.Snapshoting
-{
+namespace ENode.Snapshoting {
     /// <summary>Snapshot of aggregate.
     /// </summary>
-    public class Snapshot
-    {
-        public Snapshot(string aggregateRootName, string aggregateRootId, long streamVersion, object payload, DateTime timestamp)
-        {
+    public class Snapshot {
+        public Snapshot(string aggregateRootName, string aggregateRootId, long streamVersion, object payload, DateTime timestamp) {
             AggregateRootName = aggregateRootName;
             AggregateRootId = aggregateRootId;
             StreamVersion = streamVersion;

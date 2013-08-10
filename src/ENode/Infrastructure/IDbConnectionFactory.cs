@@ -1,11 +1,9 @@
 ﻿using System.Data;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>Represents a factory to create db connection.
     /// </summary>
-    public interface IDbConnectionFactory
-    {
+    public interface IDbConnectionFactory {
         /// <summary>Create a new db connection with the given connection string.
         /// </summary>
         /// <returns></returns>

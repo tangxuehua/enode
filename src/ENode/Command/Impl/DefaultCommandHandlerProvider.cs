@@ -4,37 +4,28 @@ using System.Linq;
 using System.Reflection;
 using ENode.Infrastructure;
 
-namespace ENode.Commanding
-{
-    public class DefaultCommandHandlerProvider : ICommandHandlerProvider, IAssemblyInitializer
-    {
+namespace ENode.Commanding {
+    public class DefaultCommandHandlerProvider : ICommandHandlerProvider, IAssemblyInitializer {
         private ConcurrentDictionary<Type, ICommandHandler> _commandHandlerDict = new ConcurrentDictionary<Type, ICommandHandler>();
 
-        public void Initialize(params Assembly[] assemblies)
-        {
-            foreach (var assembly in assemblies)
-            {
+        public void Initialize(params Assembly[] assemblies) {
+            foreach (var assembly in assemblies) {
                 RegisterAllCommandHandlersInAssembly(assembly);
             }
         }
-        public ICommandHandler GetCommandHandler(ICommand command)
-        {
+        public ICommandHandler GetCommandHandler(ICommand command) {
             ICommandHandler commandHandler;
-            if (_commandHandlerDict.TryGetValue(command.GetType(), out commandHandler))
-            {
+            if (_commandHandlerDict.TryGetValue(command.GetType(), out commandHandler)) {
                 return commandHandler;
             }
             return null;
         }
 
-        private void RegisterAllCommandHandlersInAssembly(Assembly assembly)
-        {
-            foreach (var commandHandlerType in assembly.GetExportedTypes().Where(x => IsCommandHandler(x)))
-            {
+        private void RegisterAllCommandHandlersInAssembly(Assembly assembly) {
+            foreach (var commandHandlerType in assembly.GetExportedTypes().Where(x => IsCommandHandler(x))) {
                 var handlerTypes = commandHandlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<>));
 
-                foreach (var handlerType in handlerTypes)
-                {
+                foreach (var handlerType in handlerTypes) {
                     var commandType = handlerType.GetGenericArguments().Single();
                     var commandHandlerWrapperType = typeof(CommandHandlerWrapper<>).MakeGenericType(commandType);
                     var commandHandler = ObjectContainer.Resolve(commandHandlerType);
@@ -43,12 +34,10 @@ namespace ENode.Commanding
                 }
             }
         }
-        private void RegisterCommandHandler(Type commandType, ICommandHandler commandHandler)
-        {
+        private void RegisterCommandHandler(Type commandType, ICommandHandler commandHandler) {
             _commandHandlerDict[commandType] = commandHandler;
         }
-        private bool IsCommandHandler(Type type)
-        {
+        private bool IsCommandHandler(Type type) {
             return type.IsInterface == false && type.IsAbstract == false && type.GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<>));
         }
     }

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Domain
-{
+namespace ENode.Domain {
     /// <summary>Represents a provider to provide the aggregate root type information.
     /// </summary>
-    public interface IAggregateRootTypeProvider
-    {
+    public interface IAggregateRootTypeProvider {
         /// <summary>Get the aggregate root type name by the aggregate root type.
         /// </summary>
         /// <returns></returns>

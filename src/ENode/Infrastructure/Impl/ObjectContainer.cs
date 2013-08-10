@@ -1,19 +1,15 @@
 ﻿using System;
 
-namespace ENode.Infrastructure
-{
+namespace ENode.Infrastructure {
     /// <summary>Represents an object container.
     /// </summary>
-    public class ObjectContainer
-    {
+    public class ObjectContainer {
         private static IObjectContainer _container;
 
         /// <summary>Represents the current object container.
         /// </summary>
-        public static IObjectContainer Current
-        {
-            get
-            {
+        public static IObjectContainer Current {
+            get {
                 return _container;
             }
         }
@@ -21,8 +17,7 @@ namespace ENode.Infrastructure
         /// <summary>Set the object container.
         /// </summary>
         /// <param name="container"></param>
-        public static void SetContainer(IObjectContainer container)
-        {
+        public static void SetContainer(IObjectContainer container) {
             _container = container;
         }
 
@@ -30,8 +25,7 @@ namespace ENode.Infrastructure
         /// </summary>
         /// <param name="implementationType">The implementation type.</param>
         /// <param name="life">The life cycle of the implementer type.</param>
-        public static void RegisterType(Type implementationType, LifeStyle life = LifeStyle.Singleton)
-        {
+        public static void RegisterType(Type implementationType, LifeStyle life = LifeStyle.Singleton) {
             _container.RegisterType(implementationType, life);
         }
         /// <summary>Register a implementer type as a service implementation.
@@ -41,8 +35,7 @@ namespace ENode.Infrastructure
         /// <param name="life">The life cycle of the implementer type.</param>
         public static void Register<TService, TImplementer>(LifeStyle life = LifeStyle.Singleton)
             where TService : class
-            where TImplementer : class, TService
-        {
+            where TImplementer : class, TService {
             _container.Register<TService, TImplementer>(life);
         }
         /// <summary>Register a implementer type instance as a service implementation.
@@ -52,24 +45,21 @@ namespace ENode.Infrastructure
         /// <param name="instance">The implementer type instance.</param>
         public static void RegisterInstance<TService, TImplementer>(TImplementer instance)
             where TService : class
-            where TImplementer : class, TService
-        {
+            where TImplementer : class, TService {
             _container.RegisterInstance<TService, TImplementer>(instance);
         }
         /// <summary>Resolve a service.
         /// </summary>
         /// <typeparam name="TService">The service type.</typeparam>
         /// <returns>The component instance that provides the service.</returns>
-        public static TService Resolve<TService>() where TService : class
-        {
+        public static TService Resolve<TService>() where TService : class {
             return _container.Resolve<TService>();
         }
         /// <summary>Resolve a service.
         /// </summary>
         /// <param name="serviceType">The service type.</param>
         /// <returns>The component instance that provides the service.</returns>
-        public static object Resolve(Type serviceType)
-        {
+        public static object Resolve(Type serviceType) {
             return _container.Resolve(serviceType);
         }
     }

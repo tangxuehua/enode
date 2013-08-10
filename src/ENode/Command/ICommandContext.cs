@@ -1,12 +1,10 @@
 ﻿using System;
 using ENode.Domain;
 
-namespace ENode.Commanding
-{
+namespace ENode.Commanding {
     /// <summary>Represents a context environment for command handler handling command.
     /// </summary>
-    public interface ICommandContext
-    {
+    public interface ICommandContext {
         /// <summary>Add a new aggregate into the current context.
         /// </summary>
         /// <param name="aggregateRoot"></param>

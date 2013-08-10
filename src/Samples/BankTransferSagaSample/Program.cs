@@ -11,12 +11,9 @@ using ENode.Infrastructure;
 using ENode.JsonNet;
 using ENode.Log4Net;
 
-namespace BankTransferSagaSample
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
+namespace BankTransferSagaSample {
+    class Program {
+        static void Main(string[] args) {
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
@@ -56,8 +53,7 @@ namespace BankTransferSagaSample
             Console.ReadLine();
         }
 
-        static void InitializeENodeFramework()
-        {
+        static void InitializeENodeFramework() {
             var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
 
             Configuration

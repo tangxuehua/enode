@@ -1,10 +1,8 @@
 ﻿using System.Linq;
 using ENode.Eventing;
 
-namespace ENode.Domain
-{
-    public class DefaultMemoryCacheRebuilder : IMemoryCacheRebuilder
-    {
+namespace ENode.Domain {
+    public class DefaultMemoryCacheRebuilder : IMemoryCacheRebuilder {
         #region Private Variables
 
         private IAggregateRootFactory _aggregateRootFactory;
@@ -20,8 +18,7 @@ namespace ENode.Domain
             IAggregateRootFactory aggregateRootFactory,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IEventStore eventStore,
-            IMemoryCache memoryCache)
-        {
+            IMemoryCache memoryCache) {
             _aggregateRootFactory = aggregateRootFactory;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _eventStore = eventStore;
@@ -30,11 +27,9 @@ namespace ENode.Domain
 
         #endregion
 
-        public void RebuildMemoryCache()
-        {
+        public void RebuildMemoryCache() {
             var groups = _eventStore.QueryAll().GroupBy(x => x.AggregateRootId);
-            foreach (var group in groups)
-            {
+            foreach (var group in groups) {
                 if (group.Count() == 0) continue;
 
                 var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(group.First().AggregateRootName);

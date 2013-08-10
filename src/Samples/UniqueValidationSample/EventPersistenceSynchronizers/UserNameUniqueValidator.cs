@@ -6,17 +6,14 @@ using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using UniqueValidationSample.Events;
 
-namespace UniqueValidationSample.EventPersistenceSynchronizers
-{
+namespace UniqueValidationSample.EventPersistenceSynchronizers {
     [Component(LifeStyle.Singleton)]
-    public class UserNameUniqueValidator : IEventPersistenceSynchronizer<UserRegistered>
-    {
+    public class UserNameUniqueValidator : IEventPersistenceSynchronizer<UserRegistered> {
         private string _connectionString = "mongodb://localhost/UniqueValidationSampleDB";
         private string _usernameCollectionName = "UserNameCollection";
         private ConcurrentDictionary<string, MongoCollection<BsonDocument>> _collectionDict = new ConcurrentDictionary<string, MongoCollection<BsonDocument>>();
 
-        public void OnBeforePersisting(UserRegistered evnt)
-        {
+        public void OnBeforePersisting(UserRegistered evnt) {
             GetMongoCollection().Insert(new BsonDocument
             {
                 { "_id", evnt.UserId.ToString() },
@@ -24,22 +21,18 @@ namespace UniqueValidationSample.EventPersistenceSynchronizers
                 { "Status", 1 }
             });
         }
-        public void OnAfterPersisted(UserRegistered evnt)
-        {
+        public void OnAfterPersisted(UserRegistered evnt) {
             var collection = GetMongoCollection();
             var document = collection.FindOneById(new BsonString(evnt.UserId.ToString()));
             document["Status"] = 2;
             collection.Save(document);
         }
 
-        private MongoCollection<BsonDocument> GetMongoCollection()
-        {
+        private MongoCollection<BsonDocument> GetMongoCollection() {
             MongoCollection<BsonDocument> collection;
 
-            if (!_collectionDict.TryGetValue(_usernameCollectionName, out collection))
-            {
-                lock (this)
-                {
+            if (!_collectionDict.TryGetValue(_usernameCollectionName, out collection)) {
+                lock (this) {
                     var client = new MongoClient(_connectionString);
                     var db = client.GetServer().GetDatabase(new MongoUrl(_connectionString).DatabaseName);
                     collection = db.GetCollection(_usernameCollectionName);

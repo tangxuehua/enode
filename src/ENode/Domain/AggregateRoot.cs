@@ -5,13 +5,11 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Snapshoting;
 
-namespace ENode.Domain
-{
+namespace ENode.Domain {
     /// <summary>Abstract aggregate root base class.
     /// </summary>
     [Serializable]
-    public abstract class AggregateRoot
-    {
+    public abstract class AggregateRoot {
         #region Private Variables
 
         private Queue<IEvent> _uncommittedEvents;
@@ -23,15 +21,14 @@ namespace ENode.Domain
 
         /// <summary>Default constructor
         /// </summary>
-        protected AggregateRoot()
-        {
+        protected AggregateRoot() {
             _uncommittedEvents = new Queue<IEvent>();
         }
         /// <summary>Parameterized constructor with a aggregate uniqueId.
         /// </summary>
         /// <param name="uniqueId">the aggregate uniqueId</param>
-        public AggregateRoot(string uniqueId) : this()
-        {
+        public AggregateRoot(string uniqueId)
+            : this() {
             UniqueId = uniqueId;
         }
 
@@ -60,17 +57,14 @@ namespace ENode.Domain
         /// </summary>
         /// <typeparam name="TRole">The role interface.</typeparam>
         /// <returns>Returns the current aggregate instance which its type is converted to the role interface.</returns>
-        public TRole ActAs<TRole>() where TRole : class
-        {
-            if (!typeof(TRole).IsInterface)
-            {
+        public TRole ActAs<TRole>() where TRole : class {
+            if (!typeof(TRole).IsInterface) {
                 throw new Exception(string.Format("TRole '{0}' must be an interface.", typeof(TRole).FullName));
             }
 
             var role = this as TRole;
 
-            if (role == null)
-            {
+            if (role == null) {
                 throw new Exception(string.Format("AggregateRoot '{0}' can not act as role '{1}'.", this.GetType().FullName, typeof(TRole).FullName));
             }
 
@@ -87,8 +81,7 @@ namespace ENode.Domain
         /// </remarks>
         /// </summary>
         /// <param name="evnt">The domain event to be raised.</param>
-        protected void RaiseEvent<T>(T evnt) where T : class, IEvent
-        {
+        protected void RaiseEvent<T>(T evnt) where T : class, IEvent {
             HandleEvent<T>(evnt);
             QueueEvent(evnt);
         }
@@ -99,30 +92,24 @@ namespace ENode.Domain
 
         /// <summary>Get all the uncommitted events of the current aggregate.
         /// </summary>
-        internal IEnumerable<IEvent> GetUncommittedEvents()
-        {
+        internal IEnumerable<IEvent> GetUncommittedEvents() {
             return _uncommittedEvents;
         }
         /// <summary>Replay the given event stream.
         /// </summary>
         /// <param name="eventStream"></param>
-        internal void ReplayEventStream(EventStream eventStream)
-        {
+        internal void ReplayEventStream(EventStream eventStream) {
             ReplayEventStreams(new EventStream[] { eventStream });
         }
         /// <summary>Replay the given event streams.
         /// </summary>
-        internal void ReplayEventStreams(IEnumerable<EventStream> eventStreams)
-        {
-            if (_uncommittedEvents.Count() > 0)
-            {
+        internal void ReplayEventStreams(IEnumerable<EventStream> eventStreams) {
+            if (_uncommittedEvents.Count() > 0) {
                 _uncommittedEvents.Clear();
             }
 
-            foreach (var eventStream in eventStreams)
-            {
-                if (eventStream.Version == 1)
-                {
+            foreach (var eventStream in eventStreams) {
+                if (eventStream.Version == 1) {
                     UniqueId = eventStream.AggregateRootId;
                 }
                 VerifyEvent(eventStream);
@@ -131,13 +118,11 @@ namespace ENode.Domain
         }
         /// <summary>Initialize from the given snapshot.
         /// </summary>
-        internal void InitializeFromSnapshot(Snapshot snapshot)
-        {
+        internal void InitializeFromSnapshot(Snapshot snapshot) {
             UniqueId = snapshot.AggregateRootId;
             Version = snapshot.StreamVersion;
             _uncommittedEvents = new Queue<IEvent>();
-            if (_eventHandlerProvider == null)
-            {
+            if (_eventHandlerProvider == null) {
                 _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
             }
         }
@@ -148,18 +133,14 @@ namespace ENode.Domain
 
         /// <summary>Handle the given event and update the aggregate status.
         /// </summary>
-        private void HandleEvent<T>(T evnt) where T : class, IEvent
-        {
+        private void HandleEvent<T>(T evnt) where T : class, IEvent {
             var eventHandler = this as IEventHandler<T>;
-            if (eventHandler != null)
-            {
+            if (eventHandler != null) {
                 eventHandler.Handle(evnt);
             }
-            else
-            {
+            else {
                 var handler = _eventHandlerProvider.GetInternalEventHandler(this.GetType(), evnt.GetType());
-                if (handler == null)
-                {
+                if (handler == null) {
                     throw new Exception(string.Format("Event handler not found on {0} for {1}.", this.GetType().FullName, evnt.GetType().FullName));
                 }
 
@@ -168,10 +149,8 @@ namespace ENode.Domain
         }
         /// <summary>Verify whether the given event stream can be applied on the current aggregate.
         /// </summary>
-        private void VerifyEvent(EventStream eventStream)
-        {
-            if (eventStream.AggregateRootId != UniqueId)
-            {
+        private void VerifyEvent(EventStream eventStream) {
+            if (eventStream.AggregateRootId != UniqueId) {
                 var errorMessage = string.Format("Cannot apply event stream to aggregate as the AggregateRootId not matched. EventStream Id:{0}, AggregateRootId:{1}; Current AggregateRootId:{2}",
                                         eventStream.Id,
                                         eventStream.AggregateRootId,
@@ -179,8 +158,7 @@ namespace ENode.Domain
                 throw new Exception(errorMessage);
             }
 
-            if (eventStream.Version != Version + 1)
-            {
+            if (eventStream.Version != Version + 1) {
                 var errorMessage = string.Format("Cannot apply event stream to aggregate as the StreamVersion not matched. EventStream Id:{0}, Version:{1}; Current AggregateRoot Version:{2}",
                                         eventStream.Id,
                                         eventStream.Version,
@@ -191,20 +169,16 @@ namespace ENode.Domain
         /// <summary>Apply all the events of the given event stream to the aggregate.
         /// </summary>
         /// <param name="eventStream"></param>
-        private void ApplyEvent(EventStream eventStream)
-        {
-            foreach (var evnt in eventStream.Events)
-            {
+        private void ApplyEvent(EventStream eventStream) {
+            foreach (var evnt in eventStream.Events) {
                 HandleEvent(evnt);
             }
             Version = eventStream.Version;
         }
         /// <summary>Queue a uncommitted event into the current local queue.
         /// </summary>
-        private void QueueEvent(IEvent uncommittedEvent)
-        {
-            if (_uncommittedEvents == null)
-            {
+        private void QueueEvent(IEvent uncommittedEvent) {
+            if (_uncommittedEvents == null) {
                 _uncommittedEvents = new Queue<IEvent>();
             }
             _uncommittedEvents.Enqueue(uncommittedEvent);
@@ -215,25 +189,20 @@ namespace ENode.Domain
     /// <summary>Abstract aggregate root base class with strong type aggregate root id.
     /// </summary>
     [Serializable]
-    public abstract class AggregateRoot<TAggregateRootId> : AggregateRoot
-    {
+    public abstract class AggregateRoot<TAggregateRootId> : AggregateRoot {
         protected AggregateRoot() : base() { }
         public AggregateRoot(TAggregateRootId id) : base(id.ToString()) { }
 
         /// <summary>The strong type Id of the aggregate.
         /// </summary>
-        public TAggregateRootId Id
-        {
-            get
-            {
-                if (UniqueId != null)
-                {
+        public TAggregateRootId Id {
+            get {
+                if (UniqueId != null) {
                     return TypeUtils.ConvertType<TAggregateRootId>(UniqueId);
                 }
                 return default(TAggregateRootId);
             }
-            set
-            {
+            set {
                 base.UniqueId = TypeUtils.ConvertType<string>(value);
             }
         }

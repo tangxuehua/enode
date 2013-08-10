@@ -1,9 +1,7 @@
 ﻿using System;
 
-namespace ENode.Commanding
-{
-    public interface ICommandAsyncResultManager
-    {
+namespace ENode.Commanding {
+    public interface ICommandAsyncResultManager {
         /// <summary>Add a command async result.
         /// </summary>
         /// <param name="commandId"></param>

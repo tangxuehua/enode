@@ -3,8 +3,7 @@ using BankTransferSagaSample.Domain;
 using ENode.Commanding;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.CommandHandlers
-{
+namespace BankTransferSagaSample.CommandHandlers {
     /// <summary>银行转账流程相关命令处理
     /// </summary>
     [Component]
@@ -16,30 +15,24 @@ namespace BankTransferSagaSample.CommandHandlers
         ICommandHandler<HandleFailedTransferIn>,       //处理转入失败
         ICommandHandler<HandleTransferOutRolledback>   //处理转出已回滚事件
     {
-        public void Handle(ICommandContext context, StartTransfer command)
-        {
+        public void Handle(ICommandContext context, StartTransfer command) {
             var sourceAccount = context.Get<BankAccount>(command.TransferInfo.SourceAccountId);
             var targetAccount = context.Get<BankAccount>(command.TransferInfo.TargetAccountId);
             context.Add(new TransferProcess(sourceAccount, targetAccount, command.TransferInfo));
         }
-        public void Handle(ICommandContext context, HandleTransferedOut command)
-        {
+        public void Handle(ICommandContext context, HandleTransferedOut command) {
             context.Get<TransferProcess>(command.ProcessId).HandleTransferedOut(command.TransferInfo);
         }
-        public void Handle(ICommandContext context, HandleTransferedIn command)
-        {
+        public void Handle(ICommandContext context, HandleTransferedIn command) {
             context.Get<TransferProcess>(command.ProcessId).HandleTransferedIn(command.TransferInfo);
         }
-        public void Handle(ICommandContext context, HandleFailedTransferOut command)
-        {
+        public void Handle(ICommandContext context, HandleFailedTransferOut command) {
             context.Get<TransferProcess>(command.ProcessId).HandleFailedTransferOut(command.TransferInfo, command.Exception);
         }
-        public void Handle(ICommandContext context, HandleFailedTransferIn command)
-        {
+        public void Handle(ICommandContext context, HandleFailedTransferIn command) {
             context.Get<TransferProcess>(command.ProcessId).HandleFailedTransferIn(command.TransferInfo, command.Exception);
         }
-        public void Handle(ICommandContext context, HandleTransferOutRolledback command)
-        {
+        public void Handle(ICommandContext context, HandleTransferOutRolledback command) {
             context.Get<TransferProcess>(command.ProcessId).HandleTransferOutRolledback(command.TransferInfo);
         }
     }

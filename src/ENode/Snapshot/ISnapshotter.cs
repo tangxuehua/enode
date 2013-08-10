@@ -1,12 +1,10 @@
 ﻿using System;
 using ENode.Domain;
 
-namespace ENode.Snapshoting
-{
+namespace ENode.Snapshoting {
     /// <summary>快照处理接口定义
     /// </summary>
-    public interface ISnapshotter
-    {
+    public interface ISnapshotter {
         /// <summary>为给定的聚合根创建快照
         /// </summary>
         Snapshot CreateSnapshot(AggregateRoot aggregateRoot);

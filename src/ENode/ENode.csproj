@@ -202,9 +202,6 @@
     <Compile Include="Command\Impl\CommandAsyncResult.cs" />
     <Compile Include="Command\Impl\DefaultCommandService.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

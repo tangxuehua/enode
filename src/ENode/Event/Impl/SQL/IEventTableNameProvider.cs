@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Eventing
-{
+namespace ENode.Eventing {
     /// <summary>Represents a provider to provide the eventstore event table name.
     /// </summary>
-    public interface IEventTableNameProvider
-    {
+    public interface IEventTableNameProvider {
         /// <summary>Get table for a specific aggregate root.
         /// </summary>
         /// <param name="aggregateRootId"></param>
