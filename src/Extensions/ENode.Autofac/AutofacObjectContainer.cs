@@ -9,6 +9,9 @@ namespace ENode.Autofac {
         public AutofacObjectContainer() {
             _container = new ContainerBuilder().Build();
         }
+        public AutofacObjectContainer(ContainerBuilder containerBuilder) {
+            _container = containerBuilder.Build();
+        }
 
         /// <summary>Represents the inner autofac container.
         /// </summary>

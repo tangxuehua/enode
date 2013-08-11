@@ -8,6 +8,7 @@ namespace ENode.Commanding {
         private Action<CommandAsyncResult> _callback;
 
         public bool IsCompleted { get; private set; }
+        public string AggregateRootId { get; private set; }
         public string ErrorMessage { get; private set; }
         public Exception Exception { get; private set; }
 
@@ -21,8 +22,9 @@ namespace ENode.Commanding {
             _callback = callback;
         }
 
-        public void Complete(string errorMessage, Exception exception) {
+        public void Complete(string aggregateRootId, string errorMessage, Exception exception) {
             IsCompleted = true;
+            AggregateRootId = aggregateRootId;
             ErrorMessage = errorMessage;
             Exception = exception;
 

@@ -5,13 +5,14 @@ namespace ENode.Commanding {
     /// </summary>
     public interface ICommandService {
         /// <summary>Send the given command to command queue and return immediately, the command will be handle asynchronously.
-        /// <remarks>
-        /// Once the command was handled, the callback method will be called.
-        /// </remarks>
         /// </summary>
+        /// <param name="command">The command to send.</param>
+        /// <param name="callback">The callback method when the command was handled.</param>
         void Send(ICommand command, Action<CommandAsyncResult> callback = null);
         /// <summary>Send the given command to command queue, and block the current thread until the command was handled or timeout.
         /// </summary>
-        void Execute(ICommand command);
+        /// <param name="command">The command to send.</param>
+        /// <returns>The command execute result.</returns>
+        CommandAsyncResult Execute(ICommand command);
     }
 }

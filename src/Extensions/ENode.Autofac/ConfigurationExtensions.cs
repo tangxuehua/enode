@@ -1,4 +1,5 @@
-﻿using ENode.Eventing;
+﻿using Autofac;
+using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Messaging;
 
@@ -10,7 +11,13 @@ namespace ENode.Autofac {
         /// </summary>
         /// <returns></returns>
         public static Configuration UseAutofac(this Configuration configuration) {
-            ObjectContainer.SetContainer(new AutofacObjectContainer());
+            return UseAutofac(configuration, new ContainerBuilder());
+        }
+        /// <summary>Use Autofac as the object container for the enode framework.
+        /// </summary>
+        /// <returns></returns>
+        public static Configuration UseAutofac(this Configuration configuration, ContainerBuilder containerBuilder) {
+            ObjectContainer.SetContainer(new AutofacObjectContainer(containerBuilder));
             return configuration;
         }
     }

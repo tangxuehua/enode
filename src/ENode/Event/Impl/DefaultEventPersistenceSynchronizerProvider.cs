@@ -11,6 +11,9 @@ namespace ENode.Eventing {
         public void Initialize(params Assembly[] assemblies) {
             foreach (var assembly in assemblies) {
                 foreach (var synchronizerType in assembly.GetTypes().Where(x => IsEventPersistenceSynchronizer(x))) {
+                    if (!TypeUtils.IsComponent(synchronizerType)) {
+                        throw new Exception(string.Format("{0} should be marked as component.", synchronizerType.FullName));
+                    }
                     RegisterSynchronizer(synchronizerType);
                 }
             }

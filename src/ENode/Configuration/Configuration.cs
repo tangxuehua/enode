@@ -100,7 +100,7 @@ namespace ENode {
             Register<ILoggerFactory, EmptyLoggerFactory>();
             Register<IBinarySerializer, DefaultBinarySerializer>();
             Register<IStringSerializer, DefaultStringSerializer>();
-            Register<IDbConnectionFactory, SqlDbConnectionFactory>();
+            Register<IDbConnectionFactory, DefaultDbConnectionFactory>();
             Register<IMessageStore, EmptyMessageStore>();
 
             Register<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();
@@ -175,6 +175,14 @@ namespace ENode {
             SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
             SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
             SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
+            return this;
+        }
+        /// <summary>Use the default sql querydb connection factory.
+        /// </summary>
+        /// <param name="connectionString">The connection string of the SQL DB.</param>
+        /// <returns></returns>
+        public Configuration UseDefaultSqlQueryDbConnectionFactory(string connectionString) {
+            SetDefault<ISqlQueryDbConnectionFactory, DefaultSqlQueryDbConnectionFactory>(new DefaultSqlQueryDbConnectionFactory(connectionString));
             return this;
         }
 

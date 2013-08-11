@@ -56,7 +56,7 @@ namespace ENode.Commanding {
             if (commandHandler == null) {
                 var errorMessage = string.Format("Command handler not found for {0}", command.GetType().FullName);
                 _logger.Fatal(errorMessage);
-                _commandAsyncResultManager.TryComplete(command.Id, errorMessage, null);
+                _commandAsyncResultManager.TryComplete(command.Id, null, errorMessage, null);
                 FinishExecution(command, queue);
                 return;
             }
@@ -71,7 +71,7 @@ namespace ENode.Commanding {
                 }
                 else {
                     _logger.Info("No dirty aggregate found, finish the command execution directly.");
-                    _commandAsyncResultManager.TryComplete(command.Id);
+                    _commandAsyncResultManager.TryComplete(command.Id, null);
                     FinishExecution(command, queue);
                 }
             }

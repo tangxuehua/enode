@@ -29,7 +29,7 @@ namespace ENode.Commanding {
             }
             commandQueue.Enqueue(command);
         }
-        public void Execute(ICommand command) {
+        public CommandAsyncResult Execute(ICommand command) {
             if (command == null) {
                 throw new ArgumentNullException("command");
             }
@@ -50,12 +50,17 @@ namespace ENode.Commanding {
             if (!commandAsyncResult.IsCompleted) {
                 throw new CommandTimeoutException(command.Id, command.GetType());
             }
+            else if (commandAsyncResult.ErrorMessage != null && commandAsyncResult.Exception != null) {
+                throw new CommandExecuteException(command.Id, command.GetType(), commandAsyncResult.ErrorMessage, commandAsyncResult.Exception);
+            }
             else if (commandAsyncResult.Exception != null) {
                 throw new CommandExecuteException(command.Id, command.GetType(), commandAsyncResult.Exception);
             }
             else if (commandAsyncResult.ErrorMessage != null) {
                 throw new CommandExecuteException(command.Id, command.GetType(), commandAsyncResult.ErrorMessage);
             }
+
+            return commandAsyncResult;
         }
     }
 }

@@ -14,12 +14,14 @@ namespace ENode.Commanding {
         /// <summary>Try to complete a command async result if exist;
         /// </summary>
         /// <param name="commandId"></param>
-        void TryComplete(Guid commandId);
+        /// <param name="aggregateRootId"></param>
+        void TryComplete(Guid commandId, string aggregateRootId);
         /// <summary>Try to complete a command async result if exist.
         /// </summary>
         /// <param name="commandId"></param>
+        /// <param name="aggregateRootId"></param>
         /// <param name="errorMessage"></param>
         /// <param name="exception"></param>
-        void TryComplete(Guid commandId, string errorMessage, Exception exception);
+        void TryComplete(Guid commandId, string aggregateRootId, string errorMessage, Exception exception);
     }
 }

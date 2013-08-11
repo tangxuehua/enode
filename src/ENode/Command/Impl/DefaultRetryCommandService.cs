@@ -1,4 +1,5 @@
 ﻿using System;
+using ENode.Eventing;
 using ENode.Infrastructure;
 
 namespace ENode.Commanding {
@@ -14,7 +15,7 @@ namespace ENode.Commanding {
             _logger = loggerFactory.Create(GetType().Name);
         }
 
-        public void RetryCommand(CommandInfo commandInfo, ErrorInfo errorInfo, ActionInfo retrySuccessCallbackAction) {
+        public void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ErrorInfo errorInfo, ActionInfo retrySuccessCallbackAction) {
             if (_retryCommandQueue == null) {
                 _retryCommandQueue = Configuration.Instance.GetRetryCommandQueue();
             }
@@ -50,7 +51,7 @@ namespace ENode.Commanding {
                 }
             }
             else {
-                _commandAsyncResultManager.TryComplete(commandInfo.Command.Id, errorInfo.ErrorMessage, errorInfo.Exception);
+                _commandAsyncResultManager.TryComplete(commandInfo.Command.Id, eventStream.AggregateRootId, errorInfo.ErrorMessage, errorInfo.Exception);
             }
         }
 

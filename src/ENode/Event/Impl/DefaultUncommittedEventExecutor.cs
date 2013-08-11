@@ -259,7 +259,7 @@ namespace ENode.Eventing {
             if (!eventStreamContext.EventStream.IsRestoreFromStorage()) {
                 var command = _processingCommandCache.Get(eventStreamContext.EventStream.CommandId);
                 if (command != null) {
-                    _retryCommandService.RetryCommand(command, errorInfo, successActionInfo);
+                    _retryCommandService.RetryCommand(command, eventStreamContext.EventStream, errorInfo, successActionInfo);
                 }
                 else {
                     _logger.ErrorFormat("The command need to retry cannot be found from command processing cache, commandId:{0}", eventStreamContext.EventStream.CommandId);
@@ -274,10 +274,10 @@ namespace ENode.Eventing {
         }
         private void Clear(EventStreamContext context, ErrorInfo errorInfo) {
             if (errorInfo != null) {
-                _commandAsyncResultManager.TryComplete(context.EventStream.CommandId, errorInfo.ErrorMessage, errorInfo.Exception);
+                _commandAsyncResultManager.TryComplete(context.EventStream.CommandId, context.EventStream.AggregateRootId, errorInfo.ErrorMessage, errorInfo.Exception);
             }
             else {
-                _commandAsyncResultManager.TryComplete(context.EventStream.CommandId);
+                _commandAsyncResultManager.TryComplete(context.EventStream.CommandId, context.EventStream.AggregateRootId);
             }
             _processingCommandCache.TryRemove(context.EventStream.CommandId);
             FinishExecution(context.EventStream, context.Queue);

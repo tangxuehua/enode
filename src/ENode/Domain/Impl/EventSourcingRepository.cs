@@ -9,21 +9,27 @@ namespace ENode.Domain {
     public class EventSourcingRepository : IRepository {
         private IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private IAggregateRootFactory _aggregateRootFactory;
+        private IMemoryCache _memoryCache;
         private IEventStore _eventStore;
         private ISnapshotStore _snapshotStore;
 
-        public EventSourcingRepository(IAggregateRootTypeProvider aggregateRootTypeProvider, IAggregateRootFactory aggregateRootFactory, IEventStore eventStore, ISnapshotStore snapshotStore) {
+        public EventSourcingRepository(IAggregateRootTypeProvider aggregateRootTypeProvider, IAggregateRootFactory aggregateRootFactory, IMemoryCache memoryCache, IEventStore eventStore, ISnapshotStore snapshotStore) {
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _aggregateRootFactory = aggregateRootFactory;
+            _memoryCache = memoryCache;
             _eventStore = eventStore;
             _snapshotStore = snapshotStore;
         }
 
         public T Get<T>(string id) where T : AggregateRoot {
-            return GetFromStorage(typeof(T), id) as T;
+            return Get(typeof(T), id) as T;
         }
         public AggregateRoot Get(Type type, string id) {
-            return GetFromStorage(type, id);
+            var aggregateRoot = _memoryCache.Get(id);
+            if (aggregateRoot == null) {
+                aggregateRoot = GetFromStorage(type, id);
+            }
+            return aggregateRoot;
         }
 
         #region Helper Methods

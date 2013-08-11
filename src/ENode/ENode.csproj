@@ -97,10 +97,12 @@
     <Compile Include="Event\Impl\EventPersistenceSynchronizerWrapper.cs" />
     <Compile Include="Infrastructure\Impl\ErrorInfo.cs" />
     <Compile Include="Infrastructure\Impl\DefaultRetryService.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultSqlQueryDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\IObjectContainer.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Infrastructure\ActionInfo.cs" />
     <Compile Include="Infrastructure\IRetryService.cs" />
+    <Compile Include="Infrastructure\ISqlQueryDbConnectionFactory.cs" />
     <Compile Include="Messaging\Impl\Message.cs" />
     <Compile Include="Messaging\Impl\SQL\DefaultQueueTableNameProvider.cs" />
     <Compile Include="Messaging\Impl\EmptyMessageStore.cs" />
@@ -187,7 +189,7 @@
     <Compile Include="Snapshot\ISnapshotter.cs" />
     <Compile Include="Snapshot\ISnapshotStore.cs" />
     <Compile Include="Infrastructure\IDbConnectionFactory.cs" />
-    <Compile Include="Infrastructure\Impl\SqlDbConnectionFactory.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultDbConnectionFactory.cs" />
     <Compile Include="Command\Impl\AggregateRootNotFoundException.cs" />
     <Compile Include="Command\Impl\CommandTimeoutException.cs" />
   </ItemGroup>

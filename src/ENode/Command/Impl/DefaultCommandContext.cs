@@ -6,12 +6,10 @@ using ENode.Domain;
 namespace ENode.Commanding {
     public class DefaultCommandContext : ICommandContext, ITrackingContext {
         private IList<AggregateRoot> _trackingAggregateRoots;
-        private IMemoryCache _memoryCache;
         private IRepository _repository;
 
-        public DefaultCommandContext(IMemoryCache memoryCache, IRepository repository) {
+        public DefaultCommandContext(IRepository repository) {
             _trackingAggregateRoots = new List<AggregateRoot>();
-            _memoryCache = memoryCache;
             _repository = repository;
         }
 
@@ -43,11 +41,7 @@ namespace ENode.Commanding {
                 return aggregateRoot as T;
             }
 
-            aggregateRoot = _memoryCache.Get<T>(aggregateRootId);
-
-            if (aggregateRoot == null) {
-                aggregateRoot = _repository.Get<T>(aggregateRootId);
-            }
+            aggregateRoot = _repository.Get<T>(aggregateRootId);
 
             if (aggregateRoot != null) {
                 _trackingAggregateRoots.Add(aggregateRoot);

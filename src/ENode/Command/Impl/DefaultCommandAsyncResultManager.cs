@@ -14,13 +14,13 @@ namespace ENode.Commanding {
             CommandAsyncResult commandAsyncResult;
             _commandAsyncResultDict.TryRemove(commandId, out commandAsyncResult);
         }
-        public void TryComplete(Guid commandId) {
-            TryComplete(commandId, null, null);
+        public void TryComplete(Guid commandId, string aggregateRootId) {
+            TryComplete(commandId, aggregateRootId, null, null);
         }
-        public void TryComplete(Guid commandId, string errorMessage, Exception exception) {
+        public void TryComplete(Guid commandId, string aggregateRootId, string errorMessage, Exception exception) {
             CommandAsyncResult commandAsyncResult;
             if (_commandAsyncResultDict.TryRemove(commandId, out commandAsyncResult)) {
-                commandAsyncResult.Complete(errorMessage, exception);
+                commandAsyncResult.Complete(aggregateRootId, errorMessage, exception);
             }
         }
     }
