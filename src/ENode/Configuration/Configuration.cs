@@ -145,7 +145,11 @@ namespace ENode {
         public Configuration RegisterBusinessComponents(params Assembly[] assemblies) {
             foreach (var assembly in assemblies) {
                 foreach (var type in assembly.GetTypes().Where(TypeUtils.IsComponent)) {
-                    ObjectContainer.RegisterType(type, ParseLife(type));
+                    var life = ParseLife(type);
+                    ObjectContainer.RegisterType(type, life);
+                    foreach (var interfaceType in type.GetInterfaces()) {
+                        ObjectContainer.RegisterType(interfaceType, type, life);
+                    }
                     if (IsAssemblyInitializer(type)) {
                         _assemblyInitializerServiceTypes.Add(type);
                     }
@@ -330,10 +334,10 @@ namespace ENode {
             return componentAttributes.Count() <= 0 ? LifeStyle.Transient : (componentAttributes[0] as ComponentAttribute).LifeStyle;
         }
         private bool IsAssemblyInitializer<T>() {
-            return typeof(IAssemblyInitializer).IsAssignableFrom(typeof(T));
+            return IsAssemblyInitializer(typeof(T));
         }
         private bool IsAssemblyInitializer(Type type) {
-            return typeof(IAssemblyInitializer).IsAssignableFrom(type);
+            return type.IsClass && !type.IsAbstract && typeof(IAssemblyInitializer).IsAssignableFrom(type);
         }
         private bool IsAssemblyInitializer(object instance) {
             return instance is IAssemblyInitializer;

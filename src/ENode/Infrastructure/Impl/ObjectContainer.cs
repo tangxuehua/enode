@@ -30,6 +30,14 @@ namespace ENode.Infrastructure {
         }
         /// <summary>Register a implementer type as a service implementation.
         /// </summary>
+        /// <param name="serviceType">The implementation type.</param>
+        /// <param name="implementationType">The implementation type.</param>
+        /// <param name="life">The life cycle of the implementer type.</param>
+        public static void RegisterType(Type serviceType, Type implementationType, LifeStyle life = LifeStyle.Singleton) {
+            _container.RegisterType(serviceType, implementationType, life);
+        }
+        /// <summary>Register a implementer type as a service implementation.
+        /// </summary>
         /// <typeparam name="TService">The service type.</typeparam>
         /// <typeparam name="TImplementer">The implementer type.</typeparam>
         /// <param name="life">The life cycle of the implementer type.</param>

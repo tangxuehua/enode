@@ -29,6 +29,14 @@ namespace ENode.Autofac {
             }
             builder.Update(_container);
         }
+        public void RegisterType(Type serviceType, Type implementationType, LifeStyle life = LifeStyle.Singleton) {
+            var builder = new ContainerBuilder();
+            var registrationBuilder = builder.RegisterType(implementationType).As(serviceType);
+            if (life == LifeStyle.Singleton) {
+                registrationBuilder.SingleInstance();
+            }
+            builder.Update(_container);
+        }
         public void Register<TService, TImplementer>(LifeStyle life = LifeStyle.Singleton)
             where TService : class
             where TImplementer : class, TService {
