@@ -49,6 +49,7 @@
     <Compile Include="Commanding\Impl\DefaultRetryCommandService.cs" />
     <Compile Include="Commanding\CommandExecutionException.cs" />
     <Compile Include="Commanding\CommandQueueNotFoundException.cs" />
+    <Compile Include="Configuration.cs" />
     <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
     <Compile Include="Event\IEventPersistenceSynchronizer.cs" />
@@ -174,7 +175,6 @@
     <Compile Include="Domain\Impl\DefaultAggregateRootTypeProvider.cs" />
     <Compile Include="Commanding\ICommandContext.cs" />
     <Compile Include="Domain\ValueObject.cs" />
-    <Compile Include="Configuration\Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Infrastructure\IJsonSerializer.cs" />
     <Compile Include="Infrastructure\ILogger.cs" />
