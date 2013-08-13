@@ -1,7 +1,11 @@
 ﻿using System;
 
-namespace ENode.Commanding {
-    public interface ICommandAsyncResultManager {
+namespace ENode.Commanding
+{
+    /// <summary>An interface of manager to manage the command async result.
+    /// </summary>
+    public interface ICommandAsyncResultManager
+    {
         /// <summary>Add a command async result.
         /// </summary>
         /// <param name="commandId"></param>
@@ -16,7 +20,7 @@ namespace ENode.Commanding {
         /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
         void TryComplete(Guid commandId, string aggregateRootId);
-        /// <summary>Try to complete a command async result if exist.
+        /// <summary>Try to complete a command async result if it exist.
         /// </summary>
         /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>

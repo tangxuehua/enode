@@ -47,7 +47,8 @@
     <Compile Include="Command\Impl\DefaultCommandProcessor.cs" />
     <Compile Include="Command\Impl\DefaultCommandExecutor.cs" />
     <Compile Include="Command\Impl\DefaultRetryCommandService.cs" />
-    <Compile Include="Command\Impl\CommandExecuteException.cs" />
+    <Compile Include="Command\Impl\CommandExecutionException.cs" />
+    <Compile Include="Command\Impl\CommandQueueNotFoundException.cs" />
     <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
     <Compile Include="Event\IEventPersistenceSynchronizer.cs" />

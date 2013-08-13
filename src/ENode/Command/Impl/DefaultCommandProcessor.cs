@@ -1,11 +1,17 @@
 ﻿using ENode.Messaging;
 
-namespace ENode.Commanding {
-    public class DefaultCommandProcessor :
-        MessageProcessor<ICommandQueue, ICommandExecutor, ICommand>,
-        ICommandProcessor {
-        public DefaultCommandProcessor(ICommandQueue bindingQueue, int workerCount = 1)
-            : base(bindingQueue, workerCount) {
+namespace ENode.Commanding
+{
+    /// <summary>The default implementation of ICommandProcessor.
+    /// </summary>
+    public class DefaultCommandProcessor : MessageProcessor<ICommandQueue, ICommandExecutor, ICommand>, ICommandProcessor
+    {
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="bindingQueue"></param>
+        /// <param name="workerCount"></param>
+        public DefaultCommandProcessor(ICommandQueue bindingQueue, int workerCount = 1) : base(bindingQueue, workerCount)
+        {
         }
     }
 }

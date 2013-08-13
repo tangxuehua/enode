@@ -1,23 +1,37 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace ENode.Commanding {
-    public class DefaultProcessingCommandCache : IProcessingCommandCache {
-        private ConcurrentDictionary<Guid, CommandInfo> _commandInfoDict = new ConcurrentDictionary<Guid, CommandInfo>();
+namespace ENode.Commanding
+{
+    /// <summary>The default implementation of IProcessingCommandCache.
+    /// </summary>
+    public class DefaultProcessingCommandCache : IProcessingCommandCache
+    {
+        private readonly ConcurrentDictionary<Guid, CommandInfo> _commandInfoDict = new ConcurrentDictionary<Guid, CommandInfo>();
 
-        public void Add(ICommand command) {
+        /// <summary>Add a command to memory cache.
+        /// </summary>
+        /// <param name="command"></param>
+        public void Add(ICommand command)
+        {
             _commandInfoDict.TryAdd(command.Id, new CommandInfo(command));
         }
-        public void TryRemove(Guid commandId) {
+        /// <summary>Remove a command from memory cache.
+        /// </summary>
+        /// <param name="commandId"></param>
+        public void TryRemove(Guid commandId)
+        {
             CommandInfo commandInfo;
             _commandInfoDict.TryRemove(commandId, out commandInfo);
         }
-        public CommandInfo Get(Guid commandId) {
+        /// <summary>Try to get the command info from memory cache.
+        /// </summary>
+        /// <param name="commandId"></param>
+        /// <returns></returns>
+        public CommandInfo Get(Guid commandId)
+        {
             CommandInfo commandInfo;
-            if (_commandInfoDict.TryGetValue(commandId, out commandInfo)) {
-                return commandInfo;
-            }
-            return null;
+            return _commandInfoDict.TryGetValue(commandId, out commandInfo) ? commandInfo : null;
         }
     }
 }
