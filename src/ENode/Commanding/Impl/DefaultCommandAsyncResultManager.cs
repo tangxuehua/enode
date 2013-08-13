@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace ENode.Commanding
+namespace ENode.Commanding.Impl
 {
     /// <summary>The default implementation of ICommandAsyncResultManager.
     /// </summary>

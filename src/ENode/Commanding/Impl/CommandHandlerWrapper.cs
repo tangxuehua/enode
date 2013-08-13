@@ -1,4 +1,4 @@
-﻿namespace ENode.Commanding
+﻿namespace ENode.Commanding.Impl
 {
     /// <summary>A wrapper of command handler.
     /// </summary>

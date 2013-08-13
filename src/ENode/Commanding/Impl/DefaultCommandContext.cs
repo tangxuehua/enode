@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
 
-namespace ENode.Commanding
+namespace ENode.Commanding.Impl
 {
     /// <summary>The default implementation of command context interface and tracking context interface.
     /// </summary>

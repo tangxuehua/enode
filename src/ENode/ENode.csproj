@@ -39,16 +39,16 @@
     <DocumentationFile>bin\Release\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Command\Impl\CommandInfo.cs" />
-    <Compile Include="Command\ICommandQueue.cs" />
-    <Compile Include="Command\ICommandProcessor.cs" />
-    <Compile Include="Command\ICommandExecutor.cs" />
-    <Compile Include="Command\Impl\DefaultCommandQueue.cs" />
-    <Compile Include="Command\Impl\DefaultCommandProcessor.cs" />
-    <Compile Include="Command\Impl\DefaultCommandExecutor.cs" />
-    <Compile Include="Command\Impl\DefaultRetryCommandService.cs" />
-    <Compile Include="Command\Impl\CommandExecutionException.cs" />
-    <Compile Include="Command\Impl\CommandQueueNotFoundException.cs" />
+    <Compile Include="Commanding\CommandInfo.cs" />
+    <Compile Include="Commanding\ICommandQueue.cs" />
+    <Compile Include="Commanding\ICommandProcessor.cs" />
+    <Compile Include="Commanding\ICommandExecutor.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandQueue.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandProcessor.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
+    <Compile Include="Commanding\Impl\DefaultRetryCommandService.cs" />
+    <Compile Include="Commanding\CommandExecutionException.cs" />
+    <Compile Include="Commanding\CommandQueueNotFoundException.cs" />
     <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
     <Compile Include="Event\IEventPersistenceSynchronizer.cs" />
@@ -114,18 +114,18 @@
     <Compile Include="Messaging\Impl\MessageExecutor.cs" />
     <Compile Include="Messaging\IMessageQueue.cs" />
     <Compile Include="Messaging\Impl\MessageQueue.cs" />
-    <Compile Include="Command\IRetryCommandService.cs" />
-    <Compile Include="Command\Impl\DefaultCommandQueueRouter.cs" />
-    <Compile Include="Command\ITrackingContext.cs" />
-    <Compile Include="Command\ICommandQueueRouter.cs" />
+    <Compile Include="Commanding\IRetryCommandService.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandQueueRouter.cs" />
+    <Compile Include="Commanding\ITrackingContext.cs" />
+    <Compile Include="Commanding\ICommandQueueRouter.cs" />
     <Compile Include="Domain\Impl\EventSourcingRepository.cs" />
     <Compile Include="Domain\IRepository.cs" />
-    <Compile Include="Command\ICommandAsyncResultManager.cs" />
-    <Compile Include="Command\Impl\CommandHandlerWrapper.cs" />
-    <Compile Include="Command\Impl\DefaultCommandHandlerProvider.cs" />
-    <Compile Include="Command\Impl\DefaultCommandContext.cs" />
-    <Compile Include="Command\Impl\DefaultCommandAsyncResultManager.cs" />
-    <Compile Include="Command\Impl\DefaultProcessingCommandCache.cs" />
+    <Compile Include="Commanding\ICommandAsyncResultManager.cs" />
+    <Compile Include="Commanding\Impl\CommandHandlerWrapper.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandHandlerProvider.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandContext.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandAsyncResultManager.cs" />
+    <Compile Include="Commanding\Impl\DefaultProcessingCommandCache.cs" />
     <Compile Include="Infrastructure\Impl\ReaderWriterLockSlimExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -154,25 +154,25 @@
     <Compile Include="Infrastructure\Impl\Worker.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Command\ICommandHandlerProvider.cs" />
-    <Compile Include="Command\IProcessingCommandCache.cs" />
+    <Compile Include="Commanding\ICommandHandlerProvider.cs" />
+    <Compile Include="Commanding\IProcessingCommandCache.cs" />
     <Compile Include="Infrastructure\Impl\EmptyLogger.cs" />
     <Compile Include="Infrastructure\Impl\EmptyLoggerFactory.cs" />
     <Compile Include="Domain\IAggregateRootTypeProvider.cs" />
     <Compile Include="Domain\IAggregateRootFactory.cs" />
     <Compile Include="Domain\IAggregateRootInternalHandlerProvider.cs" />
-    <Compile Include="Command\ICommand.cs" />
-    <Compile Include="Command\Impl\Command.cs" />
+    <Compile Include="Commanding\ICommand.cs" />
+    <Compile Include="Commanding\Command.cs" />
     <Compile Include="Infrastructure\IBinarySerializer.cs" />
-    <Compile Include="Command\ICommandService.cs" />
-    <Compile Include="Command\ICommandHandler.cs" />
+    <Compile Include="Commanding\ICommandService.cs" />
+    <Compile Include="Commanding\ICommandHandler.cs" />
     <Compile Include="Infrastructure\Impl\ComponentAttribute.cs" />
     <Compile Include="Infrastructure\Impl\ObjectContainer.cs" />
     <Compile Include="Snapshot\Impl\EmptySnapshotStore.cs" />
     <Compile Include="Domain\IMemoryCache.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCache.cs" />
     <Compile Include="Domain\Impl\DefaultAggregateRootTypeProvider.cs" />
-    <Compile Include="Command\ICommandContext.cs" />
+    <Compile Include="Commanding\ICommandContext.cs" />
     <Compile Include="Domain\ValueObject.cs" />
     <Compile Include="Configuration\Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
@@ -191,8 +191,8 @@
     <Compile Include="Snapshot\ISnapshotStore.cs" />
     <Compile Include="Infrastructure\IDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\Impl\DefaultDbConnectionFactory.cs" />
-    <Compile Include="Command\Impl\AggregateRootNotFoundException.cs" />
-    <Compile Include="Command\Impl\CommandTimeoutException.cs" />
+    <Compile Include="Commanding\AggregateRootNotFoundException.cs" />
+    <Compile Include="Commanding\CommandTimeoutException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -203,8 +203,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="SqlScripts\TableGenerateSQL.sql" />
-    <Compile Include="Command\Impl\CommandAsyncResult.cs" />
-    <Compile Include="Command\Impl\DefaultCommandService.cs" />
+    <Compile Include="Commanding\CommandAsyncResult.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandService.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

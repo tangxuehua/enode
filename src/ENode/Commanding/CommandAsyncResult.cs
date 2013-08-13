@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {

@@ -3,7 +3,7 @@ using ENode.Messaging;
 
 namespace ENode.Commanding
 {
-    /// <summary>Represents a base command.
+    /// <summary>Represents an abstract base command.
     /// </summary>
     [Serializable]
     public abstract class Command : Message, ICommand
@@ -16,7 +16,7 @@ namespace ENode.Commanding
         /// <summary>Get or set command executing waiting milliseconds.
         /// </summary>
         public int MillisecondsTimeout { get; set; }
-        /// <summary>Get or set how many times the command should retry. The retry count must small than 5;
+        /// <summary>Get or set times which the command should be retry. The retry count must small than 5;
         /// </summary>
         public int RetryCount
         {

@@ -5,7 +5,7 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Messaging;
 
-namespace ENode.Commanding
+namespace ENode.Commanding.Impl
 {
     /// <summary>The default implementation of command executor interface.
     /// </summary>

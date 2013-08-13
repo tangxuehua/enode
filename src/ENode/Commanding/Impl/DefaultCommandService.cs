@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading;
-using ENode.Infrastructure;
 
-namespace ENode.Commanding
+namespace ENode.Commanding.Impl
 {
     /// <summary>The default implementation of ICommandService.
     /// </summary>

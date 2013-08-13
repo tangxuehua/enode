@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using ENode.Infrastructure;
 
-namespace ENode.Commanding
+namespace ENode.Commanding.Impl
 {
     /// <summary>The default implementation of ICommandHandlerProvider.
     /// </summary>

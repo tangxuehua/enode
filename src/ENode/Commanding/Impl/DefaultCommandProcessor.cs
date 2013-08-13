@@ -1,6 +1,6 @@
 ﻿using ENode.Messaging;
 
-namespace ENode.Commanding
+namespace ENode.Commanding.Impl
 {
     /// <summary>The default implementation of ICommandProcessor.
     /// </summary>
