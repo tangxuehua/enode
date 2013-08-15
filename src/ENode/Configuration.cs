@@ -9,6 +9,7 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Messaging;
 using ENode.Snapshoting;
+using ENode.Snapshoting.Impl;
 
 namespace ENode
 {

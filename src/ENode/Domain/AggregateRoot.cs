@@ -120,7 +120,7 @@ namespace ENode.Domain {
         /// </summary>
         internal void InitializeFromSnapshot(Snapshot snapshot) {
             UniqueId = snapshot.AggregateRootId;
-            Version = snapshot.StreamVersion;
+            Version = snapshot.Version;
             _uncommittedEvents = new Queue<IEvent>();
             if (_eventHandlerProvider == null) {
                 _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
@@ -159,7 +159,7 @@ namespace ENode.Domain {
             }
 
             if (eventStream.Version != Version + 1) {
-                var errorMessage = string.Format("Cannot apply event stream to aggregate as the StreamVersion not matched. EventStream Id:{0}, Version:{1}; Current AggregateRoot Version:{2}",
+                var errorMessage = string.Format("Cannot apply event stream to aggregate as the version not matched. EventStream Id:{0}, Version:{1}; Current AggregateRoot Version:{2}",
                                         eventStream.Id,
                                         eventStream.Version,
                                         Version);

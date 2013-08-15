@@ -64,7 +64,7 @@ namespace ENode.Domain {
                         string message = string.Format("从快照还原出来的聚合根的Id({0})与所要求的Id({1})不符", aggregateRootFromSnapshot.UniqueId, aggregateRootId);
                         throw new Exception(message);
                     }
-                    var commitsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.StreamVersion + 1, long.MaxValue);
+                    var commitsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.Version + 1, long.MaxValue);
                     aggregateRootFromSnapshot.ReplayEventStreams(commitsAfterSnapshot);
                     aggregateRoot = aggregateRootFromSnapshot;
                     return true;

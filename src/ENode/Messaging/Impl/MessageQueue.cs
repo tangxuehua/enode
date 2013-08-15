@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Threading;
 using ENode.Infrastructure;
 
-namespace ENode.Messaging {
-    public abstract class MessageQueue<T> : IMessageQueue<T> where T : class, IMessage {
+namespace ENode.Messaging
+{
+    public abstract class MessageQueue<T> : IMessageQueue<T> where T : class, IMessage
+    {
         #region Private Variables
 
         private IMessageStore _messageStore;
@@ -18,8 +20,10 @@ namespace ENode.Messaging {
         public string Name { get; private set; }
         protected ILogger Logger { get; private set; }
 
-        public MessageQueue(string name) {
-            if (string.IsNullOrEmpty(name)) {
+        public MessageQueue(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
                 throw new ArgumentNullException("name");
             }
 
@@ -28,10 +32,12 @@ namespace ENode.Messaging {
             Logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
         }
 
-        public void Initialize() {
+        public void Initialize()
+        {
             _messageStore.Initialize(Name);
             var messages = _messageStore.GetMessages<T>(Name);
-            foreach (var message in messages) {
+            foreach (var message in messages)
+            {
                 message.MarkAsRestoreFromStorage();
                 _queue.Add(message);
                 Logger.InfoFormat("{0} recovered, id:{1}", message.ToString(), message.Id);
@@ -40,20 +46,26 @@ namespace ENode.Messaging {
         }
         protected virtual void OnInitialized(IEnumerable<T> initialQueueMessages) { }
 
-        public void Enqueue(T message) {
-            _enqueueLocker.AtomWrite(() => {
+        public void Enqueue(T message)
+        {
+            _enqueueLocker.AtomWrite(() =>
+            {
                 _messageStore.AddMessage(Name, message);
                 _queue.Add(message);
-                if (Logger.IsDebugEnabled) {
+                if (Logger.IsDebugEnabled)
+                {
                     Logger.DebugFormat("{0} enqueued, id:{1}", message.ToString(), message.Id);
                 }
             });
         }
-        public T Dequeue() {
+        public T Dequeue()
+        {
             return _queue.Take();
         }
-        public void Complete(T message) {
-            _dequeueLocker.AtomWrite(() => {
+        public void Complete(T message)
+        {
+            _dequeueLocker.AtomWrite(() =>
+            {
                 _messageStore.RemoveMessage(Name, message);
             });
         }

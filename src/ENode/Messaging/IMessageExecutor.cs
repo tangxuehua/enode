@@ -1,9 +1,9 @@
-﻿using System;
-
-namespace ENode.Messaging {
+﻿namespace ENode.Messaging
+{
     /// <summary>Represents a message executor.
     /// </summary>
-    public interface IMessageExecutor<TMessage> where TMessage : class, IMessage {
+    public interface IMessageExecutor<TMessage> where TMessage : class, IMessage
+    {
         /// <summary>Execute the given queue message.
         /// </summary>
         /// <param name="message"></param>

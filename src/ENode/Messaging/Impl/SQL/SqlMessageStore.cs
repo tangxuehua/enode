@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using Dapper;
 using ENode.Infrastructure;
 
-namespace ENode.Messaging {
-    public class SqlMessageStore : IMessageStore {
+namespace ENode.Messaging
+{
+    public class SqlMessageStore : IMessageStore
+    {
         #region Private Variables
 
         private string _connectionString;
@@ -16,8 +18,10 @@ namespace ENode.Messaging {
 
         #region Constructors
 
-        public SqlMessageStore(string connectionString) {
-            if (string.IsNullOrEmpty(connectionString)) {
+        public SqlMessageStore(string connectionString)
+        {
+            if (string.IsNullOrEmpty(connectionString))
+            {
                 throw new ArgumentNullException("connectionString");
             }
 
@@ -30,26 +34,33 @@ namespace ENode.Messaging {
         #endregion
 
         public void Initialize(string queueName) { }
-        public void AddMessage(string queueName, IMessage message) {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) => {
+        public void AddMessage(string queueName, IMessage message)
+        {
+            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
+            {
                 var tableName = _queueTableNameProvider.GetTable(queueName);
                 var messageData = _binarySerializer.Serialize(message);
                 connection.Insert(new { MessageId = message.Id, MessageData = messageData }, tableName);
             });
         }
-        public void RemoveMessage(string queueName, IMessage message) {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) => {
+        public void RemoveMessage(string queueName, IMessage message)
+        {
+            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
+            {
                 var tableName = _queueTableNameProvider.GetTable(queueName);
                 connection.Delete(new { MessageId = message.Id }, tableName);
             });
         }
-        public IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<T>>((connection) => {
+        public IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage
+        {
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<T>>((connection) =>
+            {
                 var tableName = _queueTableNameProvider.GetTable(queueName);
                 var items = connection.QueryAll(tableName);
                 var messages = new List<T>();
 
-                foreach (var item in items) {
+                foreach (var item in items)
+                {
                     messages.Add(_binarySerializer.Deserialize<T>((byte[])item.MessageData));
                 }
 
