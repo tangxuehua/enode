@@ -1,23 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Dapper;
 using ENode.Infrastructure;
 
-namespace ENode.Messaging
+namespace ENode.Messaging.Impl.SQL
 {
+    /// <summary>The SQL implementation of IMessageStore.
+    /// </summary>
     public class SqlMessageStore : IMessageStore
     {
         #region Private Variables
 
-        private string _connectionString;
-        private IDbConnectionFactory _connectionFactory;
-        private IQueueTableNameProvider _queueTableNameProvider;
-        private IBinarySerializer _binarySerializer;
+        private readonly string _connectionString;
+        private readonly IDbConnectionFactory _connectionFactory;
+        private readonly IQueueTableNameProvider _queueTableNameProvider;
+        private readonly IBinarySerializer _binarySerializer;
 
         #endregion
 
         #region Constructors
 
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public SqlMessageStore(string connectionString)
         {
             if (string.IsNullOrEmpty(connectionString))
@@ -33,7 +40,14 @@ namespace ENode.Messaging
 
         #endregion
 
+        /// <summary>Initialize the message store with the given queue name.
+        /// </summary>
+        /// <param name="queueName"></param>
         public void Initialize(string queueName) { }
+        /// <summary>Persist a new message to the queue.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="message"></param>
         public void AddMessage(string queueName, IMessage message)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
@@ -43,6 +57,10 @@ namespace ENode.Messaging
                 connection.Insert(new { MessageId = message.Id, MessageData = messageData }, tableName);
             });
         }
+        /// <summary>Remove a existing message from the queue.
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="message"></param>
         public void RemoveMessage(string queueName, IMessage message)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
@@ -51,20 +69,19 @@ namespace ENode.Messaging
                 connection.Delete(new { MessageId = message.Id }, tableName);
             });
         }
+        /// <summary>Get all the existing messages of the queue.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="queueName"></param>
+        /// <returns></returns>
         public IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<T>>((connection) =>
             {
                 var tableName = _queueTableNameProvider.GetTable(queueName);
                 var items = connection.QueryAll(tableName);
-                var messages = new List<T>();
 
-                foreach (var item in items)
-                {
-                    messages.Add(_binarySerializer.Deserialize<T>((byte[])item.MessageData));
-                }
-
-                return messages;
+                return items.Select(item => _binarySerializer.Deserialize<T>((byte[]) item.MessageData)).ToList();
             });
         }
     }

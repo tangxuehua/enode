@@ -1,4 +1,5 @@
 ﻿using ENode.Messaging;
+using ENode.Messaging.Impl;
 
 namespace ENode.Commanding.Impl
 {

@@ -1,26 +1,38 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ENode.Infrastructure;
 
-namespace ENode.Messaging
+namespace ENode.Messaging.Impl
 {
+    /// <summary>The abstract base message queue implementation of IMessageQueue.
+    /// </summary>
+    /// <typeparam name="T">The type of the message.</typeparam>
     public abstract class MessageQueue<T> : IMessageQueue<T> where T : class, IMessage
     {
         #region Private Variables
 
-        private IMessageStore _messageStore;
-        private BlockingCollection<T> _queue = new BlockingCollection<T>(new ConcurrentQueue<T>());
-        private ReaderWriterLockSlim _enqueueLocker = new ReaderWriterLockSlim();
-        private ReaderWriterLockSlim _dequeueLocker = new ReaderWriterLockSlim();
+        private readonly IMessageStore _messageStore;
+        private readonly BlockingCollection<T> _queue = new BlockingCollection<T>(new ConcurrentQueue<T>());
+        private readonly ReaderWriterLockSlim _enqueueLocker = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _dequeueLocker = new ReaderWriterLockSlim();
 
         #endregion
 
+        /// <summary>The name of the queue.
+        /// </summary>
         public string Name { get; private set; }
+        /// <summary>The logger which maybe used by the message queue.
+        /// </summary>
         protected ILogger Logger { get; private set; }
 
-        public MessageQueue(string name)
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="name">The name of the queue.</param>
+        /// <exception cref="ArgumentNullException">Throw when the queue name is null or empty.</exception>
+        protected MessageQueue(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -32,10 +44,12 @@ namespace ENode.Messaging
             Logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
         }
 
+        /// <summary>Initialize the message queue.
+        /// </summary>
         public void Initialize()
         {
             _messageStore.Initialize(Name);
-            var messages = _messageStore.GetMessages<T>(Name);
+            var messages = _messageStore.GetMessages<T>(Name).ToList();
             foreach (var message in messages)
             {
                 message.MarkAsRestoreFromStorage();
@@ -44,8 +58,13 @@ namespace ENode.Messaging
             }
             OnInitialized(messages);
         }
+        /// <summary>Called after the messages were recovered from the message store.
+        /// </summary>
+        /// <param name="initialQueueMessages"></param>
         protected virtual void OnInitialized(IEnumerable<T> initialQueueMessages) { }
-
+        /// <summary>Enqueue the given message to the message queue. First add the message to message store, second enqueue the message to memory queue.
+        /// </summary>
+        /// <param name="message">The message to enqueue.</param>
         public void Enqueue(T message)
         {
             _enqueueLocker.AtomWrite(() =>
@@ -58,16 +77,19 @@ namespace ENode.Messaging
                 }
             });
         }
+        /// <summary>Dequeue the message from memory queue.
+        /// </summary>
+        /// <returns></returns>
         public T Dequeue()
         {
             return _queue.Take();
         }
+        /// <summary>Remove the message from message store.
+        /// </summary>
+        /// <param name="message"></param>
         public void Complete(T message)
         {
-            _dequeueLocker.AtomWrite(() =>
-            {
-                _messageStore.RemoveMessage(Name, message);
-            });
+            _dequeueLocker.AtomWrite(() => _messageStore.RemoveMessage(Name, message));
         }
     }
 }

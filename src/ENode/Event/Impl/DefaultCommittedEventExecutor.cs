@@ -1,6 +1,7 @@
 ﻿using System;
 using ENode.Infrastructure;
 using ENode.Messaging;
+using ENode.Messaging.Impl;
 
 namespace ENode.Eventing {
     public class DefaultCommittedEventExecutor : MessageExecutor<EventStream>, ICommittedEventExecutor {

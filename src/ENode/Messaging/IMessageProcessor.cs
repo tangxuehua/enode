@@ -3,7 +3,7 @@
     /// <summary>Represents a message processor.
     /// </summary>
     public interface IMessageProcessor<out TQueue, TMessage>
-        where TQueue : IMessageQueue<TMessage>
+        where TQueue : class, IMessageQueue<TMessage>
         where TMessage : class, IMessage
     {
         /// <summary>Represents the binding message queue.

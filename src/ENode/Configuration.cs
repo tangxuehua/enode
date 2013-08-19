@@ -8,6 +8,8 @@ using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Messaging;
+using ENode.Messaging.Impl;
+using ENode.Messaging.Impl.SQL;
 using ENode.Snapshoting;
 using ENode.Snapshoting.Impl;
 

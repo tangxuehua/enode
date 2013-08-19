@@ -5,6 +5,7 @@ using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Messaging;
+using ENode.Messaging.Impl;
 
 namespace ENode.Eventing {
     public class DefaultUncommittedEventExecutor : MessageExecutor<EventStream>, IUncommittedEventExecutor {
