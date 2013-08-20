@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Concurrent;
 
 namespace ENode.Eventing {
     public class InMemoryEventStore : IEventStore {

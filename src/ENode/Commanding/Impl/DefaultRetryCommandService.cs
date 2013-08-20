@@ -1,6 +1,8 @@
 ﻿using System;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Logging;
+using ENode.Infrastructure.Retring;
 
 namespace ENode.Commanding.Impl
 {

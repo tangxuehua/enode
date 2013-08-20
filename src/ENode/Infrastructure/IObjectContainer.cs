@@ -1,9 +1,11 @@
 ﻿using System;
 
-namespace ENode.Infrastructure {
+namespace ENode.Infrastructure
+{
     /// <summary>Represents an object container interface.
     /// </summary>
-    public interface IObjectContainer {
+    public interface IObjectContainer
+    {
         /// <summary>Register a implementation type.
         /// </summary>
         /// <param name="implementationType">The implementation type.</param>

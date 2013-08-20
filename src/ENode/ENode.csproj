@@ -64,7 +64,7 @@
     <Compile Include="Event\IUncommittedEventQueueRouter.cs" />
     <Compile Include="Event\IUncommittedEventProcessor.cs" />
     <Compile Include="Event\EventStreamContext.cs" />
-    <Compile Include="Infrastructure\Impl\ConcurrentException.cs" />
+    <Compile Include="Infrastructure\Concurrent\ConcurrentException.cs" />
     <Compile Include="Event\EventStream.cs" />
     <Compile Include="Event\IEvent.cs" />
     <Compile Include="Event\ICommittedEventExecutor.cs" />
@@ -97,14 +97,14 @@
     <Compile Include="Event\IEventPersistenceSynchronizerProvider.cs" />
     <Compile Include="Event\Impl\DefaultEventPersistenceSynchronizerProvider.cs" />
     <Compile Include="Event\Impl\EventPersistenceSynchronizerWrapper.cs" />
-    <Compile Include="Infrastructure\Impl\ErrorInfo.cs" />
-    <Compile Include="Infrastructure\Impl\DefaultRetryService.cs" />
-    <Compile Include="Infrastructure\Impl\DefaultSqlQueryDbConnectionFactory.cs" />
+    <Compile Include="Infrastructure\ErrorInfo.cs" />
+    <Compile Include="Infrastructure\Retring\DefaultRetryService.cs" />
+    <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\IObjectContainer.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
-    <Compile Include="Infrastructure\ActionInfo.cs" />
-    <Compile Include="Infrastructure\IRetryService.cs" />
-    <Compile Include="Infrastructure\ISqlQueryDbConnectionFactory.cs" />
+    <Compile Include="Infrastructure\Retring\ActionInfo.cs" />
+    <Compile Include="Infrastructure\Retring\IRetryService.cs" />
+    <Compile Include="Infrastructure\Sql\ISqlQueryDbConnectionFactory.cs" />
     <Compile Include="Messaging\Message.cs" />
     <Compile Include="Messaging\Impl\SQL\DefaultQueueTableNameProvider.cs" />
     <Compile Include="Messaging\Impl\EmptyMessageStore.cs" />
@@ -127,48 +127,48 @@
     <Compile Include="Commanding\Impl\DefaultCommandContext.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandAsyncResultManager.cs" />
     <Compile Include="Commanding\Impl\DefaultProcessingCommandCache.cs" />
-    <Compile Include="Infrastructure\Impl\ReaderWriterLockSlimExtensions.cs">
+    <Compile Include="Infrastructure\Concurrent\ReaderWriterLockSlimExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Infrastructure\Impl\DefaultBinarySerializer.cs" />
-    <Compile Include="Infrastructure\IStringSerializer.cs" />
-    <Compile Include="Infrastructure\Impl\DefaultStringSerializer.cs" />
+    <Compile Include="Infrastructure\Serializing\DefaultBinarySerializer.cs" />
+    <Compile Include="Infrastructure\Serializing\IStringSerializer.cs" />
+    <Compile Include="Infrastructure\Serializing\DefaultStringSerializer.cs" />
     <Compile Include="Messaging\IMessageExecutor.cs" />
     <Compile Include="Messaging\IMessageStore.cs" />
     <Compile Include="Messaging\IMessage.cs" />
-    <Compile Include="Infrastructure\Impl\Dapper\SqlMapper_Extensions.cs" />
-    <Compile Include="Infrastructure\Impl\LockUtility.cs">
+    <Compile Include="Infrastructure\Dapper\SqlMapper_Extensions.cs" />
+    <Compile Include="Infrastructure\Concurrent\LockUtility.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Infrastructure\Impl\ObjectHelper.cs">
+    <Compile Include="Infrastructure\Utils.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Infrastructure\Impl\Dapper\SqlMapper.cs">
+    <Compile Include="Infrastructure\Dapper\SqlMapper.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Infrastructure\Impl\TimeRecorderManager.cs">
+    <Compile Include="Infrastructure\PerformanceTesting\PerformanceTester.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Infrastructure\Impl\TypeUtils.cs">
+    <Compile Include="Infrastructure\TypeUtils.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Infrastructure\Impl\Worker.cs">
+    <Compile Include="Infrastructure\Worker.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Commanding\ICommandHandlerProvider.cs" />
     <Compile Include="Commanding\IProcessingCommandCache.cs" />
-    <Compile Include="Infrastructure\Impl\EmptyLogger.cs" />
-    <Compile Include="Infrastructure\Impl\EmptyLoggerFactory.cs" />
+    <Compile Include="Infrastructure\Logging\EmptyLogger.cs" />
+    <Compile Include="Infrastructure\Logging\EmptyLoggerFactory.cs" />
     <Compile Include="Domain\IAggregateRootTypeProvider.cs" />
     <Compile Include="Domain\IAggregateRootFactory.cs" />
     <Compile Include="Domain\IAggregateRootInternalHandlerProvider.cs" />
     <Compile Include="Commanding\ICommand.cs" />
     <Compile Include="Commanding\Command.cs" />
-    <Compile Include="Infrastructure\IBinarySerializer.cs" />
+    <Compile Include="Infrastructure\Serializing\IBinarySerializer.cs" />
     <Compile Include="Commanding\ICommandService.cs" />
     <Compile Include="Commanding\ICommandHandler.cs" />
-    <Compile Include="Infrastructure\Impl\ComponentAttribute.cs" />
-    <Compile Include="Infrastructure\Impl\ObjectContainer.cs" />
+    <Compile Include="Infrastructure\ComponentAttribute.cs" />
+    <Compile Include="Infrastructure\ObjectContainer.cs" />
     <Compile Include="Snapshoting\Impl\EmptySnapshotStore.cs" />
     <Compile Include="Domain\IMemoryCache.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCache.cs" />
@@ -176,9 +176,9 @@
     <Compile Include="Commanding\ICommandContext.cs" />
     <Compile Include="Domain\ValueObject.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
-    <Compile Include="Infrastructure\IJsonSerializer.cs" />
-    <Compile Include="Infrastructure\ILogger.cs" />
-    <Compile Include="Infrastructure\ILoggerFactory.cs" />
+    <Compile Include="Infrastructure\Serializing\IJsonSerializer.cs" />
+    <Compile Include="Infrastructure\Logging\ILogger.cs" />
+    <Compile Include="Infrastructure\Logging\ILoggerFactory.cs" />
     <Compile Include="Domain\Impl\DefaultAggregateRootInternalHandlerProvider.cs" />
     <Compile Include="Domain\Impl\DefaultAggregateRootFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -189,8 +189,8 @@
     <Compile Include="Snapshoting\Impl\DefaultSnapshotter.cs" />
     <Compile Include="Snapshoting\ISnapshotter.cs" />
     <Compile Include="Snapshoting\ISnapshotStore.cs" />
-    <Compile Include="Infrastructure\IDbConnectionFactory.cs" />
-    <Compile Include="Infrastructure\Impl\DefaultDbConnectionFactory.cs" />
+    <Compile Include="Infrastructure\Sql\IDbConnectionFactory.cs" />
+    <Compile Include="Infrastructure\Sql\DefaultDbConnectionFactory.cs" />
     <Compile Include="Commanding\AggregateRootNotFoundException.cs" />
     <Compile Include="Commanding\CommandTimeoutException.cs" />
   </ItemGroup>

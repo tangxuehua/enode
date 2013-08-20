@@ -1,5 +1,6 @@
 ﻿using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Serializing;
 using ENode.Messaging;
 
 namespace ENode.JsonNet {

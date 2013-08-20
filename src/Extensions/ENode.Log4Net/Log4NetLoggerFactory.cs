@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Logging;
 using log4net;
 using log4net.Appender;
 using log4net.Config;

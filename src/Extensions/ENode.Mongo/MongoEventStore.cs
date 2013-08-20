@@ -4,6 +4,8 @@ using System.Linq;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Concurrent;
+using ENode.Infrastructure.Serializing;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoQuery = MongoDB.Driver.Builders.Query;

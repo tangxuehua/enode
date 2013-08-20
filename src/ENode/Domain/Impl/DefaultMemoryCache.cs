@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Serializing;
 
 namespace ENode.Domain {
     public class DefaultMemoryCache : IMemoryCache {

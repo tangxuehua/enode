@@ -1,0 +1,25 @@
+﻿using System;
+using System.Linq;
+using ENode.Domain;
+
+namespace ENode.Infrastructure
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class TypeUtils
+    {
+        /// <summary>Check whether a type is a component type.
+        /// </summary>
+        public static bool IsComponent(Type type)
+        {
+            return type != null && type.IsClass && type.GetCustomAttributes(typeof(ComponentAttribute), false).Any();
+        }
+        /// <summary>Check whether a type is an aggregate root type.
+        /// </summary>
+        public static bool IsAggregateRoot(Type type)
+        {
+            return type.IsClass && !type.IsAbstract && typeof(AggregateRoot).IsAssignableFrom(type);
+        }
+    }
+}

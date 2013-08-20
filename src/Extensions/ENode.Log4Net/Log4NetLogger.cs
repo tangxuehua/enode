@@ -1,5 +1,6 @@
 ﻿using System;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Logging;
 using log4net;
 
 namespace ENode.Log4Net {

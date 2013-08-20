@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using Dapper;
 using ENode.Domain;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Concurrent;
+using ENode.Infrastructure.Dapper;
+using ENode.Infrastructure.Logging;
+using ENode.Infrastructure.Serializing;
+using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing {
     public class SqlEventStore : IEventStore {

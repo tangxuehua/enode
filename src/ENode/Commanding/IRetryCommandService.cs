@@ -1,5 +1,6 @@
 ﻿using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Retring;
 
 namespace ENode.Commanding
 {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Serializing;
 using ENode.Messaging;
 using MongoDB.Bson;
 using MongoDB.Driver;

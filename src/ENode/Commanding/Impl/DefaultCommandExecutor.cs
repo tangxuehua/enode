@@ -3,6 +3,8 @@ using System.Linq;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Logging;
+using ENode.Infrastructure.Retring;
 using ENode.Messaging;
 using ENode.Messaging.Impl;
 

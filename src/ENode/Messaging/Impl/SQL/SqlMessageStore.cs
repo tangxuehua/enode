@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Dapper;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Dapper;
+using ENode.Infrastructure.Serializing;
+using ENode.Infrastructure.Sql;
 
 namespace ENode.Messaging.Impl.SQL
 {

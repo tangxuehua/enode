@@ -1,6 +1,7 @@
 ﻿using System;
-using Dapper;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Dapper;
+using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing {
     public class SqlEventPublishInfoStore : IEventPublishInfoStore {
