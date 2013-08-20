@@ -1,21 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Mongo {
-    public class DefaultEventCollectionNameProvider : IEventCollectionNameProvider {
-        private string _collectionName;
+namespace ENode.Mongo
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class DefaultEventCollectionNameProvider : IEventCollectionNameProvider
+    {
+        private readonly string _collectionName;
 
-        public DefaultEventCollectionNameProvider(string collectionName) {
-            if (string.IsNullOrEmpty(collectionName)) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="collectionName"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public DefaultEventCollectionNameProvider(string collectionName)
+        {
+            if (string.IsNullOrEmpty(collectionName))
+            {
                 throw new ArgumentNullException("collectionName");
             }
             _collectionName = collectionName;
         }
 
-        public string GetCollectionName(string aggregateRootId, Type aggregateRootType) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <returns></returns>
+        public string GetCollectionName(string aggregateRootId, Type aggregateRootType)
+        {
             return _collectionName;
         }
-        public IEnumerable<string> GetAllCollectionNames() {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> GetAllCollectionNames()
+        {
             return new string[] { _collectionName };
         }
     }

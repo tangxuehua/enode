@@ -7,35 +7,51 @@ using ENode.Snapshoting;
 
 namespace ENode.Domain.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class EventSourcingRepository : IRepository
     {
-        private IAggregateRootTypeProvider _aggregateRootTypeProvider;
-        private IAggregateRootFactory _aggregateRootFactory;
-        private IMemoryCache _memoryCache;
-        private IEventStore _eventStore;
-        private ISnapshotStore _snapshotStore;
+        private readonly IAggregateRootFactory _aggregateRootFactory;
+        private readonly IMemoryCache _memoryCache;
+        private readonly IEventStore _eventStore;
+        private readonly ISnapshotStore _snapshotStore;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootTypeProvider"></param>
+        /// <param name="aggregateRootFactory"></param>
+        /// <param name="memoryCache"></param>
+        /// <param name="eventStore"></param>
+        /// <param name="snapshotStore"></param>
         public EventSourcingRepository(IAggregateRootTypeProvider aggregateRootTypeProvider, IAggregateRootFactory aggregateRootFactory, IMemoryCache memoryCache, IEventStore eventStore, ISnapshotStore snapshotStore)
         {
-            _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _aggregateRootFactory = aggregateRootFactory;
             _memoryCache = memoryCache;
             _eventStore = eventStore;
             _snapshotStore = snapshotStore;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public T Get<T>(string id) where T : AggregateRoot
         {
             return Get(typeof(T), id) as T;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public AggregateRoot Get(Type type, string id)
         {
-            var aggregateRoot = _memoryCache.Get(id);
-            if (aggregateRoot == null)
-            {
-                aggregateRoot = GetFromStorage(type, id);
-            }
-            return aggregateRoot;
+            return _memoryCache.Get(id) ?? GetFromStorage(type, id);
         }
 
         #region Helper Methods
@@ -45,18 +61,16 @@ namespace ENode.Domain.Impl
         private AggregateRoot GetFromStorage(Type aggregateRootType, string aggregateRootId)
         {
             AggregateRoot aggregateRoot = null;
-            long minStreamVersion = 1;
-            long maxStreamVersion = long.MaxValue;
+            const long minStreamVersion = 1;
+            const long maxStreamVersion = long.MaxValue;
 
             if (TryGetFromSnapshot(aggregateRootId, aggregateRootType, out aggregateRoot))
             {
                 return aggregateRoot;
             }
-            else
-            {
-                var streams = _eventStore.Query(aggregateRootId, aggregateRootType, minStreamVersion, maxStreamVersion);
-                aggregateRoot = BuildAggregateRoot(aggregateRootId, aggregateRootType, streams);
-            }
+
+            var streams = _eventStore.Query(aggregateRootId, aggregateRootType, minStreamVersion, maxStreamVersion);
+            aggregateRoot = BuildAggregateRoot(aggregateRootId, aggregateRootType, streams);
 
             return aggregateRoot;
         }
@@ -67,36 +81,31 @@ namespace ENode.Domain.Impl
             aggregateRoot = null;
 
             var snapshot = _snapshotStore.GetLastestSnapshot(aggregateRootId, aggregateRootType);
-            if (snapshot != null)
+            if (snapshot == null) return false;
+
+            var aggregateRootFromSnapshot = ObjectContainer.Resolve<ISnapshotter>().RestoreFromSnapshot(snapshot);
+            if (aggregateRootFromSnapshot == null) return false;
+
+            if (aggregateRootFromSnapshot.UniqueId != aggregateRootId)
             {
-                AggregateRoot aggregateRootFromSnapshot = ObjectContainer.Resolve<ISnapshotter>().RestoreFromSnapshot(snapshot);
-                if (aggregateRootFromSnapshot != null)
-                {
-                    if (aggregateRootFromSnapshot.UniqueId != aggregateRootId)
-                    {
-                        string message = string.Format("从快照还原出来的聚合根的Id({0})与所要求的Id({1})不符", aggregateRootFromSnapshot.UniqueId, aggregateRootId);
-                        throw new Exception(message);
-                    }
-                    var commitsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.Version + 1, long.MaxValue);
-                    aggregateRootFromSnapshot.ReplayEventStreams(commitsAfterSnapshot);
-                    aggregateRoot = aggregateRootFromSnapshot;
-                    return true;
-                }
+                var message = string.Format("从快照还原出来的聚合根的Id({0})与所要求的Id({1})不符", aggregateRootFromSnapshot.UniqueId, aggregateRootId);
+                throw new Exception(message);
             }
 
-            return false;
+            var commitsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.Version + 1, long.MaxValue);
+            aggregateRootFromSnapshot.ReplayEventStreams(commitsAfterSnapshot);
+            aggregateRoot = aggregateRootFromSnapshot;
+            return true;
         }
         /// <summary>Rebuild the aggregate root using the event sourcing pattern.
         /// </summary>
         private AggregateRoot BuildAggregateRoot(string aggregateRootId, Type aggregateRootType, IEnumerable<EventStream> streams)
         {
-            AggregateRoot aggregateRoot = null;
+            var eventStreams = streams.ToList();
+            if (streams == null || !eventStreams.Any()) return null;
 
-            if (streams != null && streams.Count() > 0)
-            {
-                aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
-                aggregateRoot.ReplayEventStreams(streams);
-            }
+            var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
+            aggregateRoot.ReplayEventStreams(eventStreams);
 
             return aggregateRoot;
         }

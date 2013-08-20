@@ -30,8 +30,7 @@ namespace ENode.Domain
         /// <summary>Parameterized constructor with a aggregate uniqueId.
         /// </summary>
         /// <param name="uniqueId">the aggregate uniqueId</param>
-        public AggregateRoot(string uniqueId)
-            : this()
+        protected AggregateRoot(string uniqueId) : this()
         {
             UniqueId = uniqueId;
         }

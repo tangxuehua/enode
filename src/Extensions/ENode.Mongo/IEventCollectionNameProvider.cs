@@ -1,10 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Mongo {
+namespace ENode.Mongo
+{
     /// <summary>Represents a provider to provide a mongo collection name.
     /// </summary>
-    public interface IEventCollectionNameProvider {
+    public interface IEventCollectionNameProvider
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <returns></returns>
         string GetCollectionName(string aggregateRootId, Type aggregateRootType);
         /// <summary>Get all the collection names of the eventstore.
         /// </summary>

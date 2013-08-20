@@ -2,31 +2,38 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using ENode.Domain;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Concurrent;
 using ENode.Infrastructure.Dapper;
-using ENode.Infrastructure.Logging;
 using ENode.Infrastructure.Serializing;
 using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing.Impl.SQL
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class SqlEventStore : IEventStore
     {
         #region Private Variables
 
-        private string _connectionString;
-        private IEventTableNameProvider _eventTableProvider;
-        private IJsonSerializer _jsonSerializer;
-        private IDbConnectionFactory _connectionFactory;
-        private IAggregateRootTypeProvider _aggregateRootTypeProvider;
-        private ILogger _logger;
+        private readonly string _connectionString;
+        private readonly IEventTableNameProvider _eventTableProvider;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly IDbConnectionFactory _connectionFactory;
+        private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
 
         #endregion
 
         #region Constructors
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public SqlEventStore(string connectionString)
         {
             if (string.IsNullOrEmpty(connectionString))
@@ -38,11 +45,14 @@ namespace ENode.Eventing.Impl.SQL
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _connectionFactory = ObjectContainer.Resolve<IDbConnectionFactory>();
             _aggregateRootTypeProvider = ObjectContainer.Resolve<IAggregateRootTypeProvider>();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
         }
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stream"></param>
         public void Append(EventStream stream)
         {
             if (stream == null)
@@ -88,6 +98,15 @@ namespace ENode.Eventing.Impl.SQL
                 connection.Close();
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <param name="minStreamVersion"></param>
+        /// <param name="maxStreamVersion"></param>
+        /// <returns></returns>
         public IEnumerable<EventStream> Query(string aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<EventStream>>((connection) =>
@@ -103,41 +122,41 @@ namespace ENode.Eventing.Impl.SQL
                     MaxStreamVersion = maxStreamVersion
                 });
 
-                var streams = new List<EventStream>();
-
-                foreach (var sqlEventStream in sqlEventStreams)
-                {
-                    streams.Add(BuildEventStreamFrom(sqlEventStream));
-                }
-
-                return streams;
+                return sqlEventStreams.Select(BuildEventStreamFrom).ToList();
             });
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute<bool>((connection) =>
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
             {
                 var eventTable = _eventTableProvider.GetTable(aggregateRootId, aggregateRootType);
                 var count = connection.GetCount(new { Id = id }, eventTable);
                 return count > 0;
             });
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<EventStream> QueryAll()
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<EventStream>>((connection) =>
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<EventStream>>(connection =>
             {
                 var eventTables = _eventTableProvider.GetAllTables();
                 var streams = new List<EventStream>();
 
-                foreach (var eventTable in eventTables)
+                foreach (var sqlEventStreams in eventTables.Select(eventTable => string.Format("select * from [{0}] order by AggregateRootId, Version asc", eventTable)).Select(sql => connection.Query<SqlEventStream>(sql)))
                 {
-                    var sql = string.Format("select * from [{0}] order by AggregateRootId, Version asc", eventTable);
-                    var sqlEventStreams = connection.Query<SqlEventStream>(sql);
-
-                    foreach (var sqlEventStream in sqlEventStreams)
-                    {
-                        streams.Add(BuildEventStreamFrom(sqlEventStream));
-                    }
+                    streams.AddRange(sqlEventStreams.Select(BuildEventStreamFrom));
                 }
 
                 return streams;

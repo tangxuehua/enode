@@ -7,15 +7,22 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultAggregateRootInternalHandlerProvider : IAggregateRootInternalHandlerProvider, IAssemblyInitializer
     {
-        private IDictionary<Type, IDictionary<Type, MethodInfo>> _mappings = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
+        private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _mappings = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assemblies"></param>
         public void Initialize(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var aggregateRootType in assembly.GetTypes().Where(t => TypeUtils.IsAggregateRoot(t)))
+                foreach (var aggregateRootType in assembly.GetTypes().Where(TypeUtils.IsAggregateRoot))
                 {
                     foreach (var eventHandlerInterface in ScanEventHandlerInterfaces(aggregateRootType))
                     {
@@ -28,20 +35,18 @@ namespace ENode.Domain.Impl
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootType"></param>
+        /// <param name="eventType"></param>
+        /// <returns></returns>
         public Action<AggregateRoot, object> GetInternalEventHandler(Type aggregateRootType, Type eventType)
         {
             IDictionary<Type, MethodInfo> eventHandlerDic;
+            if (!_mappings.TryGetValue(aggregateRootType, out eventHandlerDic)) return null;
             MethodInfo eventHandler;
-
-            if (_mappings.TryGetValue(aggregateRootType, out eventHandlerDic))
-            {
-                if (eventHandlerDic.TryGetValue(eventType, out eventHandler))
-                {
-                    return new Action<AggregateRoot, object>((aggregateRoot, evnt) => eventHandler.Invoke(aggregateRoot, new object[] { evnt }));
-                }
-            }
-
-            return null;
+            return eventHandlerDic.TryGetValue(eventType, out eventHandler) ? new Action<AggregateRoot, object>((aggregateRoot, evnt) => eventHandler.Invoke(aggregateRoot, new object[] { evnt })) : null;
         }
 
         private void RegisterInternalHandler(Type aggregateRootType, Type eventType, MethodInfo eventHandler)

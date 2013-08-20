@@ -3,11 +3,19 @@ using System.Threading;
 
 namespace ENode.Eventing.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultUncommittedEventQueueRouter : IUncommittedEventQueueRouter
     {
         private IUncommittedEventQueue[] _eventQueues;
         private int _index;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
         public IUncommittedEventQueue Route(EventStream stream)
         {
             if (_eventQueues == null)
@@ -15,12 +23,7 @@ namespace ENode.Eventing.Impl
                 _eventQueues = Configuration.Instance.GetUncommitedEventQueues().ToArray();
             }
 
-            if (_eventQueues.Length > 0)
-            {
-                return _eventQueues[(Interlocked.Increment(ref _index) - 1) % _eventQueues.Length];
-            }
-
-            return null;
+            return _eventQueues.Length > 0 ? _eventQueues[(Interlocked.Increment(ref _index) - 1) % _eventQueues.Length] : null;
         }
     }
 }

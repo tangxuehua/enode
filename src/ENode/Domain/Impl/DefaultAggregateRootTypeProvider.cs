@@ -6,15 +6,23 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultAggregateRootTypeProvider : IAggregateRootTypeProvider, IAssemblyInitializer
     {
-        private IDictionary<string, Type> _mappings = new Dictionary<string, Type>();
+        private readonly IDictionary<string, Type> _mappings = new Dictionary<string, Type>();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assemblies"></param>
+        /// <exception cref="Exception"></exception>
         public void Initialize(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetTypes().Where(t => TypeUtils.IsAggregateRoot(t)))
+                foreach (var type in assembly.GetTypes().Where(TypeUtils.IsAggregateRoot))
                 {
                     if (!type.IsSerializable)
                     {
@@ -24,18 +32,29 @@ namespace ENode.Domain.Impl
                 }
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootType"></param>
+        /// <returns></returns>
         public string GetAggregateRootTypeName(Type aggregateRootType)
         {
             return _mappings.Single(x => x.Value == aggregateRootType).Key;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public Type GetAggregateRootType(string name)
         {
-            if (_mappings.ContainsKey(name))
-            {
-                return _mappings[name];
-            }
-            return null;
+            return _mappings.ContainsKey(name) ? _mappings[name] : null;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<Type> GetAllAggregateRootTypes()
         {
             return _mappings.Values;

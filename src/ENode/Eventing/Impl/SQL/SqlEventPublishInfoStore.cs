@@ -5,18 +5,27 @@ using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing.Impl.SQL
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class SqlEventPublishInfoStore : IEventPublishInfoStore
     {
         #region Private Variables
 
-        private string _connectionString;
-        private string _tableName;
-        private IDbConnectionFactory _connectionFactory;
+        private readonly string _connectionString;
+        private readonly string _tableName;
+        private readonly IDbConnectionFactory _connectionFactory;
 
         #endregion
 
         #region Constructors
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="tableName"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public SqlEventPublishInfoStore(string connectionString, string tableName)
         {
             if (string.IsNullOrEmpty(connectionString))
@@ -35,6 +44,10 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
         public void InsertFirstPublishedVersion(string aggregateRootId)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
@@ -46,6 +59,11 @@ namespace ENode.Eventing.Impl.SQL
                 }
             });
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="version"></param>
         public void UpdatePublishedVersion(string aggregateRootId, long version)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
@@ -56,12 +74,14 @@ namespace ENode.Eventing.Impl.SQL
                     _tableName);
             });
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <returns></returns>
         public long GetEventPublishedVersion(string aggregateRootId)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute<long>((connection) =>
-            {
-                return connection.GetValue<long>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedEventStreamVersion");
-            });
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetValue<long>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedEventStreamVersion"));
         }
     }
 }

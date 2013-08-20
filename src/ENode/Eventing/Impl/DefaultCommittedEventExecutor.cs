@@ -6,20 +6,31 @@ using ENode.Messaging.Impl;
 
 namespace ENode.Eventing.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultCommittedEventExecutor : MessageExecutor<EventStream>, ICommittedEventExecutor
     {
         #region Private Variables
 
-        private IEventHandlerProvider _eventHandlerProvider;
-        private IEventPublishInfoStore _eventPublishInfoStore;
-        private IEventHandleInfoStore _eventHandleInfoStore;
-        private IRetryService _retryService;
-        private ILogger _logger;
+        private readonly IEventHandlerProvider _eventHandlerProvider;
+        private readonly IEventPublishInfoStore _eventPublishInfoStore;
+        private readonly IEventHandleInfoStore _eventHandleInfoStore;
+        private readonly IRetryService _retryService;
+        private readonly ILogger _logger;
 
         #endregion
 
         #region Constructors
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventHandlerProvider"></param>
+        /// <param name="eventPublishInfoStore"></param>
+        /// <param name="eventHandleInfoStore"></param>
+        /// <param name="retryService"></param>
+        /// <param name="loggerFactory"></param>
         public DefaultCommittedEventExecutor(
             IEventHandlerProvider eventHandlerProvider,
             IEventPublishInfoStore eventPublishInfoStore,
@@ -36,6 +47,11 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventStream"></param>
+        /// <param name="queue"></param>
         public override void Execute(EventStream eventStream, IMessageQueue<EventStream> queue)
         {
             TryDispatchEventsToEventHandlers(new EventStreamContext { EventStream = eventStream, Queue = queue });
@@ -47,24 +63,20 @@ namespace ENode.Eventing.Impl
         {
             Func<EventStreamContext, bool> tryDispatchEventsAction = (streamContext) =>
             {
-                if (streamContext.EventStream.Version == 1)
+                switch (streamContext.EventStream.Version)
                 {
-                    return DispatchEventsToHandlers(streamContext.EventStream);
-                }
-                else
-                {
-                    var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(streamContext.EventStream.AggregateRootId);
-
-                    if (lastPublishedVersion + 1 == streamContext.EventStream.Version)
-                    {
+                    case 1:
                         return DispatchEventsToHandlers(streamContext.EventStream);
-                    }
-                    else if (lastPublishedVersion + 1 > streamContext.EventStream.Version)
+                    default:
                     {
-                        return true;
-                    }
+                        var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(streamContext.EventStream.AggregateRootId);
 
-                    return false;
+                        if (lastPublishedVersion + 1 == streamContext.EventStream.Version)
+                        {
+                            return DispatchEventsToHandlers(streamContext.EventStream);
+                        }
+                        return lastPublishedVersion + 1 > streamContext.EventStream.Version;
+                    }
                 }
             };
 
@@ -100,7 +112,9 @@ namespace ENode.Eventing.Impl
             {
                 foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
                 {
-                    var success = _retryService.TryAction("DispatchEventToHandler", () => DispatchEventToHandler(evnt, handler), 2);
+                    var evnt1 = evnt;
+                    var handler1 = handler;
+                    var success = _retryService.TryAction("DispatchEventToHandler", () => DispatchEventToHandler(evnt1, handler1), 2);
                     if (!success)
                     {
                         return false;
@@ -114,11 +128,10 @@ namespace ENode.Eventing.Impl
             try
             {
                 var eventHandlerTypeName = handler.GetInnerEventHandler().GetType().FullName;
-                if (!_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName))
-                {
-                    handler.Handle(evnt);
-                    _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeName);
-                }
+                if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName)) return true;
+
+                handler.Handle(evnt);
+                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeName);
                 return true;
             }
             catch (Exception ex)

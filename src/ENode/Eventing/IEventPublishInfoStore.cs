@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ENode.Eventing
+﻿namespace ENode.Eventing
 {
     /// <summary>Represents a storage to store the event publish information of aggregate.
     /// </summary>

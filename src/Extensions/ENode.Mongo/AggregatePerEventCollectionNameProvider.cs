@@ -3,18 +3,40 @@ using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
 
-namespace ENode.Mongo {
-    public class AggregatePerEventCollectionNameProvider : IEventCollectionNameProvider {
-        private IAggregateRootTypeProvider _aggregateRootTypeProvider;
+namespace ENode.Mongo
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class AggregatePerEventCollectionNameProvider : IEventCollectionNameProvider
+    {
+        private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
 
-        public AggregatePerEventCollectionNameProvider(IAggregateRootTypeProvider aggregateRootTypeProvider) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootTypeProvider"></param>
+        public AggregatePerEventCollectionNameProvider(IAggregateRootTypeProvider aggregateRootTypeProvider)
+        {
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
         }
 
-        public string GetCollectionName(string aggregateRootId, Type aggregateRootType) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <returns></returns>
+        public string GetCollectionName(string aggregateRootId, Type aggregateRootType)
+        {
             return aggregateRootType.Name;
         }
-        public IEnumerable<string> GetAllCollectionNames() {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> GetAllCollectionNames()
+        {
             return _aggregateRootTypeProvider.GetAllAggregateRootTypes().Select(x => x.Name);
         }
     }

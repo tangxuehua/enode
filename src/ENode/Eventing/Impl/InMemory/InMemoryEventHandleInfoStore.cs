@@ -3,14 +3,28 @@ using System.Collections.Concurrent;
 
 namespace ENode.Eventing.Impl.InMemory
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class InMemoryEventHandleInfoStore : IEventHandleInfoStore
     {
-        private ConcurrentDictionary<EventHandleInfo, int> _versionDict = new ConcurrentDictionary<EventHandleInfo, int>();
+        private readonly ConcurrentDictionary<EventHandleInfo, int> _versionDict = new ConcurrentDictionary<EventHandleInfo, int>();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventId"></param>
+        /// <param name="eventHandlerTypeName"></param>
         public void AddEventHandleInfo(Guid eventId, string eventHandlerTypeName)
         {
             _versionDict.TryAdd(new EventHandleInfo(eventId, eventHandlerTypeName), 0);
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventId"></param>
+        /// <param name="eventHandlerTypeName"></param>
+        /// <returns></returns>
         public bool IsEventHandleInfoExist(Guid eventId, string eventHandlerTypeName)
         {
             return _versionDict.ContainsKey(new EventHandleInfo(eventId, eventHandlerTypeName));
@@ -18,8 +32,8 @@ namespace ENode.Eventing.Impl.InMemory
 
         class EventHandleInfo
         {
-            public Guid EventId { get; private set; }
-            public string EventHandlerTypeName { get; private set; }
+            private Guid EventId { get; set; }
+            private string EventHandlerTypeName { get; set; }
 
             public EventHandleInfo(Guid eventId, string eventHandlerTypeName)
             {
@@ -35,7 +49,7 @@ namespace ENode.Eventing.Impl.InMemory
                 {
                     return false;
                 }
-                else if (another == this)
+                if (another == this)
                 {
                     return true;
                 }

@@ -2,15 +2,26 @@
 
 namespace ENode.Eventing.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultEventPublisher : IEventPublisher
     {
-        private ICommittedEventQueueRouter _eventQueueRouter;
+        private readonly ICommittedEventQueueRouter _eventQueueRouter;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventQueueRouter"></param>
         public DefaultEventPublisher(ICommittedEventQueueRouter eventQueueRouter)
         {
             _eventQueueRouter = eventQueueRouter;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="stream"></param>
         public void Publish(EventStream stream)
         {
             var eventQueue = _eventQueueRouter.Route(stream);

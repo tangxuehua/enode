@@ -7,40 +7,53 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultEventHandlerProvider : IEventHandlerProvider, IAssemblyInitializer
     {
         private readonly IDictionary<Type, IList<IEventHandler>> _eventHandlerDict = new Dictionary<Type, IList<IEventHandler>>();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assemblies"></param>
+        /// <exception cref="Exception"></exception>
         public void Initialize(params Assembly[] assemblies)
         {
-            foreach (var assembly in assemblies)
+            foreach (var handlerType in assemblies.SelectMany(assembly => assembly.GetTypes().Where(IsEventHandler)))
             {
-                foreach (var handlerType in assembly.GetTypes().Where(x => IsEventHandler(x)))
+                if (!TypeUtils.IsComponent(handlerType))
                 {
-                    if (!TypeUtils.IsComponent(handlerType))
-                    {
-                        throw new Exception(string.Format("{0} should be marked as component.", handlerType.FullName));
-                    }
-                    RegisterEventHandler(handlerType);
+                    throw new Exception(string.Format("{0} should be marked as component.", handlerType.FullName));
                 }
+                RegisterEventHandler(handlerType);
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <returns></returns>
         public IEnumerable<IEventHandler> GetEventHandlers(Type eventType)
         {
             var eventHandlers = new List<IEventHandler>();
-            foreach (var key in _eventHandlerDict.Keys)
+            foreach (var key in _eventHandlerDict.Keys.Where(key => key.IsAssignableFrom(eventType)))
             {
-                if (key.IsAssignableFrom(eventType))
-                {
-                    eventHandlers.AddRange(_eventHandlerDict[key]);
-                }
+                eventHandlers.AddRange(_eventHandlerDict[key]);
             }
             return eventHandlers;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public bool IsEventHandler(Type type)
         {
-            return type != null && type.IsClass && !type.IsAbstract && ScanEventHandlerInterfaces(type).Count() > 0 && !typeof(AggregateRoot).IsAssignableFrom(type);
+            return type != null && type.IsClass && !type.IsAbstract && ScanEventHandlerInterfaces(type).Any() && !typeof(AggregateRoot).IsAssignableFrom(type);
         }
 
         private void RegisterEventHandler(Type eventHandlerType)
@@ -56,12 +69,11 @@ namespace ENode.Eventing.Impl
                     _eventHandlerDict.Add(eventType, eventHandlers);
                 }
 
-                if (!eventHandlers.Any(x => x.GetInnerEventHandler().GetType() == eventHandlerType))
-                {
-                    var eventHandler = ObjectContainer.Resolve(eventHandlerType);
-                    var eventHandlerWrapper = Activator.CreateInstance(eventHandlerWrapperType, new object[] { eventHandler }) as IEventHandler;
-                    eventHandlers.Add(eventHandlerWrapper);
-                }
+                if (eventHandlers.Any(x => x.GetInnerEventHandler().GetType() == eventHandlerType)) continue;
+
+                var eventHandler = ObjectContainer.Resolve(eventHandlerType);
+                var eventHandlerWrapper = Activator.CreateInstance(eventHandlerWrapperType, new object[] { eventHandler }) as IEventHandler;
+                eventHandlers.Add(eventHandlerWrapper);
             }
         }
         private IEnumerable<Type> ScanEventHandlerInterfaces(Type eventHandlerType)

@@ -1,17 +1,30 @@
 ﻿using System;
 
-namespace ENode.Mongo {
-    public class DefaultQueueCollectionNameProvider : IQueueCollectionNameProvider {
-        private string _queueNameFormat;
+namespace ENode.Mongo
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class DefaultQueueCollectionNameProvider : IQueueCollectionNameProvider
+    {
+        private readonly string _queueNameFormat;
 
-        public DefaultQueueCollectionNameProvider(string queueNameFormat) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queueNameFormat"></param>
+        public DefaultQueueCollectionNameProvider(string queueNameFormat)
+        {
             _queueNameFormat = queueNameFormat;
         }
-        public string GetCollectionName(string queueName) {
-            if (!string.IsNullOrEmpty(_queueNameFormat)) {
-                return string.Format(_queueNameFormat, queueName);
-            }
-            return queueName;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <returns></returns>
+        public string GetCollectionName(string queueName)
+        {
+            return !string.IsNullOrEmpty(_queueNameFormat) ? string.Format(_queueNameFormat, queueName) : queueName;
         }
     }
 }

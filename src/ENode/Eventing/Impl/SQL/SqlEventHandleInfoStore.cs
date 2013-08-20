@@ -5,18 +5,27 @@ using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing.Impl.SQL
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class SqlEventHandleInfoStore : IEventHandleInfoStore
     {
         #region Private Variables
 
-        private string _connectionString;
-        private string _tableName;
-        private IDbConnectionFactory _connectionFactory;
+        private readonly string _connectionString;
+        private readonly string _tableName;
+        private readonly IDbConnectionFactory _connectionFactory;
 
         #endregion
 
         #region Constructors
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="tableName"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public SqlEventHandleInfoStore(string connectionString, string tableName)
         {
             if (string.IsNullOrEmpty(connectionString))
@@ -35,9 +44,14 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventId"></param>
+        /// <param name="eventHandlerTypeName"></param>
         public void AddEventHandleInfo(Guid eventId, string eventHandlerTypeName)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
+            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
                 var key = new { EventHandlerTypeName = eventHandlerTypeName, EventId = eventId };
                 var count = connection.GetCount(key, _tableName);
@@ -47,12 +61,15 @@ namespace ENode.Eventing.Impl.SQL
                 }
             });
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventId"></param>
+        /// <param name="eventHandlerTypeName"></param>
+        /// <returns></returns>
         public bool IsEventHandleInfoExist(Guid eventId, string eventHandlerTypeName)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute<bool>((connection) =>
-            {
-                return connection.GetCount(new { EventHandlerTypeName = eventHandlerTypeName, EventId = eventId }, _tableName) > 0;
-            });
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetCount(new { EventHandlerTypeName = eventHandlerTypeName, EventId = eventId }, _tableName) > 0);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Serializing;
 using ENode.Messaging;
@@ -7,20 +8,32 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoQuery = MongoDB.Driver.Builders.Query;
 
-namespace ENode.Mongo {
-    public class MongoMessageStore : IMessageStore {
+namespace ENode.Mongo
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class MongoMessageStore : IMessageStore
+    {
         #region Private Variables
 
-        private IQueueCollectionNameProvider _queueCollectionNameProvider;
-        private IBinarySerializer _binarySerializer;
-        private string _connectionString;
+        private readonly IQueueCollectionNameProvider _queueCollectionNameProvider;
+        private readonly IBinarySerializer _binarySerializer;
+        private readonly string _connectionString;
 
         #endregion
 
         #region Constructors
 
-        public MongoMessageStore(string connectionString) {
-            if (string.IsNullOrEmpty(connectionString)) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public MongoMessageStore(string connectionString)
+        {
+            if (string.IsNullOrEmpty(connectionString))
+            {
                 throw new ArgumentNullException("connectionString");
             }
 
@@ -32,8 +45,18 @@ namespace ENode.Mongo {
 
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queueName"></param>
         public void Initialize(string queueName) { }
-        public void AddMessage(string queueName, IMessage message) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="message"></param>
+        public void AddMessage(string queueName, IMessage message)
+        {
             var collectionName = _queueCollectionNameProvider.GetCollectionName(queueName);
             var collection = GetMongoCollection(collectionName);
             var document = new BsonDocument
@@ -44,26 +67,35 @@ namespace ENode.Mongo {
 
             collection.Insert(document);
         }
-        public void RemoveMessage(string queueName, IMessage message) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <param name="message"></param>
+        public void RemoveMessage(string queueName, IMessage message)
+        {
             var collectionName = _queueCollectionNameProvider.GetCollectionName(queueName);
             var collection = GetMongoCollection(collectionName);
 
             collection.Remove(MongoQuery.EQ("_id", message.Id.ToString()));
         }
-        public IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="queueName"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage
+        {
             var collectionName = _queueCollectionNameProvider.GetCollectionName(queueName);
             var collection = GetMongoCollection(collectionName);
             var documents = collection.FindAll();
-            var messages = new List<T>();
 
-            foreach (var document in documents) {
-                messages.Add((T)_binarySerializer.Deserialize(document["MessageData"].AsByteArray));
-            }
-
-            return messages;
+            return documents.Select(document => (T) _binarySerializer.Deserialize(document["MessageData"].AsByteArray)).ToList();
         }
 
-        private MongoCollection<BsonDocument> GetMongoCollection(string collectionName) {
+        private MongoCollection<BsonDocument> GetMongoCollection(string collectionName)
+        {
             var client = new MongoClient(_connectionString);
             var db = client.GetServer().GetDatabase(new MongoUrl(_connectionString).DatabaseName);
             var collection = db.GetCollection(collectionName);

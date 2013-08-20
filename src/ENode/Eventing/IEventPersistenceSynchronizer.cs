@@ -24,7 +24,7 @@
     /// </remarks>
     /// </summary>
     /// <typeparam name="TEvent"></typeparam>
-    public interface IEventPersistenceSynchronizer<TEvent> where TEvent : class, IEvent
+    public interface IEventPersistenceSynchronizer<in TEvent> where TEvent : class, IEvent
     {
         /// <summary>Executed before persisting the event.
         /// </summary>

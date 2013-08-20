@@ -4,11 +4,20 @@ using System.Reflection;
 
 namespace ENode.Domain.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultAggregateRootFactory : IAggregateRootFactory
     {
-        private ConcurrentDictionary<Type, ConstructorInfo> _constructorInfoDict = new ConcurrentDictionary<Type, ConstructorInfo>();
-        private BindingFlags _flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private readonly ConcurrentDictionary<Type, ConstructorInfo> _constructorInfoDict = new ConcurrentDictionary<Type, ConstructorInfo>();
+        private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootType"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public AggregateRoot CreateAggregateRoot(Type aggregateRootType)
         {
             ConstructorInfo constructor;
@@ -24,7 +33,7 @@ namespace ENode.Domain.Impl
                     throw new Exception(string.Format("Invalid aggregate root type {0}", aggregateRootType.FullName));
                 }
 
-                constructor = aggregateRootType.GetConstructor(_flags, null, Type.EmptyTypes, null);
+                constructor = aggregateRootType.GetConstructor(Flags, null, Type.EmptyTypes, null);
                 if (constructor == null)
                 {
                     throw new Exception(string.Format("Could not found a default constructor on aggregate root type {0}", aggregateRootType.FullName));

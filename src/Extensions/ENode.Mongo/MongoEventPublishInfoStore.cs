@@ -4,22 +4,36 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoQuery = MongoDB.Driver.Builders.Query;
 
-namespace ENode.Mongo {
-    public class MongoEventPublishInfoStore : IEventPublishInfoStore {
+namespace ENode.Mongo
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    public class MongoEventPublishInfoStore : IEventPublishInfoStore
+    {
         #region Private Variables
 
-        private string _connectionString;
-        private string _collectionName;
+        private readonly string _connectionString;
+        private readonly string _collectionName;
 
         #endregion
 
         #region Constructors
 
-        public MongoEventPublishInfoStore(string connectionString, string collectionName) {
-            if (string.IsNullOrEmpty(connectionString)) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="collectionName"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        public MongoEventPublishInfoStore(string connectionString, string collectionName)
+        {
+            if (string.IsNullOrEmpty(connectionString))
+            {
                 throw new ArgumentNullException("connectionString");
             }
-            if (string.IsNullOrEmpty(collectionName)) {
+            if (string.IsNullOrEmpty(collectionName))
+            {
                 throw new ArgumentNullException("collectionName");
             }
 
@@ -29,7 +43,12 @@ namespace ENode.Mongo {
 
         #endregion
 
-        public void InsertFirstPublishedVersion(string aggregateRootId) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        public void InsertFirstPublishedVersion(string aggregateRootId)
+        {
             var document = new BsonDocument
             {
                 { "AggregateRootId", aggregateRootId },
@@ -38,18 +57,31 @@ namespace ENode.Mongo {
 
             GetMongoCollection().Insert(document);
         }
-        public void UpdatePublishedVersion(string aggregateRootId, long version) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="version"></param>
+        public void UpdatePublishedVersion(string aggregateRootId, long version)
+        {
             var collection = GetMongoCollection();
             var document = collection.FindOne(MongoQuery.EQ("AggregateRootId", aggregateRootId));
             document["Version"] = version;
             collection.Save(document);
         }
-        public long GetEventPublishedVersion(string aggregateRootId) {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <returns></returns>
+        public long GetEventPublishedVersion(string aggregateRootId)
+        {
             var document = GetMongoCollection().FindOne(MongoQuery.EQ("AggregateRootId", aggregateRootId));
             return document["Version"].AsInt64;
         }
 
-        private MongoCollection<BsonDocument> GetMongoCollection() {
+        private MongoCollection<BsonDocument> GetMongoCollection()
+        {
             var client = new MongoClient(_connectionString);
             var db = client.GetServer().GetDatabase(new MongoUrl(_connectionString).DatabaseName);
             var collection = db.GetCollection(_collectionName);

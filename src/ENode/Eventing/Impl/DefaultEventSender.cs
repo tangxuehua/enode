@@ -2,15 +2,25 @@
 
 namespace ENode.Eventing.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultEventSender : IEventSender
     {
-        private IUncommittedEventQueueRouter _eventQueueRouter;
+        private readonly IUncommittedEventQueueRouter _eventQueueRouter;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventQueueRouter"></param>
         public DefaultEventSender(IUncommittedEventQueueRouter eventQueueRouter)
         {
             _eventQueueRouter = eventQueueRouter;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventStream"></param>
         public void Send(EventStream eventStream)
         {
             var eventQueue = _eventQueueRouter.Route(eventStream);

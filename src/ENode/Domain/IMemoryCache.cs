@@ -1,7 +1,9 @@
-﻿namespace ENode.Domain {
+﻿namespace ENode.Domain
+{
     /// <summary>Represents a high speed memory cache to get or set aggregate.
     /// </summary>
-    public interface IMemoryCache {
+    public interface IMemoryCache
+    {
         /// <summary>Get an aggregate from memory cache.
         /// </summary>
         /// <param name="id"></param>

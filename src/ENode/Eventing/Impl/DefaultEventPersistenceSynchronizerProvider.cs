@@ -6,15 +6,23 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultEventPersistenceSynchronizerProvider : IEventPersistenceSynchronizerProvider, IAssemblyInitializer
     {
         private readonly IDictionary<Type, IList<IEventPersistenceSynchronizer>> _eventSynchronizerDict = new Dictionary<Type, IList<IEventPersistenceSynchronizer>>();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assemblies"></param>
+        /// <exception cref="Exception"></exception>
         public void Initialize(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var synchronizerType in assembly.GetTypes().Where(x => IsEventPersistenceSynchronizer(x)))
+                foreach (var synchronizerType in assembly.GetTypes().Where(IsEventPersistenceSynchronizer))
                 {
                     if (!TypeUtils.IsComponent(synchronizerType))
                     {
@@ -25,15 +33,17 @@ namespace ENode.Eventing.Impl
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="eventType"></param>
+        /// <returns></returns>
         public IEnumerable<IEventPersistenceSynchronizer> GetSynchronizers(Type eventType)
         {
             var eventSynchronizers = new List<IEventPersistenceSynchronizer>();
-            foreach (var key in _eventSynchronizerDict.Keys)
+            foreach (var key in _eventSynchronizerDict.Keys.Where(key => key.IsAssignableFrom(eventType)))
             {
-                if (key.IsAssignableFrom(eventType))
-                {
-                    eventSynchronizers.AddRange(_eventSynchronizerDict[key]);
-                }
+                eventSynchronizers.AddRange(_eventSynchronizerDict[key]);
             }
             return eventSynchronizers;
         }
@@ -51,17 +61,16 @@ namespace ENode.Eventing.Impl
                     _eventSynchronizerDict.Add(eventType, eventSynchronizers);
                 }
 
-                if (!eventSynchronizers.Any(x => x.GetInnerSynchronizer().GetType() == synchronizerType))
-                {
-                    var synchronizer = ObjectContainer.Resolve(synchronizerType);
-                    var synchronizerWrapper = Activator.CreateInstance(synchronizerWrapperType, new object[] { synchronizer }) as IEventPersistenceSynchronizer;
-                    eventSynchronizers.Add(synchronizerWrapper);
-                }
+                if (eventSynchronizers.Any(x => x.GetInnerSynchronizer().GetType() == synchronizerType)) continue;
+
+                var synchronizer = ObjectContainer.Resolve(synchronizerType);
+                var synchronizerWrapper = Activator.CreateInstance(synchronizerWrapperType, new object[] { synchronizer }) as IEventPersistenceSynchronizer;
+                eventSynchronizers.Add(synchronizerWrapper);
             }
         }
         private bool IsEventPersistenceSynchronizer(Type type)
         {
-            return type.IsClass && !type.IsAbstract && ScanSynchronizerInterfaces(type).Count() > 0;
+            return type.IsClass && !type.IsAbstract && ScanSynchronizerInterfaces(type).Any();
         }
         private IEnumerable<Type> ScanSynchronizerInterfaces(Type type)
         {

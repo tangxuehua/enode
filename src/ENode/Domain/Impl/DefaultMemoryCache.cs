@@ -4,16 +4,28 @@ using ENode.Infrastructure.Serializing;
 
 namespace ENode.Domain.Impl
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class DefaultMemoryCache : IMemoryCache
     {
-        private ConcurrentDictionary<string, byte[]> _cacheDict = new ConcurrentDictionary<string, byte[]>();
-        private IBinarySerializer _binarySerializer;
+        private readonly ConcurrentDictionary<string, byte[]> _cacheDict = new ConcurrentDictionary<string, byte[]>();
+        private readonly IBinarySerializer _binarySerializer;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="binarySerializer"></param>
         public DefaultMemoryCache(IBinarySerializer binarySerializer)
         {
             _binarySerializer = binarySerializer;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public AggregateRoot Get(string id)
         {
             byte[] value;
@@ -23,15 +35,22 @@ namespace ENode.Domain.Impl
             }
             return null;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public T Get<T>(string id) where T : AggregateRoot
         {
             byte[] value;
-            if (_cacheDict.TryGetValue(id, out value))
-            {
-                return _binarySerializer.Deserialize<T>(value);
-            }
-            return null;
+            return _cacheDict.TryGetValue(id, out value) ? _binarySerializer.Deserialize<T>(value) : null;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="aggregateRoot"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public void Set(AggregateRoot aggregateRoot)
         {
             if (aggregateRoot == null)
