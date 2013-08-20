@@ -29,8 +29,7 @@ namespace ENode.Infrastructure
         public Worker(Action action)
         {
             _action = action;
-            _thread = new Thread(Loop);
-            _thread.IsBackground = true;
+            _thread = new Thread(Loop) { IsBackground = true };
             _thread.Name = string.Format("Worker thread {0}", _thread.ManagedThreadId);
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(_thread.Name);
         }

@@ -85,7 +85,9 @@ namespace ENode.Infrastructure.Logging
         public void Warn(object message, Exception exception)
         {
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public bool IsDebugEnabled
         {
             get
@@ -93,27 +95,49 @@ namespace ENode.Infrastructure.Logging
                 return false;
             }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public void Debug(object message)
         {
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
         public void DebugFormat(string format, params object[] args)
         {
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
         public void Debug(object message, Exception exception)
         {
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public void Fatal(object message)
         {
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
         public void FatalFormat(string format, params object[] args)
         {
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
         public void Fatal(object message, Exception exception)
         {
         }

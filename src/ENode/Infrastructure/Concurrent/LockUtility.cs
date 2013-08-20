@@ -14,7 +14,7 @@ namespace ENode.Infrastructure.Concurrent
 
         /// <summary>锁对象池, 所有引用计数大于0的锁对象都会在池中缓存起来
         /// </summary>
-        private static readonly Hashtable _lockPool = new Hashtable();
+        private static readonly Hashtable LockPool = new Hashtable();
 
         /// <summary>该方法可以根据某个值对象的值来锁住响应的行为。
         /// 用法类似系统lock方法，功能是锁住某个指定的key，只要key的值相同，那么action的执行就不允许并发。
@@ -48,11 +48,11 @@ namespace ENode.Infrastructure.Concurrent
         private static void ReleaseLockObject(object key, LockObject lockObj)
         {
             lockObj.Counter--;
-            lock (_lockPool)
+            lock (LockPool)
             {
                 if (lockObj.Counter == 0)
                 {
-                    _lockPool.Remove(key);
+                    LockPool.Remove(key);
                 }
             }
         }
@@ -62,13 +62,13 @@ namespace ENode.Infrastructure.Concurrent
         /// <returns></returns>
         private static LockObject GetLockObject(object key)
         {
-            lock (_lockPool)
+            lock (LockPool)
             {
-                var lockObj = _lockPool[key] as LockObject;
+                var lockObj = LockPool[key] as LockObject;
                 if (lockObj == null)
                 {
                     lockObj = new LockObject();
-                    _lockPool[key] = lockObj;
+                    LockPool[key] = lockObj;
                 }
                 lockObj.Counter++;
                 return lockObj;

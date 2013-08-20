@@ -9,6 +9,11 @@ namespace ENode.Infrastructure.Serializing
     {
         private readonly BinaryFormatter _binaryFormatter = new BinaryFormatter();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public byte[] Serialize(object obj)
         {
             using (var stream = new MemoryStream())
@@ -17,6 +22,11 @@ namespace ENode.Infrastructure.Serializing
                 return stream.ToArray();
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public object Deserialize(byte[] data)
         {
             using (var stream = new MemoryStream(data))
@@ -24,6 +34,12 @@ namespace ENode.Infrastructure.Serializing
                 return _binaryFormatter.Deserialize(stream);
             }
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public T Deserialize<T>(byte[] data) where T : class
         {
             using (var stream = new MemoryStream(data))
