@@ -2,17 +2,14 @@
 
 namespace ENode.Infrastructure
 {
-    /// <summary>
-    /// 
+    /// <summary>A simple object which contains some error information.
     /// </summary>
     public class ErrorInfo
     {
-        /// <summary>
-        /// 
+        /// <summary>The error message.
         /// </summary>
         public string ErrorMessage { get; set; }
-        /// <summary>
-        /// 
+        /// <summary>The exception object.
         /// </summary>
         public Exception Exception { get; set; }
     }

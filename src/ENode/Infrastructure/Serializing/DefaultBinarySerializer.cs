@@ -9,8 +9,7 @@ namespace ENode.Infrastructure.Serializing
     {
         private readonly BinaryFormatter _binaryFormatter = new BinaryFormatter();
 
-        /// <summary>
-        /// 
+        /// <summary>Serialize an object to byte array.
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
@@ -22,8 +21,7 @@ namespace ENode.Infrastructure.Serializing
                 return stream.ToArray();
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Deserialize an object from a byte array.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -34,8 +32,7 @@ namespace ENode.Infrastructure.Serializing
                 return _binaryFormatter.Deserialize(stream);
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Deserialize a typed object from a byte array.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>

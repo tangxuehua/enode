@@ -6,25 +6,20 @@ namespace ENode.Infrastructure.Retring
     /// </summary>
     public class ActionInfo
     {
-        /// <summary>
-        /// 
+        /// <summary>The name of the action.
         /// </summary>
         public string Name { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The action delegate.
         /// </summary>
         public Func<object, bool> Action { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The parameter data of the action.
         /// </summary>
         public object Data { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The next action of the current action. If the current action complete success, then the next action will be called.
         /// </summary>
         public ActionInfo Next { get; private set; }
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="action"></param>

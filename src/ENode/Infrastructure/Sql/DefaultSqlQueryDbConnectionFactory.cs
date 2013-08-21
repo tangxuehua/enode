@@ -4,15 +4,13 @@ using System.Data.SqlClient;
 
 namespace ENode.Infrastructure.Sql
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of ISqlQueryDbConnectionFactory.
     /// </summary>
     public class DefaultSqlQueryDbConnectionFactory : ISqlQueryDbConnectionFactory
     {
         private readonly string _connectionString;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -25,8 +23,7 @@ namespace ENode.Infrastructure.Sql
             _connectionString = connectionString;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Create a db connection instance.
         /// </summary>
         /// <returns></returns>
         public IDbConnection CreateConnection()

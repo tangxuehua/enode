@@ -7,16 +7,13 @@ namespace ENode.Infrastructure
     [AttributeUsage(AttributeTargets.Class)]
     public class ComponentAttribute : Attribute
     {
-        /// <summary>
-        /// 
+        /// <summary>The lifetime of the component.
         /// </summary>
         public LifeStyle LifeStyle { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>Default constructor.
         /// </summary>
         public ComponentAttribute() : this(LifeStyle.Transient) { }
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="lifeStyle"></param>
         public ComponentAttribute(LifeStyle lifeStyle)
@@ -28,12 +25,10 @@ namespace ENode.Infrastructure
     /// </summary>
     public enum LifeStyle
     {
-        /// <summary>
-        /// 
+        /// <summary>Represents a component is a transient component.
         /// </summary>
         Transient,
-        /// <summary>
-        /// 
+        /// <summary>Represents a component is a singleton component.
         /// </summary>
         Singleton
     }

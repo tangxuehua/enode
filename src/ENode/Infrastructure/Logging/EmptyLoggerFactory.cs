@@ -2,14 +2,12 @@
 
 namespace ENode.Infrastructure.Logging
 {
-    /// <summary>
-    /// 
+    /// <summary>An empty implementation of ILoggerFactory.
     /// </summary>
     public class EmptyLoggerFactory : ILoggerFactory
     {
         private static readonly EmptyLogger Logger = new EmptyLogger();
-        /// <summary>
-        /// 
+        /// <summary>Create an empty logger instance by name.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -17,8 +15,7 @@ namespace ENode.Infrastructure.Logging
         {
             return Logger;
         }
-        /// <summary>
-        /// 
+        /// <summary>Create an empty logger instance by type.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>

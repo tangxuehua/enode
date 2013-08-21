@@ -6,8 +6,7 @@ using System.Reflection;
 
 namespace ENode.Infrastructure
 {
-    /// <summary>
-    /// 
+    /// <summary>A class provides utility methods.
     /// </summary>
     public class Utils
     {
@@ -34,7 +33,7 @@ namespace ENode.Infrastructure
 
             return (T)Convert.ChangeType(value, typeof(T));
         }
-        /// <summary>创建一个T类型的对象实例，自动将source对象中相同名称的属性更新到该新创建的实例。
+        /// <summary>Create an object from the source object, assign the properties by the same name.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="source"></param>
@@ -56,13 +55,13 @@ namespace ENode.Infrastructure
 
             return obj;
         }
-        /// <summary>将source对象中指定的属性更新到target对象中
+        /// <summary>Update the target object by the source object, assign the properties by the same name.
         /// </summary>
-        /// <typeparam name="TTarget">target对象的类型</typeparam>
-        /// <typeparam name="TSource">source对象的类型</typeparam>
-        /// <param name="target">target对象</param>
-        /// <param name="source">source对象</param>
-        /// <param name="propertyExpressionsFromSource">source对象中需要更新到target对象的属性</param>
+        /// <typeparam name="TTarget"></typeparam>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="target"></param>
+        /// <param name="source"></param>
+        /// <param name="propertyExpressionsFromSource"></param>
         public static void UpdateObject<TTarget, TSource>(TTarget target, TSource source, params Expression<Func<TSource, object>>[] propertyExpressionsFromSource)
             where TTarget : class
             where TSource : class

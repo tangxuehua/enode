@@ -3,13 +3,11 @@ using System.Data.SqlClient;
 
 namespace ENode.Infrastructure.Sql
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IDbConnectionFactory.
     /// </summary>
     public class DefaultDbConnectionFactory : IDbConnectionFactory
     {
-        /// <summary>
-        /// 
+        /// <summary>Create a db connection instance with the given connectionString.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <returns></returns>

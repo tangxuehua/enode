@@ -5,8 +5,7 @@ using ENode.Infrastructure.Logging;
 
 namespace ENode.Infrastructure.Retring
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IRetryService;
     /// </summary>
     public class DefaultRetryService : IRetryService
     {
@@ -16,8 +15,7 @@ namespace ENode.Infrastructure.Retring
         private readonly ILogger _logger;
         private bool _looping;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="loggerFactory"></param>
         public DefaultRetryService(ILoggerFactory loggerFactory)
@@ -26,16 +24,15 @@ namespace ENode.Infrastructure.Retring
             _timer = new Timer(Loop, null, 0, DefaultPeriod);
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Initialize the retry service.
         /// </summary>
         /// <param name="period"></param>
         public void Initialize(long period)
         {
             _timer.Change(0, period);
         }
-        /// <summary>
-        /// 
+        /// <summary>Try to execute the given action with the given max retry count.
+        /// <remarks>If the action execute success within the max retry count, returns true; otherwise, returns false;</remarks>
         /// </summary>
         /// <param name="actionName"></param>
         /// <param name="action"></param>
@@ -45,8 +42,7 @@ namespace ENode.Infrastructure.Retring
         {
             return TryRecursively(actionName, (x, y, z) => action(), 0, maxRetryCount);
         }
-        /// <summary>
-        /// 
+        /// <summary>Put the action into retry queue, and retry to execute the action with some period until the action execute success.
         /// </summary>
         /// <param name="actionInfo"></param>
         public void RetryInQueue(ActionInfo actionInfo)

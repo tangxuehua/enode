@@ -4,8 +4,7 @@ using ENode.Domain;
 
 namespace ENode.Infrastructure
 {
-    /// <summary>
-    /// 
+    /// <summary>A utility class provides type related methods.
     /// </summary>
     internal class TypeUtils
     {

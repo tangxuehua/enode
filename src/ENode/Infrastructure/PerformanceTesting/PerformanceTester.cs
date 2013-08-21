@@ -12,8 +12,7 @@ namespace ENode.Infrastructure.PerformanceTesting
     {
         private static readonly Dictionary<string, TimeRecorder> TimeRecorderDictionary = new Dictionary<string, TimeRecorder>();
 
-        /// <summary>
-        /// 
+        /// <summary>Get a time recorder.
         /// </summary>
         /// <param name="timeRecorderName"></param>
         /// <returns></returns>
@@ -21,8 +20,7 @@ namespace ENode.Infrastructure.PerformanceTesting
         {
             return GetTimeRecorder(timeRecorderName, false);
         }
-        /// <summary>
-        /// 
+        /// <summary>Get a time recorder.
         /// </summary>
         /// <param name="timeRecorderName"></param>
         /// <param name="reset"></param>
@@ -43,8 +41,7 @@ namespace ENode.Infrastructure.PerformanceTesting
             return recorder;
         }
     }
-    /// <summary>
-    /// 
+    /// <summary>A time recorder used to do performance test.
     /// </summary>
     public class TimeRecorder
     {
@@ -57,8 +54,7 @@ namespace ENode.Infrastructure.PerformanceTesting
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="name"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -77,8 +73,7 @@ namespace ENode.Infrastructure.PerformanceTesting
 
         #region Public Properties
 
-        /// <summary>
-        /// 
+        /// <summary>The name of the time recorder.
         /// </summary>
         public string Name { get; private set; }
 
@@ -86,8 +81,7 @@ namespace ENode.Infrastructure.PerformanceTesting
 
         #region Public Methods
 
-        /// <summary>
-        /// 
+        /// <summary>Reset the time recorder, reset the time and clear all the recorder items.
         /// </summary>
         public void Reset()
         {
@@ -95,8 +89,7 @@ namespace ENode.Infrastructure.PerformanceTesting
             _stopWatch.Reset();
             _recorderItemList.Clear();
         }
-        /// <summary>
-        /// 
+        /// <summary>Begin a recorder item with some description.
         /// </summary>
         /// <param name="description"></param>
         /// <returns></returns>
@@ -109,8 +102,7 @@ namespace ENode.Infrastructure.PerformanceTesting
             }
             return new RecorderItem(this, description);
         }
-        /// <summary>
-        /// 
+        /// <summary>Generate a report for the current performance test.
         /// </summary>
         /// <returns></returns>
         public string GenerateReport()
@@ -120,7 +112,7 @@ namespace ENode.Infrastructure.PerformanceTesting
             reportBuilder.AppendLine(Environment.NewLine);
             reportBuilder.AppendLine("------------------------------------------------------------------------------------------------------------------------------------");
 
-            reportBuilder.AppendLine(string.Format("TimeRecorder Name:{0}  Total RecorderItem Times:{1}ms", Name, (GetTotalTicks() / 10000).ToString()));
+            reportBuilder.AppendLine(string.Format("TimeRecorder Name:{0}  Total RecorderItem Times:{1}ms", Name, (GetTotalTicks() / 10000)));
             reportBuilder.AppendLine("RecorderItem Time Details:");
             reportBuilder.AppendLine(GenerateTreeReport());
 
@@ -200,27 +192,22 @@ namespace ENode.Infrastructure.PerformanceTesting
         {
             return _recorderItemList.Count == 0 ? 0D : GetTopLevelRecorderItems().Aggregate<RecorderItem, double>(0, (current, recorderItem) => current + recorderItem.TotalTicks);
         }
-
         private bool IsTopLevelRecorderItem(RecorderItem recorderItem)
         {
             return recorderItem != null && _recorderItemList.Where(a => a.Id != recorderItem.Id).All(a => !(a.StartTicks < recorderItem.StartTicks) || !(a.EndTicks > recorderItem.EndTicks));
         }
-
         private List<RecorderItem> GetTopLevelRecorderItems()
         {
             return _recorderItemList.Where(IsTopLevelRecorderItem).ToList();
         }
-
         private RecorderItem GetDirectParent(RecorderItem recorderItem)
         {
             return recorderItem == null ? null : _recorderItemList.Where(a => recorderItem.Id != a.Id).FirstOrDefault(a => a.StartTicks < recorderItem.StartTicks && a.EndTicks > recorderItem.EndTicks);
         }
-
         private IEnumerable<RecorderItem> GetChildRecorderItems(RecorderItem parentRecorderItem)
         {
             return parentRecorderItem == null ? new List<RecorderItem>() : (from recorderItem in _recorderItemList where recorderItem.Id != parentRecorderItem.Id where recorderItem.StartTicks > parentRecorderItem.StartTicks && recorderItem.EndTicks < parentRecorderItem.EndTicks let directParent = GetDirectParent(recorderItem) where directParent != null && directParent.Id == parentRecorderItem.Id select recorderItem).ToList();
         }
-
         private void GenerateRecorderItemTimeStrings(RecorderItem recorderItem, string leftSpace, string unitIndentString, List<string> recorderItemTimeStrings)
         {
             const string recorderItemTimeStringFormat = "{0}{1}({2})  {3}  {4}  {5}";
@@ -253,15 +240,13 @@ namespace ENode.Infrastructure.PerformanceTesting
 
         #endregion
     }
-    /// <summary>
-    /// 
+    /// <summary>Represents an item in the time recorder.
     /// </summary>
     public class RecorderItem
     {
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="timeRecorder"></param>
         /// <param name="description"></param>
@@ -286,56 +271,43 @@ namespace ENode.Infrastructure.PerformanceTesting
 
         #region Public Properties
 
-        /// <summary>
-        /// 
+        /// <summary>The owner timer recorder.
         /// </summary>
         public TimeRecorder TimeRecorder { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The unique id of the recorder item.
         /// </summary>
         public string Id { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The parent recorder item.
         /// </summary>
         public RecorderItem ParentRecorderItem { get; set; }
-        /// <summary>
-        /// 
+        /// <summary>The child recorder items.
         /// </summary>
         public List<RecorderItem> ChildRecorderItems { get; set; }
-        /// <summary>
-        /// 
+        /// <summary>The tree level of the current recorder item.
         /// </summary>
         public int TreeNodeDeepLevel { get; set; }
-
-        /// <summary>
-        /// 
+        /// <summary>The start time of the recorder item.
         /// </summary>
         public DateTime StartTime { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The end time of the recorder item.
         /// </summary>
         public DateTime EndTime { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The description of the recorder item.
         /// </summary>
         public string Description { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The start ticks of the recorder item.
         /// </summary>
         public double StartTicks { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The end ticks of the recorder item.
         /// </summary>
         public double EndTicks { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The total ticks of the recorder item.
         /// </summary>
         public double TotalTicks
         {
             get { return EndTicks - StartTicks; }
         }
-        /// <summary>
-        /// 
+        /// <summary>Represents whether the current recorder item is completed.
         /// </summary>
         public bool IsCompleted { get; private set; }
 
@@ -343,8 +315,7 @@ namespace ENode.Infrastructure.PerformanceTesting
 
         #region Public Methods
 
-        /// <summary>
-        /// 
+        /// <summary>Complete the current recorder item.
         /// </summary>
         public void Complete()
         {
