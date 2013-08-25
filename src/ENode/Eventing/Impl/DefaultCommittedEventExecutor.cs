@@ -59,67 +59,45 @@ namespace ENode.Eventing.Impl
 
         private void TryDispatchEventsToEventHandlers(EventStreamContext context)
         {
-            Func<EventStreamContext, bool> tryDispatchEventsAction = (streamContext) =>
+            Func<bool> tryDispatchEvents = () =>
             {
-                switch (streamContext.EventStream.Version)
+                var eventStream = context.EventStream;
+                switch (eventStream.Version)
                 {
                     case 1:
-                        return DispatchEventsToHandlers(streamContext.EventStream);
+                        DispatchEventsToHandlers(eventStream);
+                        return true;
                     default:
-                    {
-                        var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(streamContext.EventStream.AggregateRootId);
-
-                        if (lastPublishedVersion + 1 == streamContext.EventStream.Version)
+                        var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(eventStream.AggregateRootId);
+                        if (lastPublishedVersion + 1 == eventStream.Version)
                         {
-                            return DispatchEventsToHandlers(streamContext.EventStream);
+                            DispatchEventsToHandlers(eventStream);
+                            return true;
                         }
-                        return lastPublishedVersion + 1 > streamContext.EventStream.Version;
-                    }
+                        return lastPublishedVersion + 1 > eventStream.Version;
                 }
             };
 
             try
             {
-                if (_retryService.TryAction("TryDispatchEvents", () => tryDispatchEventsAction(context), 3))
-                {
-                    Clear(context);
-                }
-                else
-                {
-                    _retryService.RetryInQueue(
-                        new ActionInfo(
-                            "TryDispatchEvents",
-                            (obj) => tryDispatchEventsAction(obj as EventStreamContext),
-                            context,
-                            new ActionInfo(
-                                "DispatchEventsSuccessAction",
-                                (data) => { Clear(data as EventStreamContext); return true; },
-                                context, null)
-                        )
-                    );
-                }
+                _retryService.TryAction("TryDispatchEvents", tryDispatchEvents, 3, () => Clear(context));
             }
             catch (Exception ex)
             {
                 _logger.Error(string.Format("Exception raised when dispatching events:{0}", context.EventStream.GetStreamInformation()), ex);
             }
         }
-        private bool DispatchEventsToHandlers(EventStream stream)
+        private void DispatchEventsToHandlers(EventStream stream)
         {
             foreach (var evnt in stream.Events)
             {
                 foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
                 {
-                    var evnt1 = evnt;
-                    var handler1 = handler;
-                    var success = _retryService.TryAction("DispatchEventToHandler", () => DispatchEventToHandler(evnt1, handler1), 2);
-                    if (!success)
-                    {
-                        return false;
-                    }
+                    var currentEvent = evnt;
+                    var currentHandler = handler;
+                    _retryService.TryAction("DispatchEventToHandler", () => DispatchEventToHandler(currentEvent, currentHandler), 3, () => { });
                 }
             }
-            return true;
         }
         private bool DispatchEventToHandler(IEvent evnt, IEventHandler handler)
         {

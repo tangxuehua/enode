@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
@@ -19,19 +20,7 @@ namespace ENode.Commanding
         public string AggregateRootId { get; private set; }
         /// <summary>Error message generated when executing the command.
         /// </summary>
-        public string ErrorMessage { get; private set; }
-        /// <summary>Error exception generated when executing the command.
-        /// </summary>
-        public Exception Exception { get; private set; }
-        /// <summary>Represents whether the command execution has any error.
-        /// </summary>
-        public bool HasError
-        {
-            get
-            {
-                return ErrorMessage != null || Exception != null;
-            }
-        }
+        public ErrorInfo ErrorInfo { get; private set; }
 
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -55,14 +44,12 @@ namespace ENode.Commanding
         /// <summary>Complete the command execution async result.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        /// <param name="errorMessage"></param>
-        /// <param name="exception"></param>
-        public void Complete(string aggregateRootId, string errorMessage, Exception exception)
+        /// <param name="errorInfo"></param>
+        public void Complete(string aggregateRootId, ErrorInfo errorInfo)
         {
             IsCompleted = true;
             AggregateRootId = aggregateRootId;
-            ErrorMessage = errorMessage;
-            Exception = exception;
+            ErrorInfo = errorInfo;
 
             if (_waitHandle != null)
             {

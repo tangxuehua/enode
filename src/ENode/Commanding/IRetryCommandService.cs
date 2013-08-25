@@ -1,6 +1,6 @@
-﻿using ENode.Eventing;
+﻿using System;
+using ENode.Eventing;
 using ENode.Infrastructure;
-using ENode.Infrastructure.Retring;
 
 namespace ENode.Commanding
 {
@@ -10,6 +10,6 @@ namespace ENode.Commanding
     {
         /// <summary>Retry the given command.
         /// </summary>
-        void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ErrorInfo errorInfo, ActionInfo retrySuccessCallbackAction);
+        void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ErrorInfo errorInfo, Action retrySuccessCallbackAction);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
@@ -24,8 +25,7 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
-        /// <param name="errorMessage"></param>
-        /// <param name="exception"></param>
-        void TryComplete(Guid commandId, string aggregateRootId, string errorMessage, Exception exception);
+        /// <param name="errorInfo"></param>
+        void TryComplete(Guid commandId, string aggregateRootId, ErrorInfo errorInfo);
     }
 }

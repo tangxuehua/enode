@@ -82,7 +82,7 @@ namespace ENode.Commanding.Impl
             {
                 var errorMessage = string.Format("Command handler not found for {0}", command.GetType().FullName);
                 _logger.Fatal(errorMessage);
-                _commandAsyncResultManager.TryComplete(command.Id, null, errorMessage, null);
+                _commandAsyncResultManager.TryComplete(command.Id, null, new ErrorInfo(errorMessage));
                 FinishExecution(command, queue);
                 return;
             }
@@ -109,7 +109,7 @@ namespace ENode.Commanding.Impl
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
                 var errorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
                 _logger.Error(errorMessage, ex);
-                _commandAsyncResultManager.TryComplete(command.Id, null, errorMessage, ex);
+                _commandAsyncResultManager.TryComplete(command.Id, null, new ErrorInfo(errorMessage, ex));
                 FinishExecution(command, queue);
             }
             finally
@@ -154,31 +154,7 @@ namespace ENode.Commanding.Impl
         private void CommitAggregate(AggregateRoot dirtyAggregate, ICommand command, IMessageQueue<ICommand> queue)
         {
             var eventStream = BuildEvents(dirtyAggregate, command);
-
-            if (_retryService.TryAction("TrySendEvent", () => TrySendEvent(eventStream), 3))
-            {
-                FinishExecution(command, queue);
-            }
-            else
-            {
-                _retryService.RetryInQueue(
-                    new ActionInfo(
-                        "TrySendEvent",
-                        obj => TrySendEvent(obj as EventStream),
-                        eventStream,
-                        new ActionInfo(
-                            "SendEventSuccessAction",
-                            obj =>
-                            {
-                                var data = obj as dynamic;
-                                var currentCommand = data.Command as ICommand;
-                                var currentQueue = data.Queue as IMessageQueue<ICommand>;
-                                FinishExecution(currentCommand, currentQueue);
-                                return true;
-                            },
-                            new {Command = command, Queue = queue},
-                            null)));
-            }
+            _retryService.TryAction("TrySendEvent", () => TrySendEvent(eventStream), 3, () => FinishExecution(command, queue));
         }
         private bool TrySendEvent(EventStream eventStream)
         {
@@ -189,9 +165,7 @@ namespace ENode.Commanding.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(
-                    string.Format("Exception raised when tring to send events, events info:{0}.",
-                        eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when tring to send events, events info:{0}.", eventStream.GetStreamInformation()), ex);
                 return false;
             }
         }

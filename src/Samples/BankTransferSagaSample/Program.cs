@@ -11,9 +11,12 @@ using ENode.Infrastructure;
 using ENode.JsonNet;
 using ENode.Log4Net;
 
-namespace BankTransferSagaSample {
-    class Program {
-        static void Main(string[] args) {
+namespace BankTransferSagaSample
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
@@ -46,15 +49,16 @@ namespace BankTransferSagaSample {
             var bankAccount1 = memoryCache.Get<BankAccount>(bankAccountId1.ToString());
             var bankAccount2 = memoryCache.Get<BankAccount>(bankAccountId2.ToString());
 
-            Console.WriteLine(string.Format("账户{0}余额:{1}", bankAccount1.AccountNumber, bankAccount1.Balance));
-            Console.WriteLine(string.Format("账户{0}余额:{1}", bankAccount2.AccountNumber, bankAccount2.Balance));
+            Console.WriteLine("账户{0}余额:{1}", bankAccount1.AccountNumber, bankAccount1.Balance);
+            Console.WriteLine("账户{0}余额:{1}", bankAccount2.AccountNumber, bankAccount2.Balance);
 
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
         }
 
-        static void InitializeENodeFramework() {
-            var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
+        static void InitializeENodeFramework()
+        {
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
 
             Configuration
                 .Create()

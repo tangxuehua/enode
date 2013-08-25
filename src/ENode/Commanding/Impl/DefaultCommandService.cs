@@ -78,17 +78,23 @@ namespace ENode.Commanding.Impl
             {
                 throw new CommandTimeoutException(command.Id, command.GetType());
             }
-            if (commandAsyncResult.ErrorMessage != null && commandAsyncResult.Exception != null)
+            if (commandAsyncResult.ErrorInfo == null)
             {
-                throw new CommandExecutionException(command.Id, command.GetType(), commandAsyncResult.ErrorMessage, commandAsyncResult.Exception);
+                return commandAsyncResult;
             }
-            if (commandAsyncResult.Exception != null)
+
+            var errorInfo = commandAsyncResult.ErrorInfo;
+            if (errorInfo.ErrorMessage != null && errorInfo.Exception != null)
             {
-                throw new CommandExecutionException(command.Id, command.GetType(), commandAsyncResult.Exception);
+                throw new CommandExecutionException(command.Id, command.GetType(), errorInfo.ErrorMessage, errorInfo.Exception);
             }
-            if (commandAsyncResult.ErrorMessage != null)
+            if (errorInfo.ErrorMessage != null)
             {
-                throw new CommandExecutionException(command.Id, command.GetType(), commandAsyncResult.ErrorMessage);
+                throw new CommandExecutionException(command.Id, command.GetType(), errorInfo.ErrorMessage);
+            }
+            if (errorInfo.Exception != null)
+            {
+                throw new CommandExecutionException(command.Id, command.GetType(), errorInfo.Exception);
             }
 
             return commandAsyncResult;

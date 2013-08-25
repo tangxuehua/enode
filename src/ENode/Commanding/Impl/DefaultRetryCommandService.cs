@@ -33,7 +33,7 @@ namespace ENode.Commanding.Impl
         /// <param name="eventStream"></param>
         /// <param name="errorInfo"></param>
         /// <param name="retrySuccessCallbackAction"></param>
-        public void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ErrorInfo errorInfo, ActionInfo retrySuccessCallbackAction)
+        public void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ErrorInfo errorInfo, Action retrySuccessCallbackAction)
         {
             if (_retryCommandQueue == null)
             {
@@ -41,58 +41,33 @@ namespace ENode.Commanding.Impl
             }
             var command = commandInfo.Command;
 
-            Action<CommandInfo, ActionInfo> actionAfterCommandRetried = (currentCommandInfo, callbackActionInfo) =>
-            {
-                currentCommandInfo.IncreaseRetriedCount();
-                _logger.InfoFormat("Sent {0} to command retry queue for {1} time.", currentCommandInfo.Command.GetType().Name, currentCommandInfo.RetriedCount);
-                callbackActionInfo.Action(callbackActionInfo.Data);
-            };
-
             if (commandInfo.RetriedCount < command.RetryCount)
             {
-                if (_retryService.TryAction("TryEnqueueCommand", () => TryEnqueueCommand(command), 2))
-                {
-                    actionAfterCommandRetried(commandInfo, retrySuccessCallbackAction);
-                }
-                else
-                {
-                    _retryService.RetryInQueue(
-                        new ActionInfo(
-                            "TryEnqueueCommand",
-                            obj => TryEnqueueCommand(obj as ICommand),
-                            command,
-                            new ActionInfo(
-                                "TryEnqueueCommandFinishedAction",
-                                obj =>
-                                {
-                                    var data = obj as dynamic;
-                                    var currentCommandInfo = data.CommandInfo as CommandInfo;
-                                    var callbackActionInfo = data.Callback as ActionInfo;
-                                    actionAfterCommandRetried(currentCommandInfo, callbackActionInfo);
-                                    return true;
-                                },
-                                new { CommandInfo = commandInfo, Callback = retrySuccessCallbackAction },
-                                null)));
-                }
+                _retryService.TryAction("TryEnqueueCommand", () => TryEnqueueCommand(commandInfo), 3, retrySuccessCallbackAction);
             }
             else
             {
-                _commandAsyncResultManager.TryComplete(command.Id, eventStream.AggregateRootId, errorInfo.ErrorMessage, errorInfo.Exception);
+                _commandAsyncResultManager.TryComplete(command.Id, eventStream.AggregateRootId, errorInfo);
                 _logger.InfoFormat("{0} retried count reached to its max retry count {1}.", command.GetType().Name, command.RetryCount);
-                retrySuccessCallbackAction.Action(retrySuccessCallbackAction.Data);
+                if (retrySuccessCallbackAction != null)
+                {
+                    retrySuccessCallbackAction();
+                }
             }
         }
 
-        private bool TryEnqueueCommand(ICommand command)
+        private bool TryEnqueueCommand(CommandInfo commandInfo)
         {
             try
             {
-                _retryCommandQueue.Enqueue(command);
+                _retryCommandQueue.Enqueue(commandInfo.Command);
+                commandInfo.IncreaseRetriedCount();
+                _logger.InfoFormat("Sent {0} to command retry queue for {1} time.", commandInfo.Command.GetType().Name, commandInfo.RetriedCount);
                 return true;
             }
             catch (Exception ex)
             {
-                var errorMessage = string.Format("Exception raised when tring to enqueue the command to the retry command queue. commandType{0}, commandId:{1}", command.GetType().Name, command.Id);
+                var errorMessage = string.Format("Exception raised when tring to enqueue the command to the retry command queue. commandType{0}, commandId:{1}", commandInfo.Command.GetType().Name, commandInfo.Command.Id);
                 _logger.Error(errorMessage, ex);
                 return false;
             }

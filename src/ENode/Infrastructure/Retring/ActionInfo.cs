@@ -28,6 +28,10 @@ namespace ENode.Infrastructure.Retring
         /// <exception cref="ArgumentNullException"></exception>
         public ActionInfo(string name, Func<object, bool> action, object data, ActionInfo next)
         {
+            if (name == null)
+            {
+                throw new ArgumentNullException("name");
+            }
             if (action == null)
             {
                 throw new ArgumentNullException("action");

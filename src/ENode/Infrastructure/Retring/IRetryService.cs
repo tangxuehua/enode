@@ -11,16 +11,36 @@ namespace ENode.Infrastructure.Retring
         /// <param name="period"></param>
         void Initialize(long period);
         /// <summary>Try to execute the given action with the given max retry count.
-        /// <remarks>If the action execute success within the max retry count, returns true; otherwise, returns false;</remarks>
+        /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
         /// </summary>
         /// <param name="actionName"></param>
         /// <param name="action"></param>
         /// <param name="maxRetryCount"></param>
-        /// <returns></returns>
-        bool TryAction(string actionName, Func<bool> action, int maxRetryCount);
-        /// <summary>Put the action into retry queue, and retry to execute the action with some period until the action execute success.
+        /// <param name="nextAction"></param>
+        void TryAction(string actionName, Action action, int maxRetryCount, Action nextAction);
+        /// <summary>Try to execute the given action with the given max retry count.
+        /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
         /// </summary>
-        /// <param name="actionInfo"></param>
-        void RetryInQueue(ActionInfo actionInfo);
+        /// <param name="actionName"></param>
+        /// <param name="action"></param>
+        /// <param name="maxRetryCount"></param>
+        /// <param name="nextAction"></param>
+        void TryAction(string actionName, Func<bool> action, int maxRetryCount, Action nextAction);
+        /// <summary>Try to execute the given action with the given max retry count.
+        /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
+        /// </summary>
+        /// <param name="actionName"></param>
+        /// <param name="action"></param>
+        /// <param name="maxRetryCount"></param>
+        /// <param name="nextAction"></param>
+        void TryAction(string actionName, Func<bool> action, int maxRetryCount, Func<bool> nextAction);
+        /// <summary>Try to execute the given action with the given max retry count.
+        /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
+        /// </summary>
+        /// <param name="actionName"></param>
+        /// <param name="action"></param>
+        /// <param name="maxRetryCount"></param>
+        /// <param name="nextAction"></param>
+        void TryAction(string actionName, Func<bool> action, int maxRetryCount, ActionInfo nextAction);
     }
 }

@@ -4,10 +4,12 @@ using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.Domain {
+namespace BankTransferSagaSample.Domain
+{
     /// <summary>转账流程状态
     /// </summary>
-    public enum ProcessState {
+    public enum ProcessState
+    {
         NotStarted,
         Started,
         TransferOutRequested,
@@ -18,12 +20,14 @@ namespace BankTransferSagaSample.Domain {
     /// <summary>转账信息值对象，包含了转账的基本信息
     /// </summary>
     [Serializable]
-    public class TransferInfo {
+    public class TransferInfo
+    {
         public Guid SourceAccountId { get; private set; }
         public Guid TargetAccountId { get; private set; }
         public double Amount { get; private set; }
 
-        public TransferInfo(Guid sourceAccountId, Guid targetAccountId, double amount) {
+        public TransferInfo(Guid sourceAccountId, Guid targetAccountId, double amount)
+        {
             SourceAccountId = sourceAccountId;
             TargetAccountId = targetAccountId;
             Amount = amount;
@@ -32,28 +36,26 @@ namespace BankTransferSagaSample.Domain {
     /// <summary>值对象，包含了转账流程的结果信息
     /// </summary>
     [Serializable]
-    public class TransferProcessResult {
-        private static readonly TransferProcessResult _successResult = new TransferProcessResult(true, null, null);
+    public class TransferProcessResult
+    {
+        private static readonly TransferProcessResult SuccessResult = new TransferProcessResult(true, null);
 
         /// <summary>转账是否成功
         /// </summary>
         public bool IsSuccess { get; private set; }
         /// <summary>错误信息
         /// </summary>
-        public string ErrorMessage { get; private set; }
-        /// <summary>异常
-        /// </summary>
-        public Exception Exception { get; private set; }
+        public ErrorInfo ErrorInfo { get; private set; }
 
-        public TransferProcessResult(bool isSuccess, string errorMessage, Exception exception) {
+        public TransferProcessResult(bool isSuccess, ErrorInfo errorInfo)
+        {
             IsSuccess = isSuccess;
-            ErrorMessage = errorMessage;
-            Exception = exception;
+            ErrorInfo = errorInfo;
         }
 
         /// <summary>表示转账成功的结果
         /// </summary>
-        public static TransferProcessResult Success { get { return _successResult; } }
+        public static TransferProcessResult Success { get { return SuccessResult; } }
     }
     /// <summary>银行转账流程聚合根，负责控制整个转账的过程，包括遇到异常时的回滚处理
     /// </summary>
@@ -72,9 +74,10 @@ namespace BankTransferSagaSample.Domain {
         /// </summary>
         public ProcessState State { get; private set; }
 
-        public TransferProcess() : base() { }
+        public TransferProcess() { }
         public TransferProcess(BankAccount sourceAccount, BankAccount targetAccount, TransferInfo transferInfo)
-            : base(Guid.NewGuid()) {
+            : base(Guid.NewGuid())
+        {
             RaiseEvent(new TransferProcessStarted(Id, transferInfo, string.Format("转账流程启动，源账户：{0}，目标账户：{1}，转账金额：{2}",
                         sourceAccount.AccountNumber,
                         targetAccount.AccountNumber,
@@ -85,48 +88,60 @@ namespace BankTransferSagaSample.Domain {
         /// <summary>处理已转出事件
         /// </summary>
         /// <param name="transferInfo"></param>
-        public void HandleTransferedOut(TransferInfo transferInfo) {
+        public void HandleTransferedOut(TransferInfo transferInfo)
+        {
             RaiseEvent(new TransferInRequested(Id, transferInfo));
         }
         /// <summary>处理已转入事件
         /// </summary>
         /// <param name="transferInfo"></param>
-        public void HandleTransferedIn(TransferInfo transferInfo) {
+        public void HandleTransferedIn(TransferInfo transferInfo)
+        {
             RaiseEvent(new TransferProcessCompleted(Id, transferInfo, TransferProcessResult.Success));
         }
         /// <summary>处理转出失败的情况
         /// </summary>
         /// <param name="transferInfo"></param>
-        public void HandleFailedTransferOut(TransferInfo transferInfo, Exception exception) {
-            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, new TransferProcessResult(false, exception.Message, exception)));
+        /// <param name="errorInfo"></param>
+        public void HandleFailedTransferOut(TransferInfo transferInfo, ErrorInfo errorInfo)
+        {
+            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, new TransferProcessResult(false, errorInfo)));
         }
         /// <summary>处理转入失败的情况
         /// </summary>
         /// <param name="transferInfo"></param>
-        public void HandleFailedTransferIn(TransferInfo transferInfo, Exception exception) {
-            RaiseEvent(new RollbackTransferOutRequested(Id, transferInfo, exception));
+        /// <param name="errorInfo"></param>
+        public void HandleFailedTransferIn(TransferInfo transferInfo, ErrorInfo errorInfo)
+        {
+            RaiseEvent(new RollbackTransferOutRequested(Id, transferInfo, errorInfo));
         }
         /// <summary>处理转出已回滚事件
         /// </summary>
         /// <param name="transferInfo"></param>
-        public void HandleTransferOutRolledback(TransferInfo transferInfo) {
+        public void HandleTransferOutRolledback(TransferInfo transferInfo)
+        {
             RaiseEvent(new TransferProcessCompleted(Id, transferInfo, Result));
         }
 
-        void IEventHandler<TransferProcessStarted>.Handle(TransferProcessStarted evnt) {
+        void IEventHandler<TransferProcessStarted>.Handle(TransferProcessStarted evnt)
+        {
             State = ProcessState.Started;
         }
-        void IEventHandler<TransferOutRequested>.Handle(TransferOutRequested evnt) {
+        void IEventHandler<TransferOutRequested>.Handle(TransferOutRequested evnt)
+        {
             State = ProcessState.TransferOutRequested;
         }
-        void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt) {
+        void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt)
+        {
             State = ProcessState.TransferInRequested;
         }
-        void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt) {
+        void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt)
+        {
             State = ProcessState.RollbackTransferOutRequested;
-            Result = new TransferProcessResult(false, evnt.ProcessException.Message, evnt.ProcessException);
+            Result = new TransferProcessResult(false, evnt.ErrorInfo);
         }
-        void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt) {
+        void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
+        {
             State = ProcessState.Completed;
             Result = evnt.ProcessResult;
         }
