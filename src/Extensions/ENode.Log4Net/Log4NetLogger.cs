@@ -4,15 +4,13 @@ using log4net;
 
 namespace ENode.Log4Net
 {
-    /// <summary>
-    /// Log4Net提供的日志记录器
+    /// <summary>Log4Net based logger implementation.
     /// </summary>
     public class Log4NetLogger : ILogger
     {
         private readonly ILog _log;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="log"></param>
         public Log4NetLogger(ILog log)
@@ -23,85 +21,6 @@ namespace ENode.Log4Net
         #region ILogger Members
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        public void Info(object message)
-        {
-            _log.Info(message);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void InfoFormat(string format, params object[] args)
-        {
-            _log.InfoFormat(format, args);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="exception"></param>
-        public void Info(object message, Exception exception)
-        {
-            _log.Info(message, exception);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        public void Error(object message)
-        {
-            _log.Error(message);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void ErrorFormat(string format, params object[] args)
-        {
-            _log.ErrorFormat(format, args);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="exception"></param>
-        public void Error(object message, Exception exception)
-        {
-            _log.Error(message, exception);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        public void Warn(object message)
-        {
-            _log.Warn(message);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="args"></param>
-        public void WarnFormat(string format, params object[] args)
-        {
-            _log.WarnFormat(format, args);
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="exception"></param>
-        public void Warn(object message, Exception exception)
-        {
-            _log.Warn(message, exception);
-        }
-        /// <summary>
-        /// 
         /// </summary>
         public bool IsDebugEnabled
         {
@@ -111,7 +30,6 @@ namespace ENode.Log4Net
             }
         }
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="message"></param>
         public void Debug(object message)
@@ -122,7 +40,6 @@ namespace ENode.Log4Net
             }
         }
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
@@ -134,7 +51,6 @@ namespace ENode.Log4Net
             }
         }
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="message"></param>
         /// <param name="exception"></param>
@@ -146,7 +62,75 @@ namespace ENode.Log4Net
             }
         }
         /// <summary>
-        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        public void Info(object message)
+        {
+            _log.Info(message);
+        }
+        /// <summary>
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void InfoFormat(string format, params object[] args)
+        {
+            _log.InfoFormat(format, args);
+        }
+        /// <summary>
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
+        public void Info(object message, Exception exception)
+        {
+            _log.Info(message, exception);
+        }
+        /// <summary>
+        /// </summary>
+        /// <param name="message"></param>
+        public void Error(object message)
+        {
+            _log.Error(message);
+        }
+        /// <summary>
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void ErrorFormat(string format, params object[] args)
+        {
+            _log.ErrorFormat(format, args);
+        }
+        /// <summary>
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
+        public void Error(object message, Exception exception)
+        {
+            _log.Error(message, exception);
+        }
+        /// <summary>
+        /// </summary>
+        /// <param name="message"></param>
+        public void Warn(object message)
+        {
+            _log.Warn(message);
+        }
+        /// <summary>
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="args"></param>
+        public void WarnFormat(string format, params object[] args)
+        {
+            _log.WarnFormat(format, args);
+        }
+        /// <summary>
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="exception"></param>
+        public void Warn(object message, Exception exception)
+        {
+            _log.Warn(message, exception);
+        }
+        /// <summary>
         /// </summary>
         /// <param name="message"></param>
         public void Fatal(object message)
@@ -154,7 +138,6 @@ namespace ENode.Log4Net
             _log.Fatal(message);
         }
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="format"></param>
         /// <param name="args"></param>
@@ -163,7 +146,6 @@ namespace ENode.Log4Net
             _log.FatalFormat(format, args);
         }
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="message"></param>
         /// <param name="exception"></param>

@@ -5,15 +5,13 @@ using ENode.Domain;
 
 namespace ENode.Mongo
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IEventCollectionNameProvider.
     /// </summary>
     public class AggregatePerEventCollectionNameProvider : IEventCollectionNameProvider
     {
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootTypeProvider"></param>
         public AggregatePerEventCollectionNameProvider(IAggregateRootTypeProvider aggregateRootTypeProvider)
@@ -21,8 +19,7 @@ namespace ENode.Mongo
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get the collection name for the given aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -31,8 +28,7 @@ namespace ENode.Mongo
         {
             return aggregateRootType.Name;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get all the collection names of the eventstore.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<string> GetAllCollectionNames()

@@ -6,16 +6,14 @@ using ServiceStack.Redis;
 
 namespace ENode.Redis
 {
-    /// <summary>
-    /// 
+    /// <summary>Redis based memory cache implementation.
     /// </summary>
     public class RedisMemoryCache : IMemoryCache
     {
         private readonly RedisClient _redisClient;
         private readonly IBinarySerializer _binarySerializer;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="host"></param>
         /// <param name="port"></param>
@@ -25,8 +23,7 @@ namespace ENode.Redis
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get an aggregate from memory cache.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -39,8 +36,7 @@ namespace ENode.Redis
             }
             return null;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get a strong type aggregate from memory cache.
         /// </summary>
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
@@ -54,8 +50,7 @@ namespace ENode.Redis
             }
             return null;
         }
-        /// <summary>
-        /// 
+        /// <summary>Set an aggregate to memory cache.
         /// </summary>
         /// <param name="aggregateRoot"></param>
         /// <exception cref="ArgumentNullException"></exception>

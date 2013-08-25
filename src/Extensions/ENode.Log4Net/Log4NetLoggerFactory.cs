@@ -8,13 +8,11 @@ using log4net.Layout;
 
 namespace ENode.Log4Net
 {
-    /// <summary>
-    /// 
+    /// <summary>Log4Net based logger factory.
     /// </summary>
     public class Log4NetLoggerFactory : ILoggerFactory
     {
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="configFile"></param>
         public Log4NetLoggerFactory(string configFile)
@@ -34,8 +32,7 @@ namespace ENode.Log4Net
                 BasicConfigurator.Configure(new TraceAppender { Layout = new PatternLayout() });
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Create a new Log4NetLogger instance.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -43,8 +40,7 @@ namespace ENode.Log4Net
         {
             return new Log4NetLogger(LogManager.GetLogger(name));
         }
-        /// <summary>
-        /// 
+        /// <summary>Create a new Log4NetLogger instance.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>

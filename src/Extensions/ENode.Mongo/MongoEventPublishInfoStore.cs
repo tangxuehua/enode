@@ -6,8 +6,7 @@ using MongoQuery = MongoDB.Driver.Builders.Query;
 
 namespace ENode.Mongo
 {
-    /// <summary>
-    /// 
+    /// <summary>MongoDB based implementation of IEventPublishInfoStore.
     /// </summary>
     public class MongoEventPublishInfoStore : IEventPublishInfoStore
     {
@@ -20,8 +19,7 @@ namespace ENode.Mongo
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="collectionName"></param>
@@ -43,8 +41,7 @@ namespace ENode.Mongo
 
         #endregion
 
-        /// <summary>
-        /// 
+        /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         public void InsertFirstPublishedVersion(string aggregateRootId)
@@ -57,8 +54,7 @@ namespace ENode.Mongo
 
             GetMongoCollection().Insert(document);
         }
-        /// <summary>
-        /// 
+        /// <summary>Update the published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
@@ -69,8 +65,7 @@ namespace ENode.Mongo
             document["Version"] = version;
             collection.Save(document);
         }
-        /// <summary>
-        /// 
+        /// <summary>Get the current event published version for the specified aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>

@@ -6,12 +6,11 @@ using ENode.Infrastructure.Serializing;
 using ENode.Messaging;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoQuery = MongoDB.Driver.Builders.Query;
+using MongoDB.Driver.Builders;
 
 namespace ENode.Mongo
 {
-    /// <summary>
-    /// 
+    /// <summary>MongoDB based implementation of IMessageStore.
     /// </summary>
     public class MongoMessageStore : IMessageStore
     {
@@ -25,8 +24,7 @@ namespace ENode.Mongo
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -45,13 +43,11 @@ namespace ENode.Mongo
 
         #endregion
 
-        /// <summary>
-        /// 
+        /// <summary>Initialize the given message queue.
         /// </summary>
         /// <param name="queueName"></param>
         public void Initialize(string queueName) { }
-        /// <summary>
-        /// 
+        /// <summary>Persist a new message to the queue.
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="message"></param>
@@ -67,8 +63,7 @@ namespace ENode.Mongo
 
             collection.Insert(document);
         }
-        /// <summary>
-        /// 
+        /// <summary>Remove a existing message from the queue.
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="message"></param>
@@ -77,10 +72,9 @@ namespace ENode.Mongo
             var collectionName = _queueCollectionNameProvider.GetCollectionName(queueName);
             var collection = GetMongoCollection(collectionName);
 
-            collection.Remove(MongoQuery.EQ("_id", message.Id.ToString()));
+            collection.Remove(Query.EQ("_id", message.Id.ToString()));
         }
-        /// <summary>
-        /// 
+        /// <summary>Get all the existing messages of the queue.
         /// </summary>
         /// <param name="queueName"></param>
         /// <typeparam name="T"></typeparam>

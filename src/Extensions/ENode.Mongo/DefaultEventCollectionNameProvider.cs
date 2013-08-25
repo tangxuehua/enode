@@ -3,15 +3,13 @@ using System.Collections.Generic;
 
 namespace ENode.Mongo
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IEventCollectionNameProvider.
     /// </summary>
     public class DefaultEventCollectionNameProvider : IEventCollectionNameProvider
     {
         private readonly string _collectionName;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="collectionName"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -24,8 +22,7 @@ namespace ENode.Mongo
             _collectionName = collectionName;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get the collection name for the given aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -34,8 +31,7 @@ namespace ENode.Mongo
         {
             return _collectionName;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get all the collection names of the eventstore.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<string> GetAllCollectionNames()

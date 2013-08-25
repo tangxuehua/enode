@@ -6,7 +6,7 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventHandleInfoStore
     {
-        /// <summary>Insert an event handle info.
+        /// <summary>Add an event handle info.
         /// </summary>
         void AddEventHandleInfo(Guid eventId, string eventHandlerTypeName);
         /// <summary>Check whether the given event was handled by the given event handler.

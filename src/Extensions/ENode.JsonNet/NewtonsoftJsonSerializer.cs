@@ -8,8 +8,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace ENode.JsonNet
 {
-    /// <summary>
-    /// 
+    /// <summary>Json.Net implementationof IJsonSerializer.
     /// </summary>
     public class NewtonsoftJsonSerializer : IJsonSerializer
     {
@@ -19,8 +18,7 @@ namespace ENode.JsonNet
             Converters = new List<JsonConverter> { new IsoDateTimeConverter() },
             ContractResolver = new SisoJsonDefaultContractResolver()
         };
-        /// <summary>
-        /// 
+        /// <summary>Serialize an object to json string.
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
@@ -28,8 +26,7 @@ namespace ENode.JsonNet
         {
             return obj == null ? null : JsonConvert.SerializeObject(obj, Settings);
         }
-        /// <summary>
-        /// 
+        /// <summary>Deserialize a json string to object.
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
@@ -37,8 +34,7 @@ namespace ENode.JsonNet
         {
             return JsonConvert.DeserializeObject(value, Settings);
         }
-        /// <summary>
-        /// 
+        /// <summary>Deserialize a json string to a strong type object.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="value"></param>
@@ -47,26 +43,13 @@ namespace ENode.JsonNet
         {
             return JsonConvert.DeserializeObject<T>(JObject.Parse(value).ToString(), Settings);
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="anonymousTypeObject"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T Deserialize<T>(string value, T anonymousTypeObject)
-        {
-            return JsonConvert.DeserializeAnonymousType<T>(JObject.Parse(value).ToString(), anonymousTypeObject);
-        }
     }
 
     /// <summary>
-    /// 
     /// </summary>
     public class SisoJsonDefaultContractResolver : DefaultContractResolver
     {
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="member"></param>
         /// <param name="memberSerialization"></param>

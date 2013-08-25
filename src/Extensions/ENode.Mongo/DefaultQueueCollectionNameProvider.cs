@@ -1,24 +1,19 @@
-﻿using System;
-
-namespace ENode.Mongo
+﻿namespace ENode.Mongo
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IQueueCollectionNameProvider.
     /// </summary>
     public class DefaultQueueCollectionNameProvider : IQueueCollectionNameProvider
     {
         private readonly string _queueNameFormat;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="queueNameFormat"></param>
         public DefaultQueueCollectionNameProvider(string queueNameFormat)
         {
             _queueNameFormat = queueNameFormat;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get mongo collection name for the given queue.
         /// </summary>
         /// <param name="queueName"></param>
         /// <returns></returns>

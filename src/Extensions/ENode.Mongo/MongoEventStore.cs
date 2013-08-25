@@ -12,8 +12,7 @@ using MongoQuery = MongoDB.Driver.Builders.Query;
 
 namespace ENode.Mongo
 {
-    /// <summary>
-    /// 
+    /// <summary>MongoDB based implementation of IEventStore.
     /// </summary>
     public class MongoEventStore : IEventStore
     {
@@ -22,8 +21,7 @@ namespace ENode.Mongo
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly string _connectionString;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -40,8 +38,7 @@ namespace ENode.Mongo
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _aggregateRootTypeProvider = ObjectContainer.Resolve<IAggregateRootTypeProvider>();
         }
-        /// <summary>
-        /// 
+        /// <summary>Append the event stream to the event store.
         /// </summary>
         /// <param name="stream"></param>
         public void Append(EventStream stream)
@@ -67,8 +64,7 @@ namespace ENode.Mongo
                 throw;
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Query event streams from event store.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -90,8 +86,7 @@ namespace ENode.Mongo
 
             return events;
         }
-        /// <summary>
-        /// 
+        /// <summary>Check whether an event stream is exist in the event store.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -106,8 +101,7 @@ namespace ENode.Mongo
 
             return count > 0;
         }
-        /// <summary>
-        /// 
+        /// <summary>Query all the event streams from the event store.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<EventStream> QueryAll()

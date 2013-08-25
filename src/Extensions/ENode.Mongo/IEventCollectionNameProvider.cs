@@ -7,8 +7,7 @@ namespace ENode.Mongo
     /// </summary>
     public interface IEventCollectionNameProvider
     {
-        /// <summary>
-        /// 
+        /// <summary>Get the collection name for the given aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>

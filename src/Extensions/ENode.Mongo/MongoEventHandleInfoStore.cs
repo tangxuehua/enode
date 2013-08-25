@@ -5,8 +5,7 @@ using MongoDB.Driver;
 
 namespace ENode.Mongo
 {
-    /// <summary>
-    /// 
+    /// <summary>MongoDB based implementation of IEventHandleInfoStore.
     /// </summary>
     public class MongoEventHandleInfoStore : IEventHandleInfoStore
     {
@@ -19,8 +18,7 @@ namespace ENode.Mongo
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="collectionName"></param>
@@ -42,8 +40,7 @@ namespace ENode.Mongo
 
         #endregion
 
-        /// <summary>
-        /// 
+        /// <summary>Add an event handle info.
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>
@@ -55,8 +52,7 @@ namespace ENode.Mongo
             };
             GetMongoCollection().Insert(document);
         }
-        /// <summary>
-        /// 
+        /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>
