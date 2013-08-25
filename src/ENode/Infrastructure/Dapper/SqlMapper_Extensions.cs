@@ -13,8 +13,7 @@ namespace ENode.Infrastructure.Dapper
     {
         private static readonly ConcurrentDictionary<Type, List<string>> ParamNameCache = new ConcurrentDictionary<Type, List<string>>();
 
-        /// <summary>
-        /// 
+        /// <summary>Insert data into table.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="data"></param>
@@ -22,7 +21,7 @@ namespace ENode.Infrastructure.Dapper
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns></returns>
-        public static long? Insert(this IDbConnection connection, dynamic data, string table, IDbTransaction transaction = null, int? commandTimeout = null)
+        public static int Insert(this IDbConnection connection, dynamic data, string table, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var obj = data as object;
             var properties = GetProperties(obj);
@@ -30,11 +29,11 @@ namespace ENode.Infrastructure.Dapper
             var values = string.Join(",", properties.Select(p => "@" + p));
             var sql = string.Format("insert into [{0}] ({1}) values ({2}) select cast(scope_identity() as bigint)", table, columns, values);
 
-            return connection.Query<long?>(sql, obj, transaction, true, commandTimeout).SingleOrDefault();
+            return connection.Execute(sql, obj, transaction, commandTimeout);
         }
         /// <summary>
         /// 
-        /// </summary>
+        /// </summary>Updata data for table with a specified condition.
         /// <param name="connection"></param>
         /// <param name="data"></param>
         /// <param name="condition"></param>
@@ -59,8 +58,7 @@ namespace ENode.Infrastructure.Dapper
 
             return connection.Execute(sql, parameters, transaction, commandTimeout);
         }
-        /// <summary>
-        /// 
+        /// <summary>Delete data from table with a specified condition.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="condition"></param>
@@ -76,8 +74,7 @@ namespace ENode.Infrastructure.Dapper
 
             return SqlMapper.Execute(connection, sql, condition, transaction, commandTimeout);
         }
-        /// <summary>
-        /// 
+        /// <summary>Get data count from table with a specified condition.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="condition"></param>
@@ -95,8 +92,7 @@ namespace ENode.Infrastructure.Dapper
 
             return connection.Query<int>(sql, obj, transaction, true, commandTimeout).Single();
         }
-        /// <summary>
-        /// 
+        /// <summary>Get a field value from table with a specified condition.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="condition"></param>
@@ -115,8 +111,7 @@ namespace ENode.Infrastructure.Dapper
 
             return connection.Query<T>(sql, obj, transaction, true, commandTimeout).SingleOrDefault();
         }
-        /// <summary>
-        /// 
+        /// <summary>Query all data from table.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="table"></param>
@@ -128,8 +123,7 @@ namespace ENode.Infrastructure.Dapper
             var sql = string.Format("select * from [{0}]", table);
             return connection.Query(sql, null, transaction, true, commandTimeout);
         }
-        /// <summary>
-        /// 
+        /// <summary>Query all data from table.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="table"></param>
@@ -143,8 +137,7 @@ namespace ENode.Infrastructure.Dapper
             return connection.Query<T>(sql, null, transaction, true, commandTimeout);
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Query data from table with a specified condition.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="condition"></param>
@@ -161,8 +154,7 @@ namespace ENode.Infrastructure.Dapper
 
             return connection.Query(sql, obj, transaction, true, commandTimeout);
         }
-        /// <summary>
-        /// 
+        /// <summary>Query data from table with specified condition.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="condition"></param>
@@ -181,8 +173,7 @@ namespace ENode.Infrastructure.Dapper
             return connection.Query<T>(sql, obj, transaction, true, commandTimeout);
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Try to execute a given action and auto close the dbconnection after the action complete.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="action"></param>
@@ -194,8 +185,7 @@ namespace ENode.Infrastructure.Dapper
                 action(connection);
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Try to execute a given func and auto close the dbconnection after the action complete.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="func"></param>
@@ -209,8 +199,7 @@ namespace ENode.Infrastructure.Dapper
                 return func(connection);
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Try to execute a given action in transaction and auto close the dbconnection after the action complete.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="action"></param>
@@ -236,8 +225,7 @@ namespace ENode.Infrastructure.Dapper
                 }
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Try to execute a given func in transaction and auto close the dbconnection after the action complete.
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="func"></param>

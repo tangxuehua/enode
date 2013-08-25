@@ -3,13 +3,11 @@ using System.Threading;
 
 namespace ENode.Infrastructure.Concurrent
 {
-    /// <summary>
-    /// 
+    /// <summary>An extension class to provide utility lock mechanism.
     /// </summary>
     public static class ReaderWriterLockSlimExtensions
     {
-        /// <summary>
-        /// 
+        /// <summary>An atom read action wrapper.
         /// </summary>
         /// <param name="readerWriterLockSlim"></param>
         /// <param name="action"></param>
@@ -36,8 +34,7 @@ namespace ENode.Infrastructure.Concurrent
                 readerWriterLockSlim.ExitReadLock();
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>An atom read func wrapper.
         /// </summary>
         /// <param name="readerWriterLockSlim"></param>
         /// <param name="function"></param>
@@ -66,8 +63,7 @@ namespace ENode.Infrastructure.Concurrent
                 readerWriterLockSlim.ExitReadLock();
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>An atom write action wrapper.
         /// </summary>
         /// <param name="readerWriterLockSlim"></param>
         /// <param name="action"></param>
@@ -94,8 +90,7 @@ namespace ENode.Infrastructure.Concurrent
                 readerWriterLockSlim.ExitWriteLock();
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>An atom write func wrapper.
         /// </summary>
         /// <param name="readerWriterLockSlim"></param>
         /// <param name="function"></param>

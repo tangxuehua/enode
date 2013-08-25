@@ -7,23 +7,19 @@ namespace ENode.Infrastructure.Concurrent
     [Serializable]
     public class ConcurrentException : Exception
     {
-        /// <summary>
-        /// 
+        /// <summary>Default constructor.
         /// </summary>
         public ConcurrentException() { }
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="message"></param>
         public ConcurrentException(string message) : base(message) { }
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
         public ConcurrentException(string message, Exception innerException) : base(message, innerException) { }
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="args"></param>
