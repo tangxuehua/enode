@@ -106,10 +106,11 @@ namespace ENode.Commanding.Impl
             }
             catch (Exception ex)
             {
-                //TODO, here we also need to finish the command execution.
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
                 var errorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
                 _logger.Error(errorMessage, ex);
+                _commandAsyncResultManager.TryComplete(command.Id, null, errorMessage, ex);
+                FinishExecution(command, queue);
             }
             finally
             {
@@ -119,7 +120,7 @@ namespace ENode.Commanding.Impl
 
         #region Private Methods
 
-        private AggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
+        private static AggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
         {
             var trackedAggregateRoots = trackingContext.GetTrackedAggregateRoots();
             var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Any()).ToList();
@@ -129,9 +130,9 @@ namespace ENode.Commanding.Impl
             {
                 return null;
             }
-            else if (dirtyAggregateRootCount > 1)
+            if (dirtyAggregateRootCount > 1)
             {
-                throw new Exception("Detected more than one new or modified aggregates.");
+                throw new Exception("Detected more than one dirty aggregates.");
             }
 
             return dirtyAggregateRoots.Single();
@@ -163,11 +164,11 @@ namespace ENode.Commanding.Impl
                 _retryService.RetryInQueue(
                     new ActionInfo(
                         "TrySendEvent",
-                        (obj) => TrySendEvent(obj as EventStream),
+                        obj => TrySendEvent(obj as EventStream),
                         eventStream,
                         new ActionInfo(
                             "SendEventSuccessAction",
-                            (obj) =>
+                            obj =>
                             {
                                 var data = obj as dynamic;
                                 var currentCommand = data.Command as ICommand;

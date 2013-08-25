@@ -59,11 +59,11 @@ namespace ENode.Commanding.Impl
                     _retryService.RetryInQueue(
                         new ActionInfo(
                             "TryEnqueueCommand",
-                            (obj) => TryEnqueueCommand(obj as ICommand),
+                            obj => TryEnqueueCommand(obj as ICommand),
                             command,
                             new ActionInfo(
                                 "TryEnqueueCommandFinishedAction",
-                                (obj) =>
+                                obj =>
                                 {
                                     var data = obj as dynamic;
                                     var currentCommandInfo = data.CommandInfo as CommandInfo;
@@ -77,7 +77,9 @@ namespace ENode.Commanding.Impl
             }
             else
             {
-                _commandAsyncResultManager.TryComplete(commandInfo.Command.Id, eventStream.AggregateRootId, errorInfo.ErrorMessage, errorInfo.Exception);
+                _commandAsyncResultManager.TryComplete(command.Id, eventStream.AggregateRootId, errorInfo.ErrorMessage, errorInfo.Exception);
+                _logger.InfoFormat("{0} retried count reached to its max retry count {1}.", command.GetType().Name, command.RetryCount);
+                retrySuccessCallbackAction.Action(retrySuccessCallbackAction.Data);
             }
         }
 

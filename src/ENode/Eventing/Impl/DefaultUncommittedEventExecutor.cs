@@ -341,10 +341,10 @@ namespace ENode.Eventing.Impl
         {
             if (!eventStreamContext.EventStream.IsRestoreFromStorage())
             {
-                var command = _processingCommandCache.Get(eventStreamContext.EventStream.CommandId);
-                if (command != null)
+                var commandInfo = _processingCommandCache.Get(eventStreamContext.EventStream.CommandId);
+                if (commandInfo != null)
                 {
-                    _retryCommandService.RetryCommand(command, eventStreamContext.EventStream, errorInfo, successActionInfo);
+                    _retryCommandService.RetryCommand(commandInfo, eventStreamContext.EventStream, errorInfo, successActionInfo);
                 }
                 else
                 {
