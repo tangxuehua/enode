@@ -7,8 +7,7 @@ using ENode.Snapshoting;
 
 namespace ENode.Domain.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>An repository implementation with the event sourcing pattern.
     /// </summary>
     public class EventSourcingRepository : IRepository
     {
@@ -17,15 +16,13 @@ namespace ENode.Domain.Impl
         private readonly IEventStore _eventStore;
         private readonly ISnapshotStore _snapshotStore;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="aggregateRootFactory"></param>
         /// <param name="memoryCache"></param>
         /// <param name="eventStore"></param>
         /// <param name="snapshotStore"></param>
-        public EventSourcingRepository(IAggregateRootTypeProvider aggregateRootTypeProvider, IAggregateRootFactory aggregateRootFactory, IMemoryCache memoryCache, IEventStore eventStore, ISnapshotStore snapshotStore)
+        public EventSourcingRepository(IAggregateRootFactory aggregateRootFactory, IMemoryCache memoryCache, IEventStore eventStore, ISnapshotStore snapshotStore)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _memoryCache = memoryCache;
@@ -33,8 +30,7 @@ namespace ENode.Domain.Impl
             _snapshotStore = snapshotStore;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
@@ -43,8 +39,7 @@ namespace ENode.Domain.Impl
         {
             return Get(typeof(T), id) as T;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
         /// <param name="type"></param>
         /// <param name="id"></param>
@@ -56,7 +51,7 @@ namespace ENode.Domain.Impl
 
         #region Helper Methods
 
-        /// <summary>Get aggregate root from data storage.
+        /// <summary>Get aggregate root from event store.
         /// </summary>
         private AggregateRoot GetFromStorage(Type aggregateRootType, string aggregateRootId)
         {
@@ -70,7 +65,7 @@ namespace ENode.Domain.Impl
             }
 
             var streams = _eventStore.Query(aggregateRootId, aggregateRootType, minStreamVersion, maxStreamVersion);
-            aggregateRoot = BuildAggregateRoot(aggregateRootId, aggregateRootType, streams);
+            aggregateRoot = BuildAggregateRoot(aggregateRootType, streams);
 
             return aggregateRoot;
         }
@@ -88,18 +83,18 @@ namespace ENode.Domain.Impl
 
             if (aggregateRootFromSnapshot.UniqueId != aggregateRootId)
             {
-                var message = string.Format("从快照还原出来的聚合根的Id({0})与所要求的Id({1})不符", aggregateRootFromSnapshot.UniqueId, aggregateRootId);
+                var message = string.Format("Aggregate root restored from snapshot not valid as the aggregate root id not matched. Snapshot aggregate root id:{0}, required aggregate root id:{1}", aggregateRootFromSnapshot.UniqueId, aggregateRootId);
                 throw new Exception(message);
             }
 
-            var commitsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.Version + 1, long.MaxValue);
-            aggregateRootFromSnapshot.ReplayEventStreams(commitsAfterSnapshot);
+            var eventsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.Version + 1, long.MaxValue);
+            aggregateRootFromSnapshot.ReplayEventStreams(eventsAfterSnapshot);
             aggregateRoot = aggregateRootFromSnapshot;
             return true;
         }
         /// <summary>Rebuild the aggregate root using the event sourcing pattern.
         /// </summary>
-        private AggregateRoot BuildAggregateRoot(string aggregateRootId, Type aggregateRootType, IEnumerable<EventStream> streams)
+        private AggregateRoot BuildAggregateRoot(Type aggregateRootType, IEnumerable<EventStream> streams)
         {
             var eventStreams = streams.ToList();
             if (streams == null || !eventStreams.Any()) return null;

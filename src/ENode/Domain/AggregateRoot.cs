@@ -7,7 +7,7 @@ using ENode.Snapshoting;
 
 namespace ENode.Domain
 {
-    /// <summary>Abstract aggregate root base class.
+    /// <summary>Abstract base aggregate root class.
     /// </summary>
     [Serializable]
     public abstract class AggregateRoot
@@ -21,15 +21,15 @@ namespace ENode.Domain
 
         #region Constructurs
 
-        /// <summary>Default constructor
+        /// <summary>Default constructor.
         /// </summary>
         protected AggregateRoot()
         {
             _uncommittedEvents = new Queue<IEvent>();
         }
-        /// <summary>Parameterized constructor with a aggregate uniqueId.
+        /// <summary>Parameterized constructor with an uniqueId.
         /// </summary>
-        /// <param name="uniqueId">the aggregate uniqueId</param>
+        /// <param name="uniqueId">The string uniqueId.</param>
         protected AggregateRoot(string uniqueId) : this()
         {
             UniqueId = uniqueId;
@@ -39,12 +39,12 @@ namespace ENode.Domain
 
         #region Public Properties
 
-        /// <summary>Represents the uniqueId of the aggregate.
+        /// <summary>Represents the uniqueId of the aggregate root.
         /// </summary>
         public string UniqueId { get; protected set; }
-        /// <summary>Represents the current event stream version of the aggregate.
+        /// <summary>Represents the current event stream version of the aggregate root.
         /// <remarks>
-        /// This version record the total event stream count of the current aggregate, this version is always continuous.
+        /// This version record the total event stream count of the current aggregate root, this version is always continuous.
         /// </remarks>
         /// </summary>
         public long Version { get; private set; }
@@ -53,13 +53,13 @@ namespace ENode.Domain
 
         #region Public Methods
 
-        /// <summary>Support the aggregate to act as a specified role, and the role must be an interface.
+        /// <summary>Used for DCI pattern support. This method will make the aggregate root act as a specified role interface.
         /// <remarks>
-        /// Note: the aggregate must implement the role interace, otherwise exception will be raised.
+        /// Note: the aggregate must implement the role interface, otherwise exception will be raised.
         /// </remarks>
         /// </summary>
-        /// <typeparam name="TRole">The role interface.</typeparam>
-        /// <returns>Returns the current aggregate instance which its type is converted to the role interface.</returns>
+        /// <typeparam name="TRole">The role interface type.</typeparam>
+        /// <returns>Returns the current aggregate root which its type is converted to the role interface.</returns>
         public TRole ActAs<TRole>() where TRole : class
         {
             if (!typeof(TRole).IsInterface)
@@ -71,7 +71,7 @@ namespace ENode.Domain
 
             if (role == null)
             {
-                throw new Exception(string.Format("AggregateRoot '{0}' can not act as role '{1}'.", this.GetType().FullName, typeof(TRole).FullName));
+                throw new Exception(string.Format("AggregateRoot '{0}' can not act as role '{1}'.", GetType().FullName, typeof(TRole).FullName));
             }
 
             return role;
@@ -83,7 +83,7 @@ namespace ENode.Domain
 
         /// <summary>Raise a domain event.
         /// <remarks>
-        /// The event first will be handled by the current aggregate, and then be queued in the local queue of the aggregate.
+        /// The event first will be handled by the current aggregate root, and then be queued in the local queue of the current aggregate root.
         /// </remarks>
         /// </summary>
         /// <param name="evnt">The domain event to be raised.</param>
@@ -97,7 +97,7 @@ namespace ENode.Domain
 
         #region Internal Methods
 
-        /// <summary>Get all the uncommitted events of the current aggregate.
+        /// <summary>Get all the uncommitted events of the current aggregate root.
         /// </summary>
         internal IEnumerable<IEvent> GetUncommittedEvents()
         {
@@ -146,7 +146,7 @@ namespace ENode.Domain
 
         #region Private Methods
 
-        /// <summary>Handle the given event and update the aggregate status.
+        /// <summary>Handle the given event and update the aggregate root status.
         /// </summary>
         private void HandleEvent<T>(T evnt) where T : class, IEvent
         {
@@ -160,19 +160,19 @@ namespace ENode.Domain
                 var handler = _eventHandlerProvider.GetInternalEventHandler(this.GetType(), evnt.GetType());
                 if (handler == null)
                 {
-                    throw new Exception(string.Format("Event handler not found on {0} for {1}.", this.GetType().FullName, evnt.GetType().FullName));
+                    throw new Exception(string.Format("Event handler not found on {0} for {1}.", GetType().FullName, evnt.GetType().FullName));
                 }
 
                 handler(this, evnt);
             }
         }
-        /// <summary>Verify whether the given event stream can be applied on the current aggregate.
+        /// <summary>Verify whether the given event stream can be applied on the current aggregate root.
         /// </summary>
         private void VerifyEvent(EventStream eventStream)
         {
             if (eventStream.AggregateRootId != UniqueId)
             {
-                var errorMessage = string.Format("Cannot apply event stream to aggregate as the AggregateRootId not matched. EventStream Id:{0}, AggregateRootId:{1}; Current AggregateRootId:{2}",
+                var errorMessage = string.Format("Cannot apply event stream to aggregate root as the AggregateRootId not matched. EventStream Id:{0}, AggregateRootId:{1}; Current AggregateRootId:{2}",
                                         eventStream.Id,
                                         eventStream.AggregateRootId,
                                         UniqueId);
@@ -181,14 +181,14 @@ namespace ENode.Domain
 
             if (eventStream.Version != Version + 1)
             {
-                var errorMessage = string.Format("Cannot apply event stream to aggregate as the version not matched. EventStream Id:{0}, Version:{1}; Current AggregateRoot Version:{2}",
+                var errorMessage = string.Format("Cannot apply event stream to aggregate root as the version not matched. EventStream Id:{0}, Version:{1}; Current AggregateRoot Version:{2}",
                                         eventStream.Id,
                                         eventStream.Version,
                                         Version);
                 throw new Exception(errorMessage);
             }
         }
-        /// <summary>Apply all the events of the given event stream to the aggregate.
+        /// <summary>Apply all the events of the given event stream to the current aggregate root.
         /// </summary>
         /// <param name="eventStream"></param>
         private void ApplyEvent(EventStream eventStream)
@@ -199,7 +199,7 @@ namespace ENode.Domain
             }
             Version = eventStream.Version;
         }
-        /// <summary>Queue a uncommitted event into the current local queue.
+        /// <summary>Queue a uncommitted event into the local event queue.
         /// </summary>
         private void QueueEvent(IEvent uncommittedEvent)
         {
@@ -212,22 +212,20 @@ namespace ENode.Domain
 
         #endregion
     }
-    /// <summary>Abstract aggregate root base class with strong type aggregate root id.
+    /// <summary>Abstract base aggregate root class with strong type aggregate root id.
     /// </summary>
     [Serializable]
     public abstract class AggregateRoot<TAggregateRootId> : AggregateRoot
     {
-        /// <summary>
-        /// 
+        /// <summary>Default constructor.
         /// </summary>
         protected AggregateRoot() { }
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="id"></param>
         protected AggregateRoot(TAggregateRootId id) : base(id.ToString()) { }
 
-        /// <summary>The strong type Id of the aggregate.
+        /// <summary>The strong type id of the aggregate root.
         /// </summary>
         public TAggregateRootId Id
         {

@@ -7,15 +7,13 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IAggregateRootInternalHandlerProvider and IAssemblyInitializer.
     /// </summary>
     public class DefaultAggregateRootInternalHandlerProvider : IAggregateRootInternalHandlerProvider, IAssemblyInitializer
     {
         private readonly IDictionary<Type, IDictionary<Type, MethodInfo>> _mappings = new Dictionary<Type, IDictionary<Type, MethodInfo>>();
 
-        /// <summary>
-        /// 
+        /// <summary>Initialize from the given assemblies.
         /// </summary>
         /// <param name="assemblies"></param>
         public void Initialize(params Assembly[] assemblies)
@@ -35,8 +33,7 @@ namespace ENode.Domain.Impl
             }
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get the internal event handler within the aggregate.
         /// </summary>
         /// <param name="aggregateRootType"></param>
         /// <param name="eventType"></param>
@@ -67,11 +64,11 @@ namespace ENode.Domain.Impl
             eventHandlerDic.Add(eventType, eventHandler);
         }
 
-        private Type GetEventType(Type eventHandlerInterface)
+        private static Type GetEventType(Type eventHandlerInterface)
         {
             return eventHandlerInterface.GetGenericArguments().Single();
         }
-        private IEnumerable<Type> ScanEventHandlerInterfaces(Type eventHandlerType)
+        private static IEnumerable<Type> ScanEventHandlerInterfaces(Type eventHandlerType)
         {
             return eventHandlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEventHandler<>));
         }

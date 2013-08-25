@@ -4,16 +4,14 @@ using ENode.Infrastructure.Serializing;
 
 namespace ENode.Domain.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>Default implementation of IMemoryCache which using ConcurrentDictionary.
     /// </summary>
     public class DefaultMemoryCache : IMemoryCache
     {
         private readonly ConcurrentDictionary<string, byte[]> _cacheDict = new ConcurrentDictionary<string, byte[]>();
         private readonly IBinarySerializer _binarySerializer;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="binarySerializer"></param>
         public DefaultMemoryCache(IBinarySerializer binarySerializer)
@@ -21,8 +19,7 @@ namespace ENode.Domain.Impl
             _binarySerializer = binarySerializer;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get an aggregate from memory cache.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -35,8 +32,7 @@ namespace ENode.Domain.Impl
             }
             return null;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get a strong type aggregate from memory cache.
         /// </summary>
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
@@ -46,8 +42,7 @@ namespace ENode.Domain.Impl
             byte[] value;
             return _cacheDict.TryGetValue(id, out value) ? _binarySerializer.Deserialize<T>(value) : null;
         }
-        /// <summary>
-        /// 
+        /// <summary>Set an aggregate to memory cache.
         /// </summary>
         /// <param name="aggregateRoot"></param>
         /// <exception cref="ArgumentNullException"></exception>

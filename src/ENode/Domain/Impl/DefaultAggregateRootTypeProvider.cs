@@ -6,15 +6,13 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>Default implementation of IAggregateRootTypeProvider and IAssemblyInitializer.
     /// </summary>
     public class DefaultAggregateRootTypeProvider : IAggregateRootTypeProvider, IAssemblyInitializer
     {
         private readonly IDictionary<string, Type> _mappings = new Dictionary<string, Type>();
 
-        /// <summary>
-        /// 
+        /// <summary>Initialize from the given assemblies.
         /// </summary>
         /// <param name="assemblies"></param>
         /// <exception cref="Exception"></exception>
@@ -32,8 +30,7 @@ namespace ENode.Domain.Impl
                 }
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Get the aggregate root type name by the aggregate root type.
         /// </summary>
         /// <param name="aggregateRootType"></param>
         /// <returns></returns>
@@ -41,8 +38,7 @@ namespace ENode.Domain.Impl
         {
             return _mappings.Single(x => x.Value == aggregateRootType).Key;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get the aggregate root type by the aggregate root type name.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -50,9 +46,7 @@ namespace ENode.Domain.Impl
         {
             return _mappings.ContainsKey(name) ? _mappings[name] : null;
         }
-
-        /// <summary>
-        /// 
+        /// <summary>Get all the aggregate root types.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<Type> GetAllAggregateRootTypes()

@@ -4,16 +4,14 @@ using System.Reflection;
 
 namespace ENode.Domain.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IAggregateRootFactory.
     /// </summary>
     public class DefaultAggregateRootFactory : IAggregateRootFactory
     {
         private readonly ConcurrentDictionary<Type, ConstructorInfo> _constructorInfoDict = new ConcurrentDictionary<Type, ConstructorInfo>();
         private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-        /// <summary>
-        /// 
+        /// <summary>Create an empty aggregate root with the given type.
         /// </summary>
         /// <param name="aggregateRootType"></param>
         /// <returns></returns>

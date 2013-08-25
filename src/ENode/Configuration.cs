@@ -333,7 +333,7 @@ namespace ENode
 
         #region Private Methods
 
-        private void ValidateMessages(params Assembly[] assemblies)
+        private static void ValidateMessages(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
@@ -398,20 +398,20 @@ namespace ENode
             }
         }
 
-        private LifeStyle ParseLife(Type type)
+        private static LifeStyle ParseLife(Type type)
         {
             var componentAttributes = type.GetCustomAttributes(typeof(ComponentAttribute), false);
-            return componentAttributes.Count() <= 0 ? LifeStyle.Transient : (componentAttributes[0] as ComponentAttribute).LifeStyle;
+            return !componentAttributes.Any() ? LifeStyle.Transient : ((ComponentAttribute) componentAttributes[0]).LifeStyle;
         }
-        private bool IsAssemblyInitializer<T>()
+        private static bool IsAssemblyInitializer<T>()
         {
             return IsAssemblyInitializer(typeof(T));
         }
-        private bool IsAssemblyInitializer(Type type)
+        private static bool IsAssemblyInitializer(Type type)
         {
             return type.IsClass && !type.IsAbstract && typeof(IAssemblyInitializer).IsAssignableFrom(type);
         }
-        private bool IsAssemblyInitializer(object instance)
+        private static bool IsAssemblyInitializer(object instance)
         {
             return instance is IAssemblyInitializer;
         }

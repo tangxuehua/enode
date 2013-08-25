@@ -3,8 +3,7 @@ using ENode.Eventing;
 
 namespace ENode.Domain.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>Default implementation of IMemoryCacheRebuilder.
     /// </summary>
     public class DefaultMemoryCacheRebuilder : IMemoryCacheRebuilder
     {
@@ -19,8 +18,7 @@ namespace ENode.Domain.Impl
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootFactory"></param>
         /// <param name="aggregateRootTypeProvider"></param>
@@ -40,8 +38,7 @@ namespace ENode.Domain.Impl
 
         #endregion
 
-        /// <summary>
-        /// 
+        /// <summary>Using event sourcing pattern to rebuild the whole domain by replaying all the domain events from the eventstore.
         /// </summary>
         public void RebuildMemoryCache()
         {
