@@ -1,10 +1,10 @@
 ﻿namespace ENode.Eventing
 {
-    /// <summary>Represents a router to route a available committed event queue for event stream message.
+    /// <summary>Represents a router to route an available committed event queue for the given event stream.
     /// </summary>
     public interface ICommittedEventQueueRouter
     {
-        /// <summary>Route a available committed event queue for the given event stream message.
+        /// <summary>Route an available committed event queue for the given event stream.
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>

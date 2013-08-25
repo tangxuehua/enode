@@ -8,8 +8,7 @@ namespace ENode.Eventing
     [Serializable]
     public class Event : Message, IEvent
     {
-        /// <summary>
-        /// 
+        /// <summary>Default constructor.
         /// </summary>
         public Event() : base(Guid.NewGuid()) { }
     }

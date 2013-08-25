@@ -11,10 +11,9 @@ namespace ENode.Eventing
     /// </remarks>
     /// </summary>
     [Serializable]
-    public class EventStream : Message, IMessage
+    public class EventStream : Message
     {
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootName"></param>
@@ -26,8 +25,7 @@ namespace ENode.Eventing
             : this(Guid.NewGuid(), aggregateRootId, aggregateRootName, version, commandId, timestamp, events)
         {
         }
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="aggregateRootId"></param>
@@ -39,41 +37,34 @@ namespace ENode.Eventing
         public EventStream(Guid id, string aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
             : base(id)
         {
-            this.AggregateRootId = aggregateRootId;
-            this.AggregateRootName = aggregateRootName;
-            this.CommandId = commandId;
-            this.Version = version;
-            this.Timestamp = timestamp;
-            this.Events = events ?? new List<IEvent>();
+            AggregateRootId = aggregateRootId;
+            AggregateRootName = aggregateRootName;
+            CommandId = commandId;
+            Version = version;
+            Timestamp = timestamp;
+            Events = events ?? new List<IEvent>();
         }
 
-        /// <summary>
-        /// 
+        /// <summary>The aggregate root id.
         /// </summary>
         public string AggregateRootId { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The aggregate root name.
         /// </summary>
         public string AggregateRootName { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The command id.
         /// </summary>
         public Guid CommandId { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The version of the event stream.
         /// </summary>
         public long Version { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The occurred time of the event stream.
         /// </summary>
         public DateTime Timestamp { get; private set; }
-        /// <summary>
-        /// 
+        /// <summary>The domain events of the event stream.
         /// </summary>
         public IEnumerable<IEvent> Events { get; private set; }
 
-        /// <summary>
-        /// 
+        /// <summary>Check if a given type of domain event exist in the current event stream.
         /// </summary>
         /// <typeparam name="TEvent"></typeparam>
         /// <returns></returns>
@@ -81,8 +72,7 @@ namespace ENode.Eventing
         {
             return Events.Any(x => x.GetType() == typeof(TEvent));
         }
-        /// <summary>
-        /// 
+        /// <summary>Find a domain event with the given event type from the current event stream.
         /// </summary>
         /// <typeparam name="TEvent"></typeparam>
         /// <returns></returns>
@@ -90,16 +80,14 @@ namespace ENode.Eventing
         {
             return Events.SingleOrDefault(x => x.GetType() == typeof(TEvent)) as TEvent;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get all the event type names, sperated by | character.
         /// </summary>
         /// <returns></returns>
         public string GetEventInformation()
         {
             return string.Join("|", Events.Select(x => x.GetType().Name));
         }
-        /// <summary>
-        /// 
+        /// <summary>Get the whole event stream string information.
         /// </summary>
         /// <returns></returns>
         public string GetStreamInformation()
@@ -116,8 +104,7 @@ namespace ENode.Eventing
             };
             return string.Join("|", items);
         }
-        /// <summary>
-        /// 
+        /// <summary>Overrides to return the whole event stream information.
         /// </summary>
         /// <returns></returns>
         public override string ToString()

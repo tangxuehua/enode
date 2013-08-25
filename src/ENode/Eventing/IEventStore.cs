@@ -10,8 +10,7 @@ namespace ENode.Eventing
         /// <summary>Append the event stream to the event store.
         /// </summary>
         void Append(EventStream stream);
-
-        /// <summary>Check whether an event stream is exist.
+        /// <summary>Check whether an event stream is exist in the event store.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>

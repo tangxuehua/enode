@@ -4,13 +4,11 @@
     /// </summary>
     public interface IEventHandler
     {
-        /// <summary>
-        /// 
+        /// <summary>Handle the given event.
         /// </summary>
         /// <param name="evnt"></param>
         void Handle(object evnt);
-        /// <summary>
-        /// 
+        /// <summary>Get the inner event handler.
         /// </summary>
         /// <returns></returns>
         object GetInnerEventHandler();
@@ -20,8 +18,7 @@
     /// <typeparam name="TEvent"></typeparam>
     public interface IEventHandler<in TEvent> where TEvent : class, IEvent
     {
-        /// <summary>
-        /// 
+        /// <summary>Handle the given event.
         /// </summary>
         /// <param name="evnt"></param>
         void Handle(TEvent evnt);
