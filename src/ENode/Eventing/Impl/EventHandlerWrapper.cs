@@ -1,15 +1,13 @@
 ﻿namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IEventHandler.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public class EventHandlerWrapper<T> : IEventHandler where T : class, IEvent
     {
         private readonly IEventHandler<T> _eventHandler;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="eventHandler"></param>
         public EventHandlerWrapper(IEventHandler<T> eventHandler)
@@ -17,8 +15,7 @@
             _eventHandler = eventHandler;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Handle the given event.
         /// </summary>
         /// <param name="evnt"></param>
         public void Handle(object evnt)
@@ -26,8 +23,7 @@
             _eventHandler.Handle(evnt as T);
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get the inner event handler.
         /// </summary>
         /// <returns></returns>
         public object GetInnerEventHandler()

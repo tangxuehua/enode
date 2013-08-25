@@ -3,16 +3,14 @@ using System.Threading;
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of ICommittedEventQueueRouter.
     /// </summary>
     public class DefaultCommittedEventQueueRouter : ICommittedEventQueueRouter
     {
         private ICommittedEventQueue[] _eventQueues;
         private int _index;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>

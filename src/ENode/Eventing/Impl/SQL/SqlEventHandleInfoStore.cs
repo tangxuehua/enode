@@ -5,8 +5,7 @@ using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>
-    /// 
+    /// <summary>The SQL implementation of IEventHandleInfoStore.
     /// </summary>
     public class SqlEventHandleInfoStore : IEventHandleInfoStore
     {
@@ -20,8 +19,7 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="tableName"></param>
@@ -44,8 +42,7 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
-        /// <summary>
-        /// 
+        /// <summary>Insert an event handle info.
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>
@@ -61,8 +58,7 @@ namespace ENode.Eventing.Impl.SQL
                 }
             });
         }
-        /// <summary>
-        /// 
+        /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>

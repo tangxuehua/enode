@@ -2,15 +2,13 @@
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IEventPublisher.
     /// </summary>
     public class DefaultEventPublisher : IEventPublisher
     {
         private readonly ICommittedEventQueueRouter _eventQueueRouter;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="eventQueueRouter"></param>
         public DefaultEventPublisher(ICommittedEventQueueRouter eventQueueRouter)
@@ -18,8 +16,7 @@ namespace ENode.Eventing.Impl
             _eventQueueRouter = eventQueueRouter;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Publish a given committed event stream to all the event handlers.
         /// </summary>
         /// <param name="stream"></param>
         public void Publish(EventStream stream)

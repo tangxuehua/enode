@@ -2,20 +2,17 @@
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IUncommittedEventProcessor.
     /// </summary>
     public class DefaultUncommittedEventProcessor :
         MessageProcessor<IUncommittedEventQueue, IUncommittedEventExecutor, EventStream>,
         IUncommittedEventProcessor
     {
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="bindingQueue"></param>
         /// <param name="workerCount"></param>
-        public DefaultUncommittedEventProcessor(IUncommittedEventQueue bindingQueue, int workerCount = 1)
-            : base(bindingQueue, workerCount)
+        public DefaultUncommittedEventProcessor(IUncommittedEventQueue bindingQueue, int workerCount = 1) : base(bindingQueue, workerCount)
         {
         }
     }

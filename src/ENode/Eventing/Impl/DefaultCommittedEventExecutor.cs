@@ -7,7 +7,7 @@ using ENode.Messaging.Impl;
 namespace ENode.Eventing.Impl
 {
     /// <summary>
-    /// 
+    /// The default implementation of ICommittedEventExecutor.
     /// </summary>
     public class DefaultCommittedEventExecutor : MessageExecutor<EventStream>, ICommittedEventExecutor
     {
@@ -23,8 +23,7 @@ namespace ENode.Eventing.Impl
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="eventHandlerProvider"></param>
         /// <param name="eventPublishInfoStore"></param>
@@ -47,8 +46,7 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>
-        /// 
+        /// <summary>Execute the given event stream.
         /// </summary>
         /// <param name="eventStream"></param>
         /// <param name="queue"></param>

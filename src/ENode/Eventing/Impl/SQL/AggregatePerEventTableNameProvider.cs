@@ -5,15 +5,13 @@ using ENode.Domain;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>
-    /// 
+    /// <summary>Default implementation of IEventTableNameProvider.
     /// </summary>
     public class AggregatePerEventTableNameProvider : IEventTableNameProvider
     {
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootTypeProvider"></param>
         public AggregatePerEventTableNameProvider(IAggregateRootTypeProvider aggregateRootTypeProvider)
@@ -21,8 +19,7 @@ namespace ENode.Eventing.Impl.SQL
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get table for a specific aggregate root.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -32,8 +29,7 @@ namespace ENode.Eventing.Impl.SQL
             return aggregateRootType.Name;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get all the tables of the eventstore.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<string> GetAllTables()

@@ -5,8 +5,7 @@ using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>
-    /// 
+    /// <summary>The SQL implementation of IEventPublishInfoStore.
     /// </summary>
     public class SqlEventPublishInfoStore : IEventPublishInfoStore
     {
@@ -20,8 +19,7 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="tableName"></param>
@@ -44,8 +42,7 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
-        /// <summary>
-        /// 
+        /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         public void InsertFirstPublishedVersion(string aggregateRootId)
@@ -59,8 +56,7 @@ namespace ENode.Eventing.Impl.SQL
                 }
             });
         }
-        /// <summary>
-        /// 
+        /// <summary>Update the published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
@@ -74,8 +70,7 @@ namespace ENode.Eventing.Impl.SQL
                     _tableName);
             });
         }
-        /// <summary>
-        /// 
+        /// <summary>Get the current event published version for the specified aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>

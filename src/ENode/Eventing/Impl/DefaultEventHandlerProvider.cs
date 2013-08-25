@@ -7,15 +7,13 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IEventHandlerProvider.
     /// </summary>
     public class DefaultEventHandlerProvider : IEventHandlerProvider, IAssemblyInitializer
     {
         private readonly IDictionary<Type, IList<IEventHandler>> _eventHandlerDict = new Dictionary<Type, IList<IEventHandler>>();
 
-        /// <summary>
-        /// 
+        /// <summary>Initialize from the given assemblies.
         /// </summary>
         /// <param name="assemblies"></param>
         /// <exception cref="Exception"></exception>
@@ -31,8 +29,7 @@ namespace ENode.Eventing.Impl
             }
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get all the event handlers for the given event type.
         /// </summary>
         /// <param name="eventType"></param>
         /// <returns></returns>
@@ -46,8 +43,7 @@ namespace ENode.Eventing.Impl
             return eventHandlers;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Check whether a given type is a event handler type.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
@@ -76,11 +72,11 @@ namespace ENode.Eventing.Impl
                 eventHandlers.Add(eventHandlerWrapper);
             }
         }
-        private IEnumerable<Type> ScanEventHandlerInterfaces(Type eventHandlerType)
+        private static IEnumerable<Type> ScanEventHandlerInterfaces(Type eventHandlerType)
         {
             return eventHandlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEventHandler<>));
         }
-        private Type GetEventType(Type eventHandlerInterface)
+        private static Type GetEventType(Type eventHandlerInterface)
         {
             return eventHandlerInterface.GetGenericArguments().Single();
         }

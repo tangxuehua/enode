@@ -8,8 +8,7 @@ namespace ENode.Eventing.Impl.InMemory
     {
         private readonly ConcurrentDictionary<string, long> _versionDict = new ConcurrentDictionary<string, long>();
 
-        /// <summary>
-        /// 
+        /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         public void InsertFirstPublishedVersion(string aggregateRootId)
@@ -17,8 +16,7 @@ namespace ENode.Eventing.Impl.InMemory
             _versionDict.TryAdd(aggregateRootId, 1);
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Update the published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
@@ -27,8 +25,7 @@ namespace ENode.Eventing.Impl.InMemory
             _versionDict[aggregateRootId] = version;
         }
 
-        /// <summary>
-        /// 
+        /// <summary>Get the current event published version for the specified aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>

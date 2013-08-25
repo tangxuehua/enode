@@ -3,15 +3,13 @@ using System.Collections.Concurrent;
 
 namespace ENode.Eventing.Impl.InMemory
 {
-    /// <summary>
-    /// 
+    /// <summary>Local in-memory implementation of IEventHandleInfoStore using ConcurrentDictionary.
     /// </summary>
     public class InMemoryEventHandleInfoStore : IEventHandleInfoStore
     {
         private readonly ConcurrentDictionary<EventHandleInfo, int> _versionDict = new ConcurrentDictionary<EventHandleInfo, int>();
 
-        /// <summary>
-        /// 
+        /// <summary>Insert an event handle info.
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>
@@ -19,8 +17,7 @@ namespace ENode.Eventing.Impl.InMemory
         {
             _versionDict.TryAdd(new EventHandleInfo(eventId, eventHandlerTypeName), 0);
         }
-        /// <summary>
-        /// 
+        /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>

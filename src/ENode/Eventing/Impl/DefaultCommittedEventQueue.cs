@@ -2,13 +2,11 @@
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of ICommittedEventQueue.
     /// </summary>
     public class DefaultCommittedEventQueue : MessageQueue<EventStream>, ICommittedEventQueue
     {
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="queueName"></param>
         public DefaultCommittedEventQueue(string queueName) : base(queueName) { }

@@ -12,8 +12,7 @@ using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>
-    /// 
+    /// <summary>The SQL implementation of IEventStore.
     /// </summary>
     public class SqlEventStore : IEventStore
     {
@@ -29,8 +28,7 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -49,8 +47,9 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
-        /// <summary>
-        /// 
+        #region Public Methods
+
+        /// <summary>Append the event stream to the event store.
         /// </summary>
         /// <param name="stream"></param>
         public void Append(EventStream stream)
@@ -98,9 +97,7 @@ namespace ENode.Eventing.Impl.SQL
                 connection.Close();
             }
         }
-
-        /// <summary>
-        /// 
+        /// <summary>Query event streams from event store.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -125,9 +122,7 @@ namespace ENode.Eventing.Impl.SQL
                 return sqlEventStreams.Select(BuildEventStreamFrom).ToList();
             });
         }
-
-        /// <summary>
-        /// 
+        /// <summary>Check whether an event stream is exist in the event store.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -142,9 +137,7 @@ namespace ENode.Eventing.Impl.SQL
                 return count > 0;
             });
         }
-
-        /// <summary>
-        /// 
+        /// <summary>Query all the event streams from the event store.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<EventStream> QueryAll()
@@ -162,6 +155,10 @@ namespace ENode.Eventing.Impl.SQL
                 return streams;
             });
         }
+
+        #endregion
+
+        #region Private Methods
 
         private EventStream BuildEventStreamFrom(SqlEventStream sqlEventStream)
         {
@@ -198,5 +195,7 @@ namespace ENode.Eventing.Impl.SQL
             public DateTime Timestamp { get; set; }
             public string Events { get; set; }
         }
+
+        #endregion
     }
 }

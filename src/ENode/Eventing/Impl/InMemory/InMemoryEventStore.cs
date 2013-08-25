@@ -6,15 +6,13 @@ using ENode.Infrastructure.Concurrent;
 
 namespace ENode.Eventing.Impl.InMemory
 {
-    /// <summary>
-    /// 
+    /// <summary>In-memory concurrent dictionary based event store implementation.
     /// </summary>
     public class InMemoryEventStore : IEventStore
     {
         private readonly ConcurrentDictionary<EventKey, EventStream> _eventDict = new ConcurrentDictionary<EventKey, EventStream>();
 
-        /// <summary>
-        /// 
+        /// <summary>Append the event stream to the event store.
         /// </summary>
         /// <param name="stream"></param>
         public void Append(EventStream stream)
@@ -25,8 +23,7 @@ namespace ENode.Eventing.Impl.InMemory
                 throw new ConcurrentException("");
             }
         }
-        /// <summary>
-        /// 
+        /// <summary>Check whether an event stream is exist in the event store.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -40,8 +37,7 @@ namespace ENode.Eventing.Impl.InMemory
                 .Where(x => x.AggregateRootId == aggregateRootId && x.Version >= minStreamVersion && x.Version <= maxStreamVersion)
                 .OrderBy(x => x.Version);
         }
-        /// <summary>
-        /// 
+        /// <summary>Query event streams from event store.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -51,8 +47,7 @@ namespace ENode.Eventing.Impl.InMemory
         {
             return _eventDict.Values.Any(x => x.AggregateRootId == aggregateRootId && x.Id == id);
         }
-        /// <summary>
-        /// 
+        /// <summary>Query all the event streams from the event store.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<EventStream> QueryAll()

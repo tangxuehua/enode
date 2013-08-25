@@ -2,23 +2,20 @@
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IEventSender.
     /// </summary>
     public class DefaultEventSender : IEventSender
     {
         private readonly IUncommittedEventQueueRouter _eventQueueRouter;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="eventQueueRouter"></param>
         public DefaultEventSender(IUncommittedEventQueueRouter eventQueueRouter)
         {
             _eventQueueRouter = eventQueueRouter;
         }
-        /// <summary>
-        /// 
+        /// <summary>Send the uncommitted event stream to process asynchronously.
         /// </summary>
         /// <param name="eventStream"></param>
         public void Send(EventStream eventStream)

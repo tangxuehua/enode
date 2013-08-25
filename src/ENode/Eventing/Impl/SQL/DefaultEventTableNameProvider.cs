@@ -3,15 +3,13 @@ using System.Collections.Generic;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IEventTableNameProvider.
     /// </summary>
     public class DefaultEventTableNameProvider : IEventTableNameProvider
     {
         private readonly string _tableName;
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="tableName"></param>
         /// <exception cref="ArgumentNullException"></exception>
@@ -23,8 +21,7 @@ namespace ENode.Eventing.Impl.SQL
             }
             _tableName = tableName;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get table for a specific aggregate root.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
@@ -33,8 +30,7 @@ namespace ENode.Eventing.Impl.SQL
         {
             return _tableName;
         }
-        /// <summary>
-        /// 
+        /// <summary>Get all the tables of the eventstore.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<string> GetAllTables()

@@ -10,8 +10,7 @@ using ENode.Messaging.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of IUncommittedEventExecutor.
     /// </summary>
     public class DefaultUncommittedEventExecutor : MessageExecutor<EventStream>, IUncommittedEventExecutor
     {
@@ -34,8 +33,7 @@ namespace ENode.Eventing.Impl
 
         #region Constructors
 
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processingCommandCache"></param>
         /// <param name="commandAsyncResultManager"></param>
@@ -79,8 +77,7 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>
-        /// 
+        /// <summary>Execute the given event stream.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="queue"></param>

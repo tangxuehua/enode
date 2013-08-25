@@ -2,20 +2,15 @@
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// 
+    /// <summary>The default implementation of ICommittedEventProcessor.
     /// </summary>
-    public class DefaultCommittedEventProcessor :
-        MessageProcessor<ICommittedEventQueue, ICommittedEventExecutor, EventStream>,
-        ICommittedEventProcessor
+    public class DefaultCommittedEventProcessor : MessageProcessor<ICommittedEventQueue, ICommittedEventExecutor, EventStream>, ICommittedEventProcessor
     {
-        /// <summary>
-        /// 
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="bindingQueue"></param>
         /// <param name="workerCount"></param>
-        public DefaultCommittedEventProcessor(ICommittedEventQueue bindingQueue, int workerCount = 1)
-            : base(bindingQueue, workerCount)
+        public DefaultCommittedEventProcessor(ICommittedEventQueue bindingQueue, int workerCount = 1) : base(bindingQueue, workerCount)
         {
         }
     }
