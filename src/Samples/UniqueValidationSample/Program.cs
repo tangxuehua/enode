@@ -10,9 +10,14 @@ using ENode.Log4Net;
 using ENode.Mongo;
 using UniqueValidationSample.Commands;
 
-namespace UniqueValidationSample {
-    class Program {
-        static void Main(string[] args) {
+namespace UniqueValidationSample
+{
+    class Program
+    {
+        private const string ConnectionString = "mongodb://localhost/UniqueValidationSampleDB";
+
+        static void Main(string[] args)
+        {
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
@@ -22,8 +27,10 @@ namespace UniqueValidationSample {
             commandService.Execute(command1);
 
             var command2 = new RegisterUser { UserName = "netfocus_" + suffix };
-            commandService.Send(command2, (result) => {
-                if (result.HasError) {
+            commandService.Send(command2, (result) =>
+            {
+                if (result.ErrorInfo != null)
+                {
                     Console.WriteLine("异常，用户名重复！");
                 }
             });
@@ -33,9 +40,9 @@ namespace UniqueValidationSample {
             Console.ReadLine();
         }
 
-        static void InitializeENodeFramework() {
-            var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
-            var connectionString = "mongodb://localhost/UniqueValidationSampleDB";
+        static void InitializeENodeFramework()
+        {
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
 
             Configuration
                 .Create()
@@ -44,7 +51,7 @@ namespace UniqueValidationSample {
                 .RegisterBusinessComponents(assemblies)
                 .UseLog4Net()
                 .UseJsonNet()
-                .UseMongo(connectionString)
+                .UseMongo(ConnectionString)
                 .CreateAllDefaultProcessors()
                 .Initialize(assemblies)
                 .Start();

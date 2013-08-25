@@ -5,11 +5,15 @@ using ENode.JsonNet;
 using ENode.Log4Net;
 using ENode.Mongo;
 
-namespace NoteSample {
-    public class ENodeFrameworkMongoInitializer : IENodeFrameworkInitializer {
-        public void Initialize() {
-            var assemblies = new Assembly[] { Assembly.GetExecutingAssembly() };
-            var connectionString = "mongodb://localhost/NoteDB";
+namespace NoteSample
+{
+    public class ENodeFrameworkMongoInitializer : IENodeFrameworkInitializer
+    {
+        private const string ConnectionString = "mongodb://localhost/NoteDB";
+
+        public void Initialize()
+        {
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
 
             Configuration
                 .Create()
@@ -18,7 +22,7 @@ namespace NoteSample {
                 .RegisterBusinessComponents(assemblies)
                 .UseLog4Net()
                 .UseJsonNet()
-                .UseMongo(connectionString)
+                .UseMongo(ConnectionString)
                 .CreateAllDefaultProcessors()
                 .Initialize(assemblies)
                 .Start();

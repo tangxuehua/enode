@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Threading;
 using ENode.Commanding;
-using ENode.Domain;
 using ENode.Infrastructure;
 using NoteSample.Commands;
 
-namespace NoteSample {
-    class Program {
-        static void Main(string[] args) {
+namespace NoteSample
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
             new ENodeFrameworkUnitTestInitializer().Initialize();
 
             //如果要使用Sql或MongoDB来持久化，请用下面相应的语句来初始化
@@ -18,7 +20,6 @@ namespace NoteSample {
             //new ENodeFrameworkRedisInitializer().Initialize();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
-            var memoryCache = ObjectContainer.Resolve<IMemoryCache>();
 
             var noteId = Guid.NewGuid();
 

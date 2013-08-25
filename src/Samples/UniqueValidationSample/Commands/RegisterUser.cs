@@ -1,9 +1,11 @@
 ﻿using System;
 using ENode.Commanding;
 
-namespace UniqueValidationSample.Commands {
+namespace UniqueValidationSample.Commands
+{
     [Serializable]
-    public class RegisterUser : Command {
+    public class RegisterUser : Command
+    {
         public string UserName { get; set; }
     }
 }
