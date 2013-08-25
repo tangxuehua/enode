@@ -12,6 +12,9 @@ namespace ENode.Commanding.Impl
         private readonly IRetryService _retryService;
         private readonly ConcurrentDictionary<Guid, CommandAsyncResult> _commandAsyncResultDict = new ConcurrentDictionary<Guid, CommandAsyncResult>();
 
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="retryService"></param>
         public DefaultCommandAsyncResultManager(IRetryService retryService)
         {
             _retryService = retryService;
