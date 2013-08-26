@@ -11,12 +11,12 @@ namespace ENode.Domain
         /// <typeparam name="T"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        T Get<T>(string id) where T : AggregateRoot;
+        T Get<T>(object id) where T : AggregateRoot;
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
         /// <param name="type"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        AggregateRoot Get(Type type, string id);
+        AggregateRoot Get(Type type, object id);
     }
 }

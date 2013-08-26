@@ -8,13 +8,13 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        AggregateRoot Get(string id);
+        AggregateRoot Get(object id);
         /// <summary>Get a strong type aggregate from memory cache.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        T Get<T>(string id) where T : AggregateRoot;
+        T Get<T>(object id) where T : AggregateRoot;
         /// <summary>Set an aggregate to memory cache.
         /// </summary>
         /// <param name="aggregateRoot"></param>

@@ -35,7 +35,7 @@ namespace ENode.Domain.Impl
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>(string id) where T : AggregateRoot
+        public T Get<T>(object id) where T : AggregateRoot
         {
             return Get(typeof(T), id) as T;
         }
@@ -44,9 +44,10 @@ namespace ENode.Domain.Impl
         /// <param name="type"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public AggregateRoot Get(Type type, string id)
+        public AggregateRoot Get(Type type, object id)
         {
-            return _memoryCache.Get(id) ?? GetFromStorage(type, id);
+            if (id == null) throw new ArgumentNullException("id");
+            return _memoryCache.Get(id) ?? GetFromStorage(type, id.ToString());
         }
 
         #region Helper Methods
@@ -55,7 +56,7 @@ namespace ENode.Domain.Impl
         /// </summary>
         private AggregateRoot GetFromStorage(Type aggregateRootType, string aggregateRootId)
         {
-            AggregateRoot aggregateRoot = null;
+            AggregateRoot aggregateRoot;
             const long minStreamVersion = 1;
             const long maxStreamVersion = long.MaxValue;
 

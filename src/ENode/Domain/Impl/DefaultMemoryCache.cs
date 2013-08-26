@@ -23,10 +23,11 @@ namespace ENode.Domain.Impl
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public AggregateRoot Get(string id)
+        public AggregateRoot Get(object id)
         {
+            if (id == null) throw new ArgumentNullException("id");
             byte[] value;
-            if (_cacheDict.TryGetValue(id, out value))
+            if (_cacheDict.TryGetValue(id.ToString(), out value))
             {
                 return _binarySerializer.Deserialize(value) as AggregateRoot;
             }
@@ -37,10 +38,11 @@ namespace ENode.Domain.Impl
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>(string id) where T : AggregateRoot
+        public T Get<T>(object id) where T : AggregateRoot
         {
+            if (id == null) throw new ArgumentNullException("id");
             byte[] value;
-            return _cacheDict.TryGetValue(id, out value) ? _binarySerializer.Deserialize<T>(value) : null;
+            return _cacheDict.TryGetValue(id.ToString(), out value) ? _binarySerializer.Deserialize<T>(value) : null;
         }
         /// <summary>Set an aggregate to memory cache.
         /// </summary>

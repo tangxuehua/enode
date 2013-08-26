@@ -27,9 +27,10 @@ namespace ENode.Redis
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public AggregateRoot Get(string id)
+        public AggregateRoot Get(object id)
         {
-            var value = _redisClient.Get(id);
+            if (id == null) throw new ArgumentNullException("id");
+            var value = _redisClient.Get(id.ToString());
             if (value != null && value.Length > 0)
             {
                 return _binarySerializer.Deserialize(value) as AggregateRoot;
@@ -41,9 +42,10 @@ namespace ENode.Redis
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>(string id) where T : AggregateRoot
+        public T Get<T>(object id) where T : AggregateRoot
         {
-            var value = _redisClient.Get(id);
+            if (id == null) throw new ArgumentNullException("id");
+            var value = _redisClient.Get(id.ToString());
             if (value != null && value.Length > 0)
             {
                 return _binarySerializer.Deserialize<T>(value);
