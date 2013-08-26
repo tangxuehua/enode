@@ -8,7 +8,7 @@ namespace ENode.Infrastructure
 {
     /// <summary>A class provides utility methods.
     /// </summary>
-    public class Utils
+    public static class Utils
     {
         /// <summary>Convert the given object to a given strong type.
         /// </summary>
@@ -90,6 +90,20 @@ namespace ENode.Infrastructure
                     propertyFromTarget.SetValue(target, propertyFromSource.GetValue(source, null), null);
                 }
             }
+        }
+        /// <summary>Parse the current string to enum type.
+        /// </summary>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static TEnum ParseEnum<TEnum>(this string value) where TEnum : struct
+        {
+            TEnum result;
+            if (!Enum.TryParse<TEnum>(value, true, out result))
+            {
+                result = default(TEnum);
+            }
+            return result;
         }
 
         private static PropertyInfo GetProperty<TSource, TProperty>(Expression<Func<TSource, TProperty>> lambda)
