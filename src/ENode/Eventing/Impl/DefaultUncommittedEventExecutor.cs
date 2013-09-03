@@ -120,6 +120,7 @@ namespace ENode.Eventing.Impl
                     {
                         if (context.HasConcurrentException)
                         {
+                            TryRefreshMemoryCache(context.EventStream);
                             RetryCommand(context, context.ErrorInfo, () => FinishExecution(context.EventStream, context.Queue));
                         }
                         else
