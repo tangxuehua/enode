@@ -6,7 +6,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using UniqueValidationSample.Events;
 
-namespace UniqueValidationSample.EventPersistenceSynchronizers
+namespace UniqueValidationSample.EventSynchronizers
 {
     [Component(LifeStyle.Singleton)]
     public class UserNameUniqueValidator : IEventSynchronizer<UserRegistered>

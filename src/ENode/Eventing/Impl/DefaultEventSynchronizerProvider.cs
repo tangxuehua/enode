@@ -20,7 +20,7 @@ namespace ENode.Eventing.Impl
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var synchronizerType in assembly.GetTypes().Where(IsEventPersistenceSynchronizer))
+                foreach (var synchronizerType in assembly.GetTypes().Where(IsEventSynchronizer))
                 {
                     if (!TypeUtils.IsComponent(synchronizerType))
                     {
@@ -65,7 +65,7 @@ namespace ENode.Eventing.Impl
                 eventSynchronizers.Add(synchronizerWrapper);
             }
         }
-        private static bool IsEventPersistenceSynchronizer(Type type)
+        private static bool IsEventSynchronizer(Type type)
         {
             return type.IsClass && !type.IsAbstract && ScanSynchronizerInterfaces(type).Any();
         }

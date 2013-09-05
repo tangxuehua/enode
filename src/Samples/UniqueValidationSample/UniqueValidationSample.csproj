@@ -59,7 +59,7 @@
     <Compile Include="CommandHandlers\RegisterUserCommandHandler.cs" />
     <Compile Include="Commands\RegisterUser.cs" />
     <Compile Include="Domain\User.cs" />
-    <Compile Include="EventPersistenceSynchronizers\UserNameUniqueValidator.cs" />
+    <Compile Include="EventSynchronizers\UserNameUniqueValidator.cs" />
     <Compile Include="Events\UserRegistered.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
