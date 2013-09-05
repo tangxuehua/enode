@@ -150,9 +150,8 @@ namespace ENode.Infrastructure.PerformanceTesting
             const string leftSpace = "";
             const string unitIndentString = "    ";
             var recorderItemTimeStrings = new List<string>();
-            List<RecorderItem> topLevelRecorderItems = null;
 
-            topLevelRecorderItems = GetTopLevelRecorderItems();
+            var topLevelRecorderItems = GetTopLevelRecorderItems();
 
             foreach (var recorderItem in topLevelRecorderItems)
             {
@@ -217,7 +216,7 @@ namespace ENode.Infrastructure.PerformanceTesting
                 recorderItemTimeLeftSpaceString += unitIndentString;
             }
 
-            recorderItemTimeStrings.Add(string.Format(recorderItemTimeStringFormat, new object[] { recorderItemTimeLeftSpaceString, (recorderItem.TotalTicks / 10000).ToString() + "ms", GetTimePercent(recorderItem), recorderItem.Description, recorderItem.StartTime.ToString() + ":" + recorderItem.StartTime.Millisecond.ToString(), recorderItem.EndTime.ToString() + ":" + recorderItem.EndTime.Millisecond.ToString() }));
+            recorderItemTimeStrings.Add(string.Format(recorderItemTimeStringFormat, new object[] { recorderItemTimeLeftSpaceString, (recorderItem.TotalTicks / 10000) + "ms", GetTimePercent(recorderItem), recorderItem.Description, recorderItem.StartTime + ":" + recorderItem.StartTime.Millisecond, recorderItem.EndTime + ":" + recorderItem.EndTime.Millisecond }));
 
             foreach (var childRecorderItem in recorderItem.ChildRecorderItems)
             {

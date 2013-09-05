@@ -65,7 +65,7 @@ namespace ENode.Domain
             }
 
             var other = (ValueObject<T>)obj;
-            var enumerator1 = this.GetAtomicValues().GetEnumerator();
+            var enumerator1 = GetAtomicValues().GetEnumerator();
             var enumerator2 = other.GetAtomicValues().GetEnumerator();
             var enumerator1HasNextValue = enumerator1.MoveNext();
             var enumerator2HasNextValue = enumerator2.MoveNext();

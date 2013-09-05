@@ -1,16 +1,16 @@
 ﻿namespace ENode.Eventing.Impl
 {
-    /// <summary>The default implementation of IEventPersistenceSynchronizer.
+    /// <summary>The default implementation of IEventSynchronizer.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class EventPersistenceSynchronizerWrapper<T> : IEventPersistenceSynchronizer where T : class, IEvent
+    public class EventSynchronizerWrapper<T> : IEventSynchronizer where T : class, IEvent
     {
-        private readonly IEventPersistenceSynchronizer<T> _synchronizer;
+        private readonly IEventSynchronizer<T> _synchronizer;
 
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="synchronizer"></param>
-        public EventPersistenceSynchronizerWrapper(IEventPersistenceSynchronizer<T> synchronizer)
+        public EventSynchronizerWrapper(IEventSynchronizer<T> synchronizer)
         {
             _synchronizer = synchronizer;
         }
@@ -29,7 +29,7 @@
         {
             _synchronizer.OnAfterPersisted(evnt as T);
         }
-        /// <summary>Represents the inner generic IEventPersistenceSynchronizer.
+        /// <summary>Represents the inner generic IEventSynchronizer.
         /// </summary>
         /// <returns></returns>
         public object GetInnerSynchronizer()

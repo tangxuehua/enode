@@ -6,11 +6,11 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>The default implementation of IEventPersistenceSynchronizerProvider.
+    /// <summary>The default implementation of IEventSynchronizerProvider.
     /// </summary>
-    public class DefaultEventPersistenceSynchronizerProvider : IEventPersistenceSynchronizerProvider, IAssemblyInitializer
+    public class DefaultEventSynchronizerProvider : IEventSynchronizerProvider, IAssemblyInitializer
     {
-        private readonly IDictionary<Type, IList<IEventPersistenceSynchronizer>> _eventSynchronizerDict = new Dictionary<Type, IList<IEventPersistenceSynchronizer>>();
+        private readonly IDictionary<Type, IList<IEventSynchronizer>> _eventSynchronizerDict = new Dictionary<Type, IList<IEventSynchronizer>>();
 
         /// <summary>Initialize from the given assemblies.
         /// </summary>
@@ -31,13 +31,13 @@ namespace ENode.Eventing.Impl
             }
         }
 
-        /// <summary>Get all the event persistence synchronizers for the given event type.
+        /// <summary>Get all the event synchronizers for the given event type.
         /// </summary>
         /// <param name="eventType"></param>
         /// <returns></returns>
-        public IEnumerable<IEventPersistenceSynchronizer> GetSynchronizers(Type eventType)
+        public IEnumerable<IEventSynchronizer> GetSynchronizers(Type eventType)
         {
-            var eventSynchronizers = new List<IEventPersistenceSynchronizer>();
+            var eventSynchronizers = new List<IEventSynchronizer>();
             foreach (var key in _eventSynchronizerDict.Keys.Where(key => key.IsAssignableFrom(eventType)))
             {
                 eventSynchronizers.AddRange(_eventSynchronizerDict[key]);
@@ -50,18 +50,18 @@ namespace ENode.Eventing.Impl
             foreach (var synchronizerInterface in ScanSynchronizerInterfaces(synchronizerType))
             {
                 var eventType = GetEventType(synchronizerInterface);
-                var synchronizerWrapperType = typeof(EventPersistenceSynchronizerWrapper<>).MakeGenericType(eventType);
-                IList<IEventPersistenceSynchronizer> eventSynchronizers = null;
+                var synchronizerWrapperType = typeof(EventSynchronizerWrapper<>).MakeGenericType(eventType);
+                IList<IEventSynchronizer> eventSynchronizers;
                 if (!_eventSynchronizerDict.TryGetValue(eventType, out eventSynchronizers))
                 {
-                    eventSynchronizers = new List<IEventPersistenceSynchronizer>();
+                    eventSynchronizers = new List<IEventSynchronizer>();
                     _eventSynchronizerDict.Add(eventType, eventSynchronizers);
                 }
 
                 if (eventSynchronizers.Any(x => x.GetInnerSynchronizer().GetType() == synchronizerType)) continue;
 
                 var synchronizer = ObjectContainer.Resolve(synchronizerType);
-                var synchronizerWrapper = Activator.CreateInstance(synchronizerWrapperType, new object[] { synchronizer }) as IEventPersistenceSynchronizer;
+                var synchronizerWrapper = Activator.CreateInstance(synchronizerWrapperType, new[] { synchronizer }) as IEventSynchronizer;
                 eventSynchronizers.Add(synchronizerWrapper);
             }
         }
@@ -71,7 +71,7 @@ namespace ENode.Eventing.Impl
         }
         private static IEnumerable<Type> ScanSynchronizerInterfaces(Type type)
         {
-            return type.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEventPersistenceSynchronizer<>));
+            return type.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEventSynchronizer<>));
         }
         private static Type GetEventType(Type synchronizerInterface)
         {

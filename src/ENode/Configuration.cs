@@ -154,7 +154,7 @@ namespace ENode
             Register<IRetryCommandService, DefaultRetryCommandService>();
 
             Register<IEventHandlerProvider, DefaultEventHandlerProvider>();
-            Register<IEventPersistenceSynchronizerProvider, DefaultEventPersistenceSynchronizerProvider>();
+            Register<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
             Register<IEventStore, InMemoryEventStore>();
             Register<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             Register<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();

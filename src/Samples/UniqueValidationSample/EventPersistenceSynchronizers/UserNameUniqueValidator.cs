@@ -9,7 +9,7 @@ using UniqueValidationSample.Events;
 namespace UniqueValidationSample.EventPersistenceSynchronizers
 {
     [Component(LifeStyle.Singleton)]
-    public class UserNameUniqueValidator : IEventPersistenceSynchronizer<UserRegistered>
+    public class UserNameUniqueValidator : IEventSynchronizer<UserRegistered>
     {
         private const string ConnectionString = "mongodb://localhost/UniqueValidationSampleDB";
         private const string UsernameCollectionName = "UserNameCollection";

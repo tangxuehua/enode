@@ -74,7 +74,7 @@ namespace ENode.Eventing.Impl.InMemory
                 {
                     return false;
                 }
-                else if (eventKey == this)
+                if (eventKey == this)
                 {
                     return true;
                 }

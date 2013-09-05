@@ -45,14 +45,11 @@ namespace ENode.Messaging.Impl
             }
 
             _bindingQueue = bindingQueue;
-            IList<TMessageExecutor> messageExecutors = new List<TMessageExecutor>();
             _workers = new List<Worker>();
 
             for (var index = 0; index < messageExecutorCount; index++)
             {
-                var messageExecutor = ObjectContainer.Resolve<TMessageExecutor>();
-                messageExecutors.Add(messageExecutor);
-                _workers.Add(new Worker(() => ProcessMessage(messageExecutor)));
+                _workers.Add(new Worker(() => ProcessMessage(ObjectContainer.Resolve<TMessageExecutor>())));
             }
 
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
@@ -89,7 +86,7 @@ namespace ENode.Messaging.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when handling queue message:{0}.", message.ToString()), ex);
+                _logger.Error(string.Format("Exception raised when handling queue message:{0}.", message), ex);
             }
         }
     }

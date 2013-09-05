@@ -43,7 +43,7 @@ namespace ENode.Domain.Impl
             IDictionary<Type, MethodInfo> eventHandlerDic;
             if (!_mappings.TryGetValue(aggregateRootType, out eventHandlerDic)) return null;
             MethodInfo eventHandler;
-            return eventHandlerDic.TryGetValue(eventType, out eventHandler) ? new Action<AggregateRoot, object>((aggregateRoot, evnt) => eventHandler.Invoke(aggregateRoot, new object[] { evnt })) : null;
+            return eventHandlerDic.TryGetValue(eventType, out eventHandler) ? new Action<AggregateRoot, object>((aggregateRoot, evnt) => eventHandler.Invoke(aggregateRoot, new[] { evnt })) : null;
         }
 
         private void RegisterInternalHandler(Type aggregateRootType, Type eventType, MethodInfo eventHandler)

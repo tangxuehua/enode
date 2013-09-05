@@ -5,7 +5,7 @@
     ///  Code can be executed before and after the event persistence.
     /// </remarks>
     /// </summary>
-    public interface IEventPersistenceSynchronizer
+    public interface IEventSynchronizer
     {
         /// <summary>Executed before persisting the event.
         /// </summary>
@@ -13,7 +13,7 @@
         /// <summary>Executed after the event was persisted.
         /// </summary>
         void OnAfterPersisted(IEvent evnt);
-        /// <summary>Represents the inner generic IEventPersistenceSynchronizer.
+        /// <summary>Represents the inner generic IEventSynchronizer.
         /// </summary>
         object GetInnerSynchronizer();
     }
@@ -24,7 +24,7 @@
     /// </remarks>
     /// </summary>
     /// <typeparam name="TEvent"></typeparam>
-    public interface IEventPersistenceSynchronizer<in TEvent> where TEvent : class, IEvent
+    public interface IEventSynchronizer<in TEvent> where TEvent : class, IEvent
     {
         /// <summary>Executed before persisting the event.
         /// </summary>

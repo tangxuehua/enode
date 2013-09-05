@@ -47,7 +47,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="aggregateRootId"></param>
         public void InsertFirstPublishedVersion(string aggregateRootId)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
+            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
                 var count = connection.GetCount(new { AggregateRootId = aggregateRootId }, _tableName);
                 if (count == 0)
@@ -62,7 +62,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="version"></param>
         public void UpdatePublishedVersion(string aggregateRootId, long version)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
+            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
                 connection.Update(
                     new { PublishedEventStreamVersion = version },

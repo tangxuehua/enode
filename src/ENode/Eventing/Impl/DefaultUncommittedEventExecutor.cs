@@ -26,7 +26,7 @@ namespace ENode.Eventing.Impl
         private readonly IEventStore _eventStore;
         private readonly IEventPublisher _eventPublisher;
         private readonly IRetryService _retryService;
-        private readonly IEventPersistenceSynchronizerProvider _eventPersistenceSynchronizerProvider;
+        private readonly IEventSynchronizerProvider _eventSynchronizerProvider;
         private readonly ILogger _logger;
 
         #endregion
@@ -45,7 +45,7 @@ namespace ENode.Eventing.Impl
         /// <param name="eventStore"></param>
         /// <param name="eventPublisher"></param>
         /// <param name="retryService"></param>
-        /// <param name="eventPersistenceSynchronizerProvider"></param>
+        /// <param name="eventSynchronizerProvider"></param>
         /// <param name="loggerFactory"></param>
         public DefaultUncommittedEventExecutor(
             IProcessingCommandCache processingCommandCache,
@@ -58,7 +58,7 @@ namespace ENode.Eventing.Impl
             IEventStore eventStore,
             IEventPublisher eventPublisher,
             IRetryService retryService,
-            IEventPersistenceSynchronizerProvider eventPersistenceSynchronizerProvider,
+            IEventSynchronizerProvider eventSynchronizerProvider,
             ILoggerFactory loggerFactory)
         {
             _processingCommandCache = processingCommandCache;
@@ -71,7 +71,7 @@ namespace ENode.Eventing.Impl
             _eventStore = eventStore;
             _eventPublisher = eventPublisher;
             _retryService = retryService;
-            _eventPersistenceSynchronizerProvider = eventPersistenceSynchronizerProvider;
+            _eventSynchronizerProvider = eventSynchronizerProvider;
             _logger = loggerFactory.Create(GetType().Name);
         }
 
@@ -251,7 +251,7 @@ namespace ENode.Eventing.Impl
 
             foreach (var evnt in eventStream.Events)
             {
-                var synchronizers = _eventPersistenceSynchronizerProvider.GetSynchronizers(evnt.GetType());
+                var synchronizers = _eventSynchronizerProvider.GetSynchronizers(evnt.GetType());
                 foreach (var synchronizer in synchronizers)
                 {
                     try
@@ -283,7 +283,7 @@ namespace ENode.Eventing.Impl
         {
             foreach (var evnt in eventStream.Events)
             {
-                var synchronizers = _eventPersistenceSynchronizerProvider.GetSynchronizers(evnt.GetType());
+                var synchronizers = _eventSynchronizerProvider.GetSynchronizers(evnt.GetType());
                 foreach (var synchronizer in synchronizers)
                 {
                     try

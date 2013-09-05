@@ -52,7 +52,7 @@ namespace ENode.Messaging.Impl.SQL
         /// <param name="message"></param>
         public void AddMessage(string queueName, IMessage message)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
+            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
                 var tableName = _queueTableNameProvider.GetTable(queueName);
                 var messageData = _binarySerializer.Serialize(message);
@@ -65,7 +65,7 @@ namespace ENode.Messaging.Impl.SQL
         /// <param name="message"></param>
         public void RemoveMessage(string queueName, IMessage message)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
+            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
                 var tableName = _queueTableNameProvider.GetTable(queueName);
                 connection.Delete(new { MessageId = message.Id }, tableName);
@@ -78,7 +78,7 @@ namespace ENode.Messaging.Impl.SQL
         /// <returns></returns>
         public IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<T>>((connection) =>
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<T>>(connection =>
             {
                 var tableName = _queueTableNameProvider.GetTable(queueName);
                 var items = connection.QueryAll(tableName);

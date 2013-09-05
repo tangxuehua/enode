@@ -89,7 +89,7 @@ namespace ENode.Domain
         /// <param name="evnt">The domain event to be raised.</param>
         protected void RaiseEvent<T>(T evnt) where T : class, IEvent
         {
-            HandleEvent<T>(evnt);
+            HandleEvent(evnt);
             QueueEvent(evnt);
         }
 
@@ -108,7 +108,7 @@ namespace ENode.Domain
         /// <param name="eventStream"></param>
         internal void ReplayEventStream(EventStream eventStream)
         {
-            ReplayEventStreams(new EventStream[] { eventStream });
+            ReplayEventStreams(new[] { eventStream });
         }
         /// <summary>Replay the given event streams.
         /// </summary>
@@ -157,7 +157,7 @@ namespace ENode.Domain
             }
             else
             {
-                var handler = _eventHandlerProvider.GetInternalEventHandler(this.GetType(), evnt.GetType());
+                var handler = _eventHandlerProvider.GetInternalEventHandler(GetType(), evnt.GetType());
                 if (handler == null)
                 {
                     throw new Exception(string.Format("Event handler not found on {0} for {1}.", GetType().FullName, evnt.GetType().FullName));

@@ -58,7 +58,7 @@ namespace ENode.Eventing.Impl
             {
                 var eventType = GetEventType(eventHandlerInterface);
                 var eventHandlerWrapperType = typeof(EventHandlerWrapper<>).MakeGenericType(eventType);
-                IList<IEventHandler> eventHandlers = null;
+                IList<IEventHandler> eventHandlers;
                 if (!_eventHandlerDict.TryGetValue(eventType, out eventHandlers))
                 {
                     eventHandlers = new List<IEventHandler>();
@@ -68,7 +68,7 @@ namespace ENode.Eventing.Impl
                 if (eventHandlers.Any(x => x.GetInnerEventHandler().GetType() == eventHandlerType)) continue;
 
                 var eventHandler = ObjectContainer.Resolve(eventHandlerType);
-                var eventHandlerWrapper = Activator.CreateInstance(eventHandlerWrapperType, new object[] { eventHandler }) as IEventHandler;
+                var eventHandlerWrapper = Activator.CreateInstance(eventHandlerWrapperType, new[] { eventHandler }) as IEventHandler;
                 eventHandlers.Add(eventHandlerWrapper);
             }
         }

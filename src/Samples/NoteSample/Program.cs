@@ -26,7 +26,7 @@ namespace NoteSample
             var command1 = new CreateNote { NoteId = noteId, Title = "Sample Note" };
             var command2 = new ChangeNoteTitle { NoteId = noteId, Title = "Modified Note" };
 
-            commandService.Send(command1, (result) => commandService.Send(command2));
+            commandService.Send(command1, result => commandService.Send(command2));
 
             Thread.Sleep(1000);
             Console.WriteLine("Press Enter to exit...");

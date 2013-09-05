@@ -29,11 +29,7 @@ namespace ENode.Commanding.Impl
         public ICommandHandler GetCommandHandler(ICommand command)
         {
             ICommandHandler commandHandler;
-            if (_commandHandlerDict.TryGetValue(command.GetType(), out commandHandler))
-            {
-                return commandHandler;
-            }
-            return null;
+            return _commandHandlerDict.TryGetValue(command.GetType(), out commandHandler) ? commandHandler : null;
         }
         /// <summary>Check whether the given type is a command handler type.
         /// </summary>
@@ -46,7 +42,7 @@ namespace ENode.Commanding.Impl
 
         private void RegisterAllCommandHandlersInAssembly(Assembly assembly)
         {
-            foreach (var commandHandlerType in assembly.GetTypes().Where(x => IsCommandHandler(x)))
+            foreach (var commandHandlerType in assembly.GetTypes().Where(IsCommandHandler))
             {
                 if (!TypeUtils.IsComponent(commandHandlerType))
                 {
@@ -59,14 +55,20 @@ namespace ENode.Commanding.Impl
                     var commandType = handlerType.GetGenericArguments().Single();
                     var commandHandlerWrapperType = typeof(CommandHandlerWrapper<>).MakeGenericType(commandType);
                     var commandHandler = ObjectContainer.Resolve(commandHandlerType);
-                    var commandHandlerWrapper = Activator.CreateInstance(commandHandlerWrapperType, new object[] { commandHandler }) as ICommandHandler;
+                    var commandHandlerWrapper = Activator.CreateInstance(commandHandlerWrapperType, new[] { commandHandler }) as ICommandHandler;
                     RegisterCommandHandler(commandType, commandHandlerWrapper);
                 }
             }
         }
         private void RegisterCommandHandler(Type commandType, ICommandHandler commandHandler)
         {
-            _commandHandlerDict[commandType] = commandHandler;
+            if (_commandHandlerDict.TryAdd(commandType, commandHandler)) return;
+
+            if (_commandHandlerDict.ContainsKey(commandType))
+            {
+                throw new DuplicatedCommandHandlerException(commandType, commandHandler.GetInnerCommandHandler().GetType());
+            }
+            throw new ENodeException("Error occurred when registering {0} for {1} command.", commandHandler.GetType().Name, commandType.Name);
         }
     }
 }

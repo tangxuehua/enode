@@ -35,7 +35,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <returns></returns>
         public IEnumerable<string> GetAllTables()
         {
-            return new string[] { _tableName };
+            return new[] { _tableName };
         }
     }
 }

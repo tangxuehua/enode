@@ -49,10 +49,11 @@
     <Compile Include="Commanding\Impl\DefaultRetryCommandService.cs" />
     <Compile Include="Commanding\CommandExecutionException.cs" />
     <Compile Include="Commanding\CommandQueueNotFoundException.cs" />
+    <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
-    <Compile Include="Eventing\IEventPersistenceSynchronizer.cs" />
+    <Compile Include="Eventing\IEventSynchronizer.cs" />
     <Compile Include="Eventing\IEventSender.cs" />
     <Compile Include="Eventing\Impl\DefaultEventSender.cs" />
     <Compile Include="Eventing\Impl\DefaultUncommittedEventQueue.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Eventing\IUncommittedEventQueueRouter.cs" />
     <Compile Include="Eventing\IUncommittedEventProcessor.cs" />
     <Compile Include="Eventing\EventStreamContext.cs" />
+    <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\Concurrent\ConcurrentException.cs" />
     <Compile Include="Eventing\EventStream.cs" />
     <Compile Include="Eventing\IEvent.cs" />
@@ -94,9 +96,9 @@
     <Compile Include="Eventing\IEventPublishInfoStore.cs" />
     <Compile Include="Eventing\ICommittedEventQueueRouter.cs" />
     <Compile Include="Eventing\IEventHandleInfoStore.cs" />
-    <Compile Include="Eventing\IEventPersistenceSynchronizerProvider.cs" />
-    <Compile Include="Eventing\Impl\DefaultEventPersistenceSynchronizerProvider.cs" />
-    <Compile Include="Eventing\Impl\EventPersistenceSynchronizerWrapper.cs" />
+    <Compile Include="Eventing\IEventSynchronizerProvider.cs" />
+    <Compile Include="Eventing\Impl\DefaultEventSynchronizerProvider.cs" />
+    <Compile Include="Eventing\Impl\EventSynchronizerWrapper.cs" />
     <Compile Include="Infrastructure\ErrorInfo.cs" />
     <Compile Include="Infrastructure\Retring\DefaultRetryService.cs" />
     <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
