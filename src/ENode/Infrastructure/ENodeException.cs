@@ -2,7 +2,7 @@
 
 namespace ENode.Infrastructure
 {
-    /// <summary>Represents a concurrent exception.
+    /// <summary>Represents a common exception of enode framework.
     /// </summary>
     [Serializable]
     public class ENodeException : Exception
