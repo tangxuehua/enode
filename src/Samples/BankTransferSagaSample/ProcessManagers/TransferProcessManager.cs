@@ -5,21 +5,24 @@ using ENode.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.EventHandlers
+namespace BankTransferSagaSample.ProcessManagers
 {
-    /// <summary>事件订阅者，用于监听和响应转账流程聚合根产生的事件
+    /// <summary>银行转账流程管理器，用于协调银行转账流程中各个参与者聚合根之间的消息交互。
     /// </summary>
     [Component]
-    public class TransferProcessEventHandler :
-        IEventHandler<TransferProcessStarted>,       //转账流程已开始
+    public class TransferProcessManager :
+        IEventHandler<TransferProcessStarted>,       //转账流程已发起
         IEventHandler<TransferOutRequested>,         //转出的请求已发起
+        IEventHandler<TransferedOut>,                //钱已转出
         IEventHandler<TransferInRequested>,          //转入的请求已发起
+        IEventHandler<TransferedIn>,                 //钱已转入
         IEventHandler<RollbackTransferOutRequested>, //回滚转出的请求已发起
+        IEventHandler<TransferOutRolledback>,        //转出已回滚
         IEventHandler<TransferProcessCompleted>      //转账流程已完成
     {
         private readonly ICommandService _commandService;
 
-        public TransferProcessEventHandler(ICommandService commandService)
+        public TransferProcessManager(ICommandService commandService)
         {
             _commandService = commandService;
         }
@@ -40,6 +43,12 @@ namespace BankTransferSagaSample.EventHandlers
                 }
             });
         }
+        void IEventHandler<TransferedOut>.Handle(TransferedOut evnt)
+        {
+            Console.WriteLine(evnt.Description);
+            //响应已转出事件，发送“处理已转出事件”的命令
+            _commandService.Send(new HandleTransferedOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
+        }
         void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt)
         {
             //响应“转入的命令请求已发起”这个事件，发送“转入”命令
@@ -52,10 +61,22 @@ namespace BankTransferSagaSample.EventHandlers
                 }
             });
         }
+        void IEventHandler<TransferedIn>.Handle(TransferedIn evnt)
+        {
+            Console.WriteLine(evnt.Description);
+            //响应已转入事件，发送“处理已转入事件”的命令
+            _commandService.Send(new HandleTransferedIn(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
+        }
         void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt)
         {
             //响应“回滚转出的命令请求已发起”这个事件，发送“回滚转出”命令
             _commandService.Send(new RollbackTransferOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
+        }
+        void IEventHandler<TransferOutRolledback>.Handle(TransferOutRolledback evnt)
+        {
+            Console.WriteLine(evnt.Description);
+            //响应转出已回滚事件，发送“处理转出已回滚事件”的命令
+            _commandService.Send(new HandleTransferOutRolledback(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
         }
         void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
         {

@@ -56,8 +56,6 @@
     <Compile Include="Commands\TransferProcessCommands.cs" />
     <Compile Include="Domain\BankAccount.cs" />
     <Compile Include="Domain\TransferProcess.cs" />
-    <Compile Include="EventHandlers\BankAccountEventHandler.cs" />
-    <Compile Include="EventHandlers\TransferProcessEventHandler.cs" />
     <Compile Include="Events\AccountOpened.cs" />
     <Compile Include="Events\AbstractTransferEvent.cs" />
     <Compile Include="Events\TransferOutRolledback.cs" />
@@ -69,6 +67,7 @@
     <Compile Include="Events\TransferOutRequested.cs" />
     <Compile Include="Events\TransferInRequested.cs" />
     <Compile Include="Events\TransferProcessCompleted.cs" />
+    <Compile Include="ProcessManagers\TransferProcessManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

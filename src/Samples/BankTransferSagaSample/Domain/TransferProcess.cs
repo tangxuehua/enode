@@ -6,58 +6,7 @@ using ENode.Infrastructure;
 
 namespace BankTransferSagaSample.Domain
 {
-    /// <summary>转账流程状态
-    /// </summary>
-    public enum ProcessState
-    {
-        NotStarted,
-        Started,
-        TransferOutRequested,
-        TransferInRequested,
-        RollbackTransferOutRequested,
-        Completed
-    }
-    /// <summary>转账信息值对象，包含了转账的基本信息
-    /// </summary>
-    [Serializable]
-    public class TransferInfo
-    {
-        public Guid SourceAccountId { get; private set; }
-        public Guid TargetAccountId { get; private set; }
-        public double Amount { get; private set; }
-
-        public TransferInfo(Guid sourceAccountId, Guid targetAccountId, double amount)
-        {
-            SourceAccountId = sourceAccountId;
-            TargetAccountId = targetAccountId;
-            Amount = amount;
-        }
-    }
-    /// <summary>值对象，包含了转账流程的结果信息
-    /// </summary>
-    [Serializable]
-    public class TransferProcessResult
-    {
-        private static readonly TransferProcessResult SuccessResult = new TransferProcessResult(true, null);
-
-        /// <summary>转账是否成功
-        /// </summary>
-        public bool IsSuccess { get; private set; }
-        /// <summary>错误信息
-        /// </summary>
-        public ErrorInfo ErrorInfo { get; private set; }
-
-        public TransferProcessResult(bool isSuccess, ErrorInfo errorInfo)
-        {
-            IsSuccess = isSuccess;
-            ErrorInfo = errorInfo;
-        }
-
-        /// <summary>表示转账成功的结果
-        /// </summary>
-        public static TransferProcessResult Success { get { return SuccessResult; } }
-    }
-    /// <summary>银行转账流程聚合根，负责控制整个转账的过程，包括遇到异常时的回滚处理
+    /// <summary>银行转账流程聚合根。负责封装流程的当前状态以及流程下一步该怎么走的逻辑，包括遇到异常时的回滚处理逻辑。
     /// </summary>
     [Serializable]
     public class TransferProcess : AggregateRoot<Guid>,
@@ -75,8 +24,7 @@ namespace BankTransferSagaSample.Domain
         public ProcessState State { get; private set; }
 
         public TransferProcess() { }
-        public TransferProcess(BankAccount sourceAccount, BankAccount targetAccount, TransferInfo transferInfo)
-            : base(Guid.NewGuid())
+        public TransferProcess(BankAccount sourceAccount, BankAccount targetAccount, TransferInfo transferInfo) : base(Guid.NewGuid())
         {
             RaiseEvent(new TransferProcessStarted(Id, transferInfo, string.Format("转账流程启动，源账户：{0}，目标账户：{1}，转账金额：{2}",
                         sourceAccount.AccountNumber,
@@ -145,5 +93,56 @@ namespace BankTransferSagaSample.Domain
             State = ProcessState.Completed;
             Result = evnt.ProcessResult;
         }
+    }
+    /// <summary>转账流程状态
+    /// </summary>
+    public enum ProcessState
+    {
+        NotStarted,
+        Started,
+        TransferOutRequested,
+        TransferInRequested,
+        RollbackTransferOutRequested,
+        Completed
+    }
+    /// <summary>转账信息值对象，包含了转账的基本信息
+    /// </summary>
+    [Serializable]
+    public class TransferInfo
+    {
+        public Guid SourceAccountId { get; private set; }
+        public Guid TargetAccountId { get; private set; }
+        public double Amount { get; private set; }
+
+        public TransferInfo(Guid sourceAccountId, Guid targetAccountId, double amount)
+        {
+            SourceAccountId = sourceAccountId;
+            TargetAccountId = targetAccountId;
+            Amount = amount;
+        }
+    }
+    /// <summary>值对象，包含了转账流程的结果信息
+    /// </summary>
+    [Serializable]
+    public class TransferProcessResult
+    {
+        private static readonly TransferProcessResult SuccessResult = new TransferProcessResult(true, null);
+
+        /// <summary>转账是否成功
+        /// </summary>
+        public bool IsSuccess { get; private set; }
+        /// <summary>错误信息
+        /// </summary>
+        public ErrorInfo ErrorInfo { get; private set; }
+
+        public TransferProcessResult(bool isSuccess, ErrorInfo errorInfo)
+        {
+            IsSuccess = isSuccess;
+            ErrorInfo = errorInfo;
+        }
+
+        /// <summary>表示转账成功的结果
+        /// </summary>
+        public static TransferProcessResult Success { get { return SuccessResult; } }
     }
 }
