@@ -1,22 +1,16 @@
 ﻿using System;
-using ENode.Eventing;
+using BankTransferSagaSample.Domain;
 
-namespace BankTransferSample.Events
+namespace BankTransferSagaSample.Events
 {
+    /// <summary>钱已转入
+    /// </summary>
     [Serializable]
-    public class TransferedIn : Event
+    public class TransferedIn : AbstractTransferEvent
     {
-        public Guid SourceAccountId { get; private set; }
-        public Guid TargetAccountId { get; private set; }
-        public double Amount { get; private set; }
-        public string Description { get; private set; }
-
-        public TransferedIn(Guid sourceAccountId, Guid targetAccountId, double amount, string description)
+        public TransferedIn(Guid processId, TransferInfo transferInfo, string description)
+            : base(processId, transferInfo, description)
         {
-            SourceAccountId = sourceAccountId;
-            TargetAccountId = targetAccountId;
-            Amount = amount;
-            Description = description;
         }
     }
 }

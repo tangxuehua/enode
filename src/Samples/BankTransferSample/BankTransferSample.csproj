@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{698A4B5D-9AE1-41AA-992D-FDA944847EEB}</ProjectGuid>
+    <ProjectGuid>{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BankTransferSample</RootNamespace>
-    <AssemblyName>BankTransferSample</AssemblyName>
+    <RootNamespace>BankTransferSagaSample</RootNamespace>
+    <AssemblyName>BankTransferSagaSample</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
@@ -37,42 +37,42 @@
     <Reference Include="Autofac">
       <HintPath>..\..\..\packages\Autofac.3.1.1\lib\net40\Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
     <Reference Include="log4net">
       <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandHandlers\OpenAccountCommandHandler.cs" />
-    <Compile Include="CommandHandlers\DepositCommandHandler.cs" />
-    <Compile Include="CommandHandlers\TransferOutCommandHandler.cs" />
-    <Compile Include="CommandHandlers\TransferInCommandHandler.cs" />
-    <Compile Include="Commands\OpenAccount.cs" />
-    <Compile Include="Commands\Deposit.cs" />
-    <Compile Include="Commands\TransferOut.cs" />
-    <Compile Include="Commands\TransferIn.cs" />
+    <Compile Include="CommandHandlers\BankAccountCommandHandlers.cs" />
+    <Compile Include="CommandHandlers\TransferProcessCommandHandlers.cs" />
+    <Compile Include="Commands\BankAccountCommands.cs" />
+    <Compile Include="Commands\TransferProcessCommands.cs" />
     <Compile Include="Domain\BankAccount.cs" />
+    <Compile Include="Domain\TransferProcess.cs" />
+    <Compile Include="Domain\TransferProcessState.cs" />
+    <Compile Include="Domain\TransferInfo.cs" />
+    <Compile Include="Domain\TransferProcessResult.cs" />
     <Compile Include="Events\AccountOpened.cs" />
-    <Compile Include="EventHandlers\BankAccountEventHandler.cs" />
+    <Compile Include="Events\AbstractTransferEvent.cs" />
+    <Compile Include="Events\TransferOutRolledback.cs" />
+    <Compile Include="Events\RollbackTransferOutRequested.cs" />
     <Compile Include="Events\Deposited.cs" />
-    <Compile Include="Events\TransferedOut.cs" />
     <Compile Include="Events\TransferedIn.cs" />
+    <Compile Include="Events\TransferedOut.cs" />
+    <Compile Include="Events\TransferProcessStarted.cs" />
+    <Compile Include="Events\TransferOutRequested.cs" />
+    <Compile Include="Events\TransferInRequested.cs" />
+    <Compile Include="Events\TransferProcessCompleted.cs" />
+    <Compile Include="ProcessManagers\TransferProcessManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="log4net.config">
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Extensions\ENode.Autofac\ENode.Autofac.csproj">
@@ -92,7 +92,13 @@
       <Name>ENode</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="log4net.config">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // 有关程序集的常规信息通过以下
 // 特性集控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("BankTransferSample")]
+[assembly: AssemblyTitle("BankTransferSagaSample")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("BankTransferSample")]
+[assembly: AssemblyProduct("BankTransferSagaSample")]
 [assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
-[assembly: Guid("23e4098f-8af4-45d0-9668-4eb4869dab45")]
+[assembly: Guid("8837229c-753e-4d50-8b59-abfe9f7618d6")]
 
 // 程序集的版本信息由下面四个值组成:
 //
