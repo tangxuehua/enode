@@ -56,6 +56,9 @@
     <Compile Include="Commands\TransferProcessCommands.cs" />
     <Compile Include="Domain\BankAccount.cs" />
     <Compile Include="Domain\TransferProcess.cs" />
+    <Compile Include="Domain\TransferProcessState.cs" />
+    <Compile Include="Domain\TransferInfo.cs" />
+    <Compile Include="Domain\TransferProcessResult.cs" />
     <Compile Include="Events\AccountOpened.cs" />
     <Compile Include="Events\AbstractTransferEvent.cs" />
     <Compile Include="Events\TransferOutRolledback.cs" />

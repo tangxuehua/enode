@@ -6,7 +6,10 @@ using ENode.Infrastructure;
 
 namespace BankTransferSagaSample.Domain
 {
-    /// <summary>银行转账流程聚合根。负责封装流程的当前状态以及流程下一步该怎么走的逻辑，包括遇到异常时的回滚处理逻辑。
+    /// <summary>银行转账流程聚合根
+    /// <remarks>
+    /// 负责封装转账流程的当前状态以及流程下一步该怎么走的逻辑，包括遇到异常时的回滚处理逻辑。
+    /// </remarks>
     /// </summary>
     [Serializable]
     public class TransferProcess : AggregateRoot<Guid>,
@@ -21,15 +24,12 @@ namespace BankTransferSagaSample.Domain
         public TransferProcessResult Result { get; protected set; }
         /// <summary>当前转账流程状态
         /// </summary>
-        public ProcessState State { get; private set; }
+        public TransferProcessState State { get; private set; }
 
         public TransferProcess() { }
-        public TransferProcess(BankAccount sourceAccount, BankAccount targetAccount, TransferInfo transferInfo) : base(Guid.NewGuid())
+        public TransferProcess(Guid processId, TransferInfo transferInfo) : base(processId)
         {
-            RaiseEvent(new TransferProcessStarted(Id, transferInfo, string.Format("转账流程启动，源账户：{0}，目标账户：{1}，转账金额：{2}",
-                        sourceAccount.AccountNumber,
-                        targetAccount.AccountNumber,
-                        transferInfo.Amount)));
+            RaiseEvent(new TransferProcessStarted(Id, transferInfo, string.Format("转账流程启动，源账户：{0}，目标账户：{1}，转账金额：{2}", transferInfo.SourceAccountNumber, transferInfo.TargetAccountNumber, transferInfo.Amount)));
             RaiseEvent(new TransferOutRequested(Id, transferInfo));
         }
 
@@ -73,76 +73,25 @@ namespace BankTransferSagaSample.Domain
 
         void IEventHandler<TransferProcessStarted>.Handle(TransferProcessStarted evnt)
         {
-            State = ProcessState.Started;
+            State = TransferProcessState.Started;
         }
         void IEventHandler<TransferOutRequested>.Handle(TransferOutRequested evnt)
         {
-            State = ProcessState.TransferOutRequested;
+            State = TransferProcessState.TransferOutRequested;
         }
         void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt)
         {
-            State = ProcessState.TransferInRequested;
+            State = TransferProcessState.TransferInRequested;
         }
         void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt)
         {
-            State = ProcessState.RollbackTransferOutRequested;
+            State = TransferProcessState.RollbackTransferOutRequested;
             Result = new TransferProcessResult(false, evnt.ErrorInfo);
         }
         void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
         {
-            State = ProcessState.Completed;
+            State = TransferProcessState.Completed;
             Result = evnt.ProcessResult;
         }
-    }
-    /// <summary>转账流程状态
-    /// </summary>
-    public enum ProcessState
-    {
-        NotStarted,
-        Started,
-        TransferOutRequested,
-        TransferInRequested,
-        RollbackTransferOutRequested,
-        Completed
-    }
-    /// <summary>转账信息值对象，包含了转账的基本信息
-    /// </summary>
-    [Serializable]
-    public class TransferInfo
-    {
-        public Guid SourceAccountId { get; private set; }
-        public Guid TargetAccountId { get; private set; }
-        public double Amount { get; private set; }
-
-        public TransferInfo(Guid sourceAccountId, Guid targetAccountId, double amount)
-        {
-            SourceAccountId = sourceAccountId;
-            TargetAccountId = targetAccountId;
-            Amount = amount;
-        }
-    }
-    /// <summary>值对象，包含了转账流程的结果信息
-    /// </summary>
-    [Serializable]
-    public class TransferProcessResult
-    {
-        private static readonly TransferProcessResult SuccessResult = new TransferProcessResult(true, null);
-
-        /// <summary>转账是否成功
-        /// </summary>
-        public bool IsSuccess { get; private set; }
-        /// <summary>错误信息
-        /// </summary>
-        public ErrorInfo ErrorInfo { get; private set; }
-
-        public TransferProcessResult(bool isSuccess, ErrorInfo errorInfo)
-        {
-            IsSuccess = isSuccess;
-            ErrorInfo = errorInfo;
-        }
-
-        /// <summary>表示转账成功的结果
-        /// </summary>
-        public static TransferProcessResult Success { get { return SuccessResult; } }
     }
 }

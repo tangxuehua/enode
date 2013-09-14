@@ -34,7 +34,7 @@ namespace BankTransferSagaSample.ProcessManagers
         void IEventHandler<TransferOutRequested>.Handle(TransferOutRequested evnt)
         {
             //响应“转出的命令请求已发起”这个事件，发送“转出”命令
-            _commandService.Send(new TransferOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo }, (result) =>
+            _commandService.Send(new TransferOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo }, result =>
             {
                 //这里是command的异步回调函数，如果有异常，则发送“处理转出失败”的命令
                 if (result.ErrorInfo != null)

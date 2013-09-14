@@ -18,9 +18,7 @@ namespace BankTransferSagaSample.CommandHandlers
     {
         public void Handle(ICommandContext context, StartTransfer command)
         {
-            var sourceAccount = context.Get<BankAccount>(command.TransferInfo.SourceAccountId);
-            var targetAccount = context.Get<BankAccount>(command.TransferInfo.TargetAccountId);
-            context.Add(new TransferProcess(sourceAccount, targetAccount, command.TransferInfo));
+            context.Add(new TransferProcess(command.ProcessId, command.TransferInfo));
         }
         public void Handle(ICommandContext context, HandleTransferedOut command)
         {
