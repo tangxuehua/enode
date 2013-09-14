@@ -1,7 +1,7 @@
 ﻿using System;
-using BankTransferSagaSample.Domain;
+using BankTransferSample.Domain;
 
-namespace BankTransferSagaSample.Events
+namespace BankTransferSample.Events
 {
     /// <summary>钱已转入
     /// </summary>

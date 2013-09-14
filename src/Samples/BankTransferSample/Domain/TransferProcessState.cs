@@ -1,4 +1,4 @@
-﻿namespace BankTransferSagaSample.Domain
+﻿namespace BankTransferSample.Domain
 {
     /// <summary>转账流程状态
     /// </summary>

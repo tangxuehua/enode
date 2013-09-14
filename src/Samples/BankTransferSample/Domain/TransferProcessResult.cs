@@ -1,7 +1,7 @@
 ﻿using System;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.Domain
+namespace BankTransferSample.Domain
 {
     /// <summary>值对象，包含了转账流程的结果信息
     /// </summary>

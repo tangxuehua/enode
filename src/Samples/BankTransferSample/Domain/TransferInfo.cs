@@ -1,5 +1,5 @@
 ﻿using System;
-namespace BankTransferSagaSample.Domain
+namespace BankTransferSample.Domain
 {
     /// <summary>转账信息值对象，包含了转账的基本信息
     /// </summary>

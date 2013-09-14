@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading;
-using BankTransferSagaSample.Commands;
-using BankTransferSagaSample.Domain;
+using BankTransferSample.Commands;
+using BankTransferSample.Domain;
 using ENode;
 using ENode.Autofac;
 using ENode.Commanding;
@@ -11,7 +11,7 @@ using ENode.Infrastructure;
 using ENode.JsonNet;
 using ENode.Log4Net;
 
-namespace BankTransferSagaSample
+namespace BankTransferSample
 {
     class Program
     {

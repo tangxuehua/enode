@@ -1,9 +1,9 @@
 ﻿using System;
-using BankTransferSagaSample.Domain;
+using BankTransferSample.Domain;
 using ENode.Commanding;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.Commands
+namespace BankTransferSample.Commands
 {
     /// <summary>转账相关抽象命令基类
     /// </summary>

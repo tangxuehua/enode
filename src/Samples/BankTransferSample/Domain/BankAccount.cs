@@ -1,9 +1,9 @@
 ﻿using System;
-using BankTransferSagaSample.Events;
+using BankTransferSample.Events;
 using ENode.Domain;
 using ENode.Eventing;
 
-namespace BankTransferSagaSample.Domain
+namespace BankTransferSample.Domain
 {
     /// <summary>银行账号聚合根
     /// </summary>

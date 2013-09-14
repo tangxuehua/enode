@@ -1,10 +1,10 @@
 ﻿using System;
-using BankTransferSagaSample.Events;
+using BankTransferSample.Events;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.Domain
+namespace BankTransferSample.Domain
 {
     /// <summary>银行转账流程聚合根
     /// <remarks>

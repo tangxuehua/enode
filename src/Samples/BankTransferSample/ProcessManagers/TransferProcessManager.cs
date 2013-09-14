@@ -1,11 +1,11 @@
 ﻿using System;
-using BankTransferSagaSample.Commands;
-using BankTransferSagaSample.Events;
+using BankTransferSample.Commands;
+using BankTransferSample.Events;
 using ENode.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.ProcessManagers
+namespace BankTransferSample.ProcessManagers
 {
     /// <summary>银行转账流程管理器，用于协调银行转账流程中各个参与者聚合根之间的消息交互。
     /// </summary>

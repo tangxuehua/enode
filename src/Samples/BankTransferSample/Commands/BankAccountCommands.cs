@@ -1,7 +1,7 @@
 ﻿using System;
 using ENode.Commanding;
 
-namespace BankTransferSagaSample.Commands
+namespace BankTransferSample.Commands
 {
     /// <summary>开户
     /// </summary>

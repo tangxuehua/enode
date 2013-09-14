@@ -1,9 +1,9 @@
-﻿using BankTransferSagaSample.Commands;
-using BankTransferSagaSample.Domain;
+﻿using BankTransferSample.Commands;
+using BankTransferSample.Domain;
 using ENode.Commanding;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.CommandHandlers
+namespace BankTransferSample.CommandHandlers
 {
     /// <summary>银行账户相关命令处理
     /// </summary>

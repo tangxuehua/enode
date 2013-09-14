@@ -1,8 +1,8 @@
 ﻿using System;
-using BankTransferSagaSample.Domain;
+using BankTransferSample.Domain;
 using ENode.Eventing;
 
-namespace BankTransferSagaSample.Events
+namespace BankTransferSample.Events
 {
     /// <summary>与转账流程相关的抽象事件，包含转账流程ID和基本的转账信息
     /// </summary>

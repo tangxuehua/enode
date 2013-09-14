@@ -1,7 +1,7 @@
 ﻿using System;
 using ENode.Eventing;
 
-namespace BankTransferSagaSample.Events
+namespace BankTransferSample.Events
 {
     /// <summary>钱已存入
     /// </summary>

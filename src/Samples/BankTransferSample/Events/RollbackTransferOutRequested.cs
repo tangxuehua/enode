@@ -1,8 +1,8 @@
 ﻿using System;
-using BankTransferSagaSample.Domain;
+using BankTransferSample.Domain;
 using ENode.Infrastructure;
 
-namespace BankTransferSagaSample.Events
+namespace BankTransferSample.Events
 {
     /// <summary>回滚转出的请求已发起
     /// </summary>
