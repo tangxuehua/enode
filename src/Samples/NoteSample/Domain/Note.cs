@@ -15,8 +15,7 @@ namespace NoteSample.Domain
         public DateTime UpdatedTime { get; private set; }
 
         public Note() { }
-        public Note(Guid id, string title)
-            : base(id)
+        public Note(Guid id, string title) : base(id)
         {
             var currentTime = DateTime.Now;
             RaiseEvent(new NoteCreated(Id, title, currentTime, currentTime));

@@ -10,9 +10,8 @@ namespace UniqueValidationSample.Domain
     {
         public string Name { get; private set; }
 
-        public User() : base() { }
-        public User(string name)
-            : base(Guid.NewGuid())
+        public User() { }
+        public User(string name) : base(Guid.NewGuid())
         {
             RaiseEvent(new UserRegistered(Id, name));
         }
