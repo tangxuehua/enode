@@ -82,6 +82,16 @@ namespace ENode.Infrastructure.Retring
                 _retryQueue.Add(new ActionInfo(actionName, obj => action(), null, nextAction));
             }
         }
+        /// <summary>Try to execute the given action with the given max retry count. If success then returns true; otherwise, returns false.
+        /// </summary>
+        /// <param name="actionName"></param>
+        /// <param name="action"></param>
+        /// <param name="maxRetryCount"></param>
+        /// <returns></returns>
+        public bool TryRecursively(string actionName, Func<bool> action, int maxRetryCount)
+        {
+            return TryRecursively(actionName, (x, y, z) => action(), 0, maxRetryCount);
+        }
 
         private void Loop(object data)
         {

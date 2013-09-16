@@ -16,6 +16,7 @@ namespace ENode.Eventing.Impl
         private readonly IEventHandlerProvider _eventHandlerProvider;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IEventHandleInfoStore _eventHandleInfoStore;
+        private readonly IEventHandleInfoCache _eventHandleInfoCache;
         private readonly IRetryService _retryService;
         private readonly ILogger _logger;
 
@@ -34,12 +35,14 @@ namespace ENode.Eventing.Impl
             IEventHandlerProvider eventHandlerProvider,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
+            IEventHandleInfoCache eventHandleInfoCache,
             IRetryService retryService,
             ILoggerFactory loggerFactory)
         {
             _eventHandlerProvider = eventHandlerProvider;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventHandleInfoStore = eventHandleInfoStore;
+            _eventHandleInfoCache = eventHandleInfoCache;
             _retryService = retryService;
             _logger = loggerFactory.Create(GetType().Name);
         }
@@ -65,14 +68,12 @@ namespace ENode.Eventing.Impl
                 switch (eventStream.Version)
                 {
                     case 1:
-                        DispatchEventsToHandlers(eventStream);
-                        return true;
+                        return DispatchEventsToHandlers(eventStream);
                     default:
                         var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(eventStream.AggregateRootId);
                         if (lastPublishedVersion + 1 == eventStream.Version)
                         {
-                            DispatchEventsToHandlers(eventStream);
-                            return true;
+                            return DispatchEventsToHandlers(eventStream);
                         }
                         return lastPublishedVersion + 1 > eventStream.Version;
                 }
@@ -87,27 +88,39 @@ namespace ENode.Eventing.Impl
                 _logger.Error(string.Format("Exception raised when dispatching events:{0}", context.EventStream.GetStreamInformation()), ex);
             }
         }
-        private void DispatchEventsToHandlers(EventStream stream)
+        private bool DispatchEventsToHandlers(EventStream stream)
         {
+            bool success = true;
             foreach (var evnt in stream.Events)
             {
                 foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
                 {
-                    var currentEvent = evnt;
-                    var currentHandler = handler;
-                    _retryService.TryAction("DispatchEventToHandler", () => DispatchEventToHandler(currentEvent, currentHandler), 3, () => { });
+                    if (!_retryService.TryRecursively("DispatchEventToHandler", () => DispatchEventToHandler(evnt, handler), 3))
+                    {
+                        success = false;
+                    }
                 }
             }
+            if (success)
+            {
+                foreach (var evnt in stream.Events)
+                {
+                    _eventHandleInfoCache.RemoveEventHandleInfo(evnt.Id);
+                }
+            }
+            return success;
         }
         private bool DispatchEventToHandler(IEvent evnt, IEventHandler handler)
         {
             try
             {
                 var eventHandlerTypeName = handler.GetInnerEventHandler().GetType().FullName;
+                if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName)) return true;
 
                 handler.Handle(evnt);
                 _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeName);
+                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeName);
                 return true;
             }
             catch (Exception ex)

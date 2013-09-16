@@ -158,6 +158,7 @@ namespace ENode
             Register<IEventStore, InMemoryEventStore>();
             Register<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             Register<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
+            Register<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             Register<IUncommittedEventQueueRouter, DefaultUncommittedEventQueueRouter>();
             Register<ICommittedEventQueueRouter, DefaultCommittedEventQueueRouter>();
             Register<IEventTableNameProvider, AggregatePerEventTableNameProvider>();

@@ -60,11 +60,13 @@
     <Compile Include="Eventing\Impl\DefaultUncommittedEventQueueRouter.cs" />
     <Compile Include="Eventing\Impl\DefaultUncommittedEventExecutor.cs" />
     <Compile Include="Eventing\Impl\DefaultUncommittedEventProcessor.cs" />
+    <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
     <Compile Include="Eventing\IUncommittedEventQueue.cs" />
     <Compile Include="Eventing\IUncommittedEventExecutor.cs" />
     <Compile Include="Eventing\IUncommittedEventQueueRouter.cs" />
     <Compile Include="Eventing\IUncommittedEventProcessor.cs" />
     <Compile Include="Eventing\EventStreamContext.cs" />
+    <Compile Include="Eventing\IEventHandleInfoCache.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\Concurrent\ConcurrentException.cs" />
     <Compile Include="Eventing\EventStream.cs" />
