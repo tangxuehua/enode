@@ -1,26 +1,22 @@
 ﻿using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using ENode.Infrastructure.Serializing;
+using ServiceStack.Redis;
+using ServiceStack.Text;
 
-namespace ENode.Infrastructure.Serializing
+namespace ENode.Redis
 {
-    /// <summary>Defines a serializer to serialize object to byte array.
+    /// <summary>Redis based binary serializer implementation.
     /// </summary>
-    public class DefaultBinarySerializer : IBinarySerializer
+    public class RedisBinarySerializer : IBinarySerializer
     {
-        private readonly BinaryFormatter _binaryFormatter = new BinaryFormatter();
-
         /// <summary>Serialize an object to byte array.
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
         public byte[] Serialize(object obj)
         {
-            using (var stream = new MemoryStream())
-            {
-                _binaryFormatter.Serialize(stream, obj);
-                return stream.ToArray();
-            }
+            return RedisClient.SerializeToUtf8Bytes(obj);
         }
         /// <summary>Deserialize an object from a byte array.
         /// </summary>
@@ -29,10 +25,7 @@ namespace ENode.Infrastructure.Serializing
         /// <returns></returns>
         public object Deserialize(byte[] data, Type type)
         {
-            using (var stream = new MemoryStream(data))
-            {
-                return _binaryFormatter.Deserialize(stream);
-            }
+            return JsonSerializer.DeserializeFromString(Encoding.UTF8.GetString(data), type);
         }
         /// <summary>Deserialize a typed object from a byte array.
         /// </summary>
@@ -41,10 +34,7 @@ namespace ENode.Infrastructure.Serializing
         /// <returns></returns>
         public T Deserialize<T>(byte[] data) where T : class
         {
-            using (var stream = new MemoryStream(data))
-            {
-                return _binaryFormatter.Deserialize(stream) as T;
-            }
+            return JsonSerializer.DeserializeFromString<T>(Encoding.UTF8.GetString(data));
         }
     }
 }

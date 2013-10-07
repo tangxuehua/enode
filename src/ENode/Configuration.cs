@@ -131,7 +131,6 @@ namespace ENode
         {
             Register<ILoggerFactory, EmptyLoggerFactory>();
             Register<IBinarySerializer, DefaultBinarySerializer>();
-            Register<IStringSerializer, DefaultStringSerializer>();
             Register<IDbConnectionFactory, DefaultDbConnectionFactory>();
             Register<IMessageStore, EmptyMessageStore>();
 

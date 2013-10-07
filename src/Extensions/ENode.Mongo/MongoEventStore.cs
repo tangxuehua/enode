@@ -148,9 +148,11 @@ namespace ENode.Mongo
             var version = doc["Version"].AsInt64;
             var timestamp = doc["Timestamp"].ToUniversalTime();
             var commandId = new Guid(doc["CommandId"].AsString);
-            var events = doc["Events"].AsBsonArray.Select(x => (IEvent)_binarySerializer.Deserialize(x.AsByteArray));
+            //TODO
+            //var events = doc["Events"].AsBsonArray.Select(x => (IEvent)_binarySerializer.Deserialize(x.AsByteArray));
 
-            return new EventStream(id, aggregateRootId, aggregateRootName, version, commandId, timestamp, events);
+            //return new EventStream(id, aggregateRootId, aggregateRootName, version, commandId, timestamp, events);
+            return null;
         }
     }
 }

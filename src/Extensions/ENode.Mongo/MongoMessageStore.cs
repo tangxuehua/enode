@@ -85,7 +85,7 @@ namespace ENode.Mongo
             var collection = GetMongoCollection(collectionName);
             var documents = collection.FindAll();
 
-            return documents.Select(document => (T) _binarySerializer.Deserialize(document["MessageData"].AsByteArray)).ToList();
+            return documents.Select(document => _binarySerializer.Deserialize<T>(document["MessageData"].AsByteArray)).ToList();
         }
 
         private MongoCollection<BsonDocument> GetMongoCollection(string collectionName)

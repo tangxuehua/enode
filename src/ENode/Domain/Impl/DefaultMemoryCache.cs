@@ -22,14 +22,15 @@ namespace ENode.Domain.Impl
         /// <summary>Get an aggregate from memory cache.
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        public AggregateRoot Get(object id)
+        public AggregateRoot Get(object id, Type type)
         {
             if (id == null) throw new ArgumentNullException("id");
             byte[] value;
             if (_cacheDict.TryGetValue(id.ToString(), out value))
             {
-                return _binarySerializer.Deserialize(value) as AggregateRoot;
+                return _binarySerializer.Deserialize(value, type) as AggregateRoot;
             }
             return null;
         }

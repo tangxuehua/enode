@@ -1,4 +1,5 @@
 ﻿using ENode.Domain;
+using ENode.Infrastructure.Serializing;
 
 namespace ENode.Redis
 {
@@ -19,6 +20,14 @@ namespace ENode.Redis
         public static Configuration UseRedis(this Configuration configuration, string host, int port)
         {
             configuration.SetDefault<IMemoryCache, RedisMemoryCache>(new RedisMemoryCache(host, port));
+            return configuration;
+        }
+        /// <summary>Use ServiceStack.Redis to implement the binary serializer for the enode framework.
+        /// </summary>
+        /// <returns></returns>
+        public static Configuration UseRedisBinarySerializer(this Configuration configuration)
+        {
+            configuration.SetDefault<IBinarySerializer, RedisBinarySerializer>(new RedisBinarySerializer());
             return configuration;
         }
     }

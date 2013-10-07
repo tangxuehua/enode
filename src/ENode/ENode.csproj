@@ -135,8 +135,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Infrastructure\Serializing\DefaultBinarySerializer.cs" />
-    <Compile Include="Infrastructure\Serializing\IStringSerializer.cs" />
-    <Compile Include="Infrastructure\Serializing\DefaultStringSerializer.cs" />
     <Compile Include="Messaging\IMessageExecutor.cs" />
     <Compile Include="Messaging\IMessageStore.cs" />
     <Compile Include="Messaging\IMessage.cs" />

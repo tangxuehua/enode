@@ -203,7 +203,7 @@ namespace ENode.Eventing.Impl
             }
             else if (eventStream.Version > 1)
             {
-                var aggregateRoot = _memoryCache.Get(eventStream.AggregateRootId);
+                var aggregateRoot = _memoryCache.Get(eventStream.AggregateRootId, aggregateRootType);
                 if (aggregateRoot == null)
                 {
                     aggregateRoot = _repository.Get(aggregateRootType, eventStream.AggregateRootId);

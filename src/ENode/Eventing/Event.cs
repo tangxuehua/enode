@@ -9,12 +9,14 @@ namespace ENode.Eventing
     {
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="sourceId"></param>
+        /// <exception cref="ArgumentNullException"></exception>
         public Event(object sourceId)
         {
             Id = Guid.NewGuid();
             if (sourceId == null)
             {
-                throw new ArgumentException("SourceId cannot be null.");
+                throw new ArgumentNullException("sourceId");
             }
             SourceId = sourceId;
         }

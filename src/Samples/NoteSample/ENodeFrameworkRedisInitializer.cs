@@ -20,6 +20,7 @@ namespace NoteSample
                 .RegisterBusinessComponents(assemblies)
                 .UseLog4Net()
                 .UseJsonNet()
+                .UseRedisBinarySerializer()
                 .UseRedis()
                 .CreateAllDefaultProcessors()
                 .Initialize(assemblies)

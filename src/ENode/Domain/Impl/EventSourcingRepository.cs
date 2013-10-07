@@ -47,7 +47,7 @@ namespace ENode.Domain.Impl
         public AggregateRoot Get(Type type, object id)
         {
             if (id == null) throw new ArgumentNullException("id");
-            return _memoryCache.Get(id) ?? GetFromStorage(type, id.ToString());
+            return _memoryCache.Get(id, type) ?? GetFromStorage(type, id.ToString());
         }
 
         #region Helper Methods
