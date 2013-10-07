@@ -9,7 +9,7 @@ namespace BankTransferSample.Events
     public class TransferOutRequested : AbstractTransferEvent
     {
         public TransferOutRequested(Guid processId, TransferInfo transferInfo)
-            : base(processId, transferInfo)
+            : base(processId, processId, transferInfo)
         {
         }
     }

@@ -29,7 +29,7 @@ namespace BankTransferSample.Domain
         public TransferProcess() { }
         public TransferProcess(Guid processId, TransferInfo transferInfo) : base(processId)
         {
-            RaiseEvent(new TransferProcessStarted(Id, transferInfo, string.Format("转账流程启动，源账户：{0}，目标账户：{1}，转账金额：{2}", transferInfo.SourceAccountNumber, transferInfo.TargetAccountNumber, transferInfo.Amount)));
+            RaiseEvent(new TransferProcessStarted(Id, transferInfo, string.Format("转账流程启动，源账户：{0}，目标账户：{1}，转账金额：{2}", transferInfo.SourceAccountId, transferInfo.TargetAccountId, transferInfo.Amount)));
             RaiseEvent(new TransferOutRequested(Id, transferInfo));
         }
 

@@ -13,7 +13,7 @@ namespace BankTransferSample.Events
         public TransferProcessResult ProcessResult { get; protected set; }
 
         public TransferProcessCompleted(Guid processId, TransferInfo transferInfo, TransferProcessResult processResult)
-            : base(processId, transferInfo)
+            : base(processId, processId, transferInfo)
         {
             ProcessResult = processResult;
         }

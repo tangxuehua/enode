@@ -8,7 +8,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class OpenAccount : Command
     {
-        public string AccountNumber { get; set; }
+        public string AccountId { get; set; }
         public string Owner { get; set; }
     }
     /// <summary>存款
@@ -16,7 +16,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class Deposit : Command
     {
-        public string AccountNumber { get; set; }
+        public string AccountId { get; set; }
         public long Amount { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace UniqueValidationSample.EventSynchronizers
         {
             GetMongoCollection().Insert(new BsonDocument
             {
-                { "_id", evnt.UserId.ToString() },
+                { "UserId", evnt.SourceId.ToString() },
                 { "UserName", evnt.UserName },
                 { "Status", 1 }
             });
@@ -27,7 +27,7 @@ namespace UniqueValidationSample.EventSynchronizers
         public void OnAfterPersisted(UserRegistered evnt)
         {
             var collection = GetMongoCollection();
-            var document = collection.FindOneById(new BsonString(evnt.UserId.ToString()));
+            var document = collection.FindOne(Query.EQ("UserName", new BsonString(evnt.UserName)));
             document["Status"] = 2;
             collection.Save(document);
         }

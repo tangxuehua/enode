@@ -12,7 +12,7 @@ namespace BankTransferSample.Events
         public ErrorInfo ErrorInfo { get; private set; }
 
         public RollbackTransferOutRequested(Guid processId, TransferInfo transferInfo, ErrorInfo errorInfo)
-            : base(processId, transferInfo)
+            : base(processId, processId, transferInfo)
         {
             ErrorInfo = errorInfo;
         }

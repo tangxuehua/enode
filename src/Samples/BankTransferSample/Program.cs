@@ -23,14 +23,14 @@ namespace BankTransferSample
             var memoryCache = ObjectContainer.Resolve<IMemoryCache>();
 
             //开两个银行账户
-            var openAccountCommand1 = new OpenAccount { AccountNumber = "00001", Owner = "雪华" };
-            var openAccountCommand2 = new OpenAccount { AccountNumber = "00002", Owner = "凯锋" };
+            var openAccountCommand1 = new OpenAccount { AccountId = "00001", Owner = "雪华" };
+            var openAccountCommand2 = new OpenAccount { AccountId = "00002", Owner = "凯锋" };
             commandService.Execute(openAccountCommand1);
             commandService.Execute(openAccountCommand2);
 
             //每个账户都存入1000元
-            var depositCommand1 = new Deposit { AccountNumber = "00001", Amount = 1000 };
-            var depositCommand2 = new Deposit { AccountNumber = "00002", Amount = 1000 };
+            var depositCommand1 = new Deposit { AccountId = "00001", Amount = 1000 };
+            var depositCommand2 = new Deposit { AccountId = "00002", Amount = 1000 };
             commandService.Execute(depositCommand1);
             commandService.Execute(depositCommand2);
 

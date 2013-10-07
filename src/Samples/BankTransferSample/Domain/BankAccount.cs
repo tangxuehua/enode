@@ -23,7 +23,7 @@ namespace BankTransferSample.Domain
         public double Balance { get; private set; }
 
         public BankAccount() { }
-        public BankAccount(string accountNumber, string owner) : base(accountNumber)
+        public BankAccount(string accountId, string owner) : base(accountId)
         {
             RaiseEvent(new AccountOpened(Id, owner));
         }
@@ -41,9 +41,9 @@ namespace BankTransferSample.Domain
         /// <param name="transferInfo"></param>
         public void TransferOut(Guid processId, TransferInfo transferInfo)
         {
-            if (Id != transferInfo.SourceAccountNumber)
+            if (Id != transferInfo.SourceAccountId)
             {
-                throw new Exception(string.Format("源账户{0}与当前账户{1}不匹配，不能转出！", transferInfo.SourceAccountNumber, Id));
+                throw new Exception(string.Format("源账户{0}与当前账户{1}不匹配，不能转出！", transferInfo.SourceAccountId, Id));
             }
             if (Balance < transferInfo.Amount)
             {
@@ -52,7 +52,7 @@ namespace BankTransferSample.Domain
             RaiseEvent(new TransferedOut(
                 processId,
                 transferInfo,
-                string.Format("{0}向账户{1}转出金额{2}", transferInfo.SourceAccountNumber, transferInfo.TargetAccountNumber, transferInfo.Amount)));
+                string.Format("{0}向账户{1}转出金额{2}", transferInfo.SourceAccountId, transferInfo.TargetAccountId, transferInfo.Amount)));
         }
         /// <summary>转入
         /// </summary>
@@ -60,15 +60,15 @@ namespace BankTransferSample.Domain
         /// <param name="transferInfo"></param>
         public void TransferIn(Guid processId, TransferInfo transferInfo)
         {
-            if (Id != transferInfo.TargetAccountNumber)
+            if (Id != transferInfo.TargetAccountId)
             {
-                throw new Exception(string.Format("目标账户{0}与当前账户{1}不匹配，不能转入！", transferInfo.TargetAccountNumber, Id));
+                throw new Exception(string.Format("目标账户{0}与当前账户{1}不匹配，不能转入！", transferInfo.TargetAccountId, Id));
             }
             RaiseEvent(
                 new TransferedIn(
                     processId,
                     transferInfo,
-                    string.Format("{0}从账户{1}转入金额{2}", transferInfo.TargetAccountNumber, transferInfo.SourceAccountNumber, transferInfo.Amount)));
+                    string.Format("{0}从账户{1}转入金额{2}", transferInfo.TargetAccountId, transferInfo.SourceAccountId, transferInfo.Amount)));
         }
         /// <summary>回滚转出
         /// </summary>
@@ -76,9 +76,9 @@ namespace BankTransferSample.Domain
         /// <param name="transferInfo"></param>
         public void RollbackTransferOut(Guid processId, TransferInfo transferInfo)
         {
-            if (Id != transferInfo.SourceAccountNumber)
+            if (Id != transferInfo.SourceAccountId)
             {
-                throw new Exception(string.Format("源账户{0}与当前账户{1}不匹配，不能回滚转出！", transferInfo.SourceAccountNumber, Id));
+                throw new Exception(string.Format("源账户{0}与当前账户{1}不匹配，不能回滚转出！", transferInfo.SourceAccountId, Id));
             }
             RaiseEvent(new TransferOutRolledback(processId, transferInfo, string.Format("账户{0}回滚转出金额{1}", Id, transferInfo.Amount)));
         }

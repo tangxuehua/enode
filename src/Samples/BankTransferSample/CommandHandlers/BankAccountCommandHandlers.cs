@@ -17,23 +17,23 @@ namespace BankTransferSample.CommandHandlers
     {
         public void Handle(ICommandContext context, OpenAccount command)
         {
-            context.Add(new BankAccount(command.AccountNumber, command.Owner));
+            context.Add(new BankAccount(command.AccountId, command.Owner));
         }
         public void Handle(ICommandContext context, Deposit command)
         {
-            context.Get<BankAccount>(command.AccountNumber).Deposit(command.Amount);
+            context.Get<BankAccount>(command.AccountId).Deposit(command.Amount);
         }
         public void Handle(ICommandContext context, TransferOut command)
         {
-            context.Get<BankAccount>(command.TransferInfo.SourceAccountNumber).TransferOut(command.ProcessId, command.TransferInfo);
+            context.Get<BankAccount>(command.TransferInfo.SourceAccountId).TransferOut(command.ProcessId, command.TransferInfo);
         }
         public void Handle(ICommandContext context, TransferIn command)
         {
-            context.Get<BankAccount>(command.TransferInfo.TargetAccountNumber).TransferIn(command.ProcessId, command.TransferInfo);
+            context.Get<BankAccount>(command.TransferInfo.TargetAccountId).TransferIn(command.ProcessId, command.TransferInfo);
         }
         public void Handle(ICommandContext context, RollbackTransferOut command)
         {
-            context.Get<BankAccount>(command.TransferInfo.SourceAccountNumber).RollbackTransferOut(command.ProcessId, command.TransferInfo);
+            context.Get<BankAccount>(command.TransferInfo.SourceAccountId).RollbackTransferOut(command.ProcessId, command.TransferInfo);
         }
     }
 }

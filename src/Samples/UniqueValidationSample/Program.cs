@@ -31,7 +31,7 @@ namespace UniqueValidationSample
             {
                 if (result.ErrorInfo != null)
                 {
-                    Console.WriteLine("异常，用户名重复！");
+                    Console.WriteLine("用户名重复！");
                 }
             });
 

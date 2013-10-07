@@ -6,12 +6,10 @@ namespace UniqueValidationSample.Events
     [Serializable]
     public class UserRegistered : Event
     {
-        public Guid UserId { get; private set; }
         public string UserName { get; private set; }
 
-        public UserRegistered(Guid userId, string userName)
+        public UserRegistered(Guid userId, string userName) : base(userId)
         {
-            UserId = userId;
             UserName = userName;
         }
     }

@@ -8,12 +8,10 @@ namespace BankTransferSample.Events
     [Serializable]
     public class AccountOpened : Event
     {
-        public string AccountNumber { get; private set; }
         public string Owner { get; private set; }
 
-        public AccountOpened(string accountNumber, string owner)
+        public AccountOpened(string accountId, string owner) : base(accountId)
         {
-            AccountNumber = accountNumber;
             Owner = owner;
         }
     }

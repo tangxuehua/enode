@@ -13,11 +13,11 @@ namespace BankTransferSample.Events
         public TransferInfo TransferInfo { get; private set; }
         public string Description { get; private set; }
 
-        protected AbstractTransferEvent(Guid processId, TransferInfo transferInfo) : this(processId, transferInfo, null)
+        protected AbstractTransferEvent(object sourceId, Guid processId, TransferInfo transferInfo) : this(sourceId, processId, transferInfo, null)
         {
         }
 
-        protected AbstractTransferEvent(Guid processId, TransferInfo transferInfo, string description)
+        protected AbstractTransferEvent(object sourceId, Guid processId, TransferInfo transferInfo, string description) : base(sourceId)
         {
             ProcessId = processId;
             TransferInfo = transferInfo;

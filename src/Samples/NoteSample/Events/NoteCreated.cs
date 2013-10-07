@@ -11,7 +11,7 @@ namespace NoteSample.Events
         public DateTime CreatedTime { get; private set; }
         public DateTime UpdatedTime { get; private set; }
 
-        public NoteCreated(Guid noteId, string title, DateTime createdTime, DateTime updatedTime)
+        public NoteCreated(Guid noteId, string title, DateTime createdTime, DateTime updatedTime) : base(noteId)
         {
             NoteId = noteId;
             Title = title;

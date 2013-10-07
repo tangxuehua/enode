@@ -8,13 +8,11 @@ namespace BankTransferSample.Events
     [Serializable]
     public class Deposited : Event
     {
-        public string AccountNumber { get; private set; }
         public double Amount { get; private set; }
         public string Description { get; private set; }
 
-        public Deposited(string accountNumber, double amount, string description)
+        public Deposited(string accountId, double amount, string description) : base(accountId)
         {
-            AccountNumber = accountNumber;
             Amount = amount;
             Description = description;
         }

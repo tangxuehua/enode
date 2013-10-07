@@ -10,7 +10,7 @@ namespace NoteSample.Events
         public string Title { get; private set; }
         public DateTime UpdatedTime { get; private set; }
 
-        public NoteTitleChanged(Guid noteId, string title, DateTime updatedTime)
+        public NoteTitleChanged(Guid noteId, string title, DateTime updatedTime) : base(noteId)
         {
             NoteId = noteId;
             Title = title;
