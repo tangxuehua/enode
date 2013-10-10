@@ -9,7 +9,7 @@ namespace ENode.Infrastructure.Retring
         /// <summary>Initialize the retry service.
         /// </summary>
         /// <param name="period"></param>
-        void Initialize(long period);
+        void Initialize(int period);
         /// <summary>Try to execute the given action with the given max retry count.
         /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
         /// </summary>

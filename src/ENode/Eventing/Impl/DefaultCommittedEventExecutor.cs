@@ -29,6 +29,7 @@ namespace ENode.Eventing.Impl
         /// <param name="eventHandlerProvider"></param>
         /// <param name="eventPublishInfoStore"></param>
         /// <param name="eventHandleInfoStore"></param>
+        /// <param name="eventHandleInfoCache"></param>
         /// <param name="retryService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommittedEventExecutor(

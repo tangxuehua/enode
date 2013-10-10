@@ -22,13 +22,24 @@ namespace ENode.Infrastructure
                 return _thread.IsAlive;
             }
         }
+        /// <summary>Gets or sets the interval which the action executed.
+        /// </summary>
+        public int IntervalMilliseconds { get; set; }
 
         /// <summary>Initialize a new Worker for the specified method to run.
         /// </summary>
         /// <param name="action">The delegate method to execute in a loop.</param>
-        public Worker(Action action)
+        public Worker(Action action) : this(action, 0)
+        {
+        }
+        /// <summary>Initialize a new Worker for the specified method to run.
+        /// </summary>
+        /// <param name="action">The delegate method to execute in a loop.</param>
+        /// <param name="intervalMilliseconds">The interval which the action executed.</param>
+        public Worker(Action action, int intervalMilliseconds)
         {
             _action = action;
+            IntervalMilliseconds = intervalMilliseconds;
             _thread = new Thread(Loop) { IsBackground = true };
             _thread.Name = string.Format("Worker thread {0}", _thread.ManagedThreadId);
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(_thread.Name);
@@ -61,6 +72,10 @@ namespace ENode.Infrastructure
                 try
                 {
                     _action();
+                    if (IntervalMilliseconds > 0)
+                    {
+                        Thread.Sleep(IntervalMilliseconds);
+                    }
                 }
                 catch (ThreadAbortException abortException)
                 {

@@ -9,11 +9,10 @@ namespace ENode.Infrastructure.Retring
     /// </summary>
     public class DefaultRetryService : IRetryService
     {
-        private const long DefaultPeriod = 5000;
+        private const int DefaultPeriod = 5000;
         private readonly BlockingCollection<ActionInfo> _retryQueue = new BlockingCollection<ActionInfo>(new ConcurrentQueue<ActionInfo>());
-        private readonly Timer _timer;
+        private readonly Worker _worker;
         private readonly ILogger _logger;
-        private bool _looping;
 
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -21,15 +20,16 @@ namespace ENode.Infrastructure.Retring
         public DefaultRetryService(ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.Create(GetType().Name);
-            _timer = new Timer(Loop, null, 0, DefaultPeriod);
+            _worker = new Worker(TryTakeAndExecuteAction, DefaultPeriod);
+            _worker.Start();
         }
 
         /// <summary>Initialize the retry service.
         /// </summary>
         /// <param name="period"></param>
-        public void Initialize(long period)
+        public void Initialize(int period)
         {
-            _timer.Change(0, period);
+            _worker.IntervalMilliseconds = period;
         }
         /// <summary>Try to execute the given action with the given max retry count.
         /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
@@ -93,19 +93,15 @@ namespace ENode.Infrastructure.Retring
             return TryRecursively(actionName, (x, y, z) => action(), 0, maxRetryCount);
         }
 
-        private void Loop(object data)
+        private void TryTakeAndExecuteAction()
         {
             try
             {
-                if (_looping) return;
-                _looping = true;
                 TryAction(_retryQueue.Take());
-                _looping = false;
             }
             catch (Exception ex)
             {
                 _logger.Error("Exception raised when retring action.", ex);
-                _looping = false;
             }
         }
         private bool TryRecursively(string actionName, Func<string, int, int, bool> action, int retriedCount, int maxRetryCount)
