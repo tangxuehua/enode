@@ -21,7 +21,8 @@ namespace NoteSample
                 .UseLog4Net()
                 .UseJsonNet()
                 .UseRedisBinarySerializer()
-                .UseRedis()
+                .UseRedisEventStore()
+                .UseRedisMemoryCache()
                 .CreateAllDefaultProcessors()
                 .Initialize(assemblies)
                 .Start();

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Diagnostics;
 using System.Threading;
 using ENode.Commanding;
 using ENode.Infrastructure;
@@ -11,12 +14,8 @@ namespace NoteSample
         static void Main(string[] args)
         {
             new ENodeFrameworkUnitTestInitializer().Initialize();
-
-            //如果要使用Sql或MongoDB来持久化，请用下面相应的语句来初始化
             //new ENodeFrameworkSqlInitializer().Initialize();
             //new ENodeFrameworkMongoInitializer().Initialize();
-
-            //如果要使用Redis来作为内存缓存，请用下面相应的语句来初始化
             //new ENodeFrameworkRedisInitializer().Initialize();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
