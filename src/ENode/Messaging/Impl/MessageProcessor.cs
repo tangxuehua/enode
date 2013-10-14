@@ -49,7 +49,8 @@ namespace ENode.Messaging.Impl
 
             for (var index = 0; index < messageExecutorCount; index++)
             {
-                _workers.Add(new Worker(() => ProcessMessage(ObjectContainer.Resolve<TMessageExecutor>())));
+                var messageExecutor = ObjectContainer.Resolve<TMessageExecutor>();
+                _workers.Add(new Worker(() => ProcessMessage(messageExecutor)));
             }
 
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
