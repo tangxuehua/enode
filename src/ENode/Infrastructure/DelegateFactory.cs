@@ -22,13 +22,17 @@ namespace ENode.Infrastructure
             {
                 throw new ArgumentNullException("methodInfo");
             }
+            if (parameterTypes == null)
+            {
+                throw new ArgumentNullException("parameterTypes");
+            }
             var parameters = methodInfo.GetParameters();
             var dynamicMethod = new DynamicMethod(
                 methodInfo.Name,
                 MethodAttributes.Static | MethodAttributes.Public,
                 CallingConventions.Standard,
                 methodInfo.ReturnType,
-                parameterTypes.ToArray(),
+                parameterTypes,
                 typeof(object),
                 true)
             {
