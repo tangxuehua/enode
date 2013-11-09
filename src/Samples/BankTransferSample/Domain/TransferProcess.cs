@@ -12,12 +12,7 @@ namespace BankTransferSample.Domain
     /// </remarks>
     /// </summary>
     [Serializable]
-    public class TransferProcess : AggregateRoot<Guid>,
-        IEventHandler<TransferProcessStarted>,       //转账流程已开始
-        IEventHandler<TransferOutRequested>,         //转出的请求已发起
-        IEventHandler<TransferInRequested>,          //转入的请求已发起
-        IEventHandler<RollbackTransferOutRequested>, //回滚转出的请求已发起
-        IEventHandler<TransferProcessCompleted>      //转账流程已完成
+    public class TransferProcess : AggregateRoot<Guid>
     {
         /// <summary>转账流程结果
         /// </summary>
@@ -26,7 +21,6 @@ namespace BankTransferSample.Domain
         /// </summary>
         public TransferProcessState State { get; private set; }
 
-        public TransferProcess() { }
         public TransferProcess(Guid processId, TransferInfo transferInfo) : base(processId)
         {
             RaiseEvent(new TransferProcessStarted(Id, transferInfo, string.Format("转账流程启动，源账户：{0}，目标账户：{1}，转账金额：{2}", transferInfo.SourceAccountId, transferInfo.TargetAccountId, transferInfo.Amount)));
@@ -71,24 +65,24 @@ namespace BankTransferSample.Domain
             RaiseEvent(new TransferProcessCompleted(Id, transferInfo, Result));
         }
 
-        void IEventHandler<TransferProcessStarted>.Handle(TransferProcessStarted evnt)
+        private void Handle(TransferProcessStarted evnt)
         {
             State = TransferProcessState.Started;
         }
-        void IEventHandler<TransferOutRequested>.Handle(TransferOutRequested evnt)
+        private void Handle(TransferOutRequested evnt)
         {
             State = TransferProcessState.TransferOutRequested;
         }
-        void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt)
+        private void Handle(TransferInRequested evnt)
         {
             State = TransferProcessState.TransferInRequested;
         }
-        void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt)
+        private void Handle(RollbackTransferOutRequested evnt)
         {
             State = TransferProcessState.RollbackTransferOutRequested;
             Result = new TransferProcessResult(false, evnt.ErrorInfo);
         }
-        void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
+        private void Handle(TransferProcessCompleted evnt)
         {
             State = TransferProcessState.Completed;
             Result = evnt.ProcessResult;

@@ -15,23 +15,18 @@ namespace ENode.Domain
         #region Private Variables
 
         private Queue<IEvent> _uncommittedEvents;
-        private static IAggregateRootInternalHandlerProvider _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
+        private static IAggregateRootInternalHandlerProvider _eventHandlerProvider;
 
         #endregion
 
         #region Constructurs
 
-        /// <summary>Default constructor.
-        /// </summary>
-        protected AggregateRoot()
-        {
-            _uncommittedEvents = new Queue<IEvent>();
-        }
         /// <summary>Parameterized constructor with an uniqueId.
         /// </summary>
         /// <param name="uniqueId">The string uniqueId.</param>
-        protected AggregateRoot(string uniqueId) : this()
+        protected AggregateRoot(string uniqueId)
         {
+            Initialize();
             UniqueId = uniqueId;
         }
 
@@ -114,7 +109,7 @@ namespace ENode.Domain
         /// </summary>
         internal void ReplayEventStreams(IEnumerable<EventStream> eventStreams)
         {
-            if (_uncommittedEvents.Any())
+            if (_uncommittedEvents != null && _uncommittedEvents.Any())
             {
                 _uncommittedEvents.Clear();
             }
@@ -123,29 +118,33 @@ namespace ENode.Domain
             {
                 if (eventStream.Version == 1)
                 {
+                    Initialize();
                     UniqueId = eventStream.AggregateRootId;
                 }
                 VerifyEvent(eventStream);
                 ApplyEvent(eventStream);
             }
         }
-        /// <summary>Initialize from the given snapshot.
+        /// <summary>Initialize the aggregate root from the given snapshot.
         /// </summary>
         internal void InitializeFromSnapshot(Snapshot snapshot)
         {
+            Initialize();
             UniqueId = snapshot.AggregateRootId;
             Version = snapshot.Version;
-            _uncommittedEvents = new Queue<IEvent>();
-            if (_eventHandlerProvider == null)
-            {
-                _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
-            }
         }
 
         #endregion
 
         #region Private Methods
 
+        /// <summary>Initialize the aggregate root.
+        /// </summary>
+        private void Initialize()
+        {
+            _uncommittedEvents = new Queue<IEvent>();
+            _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
+        }
         /// <summary>Handle the given event and update the aggregate root status.
         /// </summary>
         private void HandleEvent<T>(T evnt) where T : class, IEvent
@@ -203,10 +202,6 @@ namespace ENode.Domain
         /// </summary>
         private void QueueEvent(IEvent uncommittedEvent)
         {
-            if (_uncommittedEvents == null)
-            {
-                _uncommittedEvents = new Queue<IEvent>();
-            }
             _uncommittedEvents.Enqueue(uncommittedEvent);
         }
 
@@ -217,9 +212,6 @@ namespace ENode.Domain
     [Serializable]
     public abstract class AggregateRoot<TAggregateRootId> : AggregateRoot
     {
-        /// <summary>Default constructor.
-        /// </summary>
-        protected AggregateRoot() { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="id"></param>

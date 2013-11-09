@@ -8,12 +8,7 @@ namespace BankTransferSample.Domain
     /// <summary>银行账号聚合根
     /// </summary>
     [Serializable]
-    public class BankAccount : AggregateRoot<string>,
-        IEventHandler<AccountOpened>,         //银行账户已开
-        IEventHandler<Deposited>,             //钱已存入
-        IEventHandler<TransferedOut>,         //钱已转出
-        IEventHandler<TransferedIn>,          //钱已转入
-        IEventHandler<TransferOutRolledback>  //转出已回滚
+    public class BankAccount : AggregateRoot<string>
     {
         /// <summary>拥有者
         /// </summary>
@@ -22,7 +17,6 @@ namespace BankTransferSample.Domain
         /// </summary>
         public double Balance { get; private set; }
 
-        public BankAccount() { }
         public BankAccount(string accountId, string owner) : base(accountId)
         {
             RaiseEvent(new AccountOpened(Id, owner));
@@ -83,23 +77,23 @@ namespace BankTransferSample.Domain
             RaiseEvent(new TransferOutRolledback(processId, transferInfo, string.Format("账户{0}回滚转出金额{1}", Id, transferInfo.Amount)));
         }
 
-        void IEventHandler<AccountOpened>.Handle(AccountOpened evnt)
+        private void Handle(AccountOpened evnt)
         {
             Owner = evnt.Owner;
         }
-        void IEventHandler<Deposited>.Handle(Deposited evnt)
+        private void Handle(Deposited evnt)
         {
             Balance += evnt.Amount;
         }
-        void IEventHandler<TransferedOut>.Handle(TransferedOut evnt)
+        private void Handle(TransferedOut evnt)
         {
             Balance -= evnt.TransferInfo.Amount;
         }
-        void IEventHandler<TransferedIn>.Handle(TransferedIn evnt)
+        private void Handle(TransferedIn evnt)
         {
             Balance += evnt.TransferInfo.Amount;
         }
-        void IEventHandler<TransferOutRolledback>.Handle(TransferOutRolledback evnt)
+        private void Handle(TransferOutRolledback evnt)
         {
             Balance += evnt.TransferInfo.Amount;
         }

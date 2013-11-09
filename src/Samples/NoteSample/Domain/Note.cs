@@ -6,15 +6,12 @@ using NoteSample.Events;
 namespace NoteSample.Domain
 {
     [Serializable]
-    public class Note : AggregateRoot<Guid>,
-        IEventHandler<NoteCreated>,
-        IEventHandler<NoteTitleChanged>
+    public class Note : AggregateRoot<Guid>
     {
         public string Title { get; private set; }
         public DateTime CreatedTime { get; private set; }
         public DateTime UpdatedTime { get; private set; }
 
-        public Note() { }
         public Note(Guid id, string title) : base(id)
         {
             var currentTime = DateTime.Now;
@@ -26,13 +23,13 @@ namespace NoteSample.Domain
             RaiseEvent(new NoteTitleChanged(Id, title, DateTime.Now));
         }
 
-        void IEventHandler<NoteCreated>.Handle(NoteCreated evnt)
+        private void Handle(NoteCreated evnt)
         {
             Title = evnt.Title;
             CreatedTime = evnt.CreatedTime;
             UpdatedTime = evnt.UpdatedTime;
         }
-        void IEventHandler<NoteTitleChanged>.Handle(NoteTitleChanged evnt)
+        private void Handle(NoteTitleChanged evnt)
         {
             Title = evnt.Title;
             UpdatedTime = evnt.UpdatedTime;

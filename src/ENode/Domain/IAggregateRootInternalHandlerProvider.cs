@@ -1,4 +1,5 @@
 ﻿using System;
+using ENode.Eventing;
 
 namespace ENode.Domain
 {
@@ -8,6 +9,6 @@ namespace ENode.Domain
     {
         /// <summary>Get the internal event handler within the aggregate.
         /// </summary>
-        Action<AggregateRoot, object> GetInternalEventHandler(Type aggregateRootType, Type eventType);
+        Action<AggregateRoot, IEvent> GetInternalEventHandler(Type aggregateRootType, Type eventType);
     }
 }

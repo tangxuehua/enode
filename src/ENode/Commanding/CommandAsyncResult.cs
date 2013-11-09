@@ -11,6 +11,9 @@ namespace ENode.Commanding
         private readonly ManualResetEvent _waitHandle;
         private readonly Action<CommandAsyncResult> _callback;
 
+        /// <summary>Represents whether the command is processed successfully.
+        /// </summary>
+        public bool IsSuccess { get; private set; }
         /// <summary>Represents whether the command execution is completed.
         /// </summary>
         public bool IsCompleted { get; private set; }
@@ -50,6 +53,14 @@ namespace ENode.Commanding
             IsCompleted = true;
             AggregateRootId = aggregateRootId;
             ErrorInfo = errorInfo;
+            if (errorInfo == null)
+            {
+                IsSuccess = true;
+            }
+            else
+            {
+                IsSuccess = false;
+            }
 
             if (_waitHandle != null)
             {
