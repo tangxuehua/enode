@@ -12,7 +12,7 @@ namespace ENode.Mongo
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
         /// <returns></returns>
-        string GetCollectionName(string aggregateRootId, Type aggregateRootType);
+        string GetCollectionName(object aggregateRootId, Type aggregateRootType);
         /// <summary>Get all the collection names of the eventstore.
         /// </summary>
         /// <returns></returns>

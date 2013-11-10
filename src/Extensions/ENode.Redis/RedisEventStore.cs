@@ -36,7 +36,7 @@ namespace ENode.Redis
                 return;
             }
 
-            var count = _redisClient.HSetNX(stream.AggregateRootId.Replace("-", string.Empty), Encoding.UTF8.GetBytes(stream.Version.ToString()), _binarySerializer.Serialize(stream));
+            var count = _redisClient.HSetNX(stream.AggregateRootId.ToString(), Encoding.UTF8.GetBytes(stream.Version.ToString()), _binarySerializer.Serialize(stream));
             if (count == 0)
             {
                 throw new ConcurrentException();
@@ -48,15 +48,15 @@ namespace ENode.Redis
         /// <param name="aggregateRootType"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
+        public bool IsEventStreamExist(object aggregateRootId, Type aggregateRootType, Guid id)
         {
             return Query(aggregateRootId, aggregateRootType, 1, int.MaxValue).Any(x => x.Id == id);
         }
         /// <summary>Query event streams from event store.
         /// </summary>
-        public IEnumerable<EventStream> Query(string aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
         {
-            var dataArray = _redisClient.HVals(aggregateRootId);
+            var dataArray = _redisClient.HVals(aggregateRootId.ToString());
             var streams = new List<EventStream>();
             foreach (var data in dataArray)
             {

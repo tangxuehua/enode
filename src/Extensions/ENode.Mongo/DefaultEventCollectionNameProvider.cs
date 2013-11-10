@@ -27,7 +27,7 @@ namespace ENode.Mongo
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
         /// <returns></returns>
-        public string GetCollectionName(string aggregateRootId, Type aggregateRootType)
+        public string GetCollectionName(object aggregateRootId, Type aggregateRootType)
         {
             return _collectionName;
         }

@@ -71,13 +71,13 @@ namespace ENode.Mongo
         /// <param name="minStreamVersion"></param>
         /// <param name="maxStreamVersion"></param>
         /// <returns></returns>
-        public IEnumerable<EventStream> Query(string aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
         {
             var collectionName = _eventCollectionNameProvider.GetCollectionName(aggregateRootId, aggregateRootType);
             var collection = GetMongoCollection(collectionName);
 
             var query = MongoQuery.And(
-                MongoQuery.EQ("AggregateRootId", aggregateRootId),
+                MongoQuery.EQ("AggregateRootId", aggregateRootId.ToString()),
                 MongoQuery.GTE("Version", minStreamVersion),
                 MongoQuery.LTE("Version", maxStreamVersion));
 
@@ -92,7 +92,7 @@ namespace ENode.Mongo
         /// <param name="aggregateRootType"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
+        public bool IsEventStreamExist(object aggregateRootId, Type aggregateRootType, Guid id)
         {
             var collectionName = _eventCollectionNameProvider.GetCollectionName(aggregateRootId, aggregateRootType);
             var collection = GetMongoCollection(collectionName);
@@ -127,12 +127,13 @@ namespace ENode.Mongo
         private BsonDocument ToMongoEventStream(EventStream stream)
         {
             var events = stream.Events.Select(x => _binarySerializer.Serialize(x));
+            var aggregateRootId = stream.AggregateRootId.ToString();
             var document = new BsonDocument
             {
-                { "_id", new BsonDocument { { "AggregateRootId", stream.AggregateRootId }, { "Version", stream.Version } } },
+                { "_id", new BsonDocument { { "AggregateRootId", aggregateRootId }, { "Version", stream.Version } } },
                 { "Id", stream.Id.ToString() },
                 { "AggregateRootName", stream.AggregateRootName },
-                { "AggregateRootId", stream.AggregateRootId },
+                { "AggregateRootId", aggregateRootId },
                 { "Version", stream.Version },
                 { "CommandId", stream.CommandId.ToString() },
                 { "Timestamp", stream.Timestamp },

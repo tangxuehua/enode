@@ -44,11 +44,11 @@ namespace ENode.Mongo
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        public void InsertFirstPublishedVersion(string aggregateRootId)
+        public void InsertFirstPublishedVersion(object aggregateRootId)
         {
             var document = new BsonDocument
             {
-                { "AggregateRootId", aggregateRootId },
+                { "AggregateRootId", aggregateRootId.ToString() },
                 { "Version", 1L }
             };
 
@@ -58,10 +58,10 @@ namespace ENode.Mongo
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
-        public void UpdatePublishedVersion(string aggregateRootId, long version)
+        public void UpdatePublishedVersion(object aggregateRootId, long version)
         {
             var collection = GetMongoCollection();
-            var document = collection.FindOne(MongoQuery.EQ("AggregateRootId", aggregateRootId));
+            var document = collection.FindOne(MongoQuery.EQ("AggregateRootId", aggregateRootId.ToString()));
             document["Version"] = version;
             collection.Save(document);
         }
@@ -69,9 +69,9 @@ namespace ENode.Mongo
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public long GetEventPublishedVersion(string aggregateRootId)
+        public long GetEventPublishedVersion(object aggregateRootId)
         {
-            var document = GetMongoCollection().FindOne(MongoQuery.EQ("AggregateRootId", aggregateRootId));
+            var document = GetMongoCollection().FindOne(MongoQuery.EQ("AggregateRootId", aggregateRootId.ToString()));
             return document["Version"].AsInt64;
         }
 

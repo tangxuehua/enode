@@ -28,13 +28,13 @@ namespace ENode.Redis
         /// <param name="id"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public AggregateRoot Get(object id, Type type)
+        public IAggregateRoot Get(object id, Type type)
         {
             if (id == null) throw new ArgumentNullException("id");
             var value = _redisClient.Get(id.ToString());
             if (value != null && value.Length > 0)
             {
-                return _binarySerializer.Deserialize(value, type) as AggregateRoot;
+                return _binarySerializer.Deserialize(value, type) as IAggregateRoot;
             }
             return null;
         }
@@ -43,7 +43,7 @@ namespace ENode.Redis
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>(object id) where T : AggregateRoot
+        public T Get<T>(object id) where T : class, IAggregateRoot
         {
             if (id == null) throw new ArgumentNullException("id");
             var value = _redisClient.Get(id.ToString());
@@ -57,13 +57,13 @@ namespace ENode.Redis
         /// </summary>
         /// <param name="aggregateRoot"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public void Set(AggregateRoot aggregateRoot)
+        public void Set(IAggregateRoot aggregateRoot)
         {
             if (aggregateRoot == null)
             {
                 throw new ArgumentNullException("aggregateRoot");
             }
-            _redisClient.Set(aggregateRoot.UniqueId, _binarySerializer.Serialize(aggregateRoot));
+            _redisClient.Set(aggregateRoot.UniqueId.ToString(), _binarySerializer.Serialize(aggregateRoot));
         }
     }
 }
