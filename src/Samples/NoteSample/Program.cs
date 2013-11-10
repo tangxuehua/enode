@@ -4,13 +4,17 @@ using System.Configuration;
 using System.Diagnostics;
 using System.Threading;
 using ENode.Commanding;
+using ENode.Eventing;
 using ENode.Infrastructure;
 using NoteSample.Commands;
+using NoteSample.Events;
 
 namespace NoteSample
 {
     class Program
     {
+        public static ManualResetEvent Signal = new ManualResetEvent(false);
+
         static void Main(string[] args)
         {
             new ENodeFrameworkUnitTestInitializer().Initialize();
@@ -25,11 +29,28 @@ namespace NoteSample
             var command1 = new CreateNote { NoteId = noteId, Title = "Sample Note" };
             var command2 = new ChangeNoteTitle { NoteId = noteId, Title = "Modified Note" };
 
-            commandService.Send(command1, result => commandService.Send(command2));
+            commandService.Send(command1);
+            Signal.WaitOne();
 
-            Thread.Sleep(1000);
+            Signal = new ManualResetEvent(false);
+            commandService.Send(command2);
+            Signal.WaitOne();
+
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
+        }
+    }
+
+    [Component]
+    public class SyncService : IEventHandler<NoteCreated>, IEventHandler<NoteTitleChanged>
+    {
+        public void Handle(NoteCreated evnt)
+        {
+            Program.Signal.Set();
+        }
+        public void Handle(NoteTitleChanged evnt)
+        {
+            Program.Signal.Set();
         }
     }
 }
