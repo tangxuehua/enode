@@ -12,10 +12,10 @@ namespace NoteSample.Domain
         public DateTime CreatedTime { get; private set; }
         public DateTime UpdatedTime { get; private set; }
 
-        public Note(Guid id, string title) : base(id)
+        public Note(Guid id, string title)
         {
             var currentTime = DateTime.Now;
-            RaiseEvent(new NoteCreated(Id, title, currentTime, currentTime));
+            RaiseEvent(new NoteCreated(id, title, currentTime, currentTime));
         }
 
         public void ChangeTitle(string title)
@@ -25,6 +25,7 @@ namespace NoteSample.Domain
 
         private void Handle(NoteCreated evnt)
         {
+            Id = evnt.SourceId;
             Title = evnt.Title;
             CreatedTime = evnt.CreatedTime;
             UpdatedTime = evnt.UpdatedTime;
