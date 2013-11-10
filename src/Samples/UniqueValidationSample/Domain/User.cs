@@ -1,5 +1,5 @@
-﻿using ENode.Domain;
-using System;
+﻿using System;
+using ENode.Domain;
 using UniqueValidationSample.Events;
 
 namespace UniqueValidationSample.Domain
@@ -9,13 +9,14 @@ namespace UniqueValidationSample.Domain
     {
         public string Name { get; private set; }
 
-        public User(string name) : base(Guid.NewGuid())
+        public User(string name)
         {
-            RaiseEvent(new UserRegistered(Id, name));
+            RaiseEvent(new UserRegistered(Guid.NewGuid(), name));
         }
 
         private void Handle(UserRegistered evnt)
         {
+            Id = evnt.SourceId;
             Name = evnt.UserName;
         }
     }

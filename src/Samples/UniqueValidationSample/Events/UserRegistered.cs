@@ -4,7 +4,7 @@ using ENode.Eventing;
 namespace UniqueValidationSample.Events
 {
     [Serializable]
-    public class UserRegistered : Event
+    public class UserRegistered : Event<Guid>
     {
         public string UserName { get; private set; }
 
