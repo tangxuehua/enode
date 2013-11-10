@@ -149,7 +149,6 @@ namespace ENode
             Register<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
             Register<ICommandQueueRouter, DefaultCommandQueueRouter>();
             Register<IProcessingCommandCache, DefaultProcessingCommandCache>();
-            Register<ICommandAsyncResultManager, DefaultCommandAsyncResultManager>();
             Register<ICommandService, DefaultCommandService>();
             Register<IRetryCommandService, DefaultRetryCommandService>();
 

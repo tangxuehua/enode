@@ -17,7 +17,6 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private readonly IProcessingCommandCache _processingCommandCache;
-        private readonly ICommandAsyncResultManager _commandAsyncResultManager;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IEventSourcingService _eventSourcingService;
@@ -37,7 +36,6 @@ namespace ENode.Eventing.Impl
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processingCommandCache"></param>
-        /// <param name="commandAsyncResultManager"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="aggregateRootFactory"></param>
         /// <param name="eventSourcingService"></param>
@@ -51,7 +49,6 @@ namespace ENode.Eventing.Impl
         /// <param name="loggerFactory"></param>
         public DefaultUncommittedEventExecutor(
             IProcessingCommandCache processingCommandCache,
-            ICommandAsyncResultManager commandAsyncResultManager,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IAggregateRootFactory aggregateRootFactory,
             IEventSourcingService eventSourcingService,
@@ -65,7 +62,6 @@ namespace ENode.Eventing.Impl
             ILoggerFactory loggerFactory)
         {
             _processingCommandCache = processingCommandCache;
-            _commandAsyncResultManager = commandAsyncResultManager;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _aggregateRootFactory = aggregateRootFactory;
             _eventSourcingService = eventSourcingService;
@@ -328,7 +324,6 @@ namespace ENode.Eventing.Impl
         }
         private void CleanEvents(EventStreamContext context, ErrorInfo errorInfo = null)
         {
-            _commandAsyncResultManager.TryComplete(context.EventStream.CommandId, context.EventStream.AggregateRootId, errorInfo);
             _processingCommandCache.TryRemove(context.EventStream.CommandId);
             context.Queue.Delete(context.EventStream);
         }

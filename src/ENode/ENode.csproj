@@ -130,11 +130,9 @@
     <Compile Include="Commanding\ICommandQueueRouter.cs" />
     <Compile Include="Domain\Impl\EventSourcingRepository.cs" />
     <Compile Include="Domain\IRepository.cs" />
-    <Compile Include="Commanding\ICommandAsyncResultManager.cs" />
     <Compile Include="Commanding\Impl\CommandHandlerWrapper.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandHandlerProvider.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandContext.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandAsyncResultManager.cs" />
     <Compile Include="Commanding\Impl\DefaultProcessingCommandCache.cs" />
     <Compile Include="Infrastructure\Concurrent\ReaderWriterLockSlimExtensions.cs">
       <SubType>Code</SubType>
@@ -208,7 +206,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="SqlScripts\TableGenerateSQL.sql" />
-    <Compile Include="Commanding\CommandAsyncResult.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandService.cs" />
   </ItemGroup>
   <ItemGroup />

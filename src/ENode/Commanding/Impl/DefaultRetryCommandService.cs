@@ -11,16 +11,14 @@ namespace ENode.Commanding.Impl
     public class DefaultRetryCommandService : IRetryCommandService
     {
         private ICommandQueue _retryCommandQueue;
-        private readonly ICommandAsyncResultManager _commandAsyncResultManager;
         private readonly ILogger _logger;
 
         /// <summary>Parameterized costructor.
         /// </summary>
         /// <param name="commandAsyncResultManager"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultRetryCommandService(ICommandAsyncResultManager commandAsyncResultManager, ILoggerFactory loggerFactory)
+        public DefaultRetryCommandService(ILoggerFactory loggerFactory)
         {
-            _commandAsyncResultManager = commandAsyncResultManager;
             _logger = loggerFactory.Create(GetType().Name);
         }
 
@@ -44,8 +42,7 @@ namespace ENode.Commanding.Impl
             }
             else
             {
-                _commandAsyncResultManager.TryComplete(command.Id, eventStream.AggregateRootId, errorInfo);
-                _logger.InfoFormat("{0} retried count reached to its max retry count {1}.", command.GetType().Name, command.RetryCount);
+                _logger.ErrorFormat("{0} retried count reached to its max retry count {1}.", command.GetType().Name, command.RetryCount);
             }
         }
     }

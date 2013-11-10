@@ -18,7 +18,6 @@ namespace ENode.Commanding.Impl
         #region Private Variables
 
         private readonly IProcessingCommandCache _processingCommandCache;
-        private readonly ICommandAsyncResultManager _commandAsyncResultManager;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly IEventSender _eventSender;
@@ -34,7 +33,6 @@ namespace ENode.Commanding.Impl
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processingCommandCache"></param>
-        /// <param name="commandAsyncResultManager"></param>
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="eventSender"></param>
@@ -44,7 +42,6 @@ namespace ENode.Commanding.Impl
         /// <exception cref="Exception"></exception>
         public DefaultCommandExecutor(
             IProcessingCommandCache processingCommandCache,
-            ICommandAsyncResultManager commandAsyncResultManager,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IEventSender eventSender,
@@ -53,7 +50,6 @@ namespace ENode.Commanding.Impl
             ILoggerFactory loggerFactory)
         {
             _processingCommandCache = processingCommandCache;
-            _commandAsyncResultManager = commandAsyncResultManager;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _eventSender = eventSender;
@@ -83,14 +79,12 @@ namespace ENode.Commanding.Impl
             {
                 var errorMessage = string.Format("Command handler not found for {0}", command.GetType().FullName);
                 _logger.Fatal(errorMessage);
-                _commandAsyncResultManager.TryComplete(command.Id, null, new ErrorInfo(errorMessage));
                 queue.Delete(command);
                 return;
             }
 
             try
             {
-                _trackingContext.Clear();
                 _processingCommandCache.Add(command);
                 commandHandler.Handle(_commandContext, command);
                 var dirtyAggregate = GetDirtyAggregate(_trackingContext);
@@ -101,7 +95,6 @@ namespace ENode.Commanding.Impl
                 else
                 {
                     _logger.Info("No dirty aggregate found, finish the command execution directly.");
-                    _commandAsyncResultManager.TryComplete(command.Id, null);
                     queue.Delete(command);
                 }
             }
@@ -110,7 +103,6 @@ namespace ENode.Commanding.Impl
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
                 var errorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
                 _logger.Error(errorMessage, ex);
-                _commandAsyncResultManager.TryComplete(command.Id, null, new ErrorInfo(errorMessage, ex));
                 queue.Delete(command);
             }
             finally
