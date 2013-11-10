@@ -22,10 +22,6 @@ namespace ENode.Domain.Impl
             {
                 foreach (var type in assembly.GetTypes().Where(TypeUtils.IsAggregateRoot))
                 {
-                    if (!type.IsSerializable)
-                    {
-                        throw new Exception(string.Format("{0} should be marked as serializable.", type.FullName));
-                    }
                     _mappings.Add(type.FullName, type);
                 }
             }

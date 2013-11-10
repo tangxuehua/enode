@@ -312,7 +312,7 @@ namespace ENode
         /// <returns></returns>
         public Configuration Initialize(params Assembly[] assemblies)
         {
-            ValidateMessages(assemblies);
+            ValidateSerializableTypes(assemblies);
             foreach (var assemblyInitializer in _assemblyInitializerServiceTypes.Select(ObjectContainer.Resolve).OfType<IAssemblyInitializer>())
             {
                 assemblyInitializer.Initialize(assemblies);
@@ -334,11 +334,15 @@ namespace ENode
 
         #region Private Methods
 
-        private static void ValidateMessages(params Assembly[] assemblies)
+        private static void ValidateSerializableTypes(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetTypes().Where(x => x.IsClass && typeof(IMessage).IsAssignableFrom(x)))
+                foreach (var type in assembly.GetTypes().Where(
+                    x => x.IsClass && (
+                        typeof(IMessage).IsAssignableFrom(x) ||
+                        typeof(IEvent).IsAssignableFrom(x) ||
+                        typeof(IAggregateRoot).IsAssignableFrom(x))))
                 {
                     if (!type.IsSerializable)
                     {
