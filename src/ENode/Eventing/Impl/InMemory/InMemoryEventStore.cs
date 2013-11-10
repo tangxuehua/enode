@@ -30,11 +30,11 @@ namespace ENode.Eventing.Impl.InMemory
         /// <param name="minStreamVersion"></param>
         /// <param name="maxStreamVersion"></param>
         /// <returns></returns>
-        public IEnumerable<EventStream> Query(string aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
         {
             return _eventDict
                 .Values
-                .Where(x => x.AggregateRootId == aggregateRootId && x.Version >= minStreamVersion && x.Version <= maxStreamVersion)
+                .Where(x => object.Equals(x.AggregateRootId, aggregateRootId) && x.Version >= minStreamVersion && x.Version <= maxStreamVersion)
                 .OrderBy(x => x.Version);
         }
         /// <summary>Query event streams from event store.
@@ -43,9 +43,9 @@ namespace ENode.Eventing.Impl.InMemory
         /// <param name="aggregateRootType"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
+        public bool IsEventStreamExist(object aggregateRootId, Type aggregateRootType, Guid id)
         {
-            return _eventDict.Values.Any(x => x.AggregateRootId == aggregateRootId && x.Id == id);
+            return _eventDict.Values.Any(x => object.Equals(x.AggregateRootId, aggregateRootId) && x.Id == id);
         }
         /// <summary>Query all the event streams from the event store.
         /// </summary>
@@ -57,13 +57,13 @@ namespace ENode.Eventing.Impl.InMemory
 
         class EventKey
         {
-            private string AggregateRootId { get; set; }
-            private long StreamVersion { get; set; }
+            private object AggregateRootId { get; set; }
+            private long Version { get; set; }
 
-            public EventKey(string aggregateRootId, long streamVersion)
+            public EventKey(object aggregateRootId, long version)
             {
                 AggregateRootId = aggregateRootId;
-                StreamVersion = streamVersion;
+                Version = version;
             }
 
             public override bool Equals(object obj)
@@ -79,11 +79,11 @@ namespace ENode.Eventing.Impl.InMemory
                     return true;
                 }
 
-                return AggregateRootId == eventKey.AggregateRootId && StreamVersion == eventKey.StreamVersion;
+                return object.Equals(AggregateRootId, eventKey.AggregateRootId) && Version == eventKey.Version;
             }
             public override int GetHashCode()
             {
-                return AggregateRootId.GetHashCode() + StreamVersion.GetHashCode();
+                return AggregateRootId.GetHashCode() + Version.GetHashCode();
             }
         }
     }

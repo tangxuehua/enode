@@ -13,7 +13,7 @@ namespace ENode.Snapshoting
         /// <param name="version"></param>
         /// <param name="payload"></param>
         /// <param name="timestamp"></param>
-        public Snapshot(string aggregateRootName, string aggregateRootId, long version, object payload, DateTime timestamp)
+        public Snapshot(string aggregateRootName, object aggregateRootId, long version, byte[] payload, DateTime timestamp)
         {
             AggregateRootName = aggregateRootName;
             AggregateRootId = aggregateRootId;
@@ -24,7 +24,7 @@ namespace ENode.Snapshoting
 
         /// <summary>The aggregate root id.
         /// </summary>
-        public string AggregateRootId { get; set; }
+        public object AggregateRootId { get; set; }
         /// <summary>The aggregate root name.
         /// </summary>
         public string AggregateRootName { get; set; }
@@ -33,7 +33,7 @@ namespace ENode.Snapshoting
         public long Version { get; set; }
         /// <summary>The aggregate root payload data when creating this snapshot.
         /// </summary>
-        public object Payload { get; set; }
+        public byte[] Payload { get; set; }
         /// <summary>The created time of this snapshot.
         /// </summary>
         public DateTime Timestamp { get; set; }

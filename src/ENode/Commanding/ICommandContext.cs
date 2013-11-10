@@ -9,7 +9,7 @@ namespace ENode.Commanding
         /// <summary>Add a new aggregate into the current context.
         /// </summary>
         /// <param name="aggregateRoot"></param>
-        void Add(AggregateRoot aggregateRoot);
+        void Add(IAggregateRoot aggregateRoot);
         /// <summary>Get an aggregate from the current context.
         /// <remarks>
         /// 1. If the aggregate already exist in the current context, then return it directly;
@@ -21,7 +21,7 @@ namespace ENode.Commanding
         /// <typeparam name="T"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        T Get<T>(object id) where T : AggregateRoot;
+        T Get<T>(object id) where T : class, IAggregateRoot;
         /// <summary>Get an aggregate from the current context.
         /// <remarks>
         /// 1. If the aggregate already exist in the current context, then return it directly;
@@ -33,6 +33,6 @@ namespace ENode.Commanding
         /// <typeparam name="T"></typeparam>
         /// <param name="id"></param>
         /// <returns></returns>
-        T GetOrDefault<T>(object id) where T : AggregateRoot;
+        T GetOrDefault<T>(object id) where T : class, IAggregateRoot;
     }
 }

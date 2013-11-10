@@ -104,7 +104,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="minStreamVersion"></param>
         /// <param name="maxStreamVersion"></param>
         /// <returns></returns>
-        public IEnumerable<EventStream> Query(string aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<EventStream>>((connection) =>
             {
@@ -128,7 +128,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="aggregateRootType"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id)
+        public bool IsEventStreamExist(object aggregateRootId, Type aggregateRootType, Guid id)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
             {
@@ -188,7 +188,7 @@ namespace ENode.Eventing.Impl.SQL
         class SqlEventStream
         {
             public Guid Id { get; set; }
-            public string AggregateRootId { get; set; }
+            public object AggregateRootId { get; set; }
             public string AggregateRootName { get; set; }
             public Guid CommandId { get; set; }
             public long Version { get; set; }

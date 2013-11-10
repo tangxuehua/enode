@@ -21,7 +21,7 @@ namespace ENode.Eventing
         /// <param name="commandId"></param>
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
-        public EventStream(string aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
+        public EventStream(object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
             : this(Guid.NewGuid(), aggregateRootId, aggregateRootName, version, commandId, timestamp, events)
         {
         }
@@ -34,7 +34,7 @@ namespace ENode.Eventing
         /// <param name="commandId"></param>
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
-        public EventStream(Guid id, string aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
+        public EventStream(Guid id, object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
             : base(id)
         {
             AggregateRootId = aggregateRootId;
@@ -47,7 +47,7 @@ namespace ENode.Eventing
 
         /// <summary>The aggregate root id.
         /// </summary>
-        public string AggregateRootId { get; private set; }
+        public object AggregateRootId { get; private set; }
         /// <summary>The aggregate root name.
         /// </summary>
         public string AggregateRootName { get; private set; }

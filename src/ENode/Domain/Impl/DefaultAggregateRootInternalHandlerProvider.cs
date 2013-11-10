@@ -11,9 +11,9 @@ namespace ENode.Domain.Impl
     /// </summary>
     public class DefaultAggregateRootInternalHandlerProvider : IAggregateRootInternalHandlerProvider, IAssemblyInitializer
     {
-        private readonly IDictionary<Type, IDictionary<Type, Action<AggregateRoot, IEvent>>> _mappings = new Dictionary<Type, IDictionary<Type, Action<AggregateRoot, IEvent>>>();
-        private readonly BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
-        private readonly Type[] parameterTypes = new Type[] { typeof(AggregateRoot), typeof(IEvent) };
+        private readonly IDictionary<Type, IDictionary<Type, Action<IAggregateRoot, IEvent>>> _mappings = new Dictionary<Type, IDictionary<Type, Action<IAggregateRoot, IEvent>>>();
+        private readonly BindingFlags bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+        private readonly Type[] parameterTypes = new Type[] { typeof(IAggregateRoot), typeof(IEvent) };
 
         /// <summary>Initialize from the given assemblies.
         /// </summary>
@@ -41,21 +41,21 @@ namespace ENode.Domain.Impl
         /// <param name="aggregateRootType"></param>
         /// <param name="eventType"></param>
         /// <returns></returns>
-        public Action<AggregateRoot, IEvent> GetInternalEventHandler(Type aggregateRootType, Type eventType)
+        public Action<IAggregateRoot, IEvent> GetInternalEventHandler(Type aggregateRootType, Type eventType)
         {
-            IDictionary<Type, Action<AggregateRoot, IEvent>> eventHandlerDic;
+            IDictionary<Type, Action<IAggregateRoot, IEvent>> eventHandlerDic;
             if (!_mappings.TryGetValue(aggregateRootType, out eventHandlerDic)) return null;
-            Action<AggregateRoot, IEvent> eventHandler;
+            Action<IAggregateRoot, IEvent> eventHandler;
             return eventHandlerDic.TryGetValue(eventType, out eventHandler) ? eventHandler : null;
         }
 
         private void RegisterInternalHandler(Type aggregateRootType, Type eventType, MethodInfo eventHandler)
         {
-            IDictionary<Type, Action<AggregateRoot, IEvent>> eventHandlerDic;
+            IDictionary<Type, Action<IAggregateRoot, IEvent>> eventHandlerDic;
 
             if (!_mappings.TryGetValue(aggregateRootType, out eventHandlerDic))
             {
-                eventHandlerDic = new Dictionary<Type, Action<AggregateRoot, IEvent>>();
+                eventHandlerDic = new Dictionary<Type, Action<IAggregateRoot, IEvent>>();
                 _mappings.Add(aggregateRootType, eventHandlerDic);
             }
 
@@ -63,7 +63,7 @@ namespace ENode.Domain.Impl
             {
                 throw new Exception(string.Format("Found duplicated event handler on aggregate. Aggregate type:{0}, event type:{1}", aggregateRootType.FullName, eventType.FullName));
             }
-            eventHandlerDic.Add(eventType, DelegateFactory.CreateDelegate<Action<AggregateRoot, IEvent>>(eventHandler, parameterTypes));
+            eventHandlerDic.Add(eventType, DelegateFactory.CreateDelegate<Action<IAggregateRoot, IEvent>>(eventHandler, parameterTypes));
         }
     }
 }

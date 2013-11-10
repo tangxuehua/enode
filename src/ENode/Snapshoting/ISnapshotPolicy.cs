@@ -8,6 +8,6 @@ namespace ENode.Snapshoting
     {
         /// <summary>Determines whether should create a snapshot for the given aggregate root.
         /// </summary>
-        bool ShouldCreateSnapshot(AggregateRoot aggregateRoot);
+        bool ShouldCreateSnapshot(IAggregateRoot aggregateRoot);
     }
 }

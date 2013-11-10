@@ -73,10 +73,7 @@ namespace ENode.Messaging.Impl
             {
                 _messageStore.AddMessage(Name, message);
                 _queue.Add(message);
-                if (Logger.IsDebugEnabled)
-                {
-                    Logger.DebugFormat("{0} enqueued, id:{1}", message.ToString(), message.Id);
-                }
+                Logger.DebugFormat("Message enqueued, id:{0}, info:{1}", message.Id, message.ToString());
             });
         }
         /// <summary>Dequeue the message from memory queue.
@@ -89,7 +86,7 @@ namespace ENode.Messaging.Impl
         /// <summary>Remove the message from message store.
         /// </summary>
         /// <param name="message"></param>
-        public void Complete(T message)
+        public void Delete(T message)
         {
             _dequeueLocker.AtomWrite(() => _messageStore.RemoveMessage(Name, message));
         }

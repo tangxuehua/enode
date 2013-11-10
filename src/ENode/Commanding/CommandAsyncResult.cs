@@ -20,7 +20,7 @@ namespace ENode.Commanding
         /// <summary>Represents the id of aggregate root which was created or updated by the command.
         /// <remarks>Can be null if the command not effect any aggregate root.</remarks>
         /// </summary>
-        public string AggregateRootId { get; private set; }
+        public object AggregateRootId { get; private set; }
         /// <summary>Error message generated when executing the command.
         /// </summary>
         public ErrorInfo ErrorInfo { get; private set; }
@@ -48,7 +48,7 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="errorInfo"></param>
-        public void Complete(string aggregateRootId, ErrorInfo errorInfo)
+        public void Complete(object aggregateRootId, ErrorInfo errorInfo)
         {
             IsCompleted = true;
             AggregateRootId = aggregateRootId;

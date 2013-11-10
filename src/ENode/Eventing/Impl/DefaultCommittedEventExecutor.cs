@@ -17,7 +17,7 @@ namespace ENode.Eventing.Impl
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IEventHandleInfoStore _eventHandleInfoStore;
         private readonly IEventHandleInfoCache _eventHandleInfoCache;
-        private readonly IRetryService _retryService;
+        private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
 
         #endregion
@@ -30,21 +30,21 @@ namespace ENode.Eventing.Impl
         /// <param name="eventPublishInfoStore"></param>
         /// <param name="eventHandleInfoStore"></param>
         /// <param name="eventHandleInfoCache"></param>
-        /// <param name="retryService"></param>
+        /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommittedEventExecutor(
             IEventHandlerProvider eventHandlerProvider,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
             IEventHandleInfoCache eventHandleInfoCache,
-            IRetryService retryService,
+            IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
             _eventHandlerProvider = eventHandlerProvider;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventHandleInfoStore = eventHandleInfoStore;
             _eventHandleInfoCache = eventHandleInfoCache;
-            _retryService = retryService;
+            _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().Name);
         }
 
@@ -56,14 +56,14 @@ namespace ENode.Eventing.Impl
         /// <param name="queue"></param>
         public override void Execute(EventStream eventStream, IMessageQueue<EventStream> queue)
         {
-            TryDispatchEventsToEventHandlers(new EventStreamContext { EventStream = eventStream, Queue = queue });
+            DispatchEventsToHandlers(new EventStreamContext { EventStream = eventStream, Queue = queue });
         }
 
         #region Private Methods
 
-        private void TryDispatchEventsToEventHandlers(EventStreamContext context)
+        private void DispatchEventsToHandlers(EventStreamContext context)
         {
-            Func<bool> tryDispatchEvents = () =>
+            Func<bool> dispatchEventsToHandlers = () =>
             {
                 var eventStream = context.EventStream;
                 switch (eventStream.Version)
@@ -82,7 +82,16 @@ namespace ENode.Eventing.Impl
 
             try
             {
-                _retryService.TryAction("TryDispatchEvents", tryDispatchEvents, 3, () => Clear(context));
+                _actionExecutionService.TryAction(
+                    "DispatchEventsToHandlers",
+                    dispatchEventsToHandlers,
+                    3,
+                    new ActionInfo("DispatchEventsToHandlersCallback",
+                        data => {
+                            UpdatePublishedEventStreamVersion(context.EventStream);
+                            context.Queue.Delete(context.EventStream);
+                            return true;
+                        }, null, null));
             }
             catch (Exception ex)
             {
@@ -96,7 +105,7 @@ namespace ENode.Eventing.Impl
             {
                 foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
                 {
-                    if (!_retryService.TryRecursively("DispatchEventToHandler", () => DispatchEventToHandler(evnt, handler), 3))
+                    if (!_actionExecutionService.TryRecursively("DispatchEventToHandler", () => DispatchEventToHandler(evnt, handler), 3))
                     {
                         success = false;
                     }
@@ -140,11 +149,6 @@ namespace ENode.Eventing.Impl
             {
                 _eventPublishInfoStore.UpdatePublishedVersion(stream.AggregateRootId, stream.Version);
             }
-        }
-        private void Clear(EventStreamContext context)
-        {
-            UpdatePublishedEventStreamVersion(context.EventStream);
-            FinishExecution(context.EventStream, context.Queue);
         }
 
         #endregion

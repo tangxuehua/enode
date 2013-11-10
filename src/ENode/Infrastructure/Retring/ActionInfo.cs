@@ -2,7 +2,7 @@
 
 namespace ENode.Infrastructure.Retring
 {
-    /// <summary>A class contains the information of a specific retry action.
+    /// <summary>A class contains the information of an action.
     /// </summary>
     public class ActionInfo
     {

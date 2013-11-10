@@ -11,6 +11,7 @@ namespace ENode.Domain.Impl
 
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
+        private readonly IEventSourcingService _eventSourcingService;
         private readonly IEventStore _eventStore;
         private readonly IMemoryCache _memoryCache;
 
@@ -27,11 +28,13 @@ namespace ENode.Domain.Impl
         public DefaultMemoryCacheRebuilder(
             IAggregateRootFactory aggregateRootFactory,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
+            IEventSourcingService eventSourcingService,
             IEventStore eventStore,
             IMemoryCache memoryCache)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
+            _eventSourcingService = eventSourcingService;
             _eventStore = eventStore;
             _memoryCache = memoryCache;
         }
@@ -50,7 +53,7 @@ namespace ENode.Domain.Impl
                 var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(group.First().AggregateRootName);
                 var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
 
-                aggregateRoot.ReplayEventStreams(group);
+                _eventSourcingService.ReplayEventStream(aggregateRoot, group);
 
                 _memoryCache.Set(aggregateRoot);
             }

@@ -13,6 +13,6 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="id">The aggregate root id.</param>
         /// <param name="type">The aggregate root type.</param>
-        public AggregateRootNotFoundException(string id, Type type) : base(string.Format(ExceptionMessage, type.Name, id)) { }
+        public AggregateRootNotFoundException(object id, Type type) : base(string.Format(ExceptionMessage, type.Name, id)) { }
     }
 }

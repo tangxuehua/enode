@@ -49,7 +49,7 @@ namespace ENode.Eventing.Impl
         /// <returns></returns>
         public bool IsEventHandler(Type type)
         {
-            return type != null && type.IsClass && !type.IsAbstract && ScanEventHandlerInterfaces(type).Any() && !typeof(AggregateRoot).IsAssignableFrom(type);
+            return type != null && type.IsClass && !type.IsAbstract && ScanEventHandlerInterfaces(type).Any() && !typeof(IAggregateRoot).IsAssignableFrom(type);
         }
 
         private void RegisterEventHandler(Type eventHandlerType)

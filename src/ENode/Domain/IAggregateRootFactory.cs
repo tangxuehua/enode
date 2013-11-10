@@ -8,6 +8,6 @@ namespace ENode.Domain
     {
         /// <summary>Create an empty aggregate root with the given type.
         /// </summary>
-        AggregateRoot CreateAggregateRoot(Type aggregateRootType);
+        IAggregateRoot CreateAggregateRoot(Type aggregateRootType);
     }
 }

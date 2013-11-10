@@ -17,7 +17,7 @@ namespace ENode.Snapshoting.Impl
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
         /// <returns></returns>
-        public Snapshot GetLastestSnapshot(string aggregateRootId, Type aggregateRootType)
+        public Snapshot GetLastestSnapshot(object aggregateRootId, Type aggregateRootType)
         {
             return null;
         }

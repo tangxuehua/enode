@@ -18,7 +18,7 @@ namespace ENode.Infrastructure
         /// </summary>
         public static bool IsAggregateRoot(Type type)
         {
-            return type.IsClass && !type.IsAbstract && typeof(AggregateRoot).IsAssignableFrom(type);
+            return type.IsClass && !type.IsAbstract && typeof(IAggregateRoot).IsAssignableFrom(type);
         }
     }
 }

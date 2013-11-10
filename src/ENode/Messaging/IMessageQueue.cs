@@ -20,9 +20,9 @@
         /// <summary>Remove the top message from the queue.
         /// </summary>
         T Dequeue();
-        /// <summary>Notify the queue that the given message has been handled, and it can be removed from queue.
+        /// <summary>Notify the queue to delete the given message.
         /// </summary>
         /// <param name="message"></param>
-        void Complete(T message);
+        void Delete(T message);
     }
 }

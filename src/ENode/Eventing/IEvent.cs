@@ -6,11 +6,11 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEvent
     {
-        /// <summary>Represents the unique identifier for the event.
+        /// <summary>Represents the unique identifier of the domain event.
         /// </summary>
         Guid Id { get; }
-        /// <summary>Represents the source of the event, which means which aggregate raised this event.
+        /// <summary>Represents the unique id of the aggregate root which raised this domain event.
         /// </summary>
-        object SourceId { get; }
+        object AggregateRootId { get; }
     }
 }

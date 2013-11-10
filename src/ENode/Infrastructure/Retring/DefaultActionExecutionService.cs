@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Threading;
 using ENode.Infrastructure.Logging;
 
 namespace ENode.Infrastructure.Retring
 {
-    /// <summary>The default implementation of IRetryService;
+    /// <summary>The default implementation of IActionExecutionService.
     /// </summary>
-    public class DefaultRetryService : IRetryService
+    public class DefaultActionExecutionService : IActionExecutionService
     {
         private const int DefaultPeriod = 5000;
-        private readonly BlockingCollection<ActionInfo> _retryQueue = new BlockingCollection<ActionInfo>(new ConcurrentQueue<ActionInfo>());
+        private readonly BlockingCollection<ActionInfo> _actionQueue = new BlockingCollection<ActionInfo>(new ConcurrentQueue<ActionInfo>());
         private readonly Worker _worker;
         private readonly ILogger _logger;
 
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="loggerFactory"></param>
-        public DefaultRetryService(ILoggerFactory loggerFactory)
+        public DefaultActionExecutionService(ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.Create(GetType().Name);
             _worker = new Worker(TryTakeAndExecuteAction, DefaultPeriod);
@@ -38,39 +37,6 @@ namespace ENode.Infrastructure.Retring
         /// <param name="action"></param>
         /// <param name="maxRetryCount"></param>
         /// <param name="nextAction"></param>
-        public void TryAction(string actionName, Action action, int maxRetryCount, Action nextAction)
-        {
-            TryAction(actionName, () => { action(); return true; }, maxRetryCount, nextAction != null ? new ActionInfo("NextActionOf" + actionName, obj => { nextAction(); return true; }, null, null) : null);
-        }
-        /// <summary>Try to execute the given action with the given max retry count.
-        /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
-        /// </summary>
-        /// <param name="actionName"></param>
-        /// <param name="action"></param>
-        /// <param name="maxRetryCount"></param>
-        /// <param name="nextAction"></param>
-        public void TryAction(string actionName, Func<bool> action, int maxRetryCount, Action nextAction)
-        {
-            TryAction(actionName, action, maxRetryCount, nextAction != null ? new ActionInfo("NextActionOf" + actionName, obj => { nextAction(); return true; }, null, null) : null);
-        }
-        /// <summary>Try to execute the given action with the given max retry count.
-        /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
-        /// </summary>
-        /// <param name="actionName"></param>
-        /// <param name="action"></param>
-        /// <param name="maxRetryCount"></param>
-        /// <param name="nextAction"></param>
-        public void TryAction(string actionName, Func<bool> action, int maxRetryCount, Func<bool> nextAction)
-        {
-            TryAction(actionName, action, maxRetryCount, nextAction != null ? new ActionInfo("NextActionOf" + actionName, obj => nextAction(), null, null) : null);
-        }
-        /// <summary>Try to execute the given action with the given max retry count.
-        /// <remarks>If the action execute still failed within the max retry count, then put the action into the retry queue;</remarks>
-        /// </summary>
-        /// <param name="actionName"></param>
-        /// <param name="action"></param>
-        /// <param name="maxRetryCount"></param>
-        /// <param name="nextAction"></param>
         public void TryAction(string actionName, Func<bool> action, int maxRetryCount, ActionInfo nextAction)
         {
             if (TryRecursively(actionName, (x, y, z) => action(), 0, maxRetryCount))
@@ -79,7 +45,7 @@ namespace ENode.Infrastructure.Retring
             }
             else
             {
-                _retryQueue.Add(new ActionInfo(actionName, obj => action(), null, nextAction));
+                _actionQueue.Add(new ActionInfo(actionName, obj => action(), null, nextAction));
             }
         }
         /// <summary>Try to execute the given action with the given max retry count. If success then returns true; otherwise, returns false.
@@ -97,7 +63,7 @@ namespace ENode.Infrastructure.Retring
         {
             try
             {
-                TryAction(_retryQueue.Take());
+                TryAction(_actionQueue.Take());
             }
             catch (Exception ex)
             {
@@ -109,6 +75,7 @@ namespace ENode.Infrastructure.Retring
             var success = false;
             try
             {
+                _logger.DebugFormat("Executing action {0}.", actionName);
                 success = action(actionName, retriedCount, maxRetryCount);
                 if (retriedCount > 0)
                 {
@@ -122,6 +89,7 @@ namespace ENode.Infrastructure.Retring
 
             if (success)
             {
+                _logger.DebugFormat("Executed action {0}.", actionName);
                 return true;
             }
             if (retriedCount < maxRetryCount)
@@ -136,8 +104,8 @@ namespace ENode.Infrastructure.Retring
             var success = false;
             try
             {
+                _logger.DebugFormat("Executing action {0}.", actionInfo.Name);
                 success = actionInfo.Action(actionInfo.Data);
-                _logger.InfoFormat("Executed action {0}.", actionInfo.Name);
             }
             catch (Exception ex)
             {
@@ -147,14 +115,15 @@ namespace ENode.Infrastructure.Retring
             {
                 if (success)
                 {
+                    _logger.DebugFormat("Executed action {0}.", actionInfo.Name);
                     if (actionInfo.Next != null)
                     {
-                        _retryQueue.Add(actionInfo.Next);
+                        _actionQueue.Add(actionInfo.Next);
                     }
                 }
                 else
                 {
-                    _retryQueue.Add(actionInfo);
+                    _actionQueue.Add(actionInfo);
                 }
             }
         }

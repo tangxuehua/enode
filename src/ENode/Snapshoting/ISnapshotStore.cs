@@ -15,6 +15,6 @@ namespace ENode.Snapshoting
         /// <param name="aggregateRootId">The aggregate root id.</param>
         /// <param name="aggregateRootType">The aggregate root type.</param>
         /// <returns>Returns the snapshot if exist; otherwise, returns null.</returns>
-        Snapshot GetLastestSnapshot(string aggregateRootId, Type aggregateRootType);
+        Snapshot GetLastestSnapshot(object aggregateRootId, Type aggregateRootType);
     }
 }

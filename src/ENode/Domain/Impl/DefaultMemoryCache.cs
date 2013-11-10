@@ -24,13 +24,13 @@ namespace ENode.Domain.Impl
         /// <param name="id"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        public AggregateRoot Get(object id, Type type)
+        public IAggregateRoot Get(object id, Type type)
         {
             if (id == null) throw new ArgumentNullException("id");
             byte[] value;
             if (_cacheDict.TryGetValue(id.ToString(), out value))
             {
-                return _binarySerializer.Deserialize(value, type) as AggregateRoot;
+                return _binarySerializer.Deserialize(value, type) as IAggregateRoot;
             }
             return null;
         }
@@ -39,7 +39,7 @@ namespace ENode.Domain.Impl
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>(object id) where T : AggregateRoot
+        public T Get<T>(object id) where T : class, IAggregateRoot
         {
             if (id == null) throw new ArgumentNullException("id");
             byte[] value;
@@ -49,13 +49,13 @@ namespace ENode.Domain.Impl
         /// </summary>
         /// <param name="aggregateRoot"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public void Set(AggregateRoot aggregateRoot)
+        public void Set(IAggregateRoot aggregateRoot)
         {
             if (aggregateRoot == null)
             {
                 throw new ArgumentNullException("aggregateRoot");
             }
-            _cacheDict[aggregateRoot.UniqueId] = _binarySerializer.Serialize(aggregateRoot);
+            _cacheDict[aggregateRoot.UniqueId.ToString()] = _binarySerializer.Serialize(aggregateRoot);
         }
     }
 }

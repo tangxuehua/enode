@@ -45,7 +45,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        public void InsertFirstPublishedVersion(string aggregateRootId)
+        public void InsertFirstPublishedVersion(object aggregateRootId)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
@@ -60,7 +60,7 @@ namespace ENode.Eventing.Impl.SQL
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
-        public void UpdatePublishedVersion(string aggregateRootId, long version)
+        public void UpdatePublishedVersion(object aggregateRootId, long version)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
@@ -74,7 +74,7 @@ namespace ENode.Eventing.Impl.SQL
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public long GetEventPublishedVersion(string aggregateRootId)
+        public long GetEventPublishedVersion(object aggregateRootId)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetValue<long>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedEventStreamVersion"));
         }

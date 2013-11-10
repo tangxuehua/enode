@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
 using ENode.Eventing;
@@ -21,7 +22,7 @@ namespace ENode.Commanding.Impl
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly IEventSender _eventSender;
-        private readonly IRetryService _retryService;
+        private readonly IActionExecutionService _actionExecutionService;
         private readonly ICommandContext _commandContext;
         private readonly ITrackingContext _trackingContext;
         private readonly ILogger _logger;
@@ -37,7 +38,7 @@ namespace ENode.Commanding.Impl
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="eventSender"></param>
-        /// <param name="retryService"></param>
+        /// <param name="actionExecutionService"></param>
         /// <param name="commandContext"></param>
         /// <param name="loggerFactory"></param>
         /// <exception cref="Exception"></exception>
@@ -47,7 +48,7 @@ namespace ENode.Commanding.Impl
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IEventSender eventSender,
-            IRetryService retryService,
+            IActionExecutionService actionExecutionService,
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)
         {
@@ -56,7 +57,7 @@ namespace ENode.Commanding.Impl
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _eventSender = eventSender;
-            _retryService = retryService;
+            _actionExecutionService = actionExecutionService;
             _commandContext = commandContext;
             _trackingContext = commandContext as ITrackingContext;
             _logger = loggerFactory.Create(GetType().Name);
@@ -83,7 +84,7 @@ namespace ENode.Commanding.Impl
                 var errorMessage = string.Format("Command handler not found for {0}", command.GetType().FullName);
                 _logger.Fatal(errorMessage);
                 _commandAsyncResultManager.TryComplete(command.Id, null, new ErrorInfo(errorMessage));
-                FinishExecution(command, queue);
+                queue.Delete(command);
                 return;
             }
 
@@ -101,7 +102,7 @@ namespace ENode.Commanding.Impl
                 {
                     _logger.Info("No dirty aggregate found, finish the command execution directly.");
                     _commandAsyncResultManager.TryComplete(command.Id, null);
-                    FinishExecution(command, queue);
+                    queue.Delete(command);
                 }
             }
             catch (Exception ex)
@@ -110,7 +111,7 @@ namespace ENode.Commanding.Impl
                 var errorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
                 _logger.Error(errorMessage, ex);
                 _commandAsyncResultManager.TryComplete(command.Id, null, new ErrorInfo(errorMessage, ex));
-                FinishExecution(command, queue);
+                queue.Delete(command);
             }
             finally
             {
@@ -120,7 +121,7 @@ namespace ENode.Commanding.Impl
 
         #region Private Methods
 
-        private static AggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
+        private static IAggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
         {
             var trackedAggregateRoots = trackingContext.GetTrackedAggregateRoots();
             var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Any()).ToList();
@@ -137,26 +138,29 @@ namespace ENode.Commanding.Impl
 
             return dirtyAggregateRoots.Single();
         }
-        private EventStream BuildEvents(AggregateRoot aggregateRoot, ICommand command)
+        private void CommitAggregate(IAggregateRoot dirtyAggregate, ICommand command, IMessageQueue<ICommand> queue)
+        {
+            var eventStream = CreateEventStream(dirtyAggregate, command);
+            _actionExecutionService.TryAction("SendEvent", () => SendEvent(eventStream), 3, new ActionInfo("SendEventCallback", data => { queue.Delete(command); return true; }, null, null));
+        }
+        private EventStream CreateEventStream(IAggregateRoot aggregateRoot, ICommand command)
         {
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
+            ValidateEvents(aggregateRoot, uncommittedEvents);
+
             var aggregateRootType = aggregateRoot.GetType();
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
+            var aggregateRootId = uncommittedEvents.First().AggregateRootId;
 
             return new EventStream(
-                aggregateRoot.UniqueId,
+                aggregateRootId,
                 aggregateRootName,
                 aggregateRoot.Version + 1,
                 command.Id,
                 DateTime.UtcNow,
                 uncommittedEvents);
         }
-        private void CommitAggregate(AggregateRoot dirtyAggregate, ICommand command, IMessageQueue<ICommand> queue)
-        {
-            var eventStream = BuildEvents(dirtyAggregate, command);
-            _retryService.TryAction("TrySendEvent", () => TrySendEvent(eventStream), 3, () => FinishExecution(command, queue));
-        }
-        private bool TrySendEvent(EventStream eventStream)
+        private bool SendEvent(EventStream eventStream)
         {
             try
             {
@@ -167,6 +171,24 @@ namespace ENode.Commanding.Impl
             {
                 _logger.Error(string.Format("Exception raised when tring to send events, events info:{0}.", eventStream.GetStreamInformation()), ex);
                 return false;
+            }
+        }
+        private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IEvent> evnts)
+        {
+            var aggregateRootId = evnts[0].AggregateRootId;
+            for (var index = 1; index < evnts.Count(); index++)
+            {
+                if (!object.Equals(evnts[index].AggregateRootId, aggregateRootId))
+                {
+                    throw new Exception(string.Format("Wrong aggregate root id of domain event: {0}.", evnts[index].GetType().FullName));
+                }
+            }
+            if (aggregateRoot.Version > 0)
+            {
+                if (!object.Equals(aggregateRoot.UniqueId, aggregateRootId))
+                {
+                    throw new Exception(string.Format("Mismatch aggregate root id. Expected:{0}, Actual:{1}", aggregateRoot.UniqueId, aggregateRootId));
+                }
             }
         }
 

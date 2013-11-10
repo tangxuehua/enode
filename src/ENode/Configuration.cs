@@ -136,6 +136,7 @@ namespace ENode
 
             Register<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();
             Register<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
+            Register<IEventSourcingService, DefaultEventSourcingService>();
             Register<IAggregateRootFactory, DefaultAggregateRootFactory>();
             Register<IMemoryCache, DefaultMemoryCache>();
             Register<IRepository, EventSourcingRepository>();
@@ -164,7 +165,7 @@ namespace ENode
             Register<IEventSender, DefaultEventSender>();
             Register<IEventPublisher, DefaultEventPublisher>();
 
-            Register<IRetryService, DefaultRetryService>(LifeStyle.Transient);
+            Register<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
             Register<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
             Register<ICommandExecutor, DefaultCommandExecutor>(LifeStyle.Transient);
             Register<IUncommittedEventExecutor, DefaultUncommittedEventExecutor>(LifeStyle.Transient);

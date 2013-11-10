@@ -20,12 +20,12 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
-        void TryComplete(Guid commandId, string aggregateRootId);
+        void TryComplete(Guid commandId, object aggregateRootId);
         /// <summary>Try to complete a command async result if it exist.
         /// </summary>
         /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="errorInfo"></param>
-        void TryComplete(Guid commandId, string aggregateRootId, ErrorInfo errorInfo);
+        void TryComplete(Guid commandId, object aggregateRootId, ErrorInfo errorInfo);
     }
 }

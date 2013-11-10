@@ -5,27 +5,38 @@ namespace ENode.Eventing
     /// <summary>Represents a base domain event.
     /// </summary>
     [Serializable]
-    public class Event : IEvent
+    public class Event<TAggregateRootId> : IEvent
     {
+        private Guid _id;
+        private object _aggregateRootId;
+
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="sourceId"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public Event(object sourceId)
+        public Event(TAggregateRootId aggregateRootId)
         {
-            Id = Guid.NewGuid();
-            if (sourceId == null)
+            if (aggregateRootId == null)
             {
-                throw new ArgumentNullException("sourceId");
+                throw new ArgumentNullException("aggregateRootId");
             }
-            SourceId = sourceId;
+            _aggregateRootId = aggregateRootId;
+            _id = Guid.NewGuid();
+            SourceId = aggregateRootId;
         }
 
-        /// <summary>Represents the unique identifier for the event.
+        /// <summary>Represents the unique identifier for the domain event.
         /// </summary>
         public Guid Id { get; private set; }
-        /// <summary>Represents the source of the event, which means which aggregate raised this event.
+        /// <summary>Represents the unique id of the aggregate root which raised this domain event.
         /// </summary>
-        public object SourceId { get; private set; }
+        public TAggregateRootId SourceId { get; private set; }
+
+        Guid IEvent.Id
+        {
+            get { return _id; }
+        }
+        object IEvent.AggregateRootId
+        {
+            get { return _aggregateRootId; }
+        }
     }
 }

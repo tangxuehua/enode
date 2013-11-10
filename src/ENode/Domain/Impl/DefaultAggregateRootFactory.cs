@@ -11,9 +11,9 @@ namespace ENode.Domain.Impl
         /// </summary>
         /// <param name="aggregateRootType"></param>
         /// <returns></returns>
-        public AggregateRoot CreateAggregateRoot(Type aggregateRootType)
+        public IAggregateRoot CreateAggregateRoot(Type aggregateRootType)
         {
-            return FormatterServices.GetUninitializedObject(aggregateRootType) as AggregateRoot;
+            return FormatterServices.GetUninitializedObject(aggregateRootType) as IAggregateRoot;
         }
     }
 }

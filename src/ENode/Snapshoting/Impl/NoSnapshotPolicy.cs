@@ -10,7 +10,7 @@ namespace ENode.Snapshoting.Impl
         /// </summary>
         /// <param name="aggregateRoot"></param>
         /// <returns></returns>
-        public bool ShouldCreateSnapshot(AggregateRoot aggregateRoot)
+        public bool ShouldCreateSnapshot(IAggregateRoot aggregateRoot)
         {
             return false;
         }

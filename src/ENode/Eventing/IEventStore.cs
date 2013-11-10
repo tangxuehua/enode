@@ -16,10 +16,10 @@ namespace ENode.Eventing
         /// <param name="aggregateRootType"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        bool IsEventStreamExist(string aggregateRootId, Type aggregateRootType, Guid id);
+        bool IsEventStreamExist(object aggregateRootId, Type aggregateRootType, Guid id);
         /// <summary>Query event streams from event store.
         /// </summary>
-        IEnumerable<EventStream> Query(string aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion);
+        IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion);
         /// <summary>Query all the event streams from the event store.
         /// </summary>
         /// <returns></returns>

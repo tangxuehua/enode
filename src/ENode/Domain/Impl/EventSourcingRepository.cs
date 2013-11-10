@@ -13,6 +13,7 @@ namespace ENode.Domain.Impl
     {
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IMemoryCache _memoryCache;
+        private readonly IEventSourcingService _eventSourcingService;
         private readonly IEventStore _eventStore;
         private readonly ISnapshotStore _snapshotStore;
 
@@ -20,12 +21,14 @@ namespace ENode.Domain.Impl
         /// </summary>
         /// <param name="aggregateRootFactory"></param>
         /// <param name="memoryCache"></param>
+        /// <param name="eventSourcingService"></param>
         /// <param name="eventStore"></param>
         /// <param name="snapshotStore"></param>
-        public EventSourcingRepository(IAggregateRootFactory aggregateRootFactory, IMemoryCache memoryCache, IEventStore eventStore, ISnapshotStore snapshotStore)
+        public EventSourcingRepository(IAggregateRootFactory aggregateRootFactory, IMemoryCache memoryCache, IEventSourcingService eventSourcingService, IEventStore eventStore, ISnapshotStore snapshotStore)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _memoryCache = memoryCache;
+            _eventSourcingService = eventSourcingService;
             _eventStore = eventStore;
             _snapshotStore = snapshotStore;
         }
@@ -35,7 +38,7 @@ namespace ENode.Domain.Impl
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>(object id) where T : AggregateRoot
+        public T Get<T>(object id) where T : class, IAggregateRoot
         {
             return Get(typeof(T), id) as T;
         }
@@ -44,7 +47,7 @@ namespace ENode.Domain.Impl
         /// <param name="type"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public AggregateRoot Get(Type type, object id)
+        public IAggregateRoot Get(Type type, object id)
         {
             if (id == null) throw new ArgumentNullException("id");
             return _memoryCache.Get(id, type) ?? GetFromStorage(type, id.ToString());
@@ -54,9 +57,9 @@ namespace ENode.Domain.Impl
 
         /// <summary>Get aggregate root from event store.
         /// </summary>
-        private AggregateRoot GetFromStorage(Type aggregateRootType, string aggregateRootId)
+        private IAggregateRoot GetFromStorage(Type aggregateRootType, object aggregateRootId)
         {
-            AggregateRoot aggregateRoot;
+            IAggregateRoot aggregateRoot;
             const long minStreamVersion = 1;
             const long maxStreamVersion = long.MaxValue;
 
@@ -72,7 +75,7 @@ namespace ENode.Domain.Impl
         }
         /// <summary>Try to get an aggregate root from snapshot store.
         /// </summary>
-        private bool TryGetFromSnapshot(string aggregateRootId, Type aggregateRootType, out AggregateRoot aggregateRoot)
+        private bool TryGetFromSnapshot(object aggregateRootId, Type aggregateRootType, out IAggregateRoot aggregateRoot)
         {
             aggregateRoot = null;
 
@@ -89,19 +92,19 @@ namespace ENode.Domain.Impl
             }
 
             var eventsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.Version + 1, long.MaxValue);
-            aggregateRootFromSnapshot.ReplayEventStreams(eventsAfterSnapshot);
+            _eventSourcingService.ReplayEventStream(aggregateRootFromSnapshot, eventsAfterSnapshot);
             aggregateRoot = aggregateRootFromSnapshot;
             return true;
         }
         /// <summary>Rebuild the aggregate root using the event sourcing pattern.
         /// </summary>
-        private AggregateRoot BuildAggregateRoot(Type aggregateRootType, IEnumerable<EventStream> streams)
+        private IAggregateRoot BuildAggregateRoot(Type aggregateRootType, IEnumerable<EventStream> streams)
         {
             var eventStreams = streams.ToList();
             if (streams == null || !eventStreams.Any()) return null;
 
             var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
-            aggregateRoot.ReplayEventStreams(eventStreams);
+            _eventSourcingService.ReplayEventStream(aggregateRoot, eventStreams);
 
             return aggregateRoot;
         }

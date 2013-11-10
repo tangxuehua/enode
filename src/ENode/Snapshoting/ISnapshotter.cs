@@ -8,9 +8,9 @@ namespace ENode.Snapshoting
     {
         /// <summary>Create a snapshot for the given aggregate root.
         /// </summary>
-        Snapshot CreateSnapshot(AggregateRoot aggregateRoot);
+        Snapshot CreateSnapshot(IAggregateRoot aggregateRoot);
         /// <summary>Restore the aggregate from the given snapshot.
         /// </summary>
-        AggregateRoot RestoreFromSnapshot(Snapshot snapshot);
+        IAggregateRoot RestoreFromSnapshot(Snapshot snapshot);
     }
 }
