@@ -4,12 +4,12 @@ using ENode.Eventing;
 
 namespace ENode.Domain
 {
-    /// <summary>Represents the aggregate root interface.
+    /// <summary>Represents an aggregate root.
     /// </summary>
     public interface IAggregateRoot
     {
         object UniqueId { get; }
         long Version { get; }
-        IEnumerable<IEvent> GetUncommittedEvents();
+        IEnumerable<IDomainEvent> GetUncommittedEvents();
     }
 }

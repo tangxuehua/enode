@@ -120,7 +120,7 @@ namespace ENode.Eventing.Impl
             }
             return success;
         }
-        private bool DispatchEventToHandler(IEvent evnt, IEventHandler handler)
+        private bool DispatchEventToHandler(IDomainEvent evnt, IEventHandler handler)
         {
             try
             {

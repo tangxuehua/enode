@@ -2,9 +2,9 @@
 
 namespace ENode.Eventing
 {
-    /// <summary>Represents a domain event interface.
+    /// <summary>Represents a domain event.
     /// </summary>
-    public interface IEvent
+    public interface IDomainEvent
     {
         /// <summary>Represents the unique identifier of the domain event.
         /// </summary>

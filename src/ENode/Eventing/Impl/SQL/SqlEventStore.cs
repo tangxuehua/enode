@@ -169,7 +169,7 @@ namespace ENode.Eventing.Impl.SQL
                     sqlEventStream.Version,
                     sqlEventStream.CommandId,
                     sqlEventStream.Timestamp,
-                    _jsonSerializer.Deserialize<IEnumerable<IEvent>>(sqlEventStream.Events));
+                    _jsonSerializer.Deserialize<IEnumerable<IDomainEvent>>(sqlEventStream.Events));
         }
         private SqlEventStream BuildSqlEventStreamFrom(EventStream eventStream)
         {

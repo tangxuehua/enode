@@ -95,14 +95,13 @@ namespace ENode.Domain.Impl
         /// </summary>
         /// <param name="aggregateRoot"></param>
         /// <param name="evnt"></param>
-        private void HandleEvent(IAggregateRoot aggregateRoot, IEvent evnt)
+        private void HandleEvent(IAggregateRoot aggregateRoot, IDomainEvent evnt)
         {
             var handler = _eventHandlerProvider.GetInternalEventHandler(aggregateRoot.GetType(), evnt.GetType());
-            if (handler == null)
+            if (handler != null)
             {
-                throw new Exception(string.Format("Event handler not found on {0} for {1}.", GetType().FullName, evnt.GetType().FullName));
+                handler(aggregateRoot, evnt);
             }
-            handler(aggregateRoot, evnt);
         }
         /// <summary>Verify whether the given event stream can be applied on the given aggregate root.
         /// </summary>

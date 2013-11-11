@@ -21,6 +21,7 @@ namespace ENode.Commanding.Impl
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly IEventSender _eventSender;
+        private readonly IEventPublisher _eventPublisher;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ICommandContext _commandContext;
         private readonly ITrackingContext _trackingContext;
@@ -36,6 +37,7 @@ namespace ENode.Commanding.Impl
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="eventSender"></param>
+        /// <param name="eventPublisher"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="commandContext"></param>
         /// <param name="loggerFactory"></param>
@@ -45,6 +47,7 @@ namespace ENode.Commanding.Impl
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IEventSender eventSender,
+            IEventPublisher eventPublisher,
             IActionExecutionService actionExecutionService,
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)
@@ -53,6 +56,7 @@ namespace ENode.Commanding.Impl
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _eventSender = eventSender;
+            _eventPublisher = eventPublisher;
             _actionExecutionService = actionExecutionService;
             _commandContext = commandContext;
             _trackingContext = commandContext as ITrackingContext;
@@ -133,7 +137,23 @@ namespace ENode.Commanding.Impl
         private void CommitAggregate(IAggregateRoot dirtyAggregate, ICommand command, IMessageQueue<ICommand> queue)
         {
             var eventStream = CreateEventStream(dirtyAggregate, command);
-            _actionExecutionService.TryAction("SendEvent", () => SendEvent(eventStream), 3, new ActionInfo("SendEventCallback", data => { queue.Delete(command); return true; }, null, null));
+
+            if (eventStream.Events.Any(x => x is ISourcableEvent))
+            {
+                _actionExecutionService.TryAction(
+                    "SendEvents",
+                    () => SendEvents(eventStream),
+                    3,
+                    new ActionInfo("SendEventsCallback", data => { queue.Delete(command); return true; }, null, null));
+            }
+            else
+            {
+                _actionExecutionService.TryAction(
+                    "PublishEvents",
+                    () => PublishEvents(eventStream),
+                    3,
+                    new ActionInfo("PublishEventsCallback", data => { _processingCommandCache.TryRemove(eventStream.CommandId); queue.Delete(command); return true; }, null, null));
+            }
         }
         private EventStream CreateEventStream(IAggregateRoot aggregateRoot, ICommand command)
         {
@@ -152,7 +172,7 @@ namespace ENode.Commanding.Impl
                 DateTime.UtcNow,
                 uncommittedEvents);
         }
-        private bool SendEvent(EventStream eventStream)
+        private bool SendEvents(EventStream eventStream)
         {
             try
             {
@@ -161,11 +181,24 @@ namespace ENode.Commanding.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when tring to send events, events info:{0}.", eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when sending events:{0}", eventStream.GetStreamInformation()), ex);
                 return false;
             }
         }
-        private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IEvent> evnts)
+        private bool PublishEvents(EventStream eventStream)
+        {
+            try
+            {
+                _eventPublisher.Publish(eventStream);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream.GetStreamInformation()), ex);
+                return false;
+            }
+        }
+        private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IDomainEvent> evnts)
         {
             var aggregateRootId = evnts[0].AggregateRootId;
             for (var index = 1; index < evnts.Count(); index++)

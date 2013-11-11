@@ -9,6 +9,6 @@ namespace ENode.Domain
     {
         /// <summary>Get the internal event handler within the aggregate.
         /// </summary>
-        Action<IAggregateRoot, IEvent> GetInternalEventHandler(Type aggregateRootType, Type eventType);
+        Action<IAggregateRoot, IDomainEvent> GetInternalEventHandler(Type aggregateRootType, Type eventType);
     }
 }

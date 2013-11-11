@@ -340,7 +340,7 @@ namespace ENode
                 foreach (var type in assembly.GetTypes().Where(
                     x => x.IsClass && (
                         typeof(IMessage).IsAssignableFrom(x) ||
-                        typeof(IEvent).IsAssignableFrom(x) ||
+                        typeof(IDomainEvent).IsAssignableFrom(x) ||
                         typeof(IAggregateRoot).IsAssignableFrom(x))))
                 {
                     if (!type.IsSerializable)

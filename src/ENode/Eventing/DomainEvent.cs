@@ -2,17 +2,17 @@
 
 namespace ENode.Eventing
 {
-    /// <summary>Represents a base domain event.
+    /// <summary>Represents a domain event base class.
     /// </summary>
     [Serializable]
-    public class Event<TAggregateRootId> : IEvent
+    public class DomainEvent<TAggregateRootId> : IDomainEvent
     {
         private Guid _id;
         private object _aggregateRootId;
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public Event(TAggregateRootId aggregateRootId)
+        public DomainEvent(TAggregateRootId aggregateRootId)
         {
             if (aggregateRootId == null)
             {
@@ -30,11 +30,11 @@ namespace ENode.Eventing
         /// </summary>
         public TAggregateRootId SourceId { get; private set; }
 
-        Guid IEvent.Id
+        Guid IDomainEvent.Id
         {
             get { return _id; }
         }
-        object IEvent.AggregateRootId
+        object IDomainEvent.AggregateRootId
         {
             get { return _aggregateRootId; }
         }

@@ -12,7 +12,7 @@ namespace ENode.Domain
     public abstract class AggregateRoot<TAggregateRootId> : IAggregateRoot
     {
         private object _uniqueId;
-        private Queue<IEvent> _uncommittedEvents;
+        private Queue<IDomainEvent> _uncommittedEvents;
         private long _version;
         private TAggregateRootId _id;
 
@@ -41,7 +41,7 @@ namespace ENode.Domain
         /// <summary>Raise a domain event. The domain event will be put into the local uncommitted event queue.
         /// </summary>
         /// <param name="evnt"></param>
-        protected void RaiseEvent(IEvent evnt)
+        protected void RaiseEvent(IDomainEvent evnt)
         {
             _uncommittedEvents.Enqueue(evnt);
         }
@@ -67,7 +67,7 @@ namespace ENode.Domain
         /// <summary>Returns all the uncommitted domain events of the current aggregate root.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IEvent> IAggregateRoot.GetUncommittedEvents()
+        IEnumerable<IDomainEvent> IAggregateRoot.GetUncommittedEvents()
         {
             return _uncommittedEvents;
         }
@@ -78,7 +78,7 @@ namespace ENode.Domain
         /// </summary>
         private void Initialize()
         {
-            _uncommittedEvents = new Queue<IEvent>();
+            _uncommittedEvents = new Queue<IDomainEvent>();
         }
         /// <summary>Increase the version of aggregate root.
         /// <remarks>This method must be provided as enode will call it when rebuilding the aggregate using event sourcing.

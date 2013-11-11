@@ -21,7 +21,7 @@ namespace ENode.Eventing
         /// <param name="commandId"></param>
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
-        public EventStream(object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
+        public EventStream(object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IDomainEvent> events)
             : this(Guid.NewGuid(), aggregateRootId, aggregateRootName, version, commandId, timestamp, events)
         {
         }
@@ -34,7 +34,7 @@ namespace ENode.Eventing
         /// <param name="commandId"></param>
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
-        public EventStream(Guid id, object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IEvent> events)
+        public EventStream(Guid id, object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IDomainEvent> events)
             : base(id)
         {
             AggregateRootId = aggregateRootId;
@@ -42,7 +42,7 @@ namespace ENode.Eventing
             CommandId = commandId;
             Version = version;
             Timestamp = timestamp;
-            Events = events ?? new List<IEvent>();
+            Events = events ?? new List<IDomainEvent>();
         }
 
         /// <summary>The aggregate root id.
@@ -62,13 +62,13 @@ namespace ENode.Eventing
         public DateTime Timestamp { get; private set; }
         /// <summary>The domain events of the event stream.
         /// </summary>
-        public IEnumerable<IEvent> Events { get; private set; }
+        public IEnumerable<IDomainEvent> Events { get; private set; }
 
         /// <summary>Check if a given type of domain event exist in the current event stream.
         /// </summary>
         /// <typeparam name="TEvent"></typeparam>
         /// <returns></returns>
-        public bool HasEvent<TEvent>() where TEvent : class, IEvent
+        public bool HasEvent<TEvent>() where TEvent : class, IDomainEvent
         {
             return Events.Any(x => x.GetType() == typeof(TEvent));
         }
@@ -76,7 +76,7 @@ namespace ENode.Eventing
         /// </summary>
         /// <typeparam name="TEvent"></typeparam>
         /// <returns></returns>
-        public TEvent FindEvent<TEvent>() where TEvent : class, IEvent
+        public TEvent FindEvent<TEvent>() where TEvent : class, IDomainEvent
         {
             return Events.SingleOrDefault(x => x.GetType() == typeof(TEvent)) as TEvent;
         }
