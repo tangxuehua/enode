@@ -6,7 +6,7 @@ namespace BankTransferSample.Events
     /// <summary>银行账户已开
     /// </summary>
     [Serializable]
-    public class AccountOpened : Event
+    public class AccountOpened : SourcableDomainEvent<string>
     {
         public string Owner { get; private set; }
 

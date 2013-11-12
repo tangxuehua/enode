@@ -18,27 +18,27 @@ namespace BankTransferSample.CommandHandlers
     {
         public void Handle(ICommandContext context, StartTransfer command)
         {
-            context.Add(new TransferProcess(command.ProcessId, command.TransferInfo));
+            context.Add(new Transaction(command.ProcessId, command.TransferInfo));
         }
         public void Handle(ICommandContext context, HandleTransferedOut command)
         {
-            context.Get<TransferProcess>(command.ProcessId).HandleTransferedOut(command.TransferInfo);
+            context.Get<Transaction>(command.ProcessId).HandleTransferedOut(command.TransferInfo);
         }
         public void Handle(ICommandContext context, HandleTransferedIn command)
         {
-            context.Get<TransferProcess>(command.ProcessId).HandleTransferedIn(command.TransferInfo);
+            context.Get<Transaction>(command.ProcessId).HandleTransferedIn(command.TransferInfo);
         }
         public void Handle(ICommandContext context, HandleFailedTransferOut command)
         {
-            context.Get<TransferProcess>(command.ProcessId).HandleFailedTransferOut(command.TransferInfo, command.ErrorInfo);
+            context.Get<Transaction>(command.ProcessId).HandleFailedTransferOut(command.TransferInfo, command.ErrorInfo);
         }
         public void Handle(ICommandContext context, HandleFailedTransferIn command)
         {
-            context.Get<TransferProcess>(command.ProcessId).HandleFailedTransferIn(command.TransferInfo, command.ErrorInfo);
+            context.Get<Transaction>(command.ProcessId).HandleFailedTransferIn(command.TransferInfo, command.ErrorInfo);
         }
         public void Handle(ICommandContext context, HandleTransferOutRolledback command)
         {
-            context.Get<TransferProcess>(command.ProcessId).HandleTransferOutRolledback(command.TransferInfo);
+            context.Get<Transaction>(command.ProcessId).HandleTransferOutRolledback(command.TransferInfo);
         }
     }
 }

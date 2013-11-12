@@ -6,22 +6,19 @@ using ENode.Infrastructure;
 
 namespace BankTransferSample.Domain
 {
-    /// <summary>银行转账流程聚合根
-    /// <remarks>
-    /// 负责封装转账流程的当前状态以及流程下一步该怎么走的逻辑，包括遇到异常时的回滚处理逻辑。
-    /// </remarks>
+    /// <summary>银行转账交易聚合根，封装一次转账交易的数据一致性
     /// </summary>
     [Serializable]
-    public class TransferProcess : AggregateRoot<Guid>
+    public class Transaction : AggregateRoot<Guid>
     {
         /// <summary>转账流程结果
         /// </summary>
-        public TransferProcessResult Result { get; protected set; }
+        public TransactionResult Result { get; protected set; }
         /// <summary>当前转账流程状态
         /// </summary>
         public TransferProcessState State { get; private set; }
 
-        public TransferProcess(Guid processId, TransferInfo transferInfo) : base(processId)
+        public Transaction(Guid processId, TransferInfo transferInfo) : base(processId)
         {
             RaiseEvent(new TransferProcessStarted(Id, transferInfo, string.Format("转账流程启动，源账户：{0}，目标账户：{1}，转账金额：{2}", transferInfo.SourceAccountId, transferInfo.TargetAccountId, transferInfo.Amount)));
             RaiseEvent(new TransferOutRequested(Id, transferInfo));
@@ -39,7 +36,7 @@ namespace BankTransferSample.Domain
         /// <param name="transferInfo"></param>
         public void HandleTransferedIn(TransferInfo transferInfo)
         {
-            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, TransferProcessResult.Success));
+            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, TransactionResult.Success));
         }
         /// <summary>处理转出失败的情况
         /// </summary>
@@ -47,7 +44,7 @@ namespace BankTransferSample.Domain
         /// <param name="errorInfo"></param>
         public void HandleFailedTransferOut(TransferInfo transferInfo, ErrorInfo errorInfo)
         {
-            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, new TransferProcessResult(false, errorInfo)));
+            RaiseEvent(new TransferProcessCompleted(Id, transferInfo, new TransactionResult(false, errorInfo)));
         }
         /// <summary>处理转入失败的情况
         /// </summary>
@@ -80,7 +77,7 @@ namespace BankTransferSample.Domain
         private void Handle(RollbackTransferOutRequested evnt)
         {
             State = TransferProcessState.RollbackTransferOutRequested;
-            Result = new TransferProcessResult(false, evnt.ErrorInfo);
+            Result = new TransactionResult(false, evnt.ErrorInfo);
         }
         private void Handle(TransferProcessCompleted evnt)
         {

@@ -10,9 +10,9 @@ namespace BankTransferSample.Events
     {
         /// <summary>Represents the process result.
         /// </summary>
-        public TransferProcessResult ProcessResult { get; protected set; }
+        public TransactionResult ProcessResult { get; protected set; }
 
-        public TransferProcessCompleted(Guid processId, TransferInfo transferInfo, TransferProcessResult processResult)
+        public TransferProcessCompleted(Guid processId, TransferInfo transferInfo, TransactionResult processResult)
             : base(processId, processId, transferInfo)
         {
             ProcessResult = processResult;

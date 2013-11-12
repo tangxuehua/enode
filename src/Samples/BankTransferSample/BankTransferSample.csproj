@@ -7,8 +7,8 @@
     <ProjectGuid>{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BankTransferSagaSample</RootNamespace>
-    <AssemblyName>BankTransferSagaSample</AssemblyName>
+    <RootNamespace>BankTransferSample</RootNamespace>
+    <AssemblyName>BankTransferSample</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
@@ -54,13 +54,24 @@
     <Compile Include="CommandHandlers\TransferProcessCommandHandlers.cs" />
     <Compile Include="Commands\BankAccountCommands.cs" />
     <Compile Include="Commands\TransferProcessCommands.cs" />
-    <Compile Include="Domain\BankAccount.cs" />
-    <Compile Include="Domain\TransferProcess.cs" />
+    <Compile Include="Domain\BankAccounts\BankAccount.cs" />
+    <Compile Include="Domain\BankAccounts\CreditPreparation.cs" />
+    <Compile Include="Domain\BankAccounts\DebitPreparation.cs" />
+    <Compile Include="Domain\Transaction.cs" />
     <Compile Include="Domain\TransferProcessState.cs" />
     <Compile Include="Domain\TransferInfo.cs" />
-    <Compile Include="Domain\TransferProcessResult.cs" />
+    <Compile Include="Domain\TransactionResult.cs" />
     <Compile Include="Events\AccountOpened.cs" />
     <Compile Include="Events\AbstractTransferEvent.cs" />
+    <Compile Include="Events\CreditPreparationExist.cs" />
+    <Compile Include="Events\CreditPreparationNotExist.cs" />
+    <Compile Include="Events\CreditCompleted.cs" />
+    <Compile Include="Events\DebitPreparationNotExist.cs" />
+    <Compile Include="Events\DebitPreparationExist.cs" />
+    <Compile Include="Events\CreditPrepared.cs" />
+    <Compile Include="Events\DebitCompleted.cs" />
+    <Compile Include="Events\DebitPrepared.cs" />
+    <Compile Include="Events\DebitPreparationFailed.cs" />
     <Compile Include="Events\TransferOutRolledback.cs" />
     <Compile Include="Events\RollbackTransferOutRequested.cs" />
     <Compile Include="Events\Deposited.cs" />

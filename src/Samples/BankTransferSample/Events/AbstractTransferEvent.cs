@@ -7,7 +7,7 @@ namespace BankTransferSample.Events
     /// <summary>与转账流程相关的抽象事件，包含转账流程ID和基本的转账信息
     /// </summary>
     [Serializable]
-    public abstract class AbstractTransferEvent : Event
+    public abstract class AbstractTransferEvent : DomainEvent<>
     {
         public Guid ProcessId { get; private set; }
         public TransferInfo TransferInfo { get; private set; }
