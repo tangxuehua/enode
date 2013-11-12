@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BankTransferSample.Events;
+using BankTransferSample.DomainEvents.BankAccount;
 using ENode.Domain;
 
 namespace BankTransferSample.Domain.BankAccounts
 {
-    /// <summary>银行账号聚合根
+    /// <summary>银行账号聚合根，封装银行账户余额变动的数据一致性
     /// </summary>
     [Serializable]
     public class BankAccount : AggregateRoot<string>

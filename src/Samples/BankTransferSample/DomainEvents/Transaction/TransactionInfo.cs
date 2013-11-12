@@ -1,5 +1,6 @@
 ﻿using System;
-namespace BankTransferSample.Domain
+
+namespace BankTransferSample.DomainEvents.Transaction
 {
     /// <summary>转账信息值对象，包含了一次转账交易的基本信息
     /// </summary>

@@ -1,17 +1,17 @@
 ﻿using System;
 using ENode.Eventing;
 
-namespace BankTransferSample.Events
+namespace BankTransferSample.DomainEvents.BankAccount
 {
-    /// <summary>交易预转入成功
+    /// <summary>交易预转出成功
     /// </summary>
     [Serializable]
-    public class CreditPrepared  : DomainEvent<string>, ISourcingEvent
+    public class DebitPrepared  : DomainEvent<string>, ISourcingEvent
     {
         public Guid TransactionId { get; private set; }
         public double Amount { get; private set; }
 
-        public CreditPrepared(string accountId, Guid transactionId, double amount) : base(accountId)
+        public DebitPrepared(string accountId, Guid transactionId, double amount) : base(accountId)
         {
             TransactionId = transactionId;
             Amount = amount;

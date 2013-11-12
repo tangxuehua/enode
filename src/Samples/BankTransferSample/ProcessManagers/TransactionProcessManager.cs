@@ -1,24 +1,22 @@
-﻿using System;
-using BankTransferSample.Commands;
-using BankTransferSample.Events;
+﻿using BankTransferSample.Commands;
+using BankTransferSample.DomainEvents.BankAccount;
+using BankTransferSample.DomainEvents.Transaction;
 using ENode.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
 namespace BankTransferSample.ProcessManagers
 {
-    /// <summary>银行转账流程管理器，用于协调银行转账流程中各个参与者聚合根之间的消息交互。
+    /// <summary>银行转账交易流程管理器，用于协调银行转账交易流程中各个参与者聚合根之间的消息交互。
     /// </summary>
     [Component]
     public class TransactionProcessManager :
-        IEventHandler<TransactionStarted>,       //转账流程已发起
-        IEventHandler<TransferOutRequested>,         //转出的请求已发起
-        IEventHandler<TransferedOut>,                //钱已转出
-        IEventHandler<TransferInRequested>,          //转入的请求已发起
-        IEventHandler<TransferedIn>,                 //钱已转入
-        IEventHandler<RollbackTransferOutRequested>, //回滚转出的请求已发起
-        IEventHandler<TransferOutRolledback>,        //转出已回滚
-        IEventHandler<TransferProcessCompleted>      //转账流程已完成
+        IEventHandler<TransactionStarted>,                  //交易已开始
+        IEventHandler<DebitPrepared>,                       //交易预转出成功
+        IEventHandler<CreditPrepared>,                      //交易预转入成功
+        IEventHandler<TransactionCommitted>,                //交易已提交
+        IEventHandler<DebitCompleted>,                      //交易转出成功
+        IEventHandler<CreditCompleted>                      //交易转入成功
     {
         private readonly ICommandService _commandService;
 
@@ -27,60 +25,31 @@ namespace BankTransferSample.ProcessManagers
             _commandService = commandService;
         }
 
-        void IEventHandler<TransferProcessStarted>.Handle(TransferProcessStarted evnt)
+        public void Handle(TransactionStarted evnt)
         {
-            Console.WriteLine(evnt.Description);
+            _commandService.Send(new PrepareDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId, evnt.TransactionInfo.Amount));
+            _commandService.Send(new PrepareCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId, evnt.TransactionInfo.Amount));
         }
-        void IEventHandler<TransferOutRequested>.Handle(TransferOutRequested evnt)
+        public void Handle(DebitPrepared evnt)
         {
-            //响应“转出的命令请求已发起”这个事件，发送“转出”命令
-            _commandService.Send(new TransferOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo }, result =>
-            {
-                //这里是command的异步回调函数，如果有异常，则发送“处理转出失败”的命令
-                if (result.ErrorInfo != null)
-                {
-                    _commandService.Send(new HandleFailedTransferOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo, ErrorInfo = result.ErrorInfo });
-                }
-            });
+            _commandService.Send(new ConfirmDebitPreparation(evnt.TransactionId));
         }
-        void IEventHandler<TransferedOut>.Handle(TransferedOut evnt)
+        public void Handle(CreditPrepared evnt)
         {
-            Console.WriteLine(evnt.Description);
-            //响应已转出事件，发送“处理已转出事件”的命令
-            _commandService.Send(new HandleTransferedOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
+            _commandService.Send(new ConfirmCreditPreparation(evnt.TransactionId));
         }
-        void IEventHandler<TransferInRequested>.Handle(TransferInRequested evnt)
+        public void Handle(TransactionCommitted evnt)
         {
-            //响应“转入的命令请求已发起”这个事件，发送“转入”命令
-            _commandService.Send(new TransferIn(evnt.ProcessId) { TransferInfo = evnt.TransferInfo }, result =>
-            {
-                //这里是command的异步回调函数，如果有异常，则发送“处理转入失败”的命令
-                if (result.ErrorInfo != null)
-                {
-                    _commandService.Send(new HandleFailedTransferIn(evnt.ProcessId) { TransferInfo = evnt.TransferInfo, ErrorInfo = result.ErrorInfo });
-                }
-            });
+            _commandService.Send(new CompleteDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId));
+            _commandService.Send(new CompleteCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId));
         }
-        void IEventHandler<TransferedIn>.Handle(TransferedIn evnt)
+        public void Handle(DebitCompleted evnt)
         {
-            Console.WriteLine(evnt.Description);
-            //响应已转入事件，发送“处理已转入事件”的命令
-            _commandService.Send(new HandleTransferedIn(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
+            _commandService.Send(new ConfirmDebit(evnt.TransactionId));
         }
-        void IEventHandler<RollbackTransferOutRequested>.Handle(RollbackTransferOutRequested evnt)
+        public void Handle(CreditCompleted evnt)
         {
-            //响应“回滚转出的命令请求已发起”这个事件，发送“回滚转出”命令
-            _commandService.Send(new RollbackTransferOut(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
-        }
-        void IEventHandler<TransferOutRolledback>.Handle(TransferOutRolledback evnt)
-        {
-            Console.WriteLine(evnt.Description);
-            //响应转出已回滚事件，发送“处理转出已回滚事件”的命令
-            _commandService.Send(new HandleTransferOutRolledback(evnt.ProcessId) { TransferInfo = evnt.TransferInfo });
-        }
-        void IEventHandler<TransferProcessCompleted>.Handle(TransferProcessCompleted evnt)
-        {
-            Console.WriteLine(evnt.ProcessResult.IsSuccess ? "转账流程已顺利完成！" : string.Format("转账失败，错误信息：{0}", evnt.ProcessResult.ErrorInfo));
+            _commandService.Send(new ConfirmCredit(evnt.TransactionId));
         }
     }
 }

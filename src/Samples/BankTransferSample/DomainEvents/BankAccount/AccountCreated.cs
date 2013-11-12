@@ -1,7 +1,7 @@
 ﻿using System;
 using ENode.Eventing;
 
-namespace BankTransferSample.Events
+namespace BankTransferSample.DomainEvents.BankAccount
 {
     /// <summary>已开户
     /// </summary>

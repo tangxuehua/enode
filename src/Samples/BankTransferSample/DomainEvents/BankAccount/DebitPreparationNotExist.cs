@@ -1,7 +1,7 @@
 ﻿using System;
 using ENode.Eventing;
 
-namespace BankTransferSample.Events
+namespace BankTransferSample.DomainEvents.BankAccount
 {
     /// <summary>交易预转出信息不存在
     /// </summary>

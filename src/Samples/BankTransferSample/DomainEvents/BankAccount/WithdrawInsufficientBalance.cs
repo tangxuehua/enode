@@ -1,17 +1,14 @@
 ﻿using System;
 using ENode.Eventing;
 
-namespace BankTransferSample.Events
+namespace BankTransferSample.DomainEvents.BankAccount
 {
-    /// <summary>余额不足不允许转出操作
+    /// <summary>余额不足不允许取款操作
     /// </summary>
     [Serializable]
-    public class DebitInsufficientBalance : DomainEvent<string>
+    public class WithdrawInsufficientBalance : DomainEvent<string>
     {
-        /// <summary>交易ID
-        /// </summary>
-        public Guid TransactionId { get; private set; }
-        /// <summary>转出金额
+        /// <summary>取款金额
         /// </summary>
         public double Amount { get; private set; }
         /// <summary>当前余额
@@ -21,9 +18,8 @@ namespace BankTransferSample.Events
         /// </summary>
         public double CurrentAvailableBalance { get; private set; }
 
-        public DebitInsufficientBalance(string accountId, Guid transactionId, double amount, double currentBalance, double currentAvailableBalance) : base(accountId)
+        public WithdrawInsufficientBalance(string accountId, double amount, double currentBalance, double currentAvailableBalance) : base(accountId)
         {
-            TransactionId = transactionId;
             Amount = amount;
             CurrentBalance = currentBalance;
             CurrentAvailableBalance = currentAvailableBalance;
