@@ -1,6 +1,6 @@
 ﻿using System;
 using ENode.Domain;
-using UniqueValidationSample.Events;
+using UniqueValidationSample.DomainEvents;
 
 namespace UniqueValidationSample.Domain
 {

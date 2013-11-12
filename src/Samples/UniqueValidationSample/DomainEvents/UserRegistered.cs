@@ -1,10 +1,10 @@
 ﻿using System;
 using ENode.Eventing;
 
-namespace UniqueValidationSample.Events
+namespace UniqueValidationSample.DomainEvents
 {
     [Serializable]
-    public class UserRegistered : Event<Guid>
+    public class UserRegistered : DomainEvent<Guid>, ISourcingEvent
     {
         public string UserName { get; private set; }
 

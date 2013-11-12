@@ -23,17 +23,17 @@ namespace UniqueValidationSample
             var commandService = ObjectContainer.Resolve<ICommandService>();
             var suffix = Guid.NewGuid().ToString();
 
-            var command1 = new RegisterUser { UserName = "netfocus_" + suffix };
-            commandService.Execute(command1);
+            //var command1 = new RegisterUser { UserName = "netfocus_" + suffix };
+            //commandService.Execute(command1);
 
-            var command2 = new RegisterUser { UserName = "netfocus_" + suffix };
-            commandService.Send(command2, (result) =>
-            {
-                if (result.ErrorInfo != null)
-                {
-                    Console.WriteLine("用户名重复！");
-                }
-            });
+            //var command2 = new RegisterUser { UserName = "netfocus_" + suffix };
+            //commandService.Send(command2, (result) =>
+            //{
+            //    if (result.ErrorInfo != null)
+            //    {
+            //        Console.WriteLine("用户名重复！");
+            //    }
+            //});
 
             Thread.Sleep(1000);
             Console.WriteLine("Press Enter to exit...");

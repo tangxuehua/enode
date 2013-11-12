@@ -4,7 +4,7 @@ using ENode.Infrastructure;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
-using UniqueValidationSample.Events;
+using UniqueValidationSample.DomainEvents;
 
 namespace UniqueValidationSample.EventSynchronizers
 {
