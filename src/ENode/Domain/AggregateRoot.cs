@@ -76,7 +76,7 @@ namespace ENode.Domain
         /// <remarks>This method must be provided as enode will call it when rebuilding the aggregate using event sourcing.
         /// </remarks>
         /// </summary>
-        private void Initialize()
+        protected virtual void Initialize()
         {
             _uncommittedEvents = new Queue<IDomainEvent>();
         }
