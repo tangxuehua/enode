@@ -138,7 +138,7 @@ namespace ENode.Commanding.Impl
         {
             var eventStream = CreateEventStream(dirtyAggregate, command);
 
-            if (eventStream.Events.Any(x => x is ISourcableEvent))
+            if (eventStream.Events.Any(x => x is ISourcingEvent))
             {
                 _actionExecutionService.TryAction(
                     "SendEvents",
