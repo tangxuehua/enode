@@ -60,7 +60,7 @@
     <Compile Include="Commands\RegisterUser.cs" />
     <Compile Include="Domain\User.cs" />
     <Compile Include="EventSynchronizers\UserNameUniqueValidator.cs" />
-    <Compile Include="Events\UserRegistered.cs" />
+    <Compile Include="DomainEvents\UserRegistered.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
