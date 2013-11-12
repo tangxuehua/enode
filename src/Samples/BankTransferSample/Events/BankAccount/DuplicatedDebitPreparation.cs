@@ -3,14 +3,14 @@ using ENode.Eventing;
 
 namespace BankTransferSample.Events
 {
-    /// <summary>交易预转出信息已存在
+    /// <summary>重复的预转出操作
     /// </summary>
     [Serializable]
-    public class DebitPreparationExist  : DomainEvent<string>
+    public class DuplicatedDebitPreparation : DomainEvent<string>
     {
         public Guid TransactionId { get; private set; }
 
-        public DebitPreparationExist(string accountId, Guid transactionId) : base(accountId)
+        public DuplicatedDebitPreparation(string accountId, Guid transactionId) : base(accountId)
         {
             TransactionId = transactionId;
         }

@@ -10,8 +10,8 @@ namespace BankTransferSample.ProcessManagers
     /// <summary>银行转账流程管理器，用于协调银行转账流程中各个参与者聚合根之间的消息交互。
     /// </summary>
     [Component]
-    public class TransferProcessManager :
-        IEventHandler<TransferProcessStarted>,       //转账流程已发起
+    public class TransactionProcessManager :
+        IEventHandler<TransactionStarted>,       //转账流程已发起
         IEventHandler<TransferOutRequested>,         //转出的请求已发起
         IEventHandler<TransferedOut>,                //钱已转出
         IEventHandler<TransferInRequested>,          //转入的请求已发起
@@ -22,7 +22,7 @@ namespace BankTransferSample.ProcessManagers
     {
         private readonly ICommandService _commandService;
 
-        public TransferProcessManager(ICommandService commandService)
+        public TransactionProcessManager(ICommandService commandService)
         {
             _commandService = commandService;
         }

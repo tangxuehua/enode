@@ -15,6 +15,7 @@ namespace BankTransferSample.Domain.BankAccounts
 
         private IList<DebitPreparation> _debitPreparations;
         private IList<CreditPreparation> _creditPreparations;
+        private IList<Guid> _completedTransactions;
 
         #endregion
 
@@ -51,6 +52,7 @@ namespace BankTransferSample.Domain.BankAccounts
             base.Initialize();
             _debitPreparations = new List<DebitPreparation>();
             _creditPreparations = new List<CreditPreparation>();
+            _completedTransactions = new List<Guid>();
         }
 
         #endregion
@@ -70,21 +72,23 @@ namespace BankTransferSample.Domain.BankAccounts
         /// <param name="amount"></param>
         public void PrepareDebit(Guid transactionId, double amount)
         {
+            if (_completedTransactions.Any(x => x== transactionId))
+            {
+                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperation.PrepareDebit));
+                return;
+            }
             if (_debitPreparations.Any(x => x.TransactionId == transactionId))
             {
-                RaiseEvent(new DebitPreparationExist(Id, transactionId));
+                RaiseEvent(new DuplicatedDebitPreparation(Id, transactionId));
+                return;
             }
-            else
+            if (Balance < amount)
             {
-                if (Balance < amount)
-                {
-                    RaiseEvent(new DebitPreparationFailed(Id, transactionId, "账户余额不足"));
-                }
-                else
-                {
-                    RaiseEvent(new DebitPrepared(Id, transactionId, amount));
-                }
+                RaiseEvent(new InsufficientBalance(Id, transactionId));
+                return;
             }
+
+            RaiseEvent(new DebitPrepared(Id, transactionId, amount));
         }
         /// <summary>预转入
         /// </summary>
@@ -92,44 +96,57 @@ namespace BankTransferSample.Domain.BankAccounts
         /// <param name="amount"></param>
         public void PrepareCredit(Guid transactionId, double amount)
         {
+            if (_completedTransactions.Any(x => x == transactionId))
+            {
+                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperation.PrepareCredit));
+                return;
+            }
             if (_creditPreparations.Any(x => x.TransactionId == transactionId))
             {
-                RaiseEvent(new CreditPreparationExist(Id, transactionId));
+                RaiseEvent(new DuplicatedCreditPreparation(Id, transactionId));
+                return;
             }
-            else
-            {
-                RaiseEvent(new CreditPrepared(Id, transactionId, amount));
-            }
+
+            RaiseEvent(new CreditPrepared(Id, transactionId, amount));
         }
         /// <summary>完成转出
         /// </summary>
         /// <param name="transactionId"></param>
         public void CompleteDebit(Guid transactionId)
         {
+            if (_completedTransactions.Any(x => x == transactionId))
+            {
+                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperation.CompleteDebit));
+                return;
+            }
             var preparation = _debitPreparations.SingleOrDefault(x => x.TransactionId == transactionId);
             if (preparation == null)
             {
                 RaiseEvent(new DebitPreparationNotExist(Id, transactionId));
+                return;
             }
-            else
-            {
-                RaiseEvent(new DebitCompleted(Id, transactionId, preparation.Amount));
-            }
+
+            RaiseEvent(new DebitCompleted(Id, transactionId, preparation.Amount));
         }
         /// <summary>完成转入
         /// </summary>
         /// <param name="transactionId"></param>
         public void CompleteCredit(Guid transactionId)
         {
+            if (_completedTransactions.Any(x => x == transactionId))
+            {
+                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperation.CompleteDebit));
+                return;
+            }
+
             var preparation = _creditPreparations.SingleOrDefault(x => x.TransactionId == transactionId);
             if (preparation == null)
             {
                 RaiseEvent(new CreditPreparationNotExist(Id, transactionId));
+                return;
             }
-            else
-            {
-                RaiseEvent(new CreditCompleted(Id, transactionId, preparation.Amount));
-            }
+
+            RaiseEvent(new CreditCompleted(Id, transactionId, preparation.Amount));
         }
 
         #endregion
@@ -156,14 +173,16 @@ namespace BankTransferSample.Domain.BankAccounts
         }
         private void Handle(DebitCompleted evnt)
         {
-            var transaction = _debitPreparations.Single(x => x.TransactionId == evnt.TransactionId);
-            _debitPreparations.Remove(transaction);
+            var preparation = _debitPreparations.Single(x => x.TransactionId == evnt.TransactionId);
+            _debitPreparations.Remove(preparation);
+            _completedTransactions.Add(preparation.TransactionId);
         }
         private void Handle(CreditCompleted evnt)
         {
             Balance += evnt.Amount;
-            var transaction = _creditPreparations.Single(x => x.TransactionId == evnt.TransactionId);
-            _creditPreparations.Remove(transaction);
+            var preparation = _creditPreparations.Single(x => x.TransactionId == evnt.TransactionId);
+            _creditPreparations.Remove(preparation);
+            _completedTransactions.Add(preparation.TransactionId);
         }
 
         #endregion

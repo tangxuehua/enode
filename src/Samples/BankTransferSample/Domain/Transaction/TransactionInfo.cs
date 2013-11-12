@@ -1,10 +1,10 @@
 ﻿using System;
 namespace BankTransferSample.Domain
 {
-    /// <summary>转账信息值对象，包含了转账的基本信息
+    /// <summary>转账信息值对象，包含了一次转账交易的基本信息
     /// </summary>
     [Serializable]
-    public class TransferInfo
+    public class TransactionInfo
     {
         /// <summary>源账号
         /// </summary>
@@ -16,7 +16,7 @@ namespace BankTransferSample.Domain
         /// </summary>
         public double Amount { get; private set; }
 
-        public TransferInfo(string sourceAccountId, string targetAccountId, double amount)
+        public TransactionInfo(string sourceAccountId, string targetAccountId, double amount)
         {
             SourceAccountId = sourceAccountId;
             TargetAccountId = targetAccountId;

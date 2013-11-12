@@ -3,14 +3,14 @@ using ENode.Eventing;
 
 namespace BankTransferSample.Events
 {
-    /// <summary>交易预转入信息已存在
+    /// <summary>重复的预转入操作
     /// </summary>
     [Serializable]
-    public class CreditPreparationExist  : DomainEvent<string>
+    public class DuplicatedCreditPreparation : DomainEvent<string>
     {
         public Guid TransactionId { get; private set; }
 
-        public CreditPreparationExist(string accountId, Guid transactionId) : base(accountId)
+        public DuplicatedCreditPreparation(string accountId, Guid transactionId) : base(accountId)
         {
             TransactionId = transactionId;
         }

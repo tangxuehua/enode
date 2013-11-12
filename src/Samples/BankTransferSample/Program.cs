@@ -35,11 +35,11 @@ namespace BankTransferSample
             commandService.Execute(depositCommand2);
 
             //账户1向账户2转账300元
-            commandService.Send(new StartTransfer { TransferInfo = new TransferInfo("00001", "00002", 300) });
+            commandService.Send(new StartTransfer { TransferInfo = new TransactionInfo("00001", "00002", 300) });
             Thread.Sleep(1000);
 
             //账户2向账户1转账500元
-            commandService.Send(new StartTransfer { TransferInfo = new TransferInfo("00002", "00001", 500) });
+            commandService.Send(new StartTransfer { TransferInfo = new TransactionInfo("00002", "00001", 500) });
             Thread.Sleep(1000);
 
             //从内存获取账户信息，检查余额是否正确

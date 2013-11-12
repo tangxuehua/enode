@@ -11,7 +11,7 @@ namespace BankTransferSample.Commands
     public abstract class AbstractTransferCommand : Command
     {
         public Guid ProcessId { get; set; }
-        public TransferInfo TransferInfo { get; set; }
+        public TransactionInfo TransferInfo { get; set; }
 
         protected AbstractTransferCommand(Guid processId)
         {
