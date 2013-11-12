@@ -60,7 +60,9 @@
     <Compile Include="Domain\Transaction\Transaction.cs" />
     <Compile Include="Domain\Transaction\TransactionStatus.cs" />
     <Compile Include="Domain\Transaction\TransactionInfo.cs" />
-    <Compile Include="Events\BankAccount\AccountOpened.cs" />
+    <Compile Include="Events\BankAccount\AccountCreated.cs" />
+    <Compile Include="Events\BankAccount\WithdrawInsufficientBalance.cs" />
+    <Compile Include="Events\BankAccount\Withdrawn.cs" />
     <Compile Include="Events\Transaction\TransactionCompleted.cs" />
     <Compile Include="Events\Transaction\TransactionAborted.cs" />
     <Compile Include="Events\BankAccount\CreditPreparationNotExist.cs" />
@@ -69,7 +71,7 @@
     <Compile Include="Events\Transaction\DebitPreparationConfirmed.cs" />
     <Compile Include="Events\BankAccount\DuplicatedCreditPreparation.cs" />
     <Compile Include="Events\BankAccount\InvalidTransactionOperation.cs" />
-    <Compile Include="Events\BankAccount\InsufficientBalance.cs" />
+    <Compile Include="Events\BankAccount\DebitInsufficientBalance.cs" />
     <Compile Include="Events\BankAccount\DuplicatedDebitPreparation.cs" />
     <Compile Include="Events\BankAccount\DebitPreparationNotExist.cs" />
     <Compile Include="Events\BankAccount\CreditPrepared.cs" />
@@ -77,7 +79,7 @@
     <Compile Include="Events\BankAccount\DebitPrepared.cs" />
     <Compile Include="Events\BankAccount\Deposited.cs" />
     <Compile Include="Events\Transaction\TransactionStarted.cs" />
-    <Compile Include="ProcessManagers\TransferProcessManager.cs" />
+    <Compile Include="ProcessManagers\TransactionProcessManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -9,17 +9,17 @@ namespace BankTransferSample.Events
     public class InvalidTransactionOperation : DomainEvent<string>
     {
         public Guid TransactionId { get; private set; }
-        public TransactionOperation Operation { get; private set; }
+        public TransactionOperationType OperationType { get; private set; }
 
-        public InvalidTransactionOperation(string accountId, Guid transactionId, TransactionOperation operation) : base(accountId)
+        public InvalidTransactionOperation(string accountId, Guid transactionId, TransactionOperationType operationType) : base(accountId)
         {
             TransactionId = transactionId;
-            Operation = operation;
+            OperationType = operationType;
         }
     }
     /// <summary>转账交易操作类型枚举
     /// </summary>
-    public enum TransactionOperation
+    public enum TransactionOperationType
     {
         PrepareDebit,
         PrepareCredit,

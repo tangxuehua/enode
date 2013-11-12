@@ -3,30 +3,30 @@ using ENode.Eventing;
 
 namespace BankTransferSample.Events
 {
-    /// <summary>交易转入成功
+    /// <summary>余额不足不允许转出操作
     /// </summary>
     [Serializable]
-    public class CreditCompleted  : DomainEvent<string>, ISourcingEvent
+    public class DebitInsufficientBalance : DomainEvent<string>
     {
         /// <summary>交易ID
         /// </summary>
         public Guid TransactionId { get; private set; }
-        /// <summary>转入金额
+        /// <summary>转出金额
         /// </summary>
         public double Amount { get; private set; }
         /// <summary>当前余额
         /// </summary>
         public double CurrentBalance { get; private set; }
-        /// <summary>转入时间
+        /// <summary>当前可用余额
         /// </summary>
-        public DateTime TransactionTime { get; private set; }
+        public double CurrentAvailableBalance { get; private set; }
 
-        public CreditCompleted(string accountId, Guid transactionId, double amount, double currentBalance, DateTime transactionTime) : base(accountId)
+        public DebitInsufficientBalance(string accountId, Guid transactionId, double amount, double currentBalance, double currentAvailableBalance) : base(accountId)
         {
             TransactionId = transactionId;
             Amount = amount;
             CurrentBalance = currentBalance;
-            TransactionTime = transactionTime;
+            CurrentAvailableBalance = currentAvailableBalance;
         }
     }
 }
