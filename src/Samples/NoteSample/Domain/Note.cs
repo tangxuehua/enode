@@ -1,7 +1,7 @@
 ﻿using System;
 using ENode.Domain;
 using ENode.Eventing;
-using NoteSample.Events;
+using NoteSample.DomainEvents;
 
 namespace NoteSample.Domain
 {

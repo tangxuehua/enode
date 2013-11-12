@@ -76,8 +76,8 @@
     <Compile Include="Commands\CreateNote.cs" />
     <Compile Include="Domain\Note.cs" />
     <Compile Include="EventHandlers\NoteEventHandler.cs" />
-    <Compile Include="Events\NoteCreated.cs" />
-    <Compile Include="Events\NoteTitleChanged.cs" />
+    <Compile Include="DomainEvents\NoteCreated.cs" />
+    <Compile Include="DomainEvents\NoteTitleChanged.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IENodeFrameworkInitializer.cs" />

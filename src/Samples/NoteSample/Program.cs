@@ -7,7 +7,7 @@ using ENode.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using NoteSample.Commands;
-using NoteSample.Events;
+using NoteSample.DomainEvents;
 
 namespace NoteSample
 {

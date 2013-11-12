@@ -1,10 +1,10 @@
 ﻿using System;
 using ENode.Eventing;
 
-namespace NoteSample.Events
+namespace NoteSample.DomainEvents
 {
     [Serializable]
-    public class NoteCreated : SourcableDomainEvent<Guid>
+    public class NoteCreated : DomainEvent<Guid>, ISourcingEvent
     {
         public string Title { get; private set; }
         public DateTime CreatedTime { get; private set; }
