@@ -4,16 +4,28 @@ using ENode.Commanding;
 
 namespace BankTransferSample.Commands
 {
-    /// <summary>发起一笔转账交易
+    /// <summary>创建一笔转账交易
+    /// </summary>
+    [Serializable]
+    public class CreateTransaction : Command
+    {
+        public TransactionInfo TransactionInfo { get; private set; }
+
+        public CreateTransaction(TransactionInfo transactionInfo)
+        {
+            TransactionInfo = transactionInfo;
+        }
+    }
+    /// <summary>发起转账交易
     /// </summary>
     [Serializable]
     public class StartTransaction : Command
     {
-        public TransactionInfo TransactionInfo { get; private set; }
+        public Guid TransactionId { get; private set; }
 
-        public StartTransaction(TransactionInfo transactionInfo)
+        public StartTransaction(Guid transactionId)
         {
-            TransactionInfo = transactionInfo;
+            TransactionId = transactionId;
         }
     }
     /// <summary>确认预转出

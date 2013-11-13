@@ -36,26 +36,38 @@ namespace BankTransferSample.Domain.Transactions
 
         /// <summary>构造函数
         /// </summary>
-        /// <param name="transferInfo"></param>
-        public Transaction(TransactionInfo transferInfo)
+        /// <param name="transactionInfo"></param>
+        public Transaction(TransactionInfo transactionInfo)
         {
-            RaiseEvent(new TransactionStarted(Guid.NewGuid(), transferInfo, DateTime.Now));
+            RaiseEvent(new TransactionCreated(Guid.NewGuid(), transactionInfo));
         }
 
         #endregion
 
         #region Public Methods
 
+        /// <summary>开始交易
+        /// </summary>
+        public void Start()
+        {
+            if (Status == TransactionStatus.Created)
+            {
+                RaiseEvent(new TransactionStarted(Id, TransactionInfo, DateTime.Now));
+            }
+        }
         /// <summary>确认预转出
         /// </summary>
         public void ConfirmDebitPreparation()
         {
-            if (!DebitPreparationConfirmed)
+            if (Status == TransactionStatus.Started)
             {
-                RaiseEvent(new DebitPreparationConfirmed(Id, TransactionInfo, DateTime.Now));
-                if (CreditPreparationConfirmed)
+                if (!DebitPreparationConfirmed)
                 {
-                    RaiseEvent(new TransactionCommitted(Id, TransactionInfo, DateTime.Now));
+                    RaiseEvent(new DebitPreparationConfirmed(Id, TransactionInfo, DateTime.Now));
+                    if (CreditPreparationConfirmed)
+                    {
+                        RaiseEvent(new TransactionCommitted(Id, TransactionInfo, DateTime.Now));
+                    }
                 }
             }
         }
@@ -63,12 +75,15 @@ namespace BankTransferSample.Domain.Transactions
         /// </summary>
         public void ConfirmCreditPreparation()
         {
-            if (!CreditPreparationConfirmed)
+            if (Status == TransactionStatus.Started)
             {
-                RaiseEvent(new CreditPreparationConfirmed(Id, TransactionInfo, DateTime.Now));
-                if (DebitPreparationConfirmed)
+                if (!CreditPreparationConfirmed)
                 {
-                    RaiseEvent(new TransactionCommitted(Id, TransactionInfo, DateTime.Now));
+                    RaiseEvent(new CreditPreparationConfirmed(Id, TransactionInfo, DateTime.Now));
+                    if (DebitPreparationConfirmed)
+                    {
+                        RaiseEvent(new TransactionCommitted(Id, TransactionInfo, DateTime.Now));
+                    }
                 }
             }
         }
@@ -76,12 +91,15 @@ namespace BankTransferSample.Domain.Transactions
         /// </summary>
         public void ConfirmDebit()
         {
-            if (!DebitConfirmed)
+            if (Status == TransactionStatus.Committed)
             {
-                RaiseEvent(new DebitConfirmed(Id, TransactionInfo, DateTime.Now));
-                if (CreditConfirmed)
+                if (!DebitConfirmed)
                 {
-                    RaiseEvent(new TransactionCompleted(Id, TransactionInfo, DateTime.Now));
+                    RaiseEvent(new DebitConfirmed(Id, TransactionInfo, DateTime.Now));
+                    if (CreditConfirmed)
+                    {
+                        RaiseEvent(new TransactionCompleted(Id, TransactionInfo, DateTime.Now));
+                    }
                 }
             }
         }
@@ -89,12 +107,15 @@ namespace BankTransferSample.Domain.Transactions
         /// </summary>
         public void ConfirmCredit()
         {
-            if (!CreditConfirmed)
+            if (Status == TransactionStatus.Committed)
             {
-                RaiseEvent(new CreditConfirmed(Id, TransactionInfo, DateTime.Now));
-                if (DebitConfirmed)
+                if (!CreditConfirmed)
                 {
-                    RaiseEvent(new TransactionCompleted(Id, TransactionInfo, DateTime.Now));
+                    RaiseEvent(new CreditConfirmed(Id, TransactionInfo, DateTime.Now));
+                    if (DebitConfirmed)
+                    {
+                        RaiseEvent(new TransactionCompleted(Id, TransactionInfo, DateTime.Now));
+                    }
                 }
             }
         }
@@ -103,9 +124,14 @@ namespace BankTransferSample.Domain.Transactions
 
         #region Handler Methods
 
+        private void Handle(TransactionCreated evnt)
+        {
+            Id = evnt.SourceId;
+            TransactionInfo = evnt.TransactionInfo;
+            Status = TransactionStatus.Created;
+        }
         private void Handle(TransactionStarted evnt)
         {
-            TransactionInfo = evnt.TransactionInfo;
             Status = TransactionStatus.Started;
         }
         private void Handle(DebitPreparationConfirmed evnt)
