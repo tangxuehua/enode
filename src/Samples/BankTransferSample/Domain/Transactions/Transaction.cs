@@ -119,6 +119,15 @@ namespace BankTransferSample.Domain.Transactions
                 }
             }
         }
+        /// <summary>终止交易
+        /// </summary>
+        public void Abort()
+        {
+            if (Status == TransactionStatus.Started)
+            {
+                RaiseEvent(new TransactionAborted(Id, TransactionInfo, DateTime.Now));
+            }
+        }
 
         #endregion
 

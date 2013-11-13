@@ -15,7 +15,9 @@ namespace BankTransferSample.ProcessManagers
         IEventHandler<TransactionStarted>,                  //交易已开始
         IEventHandler<DebitPrepared>,                       //交易已预转出
         IEventHandler<CreditPrepared>,                      //交易已预转入
+        IEventHandler<DebitInsufficientBalance>,            //余额不足不允许预转出操作
         IEventHandler<TransactionCommitted>,                //交易已提交
+        IEventHandler<TransactionAborted>,                  //交易已终止
         IEventHandler<DebitCommitted>,                      //交易转出已提交
         IEventHandler<CreditCommitted>                      //交易转入已提交
     {
@@ -43,10 +45,19 @@ namespace BankTransferSample.ProcessManagers
         {
             _commandService.Send(new ConfirmCreditPreparation(evnt.TransactionId));
         }
+        public void Handle(DebitInsufficientBalance evnt)
+        {
+            _commandService.Send(new AbortTransaction(evnt.TransactionId));
+        }
         public void Handle(TransactionCommitted evnt)
         {
             _commandService.Send(new CommitDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId));
             _commandService.Send(new CommitCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId));
+        }
+        public void Handle(TransactionAborted evnt)
+        {
+            _commandService.Send(new AbortDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId));
+            _commandService.Send(new AbortCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId));
         }
         public void Handle(DebitCommitted evnt)
         {

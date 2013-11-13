@@ -76,4 +76,16 @@ namespace BankTransferSample.Commands
             TransactionId = transactionId;
         }
     }
+    /// <summary>终止转账交易
+    /// </summary>
+    [Serializable]
+    public class AbortTransaction : Command
+    {
+        public Guid TransactionId { get; private set; }
+
+        public AbortTransaction(Guid transactionId)
+        {
+            TransactionId = transactionId;
+        }
+    }
 }

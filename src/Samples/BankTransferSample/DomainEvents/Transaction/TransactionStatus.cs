@@ -7,6 +7,7 @@
         Created,
         Started,
         Committed,
-        Completed
+        Completed,
+        Aborted
     }
 }

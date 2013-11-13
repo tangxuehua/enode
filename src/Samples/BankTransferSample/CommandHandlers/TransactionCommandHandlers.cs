@@ -14,7 +14,8 @@ namespace BankTransferSample.CommandHandlers
         ICommandHandler<ConfirmDebitPreparation>,          //确认预转出
         ICommandHandler<ConfirmCreditPreparation>,         //确认预转入
         ICommandHandler<ConfirmDebit>,                     //确认转出
-        ICommandHandler<ConfirmCredit>                     //确认转入
+        ICommandHandler<ConfirmCredit>,                    //确认转入
+        ICommandHandler<AbortTransaction>                  //终止交易
     {
         public void Handle(ICommandContext context, CreateTransaction command)
         {
@@ -39,6 +40,10 @@ namespace BankTransferSample.CommandHandlers
         public void Handle(ICommandContext context, ConfirmCredit command)
         {
             context.Get<Transaction>(command.TransactionId).ConfirmCredit();
+        }
+        public void Handle(ICommandContext context, AbortTransaction command)
+        {
+            context.Get<Transaction>(command.TransactionId).Abort();
         }
     }
 }

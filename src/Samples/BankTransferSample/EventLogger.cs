@@ -20,11 +20,14 @@ namespace BankTransferSample.ProcessManagers
         IEventHandler<TransactionStarted>,                  //交易已开始
         IEventHandler<DebitPrepared>,                       //交易已预转出
         IEventHandler<CreditPrepared>,                      //交易已预转入
+        IEventHandler<DebitInsufficientBalance>,            //余额不足不允许预转出操作
         IEventHandler<DebitPreparationConfirmed>,           //交易预转出已确认
         IEventHandler<CreditPreparationConfirmed>,          //交易预转入已确认
         IEventHandler<TransactionCommitted>,                //交易已提交
         IEventHandler<DebitCommitted>,                      //交易转出已提交
         IEventHandler<CreditCommitted>,                     //交易转入已提交
+        IEventHandler<DebitAborted>,                        //交易转出已终止
+        IEventHandler<CreditAborted>,                       //交易转入已终止
         IEventHandler<DebitConfirmed>,                      //交易转出已确认
         IEventHandler<CreditConfirmed>,                     //交易转入已确认
         IEventHandler<TransactionCompleted>,                //交易已完成
@@ -61,6 +64,10 @@ namespace BankTransferSample.ProcessManagers
         {
             Console.WriteLine("交易预转入成功，交易ID：{0}，账号：{1}，金额：{2}", evnt.TransactionId, evnt.SourceId, evnt.Amount);
         }
+        public void Handle(DebitInsufficientBalance evnt)
+        {
+            Console.WriteLine("余额不足不允许预转出操作，交易ID：{0}，账号：{1}，金额：{2}，当前余额：{3}，当前可用余额：{4}", evnt.TransactionId, evnt.SourceId, evnt.Amount, evnt.CurrentBalance, evnt.CurrentAvailableBalance);
+        }
         public void Handle(DebitPreparationConfirmed evnt)
         {
             Console.WriteLine("交易预转出确认成功，交易ID：{0}", evnt.SourceId);
@@ -75,11 +82,19 @@ namespace BankTransferSample.ProcessManagers
         }
         public void Handle(DebitCommitted evnt)
         {
-            Console.WriteLine("交易转出成功，交易ID：{0}，账号：{1}，金额：{2}，当前余额：{3}", evnt.TransactionId, evnt.SourceId, evnt.Amount, evnt.CurrentBalance);
+            Console.WriteLine("交易转出已提交，交易ID：{0}，账号：{1}，金额：{2}，当前余额：{3}", evnt.TransactionId, evnt.SourceId, evnt.Amount, evnt.CurrentBalance);
         }
         public void Handle(CreditCommitted evnt)
         {
-            Console.WriteLine("交易转入成功，交易ID：{0}，账号：{1}，金额：{2}，当前余额：{3}", evnt.TransactionId, evnt.SourceId, evnt.Amount, evnt.CurrentBalance);
+            Console.WriteLine("交易转入已提交，交易ID：{0}，账号：{1}，金额：{2}，当前余额：{3}", evnt.TransactionId, evnt.SourceId, evnt.Amount, evnt.CurrentBalance);
+        }
+        public void Handle(DebitAborted evnt)
+        {
+            Console.WriteLine("交易转出已终止，交易ID：{0}，账号：{1}，金额：{2}", evnt.TransactionId, evnt.SourceId, evnt.Amount);
+        }
+        public void Handle(CreditAborted evnt)
+        {
+            Console.WriteLine("交易转入已终止，交易ID：{0}，账号：{1}，金额：{2}", evnt.TransactionId, evnt.SourceId, evnt.Amount);
         }
         public void Handle(DebitConfirmed evnt)
         {
