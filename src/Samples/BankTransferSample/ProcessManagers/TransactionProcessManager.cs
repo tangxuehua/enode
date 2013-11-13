@@ -15,8 +15,8 @@ namespace BankTransferSample.ProcessManagers
         IEventHandler<DebitPrepared>,                       //交易预转出成功
         IEventHandler<CreditPrepared>,                      //交易预转入成功
         IEventHandler<TransactionCommitted>,                //交易已提交
-        IEventHandler<DebitCompleted>,                      //交易转出成功
-        IEventHandler<CreditCompleted>                      //交易转入成功
+        IEventHandler<DebitCommitted>,                      //交易转出成功
+        IEventHandler<CreditCommitted>                      //交易转入成功
     {
         private readonly ICommandService _commandService;
 
@@ -40,14 +40,14 @@ namespace BankTransferSample.ProcessManagers
         }
         public void Handle(TransactionCommitted evnt)
         {
-            _commandService.Send(new CompleteDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId));
-            _commandService.Send(new CompleteCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId));
+            _commandService.Send(new CommitDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId));
+            _commandService.Send(new CommitCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId));
         }
-        public void Handle(DebitCompleted evnt)
+        public void Handle(DebitCommitted evnt)
         {
             _commandService.Send(new ConfirmDebit(evnt.TransactionId));
         }
-        public void Handle(CreditCompleted evnt)
+        public void Handle(CreditCommitted evnt)
         {
             _commandService.Send(new ConfirmCredit(evnt.TransactionId));
         }

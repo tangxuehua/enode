@@ -68,7 +68,7 @@
     <Compile Include="DomainEvents\BankAccount\Withdrawn.cs" />
     <Compile Include="DomainEvents\Transaction\TransactionCompleted.cs" />
     <Compile Include="DomainEvents\BankAccount\CreditPreparationNotExist.cs" />
-    <Compile Include="DomainEvents\BankAccount\CreditCompleted.cs" />
+    <Compile Include="DomainEvents\BankAccount\CreditCommitted.cs" />
     <Compile Include="DomainEvents\Transaction\CreditPreparationConfirmed.cs" />
     <Compile Include="DomainEvents\Transaction\DebitPreparationConfirmed.cs" />
     <Compile Include="DomainEvents\BankAccount\DuplicatedCreditPreparation.cs" />
@@ -77,7 +77,7 @@
     <Compile Include="DomainEvents\BankAccount\DuplicatedDebitPreparation.cs" />
     <Compile Include="DomainEvents\BankAccount\DebitPreparationNotExist.cs" />
     <Compile Include="DomainEvents\BankAccount\CreditPrepared.cs" />
-    <Compile Include="DomainEvents\BankAccount\DebitCompleted.cs" />
+    <Compile Include="DomainEvents\BankAccount\DebitCommitted.cs" />
     <Compile Include="DomainEvents\BankAccount\DebitPrepared.cs" />
     <Compile Include="DomainEvents\BankAccount\Deposited.cs" />
     <Compile Include="DomainEvents\Transaction\TransactionStarted.cs" />

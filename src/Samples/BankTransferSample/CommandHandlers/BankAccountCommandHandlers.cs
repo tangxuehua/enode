@@ -14,8 +14,8 @@ namespace BankTransferSample.CommandHandlers
         ICommandHandler<Withdraw>,              //取钱
         ICommandHandler<PrepareDebit>,          //预转出
         ICommandHandler<PrepareCredit>,         //预转入
-        ICommandHandler<CompleteDebit>,         //完成转出
-        ICommandHandler<CompleteCredit>         //完成转入
+        ICommandHandler<CommitDebit>,           //执行转出
+        ICommandHandler<CommitCredit>           //执行转入
     {
         public void Handle(ICommandContext context, CreateAccount command)
         {
@@ -37,13 +37,13 @@ namespace BankTransferSample.CommandHandlers
         {
             context.Get<BankAccount>(command.AccountId).PrepareCredit(command.TransactionId, command.Amount);
         }
-        public void Handle(ICommandContext context, CompleteDebit command)
+        public void Handle(ICommandContext context, CommitDebit command)
         {
-            context.Get<BankAccount>(command.AccountId).CompleteDebit(command.TransactionId);
+            context.Get<BankAccount>(command.AccountId).CommitDebit(command.TransactionId);
         }
-        public void Handle(ICommandContext context, CompleteCredit command)
+        public void Handle(ICommandContext context, CommitCredit command)
         {
-            context.Get<BankAccount>(command.AccountId).CompleteCredit(command.TransactionId);
+            context.Get<BankAccount>(command.AccountId).CommitCredit(command.TransactionId);
         }
     }
 }

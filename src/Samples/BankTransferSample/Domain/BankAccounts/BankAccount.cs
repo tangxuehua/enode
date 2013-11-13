@@ -123,10 +123,10 @@ namespace BankTransferSample.Domain.BankAccounts
 
             RaiseEvent(new CreditPrepared(Id, transactionId, amount));
         }
-        /// <summary>完成转出
+        /// <summary>执行转出
         /// </summary>
         /// <param name="transactionId"></param>
-        public void CompleteDebit(Guid transactionId)
+        public void CommitDebit(Guid transactionId)
         {
             if (_completedTransactions.Any(x => x == transactionId))
             {
@@ -140,12 +140,12 @@ namespace BankTransferSample.Domain.BankAccounts
                 return;
             }
 
-            RaiseEvent(new DebitCompleted(Id, transactionId, preparation.Amount, Balance - preparation.Amount, DateTime.Now));
+            RaiseEvent(new DebitCommitted(Id, transactionId, preparation.Amount, Balance - preparation.Amount, DateTime.Now));
         }
-        /// <summary>完成转入
+        /// <summary>执行转入
         /// </summary>
         /// <param name="transactionId"></param>
-        public void CompleteCredit(Guid transactionId)
+        public void CommitCredit(Guid transactionId)
         {
             if (_completedTransactions.Any(x => x == transactionId))
             {
@@ -160,7 +160,7 @@ namespace BankTransferSample.Domain.BankAccounts
                 return;
             }
 
-            RaiseEvent(new CreditCompleted(Id, transactionId, preparation.Amount, Balance + preparation.Amount, DateTime.Now));
+            RaiseEvent(new CreditCommitted(Id, transactionId, preparation.Amount, Balance + preparation.Amount, DateTime.Now));
         }
 
         #endregion
@@ -211,13 +211,13 @@ namespace BankTransferSample.Domain.BankAccounts
         {
             _creditPreparations.Add(new CreditPreparation(evnt.TransactionId, evnt.Amount));
         }
-        private void Handle(DebitCompleted evnt)
+        private void Handle(DebitCommitted evnt)
         {
             Balance = evnt.CurrentBalance;
             _debitPreparations.Remove(_debitPreparations.Single(x => x.TransactionId == evnt.TransactionId));
             _completedTransactions.Add(evnt.TransactionId);
         }
-        private void Handle(CreditCompleted evnt)
+        private void Handle(CreditCommitted evnt)
         {
             Balance = evnt.CurrentBalance;
             _creditPreparations.Remove(_creditPreparations.Single(x => x.TransactionId == evnt.TransactionId));

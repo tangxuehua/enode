@@ -11,7 +11,7 @@ namespace BankTransferSample.Domain.Transactions
     {
         #region Public Properties
 
-        /// <summary>转账基本信息
+        /// <summary>交易基本信息
         /// </summary>
         public TransactionInfo TransactionInfo { get; private set; }
         /// <summary>预转出已确认
@@ -105,6 +105,7 @@ namespace BankTransferSample.Domain.Transactions
 
         private void Handle(TransactionStarted evnt)
         {
+            TransactionInfo = evnt.TransactionInfo;
             Status = TransactionStatus.Started;
         }
         private void Handle(DebitPreparationConfirmed evnt)
@@ -114,6 +115,14 @@ namespace BankTransferSample.Domain.Transactions
         private void Handle(CreditPreparationConfirmed evnt)
         {
             CreditPreparationConfirmed = true;
+        }
+        private void Handle(DebitConfirmed evnt)
+        {
+            DebitConfirmed = true;
+        }
+        private void Handle(CreditConfirmed evnt)
+        {
+            CreditConfirmed = true;
         }
         private void Handle(TransactionCommitted evnt)
         {

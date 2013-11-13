@@ -77,29 +77,29 @@ namespace BankTransferSample.Commands
             Amount = amount;
         }
     }
-    /// <summary>完成转出
+    /// <summary>执行转出
     /// </summary>
     [Serializable]
-    public class CompleteDebit : Command
+    public class CommitDebit : Command
     {
         public string AccountId { get; set; }
         public Guid TransactionId { get; set; }
 
-        public CompleteDebit(string accountId, Guid transactionId)
+        public CommitDebit(string accountId, Guid transactionId)
         {
             AccountId = accountId;
             TransactionId = transactionId;
         }
     }
-    /// <summary>完成转入
+    /// <summary>执行转入
     /// </summary>
     [Serializable]
-    public class CompleteCredit : Command
+    public class CommitCredit : Command
     {
         public string AccountId { get; set; }
         public Guid TransactionId { get; set; }
 
-        public CompleteCredit(string accountId, Guid transactionId)
+        public CommitCredit(string accountId, Guid transactionId)
         {
             AccountId = accountId;
             TransactionId = transactionId;
