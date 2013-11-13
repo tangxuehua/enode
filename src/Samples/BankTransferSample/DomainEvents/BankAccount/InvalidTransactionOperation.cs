@@ -23,7 +23,9 @@ namespace BankTransferSample.DomainEvents.BankAccount
     {
         PrepareDebit,
         PrepareCredit,
-        CompleteDebit,
-        CompleteCredit
+        CommitDebit,
+        CommitCredit,
+        AbortDebit,
+        AbortCredit
     }
 }

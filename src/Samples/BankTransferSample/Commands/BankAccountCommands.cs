@@ -77,7 +77,7 @@ namespace BankTransferSample.Commands
             Amount = amount;
         }
     }
-    /// <summary>执行转出
+    /// <summary>提交转出
     /// </summary>
     [Serializable]
     public class CommitDebit : Command
@@ -91,7 +91,7 @@ namespace BankTransferSample.Commands
             TransactionId = transactionId;
         }
     }
-    /// <summary>执行转入
+    /// <summary>提交转入
     /// </summary>
     [Serializable]
     public class CommitCredit : Command
@@ -100,6 +100,34 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; set; }
 
         public CommitCredit(string accountId, Guid transactionId)
+        {
+            AccountId = accountId;
+            TransactionId = transactionId;
+        }
+    }
+    /// <summary>终止转出
+    /// </summary>
+    [Serializable]
+    public class AbortDebit : Command
+    {
+        public string AccountId { get; set; }
+        public Guid TransactionId { get; set; }
+
+        public AbortDebit(string accountId, Guid transactionId)
+        {
+            AccountId = accountId;
+            TransactionId = transactionId;
+        }
+    }
+    /// <summary>终止转入
+    /// </summary>
+    [Serializable]
+    public class AbortCredit : Command
+    {
+        public string AccountId { get; set; }
+        public Guid TransactionId { get; set; }
+
+        public AbortCredit(string accountId, Guid transactionId)
         {
             AccountId = accountId;
             TransactionId = transactionId;

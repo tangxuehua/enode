@@ -12,11 +12,11 @@ namespace BankTransferSample.ProcessManagers
     [Component]
     public class TransactionProcessManager :
         IEventHandler<TransactionStarted>,                  //交易已开始
-        IEventHandler<DebitPrepared>,                       //交易预转出成功
-        IEventHandler<CreditPrepared>,                      //交易预转入成功
+        IEventHandler<DebitPrepared>,                       //交易已预转出
+        IEventHandler<CreditPrepared>,                      //交易已预转入
         IEventHandler<TransactionCommitted>,                //交易已提交
-        IEventHandler<DebitCommitted>,                      //交易转出成功
-        IEventHandler<CreditCommitted>                      //交易转入成功
+        IEventHandler<DebitCommitted>,                      //交易转出已提交
+        IEventHandler<CreditCommitted>                      //交易转入已提交
     {
         private readonly ICommandService _commandService;
 

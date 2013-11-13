@@ -123,14 +123,14 @@ namespace BankTransferSample.Domain.BankAccounts
 
             RaiseEvent(new CreditPrepared(Id, transactionId, amount));
         }
-        /// <summary>执行转出
+        /// <summary>提交转出
         /// </summary>
         /// <param name="transactionId"></param>
         public void CommitDebit(Guid transactionId)
         {
             if (_completedTransactions.Any(x => x == transactionId))
             {
-                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperationType.CompleteDebit));
+                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperationType.CommitDebit));
                 return;
             }
             var preparation = _debitPreparations.SingleOrDefault(x => x.TransactionId == transactionId);
@@ -142,14 +142,14 @@ namespace BankTransferSample.Domain.BankAccounts
 
             RaiseEvent(new DebitCommitted(Id, transactionId, preparation.Amount, Balance - preparation.Amount, DateTime.Now));
         }
-        /// <summary>执行转入
+        /// <summary>提交转入
         /// </summary>
         /// <param name="transactionId"></param>
         public void CommitCredit(Guid transactionId)
         {
             if (_completedTransactions.Any(x => x == transactionId))
             {
-                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperationType.CompleteCredit));
+                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperationType.CommitCredit));
                 return;
             }
 
@@ -161,6 +161,38 @@ namespace BankTransferSample.Domain.BankAccounts
             }
 
             RaiseEvent(new CreditCommitted(Id, transactionId, preparation.Amount, Balance + preparation.Amount, DateTime.Now));
+        }
+        /// <summary>终止转出
+        /// </summary>
+        /// <param name="transactionId"></param>
+        public void AbortDebit(Guid transactionId)
+        {
+            if (_completedTransactions.Any(x => x == transactionId))
+            {
+                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperationType.AbortDebit));
+                return;
+            }
+            var preparation = _debitPreparations.SingleOrDefault(x => x.TransactionId == transactionId);
+            if (preparation != null)
+            {
+                RaiseEvent(new DebitAborted(Id, transactionId, preparation.Amount, DateTime.Now));
+            }
+        }
+        /// <summary>终止转入
+        /// </summary>
+        /// <param name="transactionId"></param>
+        public void AbortCredit(Guid transactionId)
+        {
+            if (_completedTransactions.Any(x => x == transactionId))
+            {
+                RaiseEvent(new InvalidTransactionOperation(Id, transactionId, TransactionOperationType.AbortCredit));
+                return;
+            }
+            var preparation = _creditPreparations.SingleOrDefault(x => x.TransactionId == transactionId);
+            if (preparation != null)
+            {
+                RaiseEvent(new CreditAborted(Id, transactionId, preparation.Amount, DateTime.Now));
+            }
         }
 
         #endregion
@@ -222,6 +254,14 @@ namespace BankTransferSample.Domain.BankAccounts
             Balance = evnt.CurrentBalance;
             _creditPreparations.Remove(_creditPreparations.Single(x => x.TransactionId == evnt.TransactionId));
             _completedTransactions.Add(evnt.TransactionId);
+        }
+        private void Handle(DebitAborted evnt)
+        {
+            _debitPreparations.Remove(_debitPreparations.Single(x => x.TransactionId == evnt.TransactionId));
+        }
+        private void Handle(CreditAborted evnt)
+        {
+            _creditPreparations.Remove(_creditPreparations.Single(x => x.TransactionId == evnt.TransactionId));
         }
 
         #endregion

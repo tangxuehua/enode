@@ -54,9 +54,12 @@
     <Compile Include="CommandHandlers\TransactionCommandHandlers.cs" />
     <Compile Include="Commands\BankAccountCommands.cs" />
     <Compile Include="Commands\TransactionCommands.cs" />
+    <Compile Include="DomainEvents\BankAccount\DebitAborted.cs" />
+    <Compile Include="DomainEvents\BankAccount\CreditAborted.cs" />
     <Compile Include="DomainEvents\Transaction\CreditConfirmed.cs" />
     <Compile Include="DomainEvents\Transaction\DebitConfirmed.cs" />
     <Compile Include="DomainEvents\Transaction\TransactionCommitted.cs" />
+    <Compile Include="DomainEvents\Transaction\TransactionAborted.cs" />
     <Compile Include="Domain\BankAccounts\BankAccount.cs" />
     <Compile Include="Domain\BankAccounts\CreditPreparation.cs" />
     <Compile Include="Domain\BankAccounts\DebitPreparation.cs" />

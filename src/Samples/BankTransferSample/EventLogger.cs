@@ -18,16 +18,17 @@ namespace BankTransferSample.ProcessManagers
         IEventHandler<Deposited>,                           //已存款
         IEventHandler<Withdrawn>,                           //已取款
         IEventHandler<TransactionStarted>,                  //交易已开始
-        IEventHandler<DebitPrepared>,                       //交易预转出成功
-        IEventHandler<CreditPrepared>,                      //交易预转入成功
-        IEventHandler<DebitPreparationConfirmed>,           //交易预转出确认成功
-        IEventHandler<CreditPreparationConfirmed>,          //交易预转入确认成功
+        IEventHandler<DebitPrepared>,                       //交易已预转出
+        IEventHandler<CreditPrepared>,                      //交易已预转入
+        IEventHandler<DebitPreparationConfirmed>,           //交易预转出已确认
+        IEventHandler<CreditPreparationConfirmed>,          //交易预转入已确认
         IEventHandler<TransactionCommitted>,                //交易已提交
-        IEventHandler<DebitCommitted>,                      //交易转出成功
-        IEventHandler<CreditCommitted>,                     //交易转入成功
-        IEventHandler<DebitConfirmed>,                      //交易转出确认成功
-        IEventHandler<CreditConfirmed>,                     //交易转入确认成功
-        IEventHandler<TransactionCompleted>                 //交易已完成
+        IEventHandler<DebitCommitted>,                      //交易转出已提交
+        IEventHandler<CreditCommitted>,                     //交易转入已提交
+        IEventHandler<DebitConfirmed>,                      //交易转出已确认
+        IEventHandler<CreditConfirmed>,                     //交易转入已确认
+        IEventHandler<TransactionCompleted>,                //交易已完成
+        IEventHandler<TransactionAborted>                   //交易已终止
     {
         private readonly ICommandService _commandService;
 
@@ -91,6 +92,10 @@ namespace BankTransferSample.ProcessManagers
         public void Handle(TransactionCompleted evnt)
         {
             Console.WriteLine("交易已完成，交易ID：{0}", evnt.SourceId);
+        }
+        public void Handle(TransactionAborted evnt)
+        {
+            Console.WriteLine("交易已终止，交易ID：{0}", evnt.SourceId);
         }
     }
 }

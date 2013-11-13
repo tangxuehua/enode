@@ -3,7 +3,7 @@ using ENode.Eventing;
 
 namespace BankTransferSample.DomainEvents.BankAccount
 {
-    /// <summary>交易转入成功
+    /// <summary>交易转入已提交
     /// </summary>
     [Serializable]
     public class CreditCommitted  : DomainEvent<string>, ISourcingEvent
