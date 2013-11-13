@@ -84,6 +84,7 @@
     <Compile Include="ProcessManagers\TransactionProcessManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="EventLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Extensions\ENode.Autofac\ENode.Autofac.csproj">
