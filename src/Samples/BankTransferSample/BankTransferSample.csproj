@@ -57,6 +57,7 @@
     <Compile Include="DomainEvents\Transaction\CreditConfirmed.cs" />
     <Compile Include="DomainEvents\Transaction\DebitConfirmed.cs" />
     <Compile Include="DomainEvents\Transaction\TransactionCommitted.cs" />
+    <Compile Include="DomainEvents\Transaction\TransactionCreated.cs" />
     <Compile Include="Domain\BankAccounts\BankAccount.cs" />
     <Compile Include="Domain\BankAccounts\CreditPreparation.cs" />
     <Compile Include="Domain\BankAccounts\DebitPreparation.cs" />

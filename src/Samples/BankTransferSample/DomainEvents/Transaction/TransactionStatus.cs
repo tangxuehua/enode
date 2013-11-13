@@ -4,6 +4,7 @@
     /// </summary>
     public enum TransactionStatus
     {
+        Created,
         Started,
         Committed,
         Completed
