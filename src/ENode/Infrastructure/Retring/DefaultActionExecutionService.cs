@@ -118,7 +118,7 @@ namespace ENode.Infrastructure.Retring
                     _logger.DebugFormat("Executed action {0}.", actionInfo.Name);
                     if (actionInfo.Next != null)
                     {
-                        _actionQueue.Add(actionInfo.Next);
+                        TryAction(actionInfo.Next);
                     }
                 }
                 else
