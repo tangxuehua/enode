@@ -86,9 +86,11 @@
     <Compile Include="DomainEvents\BankAccount\Deposited.cs" />
     <Compile Include="DomainEvents\Transaction\TransactionStarted.cs" />
     <Compile Include="ProcessManagers\TransactionProcessManager.cs" />
+    <Compile Include="BasicTest.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="ConcurrentModifyTest.cs" />
+    <Compile Include="ThroughputTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="EventLogger.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Extensions\ENode.Autofac\ENode.Autofac.csproj">

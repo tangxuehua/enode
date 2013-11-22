@@ -10,7 +10,7 @@ namespace UniqueValidationSample.CommandHandlers
     {
         public void Handle(ICommandContext context, RegisterUser command)
         {
-            context.Add(new User(command.UserName));
+            context.Add(new User(command.UserId, command.UserName));
         }
     }
 }

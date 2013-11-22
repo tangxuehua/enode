@@ -7,11 +7,12 @@ namespace BankTransferSample.Commands
     /// <summary>创建一笔转账交易
     /// </summary>
     [Serializable]
-    public class CreateTransaction : Command
+    public class CreateTransaction : Command, ICreatingAggregateCommand
     {
         public TransactionInfo TransactionInfo { get; private set; }
 
         public CreateTransaction(TransactionInfo transactionInfo)
+            : base(transactionInfo.TransactionId)
         {
             TransactionInfo = transactionInfo;
         }
@@ -24,6 +25,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; private set; }
 
         public StartTransaction(Guid transactionId)
+            : base(transactionId)
         {
             TransactionId = transactionId;
         }
@@ -36,6 +38,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; private set; }
 
         public ConfirmDebitPreparation(Guid transactionId)
+            : base(transactionId)
         {
             TransactionId = transactionId;
         }
@@ -48,6 +51,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; private set; }
 
         public ConfirmCreditPreparation(Guid transactionId)
+            : base(transactionId)
         {
             TransactionId = transactionId;
         }
@@ -60,6 +64,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; private set; }
 
         public ConfirmDebit(Guid transactionId)
+            : base(transactionId)
         {
             TransactionId = transactionId;
         }
@@ -72,6 +77,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; private set; }
 
         public ConfirmCredit(Guid transactionId)
+            : base(transactionId)
         {
             TransactionId = transactionId;
         }
@@ -84,6 +90,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; private set; }
 
         public AbortTransaction(Guid transactionId)
+            : base(transactionId)
         {
             TransactionId = transactionId;
         }

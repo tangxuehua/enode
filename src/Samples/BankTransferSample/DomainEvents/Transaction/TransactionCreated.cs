@@ -11,7 +11,8 @@ namespace BankTransferSample.DomainEvents.Transaction
     {
         public TransactionInfo TransactionInfo { get; private set; }
 
-        public TransactionCreated(Guid transactionId, TransactionInfo transactionInfo) : base(transactionId)
+        public TransactionCreated(TransactionInfo transactionInfo)
+            : base(transactionInfo.TransactionId)
         {
             TransactionInfo = transactionInfo;
         }

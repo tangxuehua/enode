@@ -26,8 +26,8 @@ namespace NoteSample
 
             var noteId = Guid.NewGuid();
 
-            var command1 = new CreateNote { NoteId = noteId, Title = "Sample Note" };
-            var command2 = new ChangeNoteTitle { NoteId = noteId, Title = "Modified Note" };
+            var command1 = new CreateNote(noteId, "Sample Note");
+            var command2 = new ChangeNoteTitle(noteId, "Modified Note");
 
             commandService.Send(command1);
             Signal.WaitOne();

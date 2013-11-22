@@ -6,12 +6,13 @@ namespace BankTransferSample.Commands
     /// <summary>开户
     /// </summary>
     [Serializable]
-    public class CreateAccount : Command
+    public class CreateAccount : Command, ICreatingAggregateCommand
     {
         public string AccountId { get; set; }
         public string Owner { get; set; }
 
         public CreateAccount(string accountId, string owner)
+            : base(accountId)
         {
             AccountId = accountId;
             Owner = owner;
@@ -26,6 +27,7 @@ namespace BankTransferSample.Commands
         public double Amount { get; set; }
 
         public Deposit(string accountId, double amount)
+            : base(accountId)
         {
             AccountId = accountId;
             Amount = amount;
@@ -40,6 +42,7 @@ namespace BankTransferSample.Commands
         public double Amount { get; set; }
 
         public Withdraw(string accountId, double amount)
+            : base(accountId)
         {
             AccountId = accountId;
             Amount = amount;
@@ -55,6 +58,7 @@ namespace BankTransferSample.Commands
         public double Amount { get; set; }
 
         public PrepareDebit(string accountId, Guid transactionId, double amount)
+            : base(accountId)
         {
             AccountId = accountId;
             TransactionId = transactionId;
@@ -71,6 +75,7 @@ namespace BankTransferSample.Commands
         public double Amount { get; set; }
 
         public PrepareCredit(string accountId, Guid transactionId, double amount)
+            : base(accountId)
         {
             AccountId = accountId;
             TransactionId = transactionId;
@@ -86,6 +91,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; set; }
 
         public CommitDebit(string accountId, Guid transactionId)
+            : base(accountId)
         {
             AccountId = accountId;
             TransactionId = transactionId;
@@ -100,6 +106,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; set; }
 
         public CommitCredit(string accountId, Guid transactionId)
+            : base(accountId)
         {
             AccountId = accountId;
             TransactionId = transactionId;
@@ -114,6 +121,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; set; }
 
         public AbortDebit(string accountId, Guid transactionId)
+            : base(accountId)
         {
             AccountId = accountId;
             TransactionId = transactionId;
@@ -128,6 +136,7 @@ namespace BankTransferSample.Commands
         public Guid TransactionId { get; set; }
 
         public AbortCredit(string accountId, Guid transactionId)
+            : base(accountId)
         {
             AccountId = accountId;
             TransactionId = transactionId;

@@ -39,7 +39,7 @@ namespace BankTransferSample.Domain.Transactions
         /// <param name="transactionInfo"></param>
         public Transaction(TransactionInfo transactionInfo)
         {
-            RaiseEvent(new TransactionCreated(Guid.NewGuid(), transactionInfo));
+            RaiseEvent(new TransactionCreated(transactionInfo));
         }
 
         #endregion
