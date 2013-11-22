@@ -45,7 +45,7 @@ namespace BankTransferSample
             }
             Signal.WaitOne();
 
-            Console.WriteLine("All deposit commands completed, total time spent:{0}ms", watch.ElapsedMilliseconds);
+            Console.WriteLine("{0} deposit commands completed, total time spent:{1}ms", TotalCount, watch.ElapsedMilliseconds);
             var sourceAccount = memoryCache.Get<BankAccount>("00001");
             Console.WriteLine("Account current balance:{0}", sourceAccount.Balance);
             Console.ReadLine();
