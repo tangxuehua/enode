@@ -31,9 +31,10 @@ namespace ENode.Messaging.Impl
         /// </summary>
         /// <param name="bindingQueue"></param>
         /// <param name="messageExecutorCount"></param>
+        /// <param name="messageDequeueIntervalMilliseconds"></param>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="Exception"></exception>
-        protected MessageProcessor(TQueue bindingQueue, int messageExecutorCount)
+        protected MessageProcessor(TQueue bindingQueue, int messageExecutorCount, int messageDequeueIntervalMilliseconds)
         {
             if (bindingQueue == null)
             {
@@ -50,7 +51,16 @@ namespace ENode.Messaging.Impl
             for (var index = 0; index < messageExecutorCount; index++)
             {
                 var messageExecutor = ObjectContainer.Resolve<TMessageExecutor>();
-                _workers.Add(new Worker(() => ProcessMessage(messageExecutor)));
+                Worker worker;
+                if (messageDequeueIntervalMilliseconds > 0)
+                {
+                    worker = new Worker(() => ProcessMessage(messageExecutor), messageDequeueIntervalMilliseconds);
+                }
+                else
+                {
+                    worker = new Worker(() => ProcessMessage(messageExecutor));
+                }
+                _workers.Add(worker);
             }
 
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);

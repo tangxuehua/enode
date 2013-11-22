@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ENode.Infrastructure.Concurrent;
 
 namespace ENode.Eventing.Impl.InMemory
@@ -10,7 +10,8 @@ namespace ENode.Eventing.Impl.InMemory
     /// </summary>
     public class InMemoryEventStore : IEventStore
     {
-        private readonly ConcurrentDictionary<EventKey, EventStream> _eventDict = new ConcurrentDictionary<EventKey, EventStream>();
+        private readonly Dictionary<AggregateKey, AggregateVersionInfo> _aggregateVersionDict = new Dictionary<AggregateKey, AggregateVersionInfo>();
+        private readonly Dictionary<AggregateKey, IList<EventStream>> _aggregateEventsDict = new Dictionary<AggregateKey, IList<EventStream>>();
 
         /// <summary>Append the event stream to the event store.
         /// </summary>
@@ -18,7 +19,48 @@ namespace ENode.Eventing.Impl.InMemory
         public void Append(EventStream stream)
         {
             if (stream == null) return;
-            if (!_eventDict.TryAdd(new EventKey(stream.AggregateRootId, stream.Version), stream))
+
+            var aggregateKey = new AggregateKey(stream.AggregateRootId);
+
+            if (stream.Version == 1)
+            {
+                _aggregateVersionDict.Add(aggregateKey, new AggregateVersionInfo { CurrentVersion = 1 });
+                _aggregateEventsDict.Add(aggregateKey, new List<EventStream>());
+                return;
+            }
+
+            var aggregateVersionInfo = _aggregateVersionDict[aggregateKey];
+
+            if (aggregateVersionInfo.CurrentVersion >= stream.Version)
+            {
+                if (!_aggregateEventsDict[aggregateKey].Any(x => x.Id == stream.Id))
+                {
+                    throw new ConcurrentException("");
+                }
+            }
+
+            var originalStatus = Interlocked.CompareExchange(ref aggregateVersionInfo.Status, AggregateVersionInfo.Editing, AggregateVersionInfo.UnEditing);
+            var hasConcurrentException = false;
+            if (originalStatus != aggregateVersionInfo.Status)
+            {
+                if (stream.Version == aggregateVersionInfo.CurrentVersion + 1)
+                {
+                    _aggregateEventsDict[aggregateKey].Add(stream);
+                    aggregateVersionInfo.CurrentVersion++;
+                }
+                else
+                {
+                    hasConcurrentException = true;
+                }
+
+                Interlocked.Exchange(ref aggregateVersionInfo.Status, AggregateVersionInfo.UnEditing);
+            }
+            else
+            {
+                hasConcurrentException = true;
+            }
+
+            if (hasConcurrentException)
             {
                 throw new ConcurrentException("");
             }
@@ -32,58 +74,46 @@ namespace ENode.Eventing.Impl.InMemory
         /// <returns></returns>
         public IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
         {
-            return _eventDict
-                .Values
-                .Where(x => object.Equals(x.AggregateRootId, aggregateRootId) && x.Version >= minStreamVersion && x.Version <= maxStreamVersion)
-                .OrderBy(x => x.Version);
-        }
-        /// <summary>Query event streams from event store.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        /// <param name="aggregateRootType"></param>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public bool IsEventStreamExist(object aggregateRootId, Type aggregateRootType, Guid id)
-        {
-            return _eventDict.Values.Any(x => object.Equals(x.AggregateRootId, aggregateRootId) && x.Id == id);
+            return _aggregateEventsDict[new AggregateKey(aggregateRootId)].Where(x => x.Version >= minStreamVersion && x.Version <= maxStreamVersion).OrderBy(x => x.Version);
         }
         /// <summary>Query all the event streams from the event store.
         /// </summary>
         /// <returns></returns>
         public IEnumerable<EventStream> QueryAll()
         {
-            return _eventDict.Values;
+            var totalStreams = new List<EventStream>();
+            foreach (var streams in _aggregateEventsDict.Values)
+            {
+                totalStreams.AddRange(streams);
+            }
+            return totalStreams;
         }
 
-        class EventKey
+        class AggregateKey
         {
             private object AggregateRootId { get; set; }
-            private long Version { get; set; }
 
-            public EventKey(object aggregateRootId, long version)
+            public AggregateKey(object aggregateRootId)
             {
                 AggregateRootId = aggregateRootId;
-                Version = version;
             }
 
             public override bool Equals(object obj)
             {
-                var eventKey = obj as EventKey;
-
-                if (eventKey == null)
+                var aggregateKey = obj as AggregateKey;
+                if (aggregateKey == null)
                 {
                     return false;
                 }
-                if (eventKey == this)
+                if (aggregateKey == this)
                 {
                     return true;
                 }
-
-                return object.Equals(AggregateRootId, eventKey.AggregateRootId) && Version == eventKey.Version;
+                return object.Equals(AggregateRootId, aggregateKey.AggregateRootId);
             }
             public override int GetHashCode()
             {
-                return AggregateRootId.GetHashCode() + Version.GetHashCode();
+                return AggregateRootId.GetHashCode();
             }
         }
     }

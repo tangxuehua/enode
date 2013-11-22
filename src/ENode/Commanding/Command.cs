@@ -8,15 +8,25 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class Command : Message, ICommand
     {
+        private object _aggregateRootId;
         private int _retryCount;
-        private const int DefaultMillisecondsTimeout = 10000;
-        private const int DefaultRetryCount = 3;
-        private const int MaxRetryCount = 5;
+        public const int DefaultMillisecondsTimeout = 10000;
+        public const int DefaultRetryCount = 5;
+        public const int MaxRetryCount = 50;
 
+        /// <summary>Represents the id of aggregate root which will be created or updated by the current command.
+        /// </summary>
+        object ICommand.AggregateRootId
+        {
+            get
+            {
+                return _aggregateRootId;
+            }
+        }
         /// <summary>Get or set command executing waiting milliseconds.
         /// </summary>
         public int MillisecondsTimeout { get; set; }
-        /// <summary>Get or set times which the command should be retry. The retry count must small than 5;
+        /// <summary>Get or set times which the command should be retry. The retry count must small than the MaxRetryCount;
         /// </summary>
         public int RetryCount
         {
@@ -28,7 +38,7 @@ namespace ENode.Commanding
             {
                 if (value > MaxRetryCount)
                 {
-                    throw new Exception(string.Format("Command max retry count cannot exceed {0}.", MaxRetryCount));
+                    throw new Exception(string.Format("Command retry count cannot exceed {0}.", MaxRetryCount));
                 }
                 _retryCount = value;
             }
@@ -36,13 +46,36 @@ namespace ENode.Commanding
 
         /// <summary>Default constructor.
         /// </summary>
-        protected Command() : this(DefaultMillisecondsTimeout, DefaultRetryCount) { }
+        protected Command() : this(null, DefaultMillisecondsTimeout, DefaultRetryCount) { }
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        protected Command(object aggregateRootId) : this(aggregateRootId, DefaultMillisecondsTimeout, DefaultRetryCount)
+        {
+        }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="millisecondsTimeout"></param>
         /// <param name="retryCount"></param>
-        protected Command(int millisecondsTimeout, int retryCount) : base(Guid.NewGuid())
+        protected Command(int millisecondsTimeout, int retryCount) : this(null, millisecondsTimeout, retryCount)
         {
+        }
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="millisecondsTimeout"></param>
+        /// <param name="retryCount"></param>
+        protected Command(object aggregateRootId, int millisecondsTimeout, int retryCount) : base(Guid.NewGuid())
+        {
+            if (aggregateRootId == null)
+            {
+                throw new ArgumentNullException("aggregateRootId");
+            }
+            if (millisecondsTimeout < 0)
+            {
+                throw new ArgumentException("Command millisecondsTimeout cannot be small than zero.");
+            }
+            _aggregateRootId = aggregateRootId;
             MillisecondsTimeout = millisecondsTimeout;
             RetryCount = retryCount;
         }

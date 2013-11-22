@@ -16,6 +16,7 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
+        private readonly IWaitingCommandService _waitingCommandService;
         private readonly IProcessingCommandCache _processingCommandCache;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly IAggregateRootFactory _aggregateRootFactory;
@@ -35,6 +36,7 @@ namespace ENode.Eventing.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="waitingCommandService"></param>
         /// <param name="processingCommandCache"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="aggregateRootFactory"></param>
@@ -48,6 +50,7 @@ namespace ENode.Eventing.Impl
         /// <param name="eventSynchronizerProvider"></param>
         /// <param name="loggerFactory"></param>
         public DefaultUncommittedEventExecutor(
+            IWaitingCommandService waitingCommandService,
             IProcessingCommandCache processingCommandCache,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IAggregateRootFactory aggregateRootFactory,
@@ -61,6 +64,7 @@ namespace ENode.Eventing.Impl
             IEventSynchronizerProvider eventSynchronizerProvider,
             ILoggerFactory loggerFactory)
         {
+            _waitingCommandService = waitingCommandService;
             _processingCommandCache = processingCommandCache;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _aggregateRootFactory = aggregateRootFactory;
@@ -81,9 +85,9 @@ namespace ENode.Eventing.Impl
         /// </summary>
         /// <param name="message"></param>
         /// <param name="queue"></param>
-        public override void Execute(EventStream message, IMessageQueue<EventStream> queue)
+        public override void Execute(EventStream eventStream, IMessageQueue<EventStream> queue)
         {
-            var context = new EventStreamContext { EventStream = message, Queue = queue };
+            var context = new EventStreamContext { EventStream = eventStream, Queue = queue };
 
             Func<bool> commitEvents = () =>
             {
@@ -126,6 +130,7 @@ namespace ENode.Eventing.Impl
                         else
                         {
                             RefreshMemoryCache(context.EventStream);
+                            _waitingCommandService.SendWaitingCommand(context.EventStream.AggregateRootId);
                             SyncAfterEventPersisted(context.EventStream);
                             PublishEvents(context.EventStream, new ActionInfo("PublishEventsCallback", data => { CleanEvents(context); return true; }, null, null));
                         }
@@ -138,13 +143,6 @@ namespace ENode.Eventing.Impl
                 }
             }
         }
-        private bool IsEventStreamCommitted(EventStream eventStream)
-        {
-            return _eventStore.IsEventStreamExist(
-                eventStream.AggregateRootId,
-                _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName),
-                eventStream.Id);
-        }
         private void PersistEvents(EventStreamContext context, ActionInfo successCallback)
         {
             Func<bool> persistEvents = () =>
@@ -156,11 +154,6 @@ namespace ENode.Eventing.Impl
                 }
                 catch (Exception ex)
                 {
-                    if (ex is ConcurrentException && IsEventStreamCommitted(context.EventStream))
-                    {
-                        return true;
-                    }
-
                     var errorMessage = string.Format("{0} raised when persisting events:{1}", ex.GetType().Name, context.EventStream.GetStreamInformation());
                     _logger.Error(errorMessage, ex);
 
@@ -302,7 +295,7 @@ namespace ENode.Eventing.Impl
             Func<bool> retryCommand = () =>
             {
                 var eventStream = context.EventStream;
-                if (!eventStream.IsRestoreFromStorage())
+                if (!((IMessage)eventStream).IsRestoreFromStorage())
                 {
                     var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                     if (commandInfo != null)

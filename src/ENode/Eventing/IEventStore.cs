@@ -10,13 +10,6 @@ namespace ENode.Eventing
         /// <summary>Append the event stream to the event store.
         /// </summary>
         void Append(EventStream stream);
-        /// <summary>Check whether an event stream is exist in the event store.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        /// <param name="aggregateRootType"></param>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        bool IsEventStreamExist(object aggregateRootId, Type aggregateRootType, Guid id);
         /// <summary>Query event streams from event store.
         /// </summary>
         IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion);

@@ -12,7 +12,7 @@ namespace ENode.Eventing.Impl
         /// </summary>
         /// <param name="bindingQueue"></param>
         /// <param name="workerCount"></param>
-        public DefaultUncommittedEventProcessor(IUncommittedEventQueue bindingQueue, int workerCount = 1) : base(bindingQueue, workerCount)
+        public DefaultUncommittedEventProcessor(IUncommittedEventQueue bindingQueue, int workerCount = 1) : base(bindingQueue, workerCount, 0)
         {
         }
     }

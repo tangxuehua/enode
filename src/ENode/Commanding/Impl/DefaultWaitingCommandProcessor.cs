@@ -2,16 +2,16 @@
 
 namespace ENode.Commanding.Impl
 {
-    /// <summary>The default command processor.
+    /// <summary>The waiting command processor.
     /// </summary>
-    public class DefaultCommandProcessor : MessageProcessor<ICommandQueue, ICommandExecutor, ICommand>, ICommandProcessor
+    public class DefaultWaitingCommandProcessor : MessageProcessor<ICommandQueue, IWaitingCommandExecutor, ICommand>, ICommandProcessor
     {
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="bindingQueue"></param>
         /// <param name="workerCount"></param>
         /// <param name="commandDequeueIntervalMilliseconds"></param>
-        public DefaultCommandProcessor(ICommandQueue bindingQueue, int workerCount = 1, int commandDequeueIntervalMilliseconds = 0)
+        public DefaultWaitingCommandProcessor(ICommandQueue bindingQueue, int workerCount = 1, int commandDequeueIntervalMilliseconds = 0)
             : base(bindingQueue, workerCount, commandDequeueIntervalMilliseconds)
         {
         }

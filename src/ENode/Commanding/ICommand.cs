@@ -6,6 +6,9 @@ namespace ENode.Commanding
     /// </summary>
     public interface ICommand : IMessage
     {
+        /// <summary>Represents the id of aggregate root which will be created or updated by the current command.
+        /// </summary>
+        object AggregateRootId { get; }
         /// <summary>Command executing waiting milliseconds.
         /// </summary>
         int MillisecondsTimeout { get; }

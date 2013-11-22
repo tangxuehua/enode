@@ -40,9 +40,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commanding\CommandInfo.cs" />
+    <Compile Include="Commanding\Impl\DefaultWaitingCommandProcessor.cs" />
+    <Compile Include="Commanding\Impl\DefaultWaitingCommandExecutor.cs" />
+    <Compile Include="Commanding\ICreatingAggregateCommand.cs" />
+    <Compile Include="Commanding\IWaitingCommandExecutor.cs" />
     <Compile Include="Commanding\ICommandQueue.cs" />
     <Compile Include="Commanding\ICommandProcessor.cs" />
     <Compile Include="Commanding\ICommandExecutor.cs" />
+    <Compile Include="Commanding\Impl\DefaultWaitingCommandService.cs" />
+    <Compile Include="Commanding\IWaitingCommandService.cs" />
+    <Compile Include="Commanding\Impl\DefaultWaitingCommandCache.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandQueue.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandProcessor.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
@@ -50,6 +57,7 @@
     <Compile Include="Commanding\CommandExecutionException.cs" />
     <Compile Include="Commanding\CommandQueueNotFoundException.cs" />
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
+    <Compile Include="Commanding\IWaitingCommandCache.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
@@ -57,6 +65,7 @@
     <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultEventSourcingService.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
+    <Compile Include="Eventing\AggregateVersionInfo.cs" />
     <Compile Include="Eventing\ISourcingEvent.cs" />
     <Compile Include="Eventing\IEventSynchronizer.cs" />
     <Compile Include="Eventing\IEventSender.cs" />
@@ -108,6 +117,7 @@
     <Compile Include="Eventing\Impl\DefaultEventSynchronizerProvider.cs" />
     <Compile Include="Eventing\Impl\EventSynchronizerWrapper.cs" />
     <Compile Include="Infrastructure\ErrorInfo.cs" />
+    <Compile Include="Infrastructure\ObjectId.cs" />
     <Compile Include="Infrastructure\Retring\DefaultActionExecutionService.cs" />
     <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\IObjectContainer.cs" />

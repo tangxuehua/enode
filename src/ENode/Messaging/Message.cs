@@ -24,13 +24,13 @@ namespace ENode.Messaging
 
         /// <summary>Returns whether the message is restore from the message store.
         /// </summary>
-        public bool IsRestoreFromStorage()
+        bool IMessage.IsRestoreFromStorage()
         {
             return _isRestoreFromStorage;
         }
         /// <summary>Mark the message that is restored from storage.
         /// </summary>
-        public void MarkAsRestoreFromStorage()
+        void IMessage.MarkAsRestoreFromStorage()
         {
             _isRestoreFromStorage = true;
         }

@@ -10,7 +10,7 @@ namespace ENode.Eventing.Impl
         /// </summary>
         /// <param name="bindingQueue"></param>
         /// <param name="workerCount"></param>
-        public DefaultCommittedEventProcessor(ICommittedEventQueue bindingQueue, int workerCount = 1) : base(bindingQueue, workerCount)
+        public DefaultCommittedEventProcessor(ICommittedEventQueue bindingQueue, int workerCount = 1) : base(bindingQueue, workerCount, 0)
         {
         }
     }

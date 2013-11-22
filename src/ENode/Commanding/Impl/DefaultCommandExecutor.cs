@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
 using ENode.Eventing;
-using ENode.Infrastructure;
 using ENode.Infrastructure.Logging;
 using ENode.Infrastructure.Retring;
 using ENode.Messaging;
@@ -17,6 +16,7 @@ namespace ENode.Commanding.Impl
     {
         #region Private Variables
 
+        private readonly IWaitingCommandCache _waitingCommandCache;
         private readonly IProcessingCommandCache _processingCommandCache;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
@@ -33,6 +33,7 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="waitingCommandCache"></param>
         /// <param name="processingCommandCache"></param>
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
@@ -43,6 +44,7 @@ namespace ENode.Commanding.Impl
         /// <param name="loggerFactory"></param>
         /// <exception cref="Exception"></exception>
         public DefaultCommandExecutor(
+            IWaitingCommandCache waitingCommandCache,
             IProcessingCommandCache processingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
@@ -52,6 +54,7 @@ namespace ENode.Commanding.Impl
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)
         {
+            _waitingCommandCache = waitingCommandCache;
             _processingCommandCache = processingCommandCache;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
@@ -70,13 +73,42 @@ namespace ENode.Commanding.Impl
 
         #endregion
 
+        #region Public Methods
+
         /// <summary>Execute the given command message.
         /// </summary>
         /// <param name="message">The command message.</param>
         /// <param name="queue">The queue which the command message belongs to.</param>
-        public override void Execute(ICommand message, IMessageQueue<ICommand> queue)
+        public override void Execute(ICommand command, IMessageQueue<ICommand> queue)
         {
-            var command = message;
+            if (!CheckWaitingCommand(command))
+            {
+                HandleCommand(command, queue);
+            }
+        }
+
+        #endregion
+
+        #region Protected Methods
+
+        /// <summary>Check whether the command is added to the waiting command cache.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        protected virtual bool CheckWaitingCommand(ICommand command)
+        {
+            if (command is ICreatingAggregateCommand)
+            {
+                return false;
+            }
+            return _waitingCommandCache.AddWaitingCommand(command.AggregateRootId, command);
+        }
+        /// <summary>Acutally handle the command.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="queue"></param>
+        protected virtual void HandleCommand(ICommand command, IMessageQueue<ICommand> queue)
+        {
             var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
 
             if (commandHandler == null)
@@ -114,6 +146,8 @@ namespace ENode.Commanding.Impl
                 _trackingContext.Clear();
             }
         }
+
+        #endregion
 
         #region Private Methods
 
@@ -201,7 +235,7 @@ namespace ENode.Commanding.Impl
         private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IDomainEvent> evnts)
         {
             var aggregateRootId = evnts[0].AggregateRootId;
-            for (var index = 1; index < evnts.Count(); index++)
+            for (var index = 1; index < evnts.Count; index++)
             {
                 if (!object.Equals(evnts[index].AggregateRootId, aggregateRootId))
                 {

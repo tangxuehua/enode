@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Logging;
@@ -15,7 +16,6 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized costructor.
         /// </summary>
-        /// <param name="commandAsyncResultManager"></param>
         /// <param name="loggerFactory"></param>
         public DefaultRetryCommandService(ILoggerFactory loggerFactory)
         {
