@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading;
-using ENode.Eventing;
-using ENode.Infrastructure;
+﻿using ENode.Eventing;
+using ENode.Infrastructure.Concurrent;
 using ENode.Infrastructure.Logging;
-using ENode.Infrastructure.Retring;
 
 namespace ENode.Commanding.Impl
 {
@@ -11,14 +8,16 @@ namespace ENode.Commanding.Impl
     /// </summary>
     public class DefaultRetryCommandService : IRetryCommandService
     {
+        private ICommandTaskManager _commandTaskManager;
         private ICommandQueue _retryCommandQueue;
         private readonly ILogger _logger;
 
         /// <summary>Parameterized costructor.
         /// </summary>
         /// <param name="loggerFactory"></param>
-        public DefaultRetryCommandService(ILoggerFactory loggerFactory)
+        public DefaultRetryCommandService(ICommandTaskManager commandTaskManager, ILoggerFactory loggerFactory)
         {
+            _commandTaskManager = commandTaskManager;
             _logger = loggerFactory.Create(GetType().Name);
         }
 
@@ -27,7 +26,7 @@ namespace ENode.Commanding.Impl
         /// <param name="commandInfo"></param>
         /// <param name="eventStream"></param>
         /// <param name="errorInfo"></param>
-        public void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ErrorInfo errorInfo)
+        public void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ConcurrentException concurrentException)
         {
             if (_retryCommandQueue == null)
             {
@@ -43,6 +42,7 @@ namespace ENode.Commanding.Impl
             else
             {
                 _logger.ErrorFormat("{0} retried count reached to its max retry count {1}.", command.GetType().Name, command.RetryCount);
+                _commandTaskManager.CompleteCommandTask(command.Id, concurrentException);
             }
         }
     }

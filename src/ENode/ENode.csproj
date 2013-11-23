@@ -40,9 +40,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commanding\CommandInfo.cs" />
+    <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\DefaultWaitingCommandProcessor.cs" />
     <Compile Include="Commanding\Impl\DefaultWaitingCommandExecutor.cs" />
     <Compile Include="Commanding\ICreatingAggregateCommand.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandTaskManager.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandCompletionEventManager.cs" />
     <Compile Include="Commanding\IWaitingCommandExecutor.cs" />
     <Compile Include="Commanding\ICommandQueue.cs" />
     <Compile Include="Commanding\ICommandProcessor.cs" />
@@ -58,6 +61,8 @@
     <Compile Include="Commanding\CommandQueueNotFoundException.cs" />
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
     <Compile Include="Commanding\IWaitingCommandCache.cs" />
+    <Compile Include="Commanding\ICommandCompletionEventManager.cs" />
+    <Compile Include="Commanding\ICommandTaskManager.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
@@ -81,6 +86,7 @@
     <Compile Include="Eventing\IUncommittedEventProcessor.cs" />
     <Compile Include="Eventing\EventStreamContext.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
+    <Compile Include="Eventing\ICompletionEvent.cs" />
     <Compile Include="Infrastructure\DelegateFactory.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\Concurrent\ConcurrentException.cs" />
@@ -116,7 +122,6 @@
     <Compile Include="Eventing\IEventSynchronizerProvider.cs" />
     <Compile Include="Eventing\Impl\DefaultEventSynchronizerProvider.cs" />
     <Compile Include="Eventing\Impl\EventSynchronizerWrapper.cs" />
-    <Compile Include="Infrastructure\ErrorInfo.cs" />
     <Compile Include="Infrastructure\ObjectId.cs" />
     <Compile Include="Infrastructure\Retring\DefaultActionExecutionService.cs" />
     <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
@@ -216,6 +221,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Eventing\Impl\SQL\TableGenerateSQL.sql" />
     <Content Include="SqlScripts\TableGenerateSQL.sql" />
     <Compile Include="Commanding\Impl\DefaultCommandService.cs" />
   </ItemGroup>

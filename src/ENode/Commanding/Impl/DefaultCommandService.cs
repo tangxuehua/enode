@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ENode.Commanding.Impl
 {
@@ -7,21 +8,23 @@ namespace ENode.Commanding.Impl
     public class DefaultCommandService : ICommandService
     {
         private readonly ICommandQueueRouter _commandQueueRouter;
+        private readonly ICommandTaskManager _commandTaskManager;
 
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="commandQueueRouter"></param>
-        public DefaultCommandService(ICommandQueueRouter commandQueueRouter)
+        public DefaultCommandService(ICommandQueueRouter commandQueueRouter, ICommandTaskManager commandTaskManager)
         {
             _commandQueueRouter = commandQueueRouter;
+            _commandTaskManager = commandTaskManager;
         }
 
-        /// <summary>Send the command to a specific command queue.
+        /// <summary>Send the command to a specific command queue and returns a task object.
         /// </summary>
         /// <param name="command">The command to send.</param>
         /// <exception cref="ArgumentNullException">Throwed when the command is null.</exception>
         /// <exception cref="CommandQueueNotFoundException">Throwed when the command queue cannot be routed.</exception>
-        public void Send(ICommand command)
+        public Task<CommandResult> Send(ICommand command)
         {
             if (command == null)
             {
@@ -34,7 +37,9 @@ namespace ENode.Commanding.Impl
                 throw new CommandQueueNotFoundException(command.GetType());
             }
 
+            var task = _commandTaskManager.CreateCommandTask(command.Id);
             commandQueue.Enqueue(command);
+            return task;
         }
     }
 }

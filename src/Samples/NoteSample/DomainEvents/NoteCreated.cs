@@ -4,7 +4,7 @@ using ENode.Eventing;
 namespace NoteSample.DomainEvents
 {
     [Serializable]
-    public class NoteCreated : DomainEvent<Guid>, ISourcingEvent
+    public class NoteCreated : DomainEvent<Guid>, ISourcingEvent, ICompletionEvent
     {
         public string Title { get; private set; }
         public DateTime CreatedTime { get; private set; }

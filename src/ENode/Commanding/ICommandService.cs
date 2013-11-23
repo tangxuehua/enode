@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ENode.Commanding
 {
@@ -6,9 +7,9 @@ namespace ENode.Commanding
     /// </summary>
     public interface ICommandService
     {
-        /// <summary>Send the command to a specific command queue.
+        /// <summary>Send the command to a specific command queue and returns a task object.
         /// </summary>
         /// <param name="command">The command to send.</param>
-        void Send(ICommand command);
+        Task<CommandResult> Send(ICommand command);
     }
 }

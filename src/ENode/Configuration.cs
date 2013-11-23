@@ -162,6 +162,8 @@ namespace ENode
             Register<IProcessingCommandCache, DefaultProcessingCommandCache>();
             Register<IWaitingCommandCache, DefaultWaitingCommandCache>();
             Register<IWaitingCommandService, DefaultWaitingCommandService>();
+            Register<ICommandTaskManager, DefaultCommandTaskManager>();
+            Register<ICommandCompletionEventManager, DefaultCommandCompletionEventManager>();
             Register<ICommandService, DefaultCommandService>();
             Register<IRetryCommandService, DefaultRetryCommandService>();
 

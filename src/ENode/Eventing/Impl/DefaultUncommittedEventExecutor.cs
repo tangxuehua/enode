@@ -1,7 +1,6 @@
 ﻿using System;
 using ENode.Commanding;
 using ENode.Domain;
-using ENode.Infrastructure;
 using ENode.Infrastructure.Concurrent;
 using ENode.Infrastructure.Logging;
 using ENode.Infrastructure.Retring;
@@ -16,6 +15,8 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
+        private readonly ICommandCompletionEventManager _commandCompletionEventManager;
+        private readonly ICommandTaskManager _commandTaskManager;
         private readonly IWaitingCommandService _waitingCommandService;
         private readonly IProcessingCommandCache _processingCommandCache;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
@@ -36,6 +37,8 @@ namespace ENode.Eventing.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="commandCompletionEventManager"></param>
+        /// <param name="commandTaskManager"></param>
         /// <param name="waitingCommandService"></param>
         /// <param name="processingCommandCache"></param>
         /// <param name="aggregateRootTypeProvider"></param>
@@ -50,6 +53,8 @@ namespace ENode.Eventing.Impl
         /// <param name="eventSynchronizerProvider"></param>
         /// <param name="loggerFactory"></param>
         public DefaultUncommittedEventExecutor(
+            ICommandCompletionEventManager commandCompletionEventManager,
+            ICommandTaskManager commandTaskManager,
             IWaitingCommandService waitingCommandService,
             IProcessingCommandCache processingCommandCache,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
@@ -64,6 +69,8 @@ namespace ENode.Eventing.Impl
             IEventSynchronizerProvider eventSynchronizerProvider,
             ILoggerFactory loggerFactory)
         {
+            _commandCompletionEventManager = commandCompletionEventManager;
+            _commandTaskManager = commandTaskManager;
             _waitingCommandService = waitingCommandService;
             _processingCommandCache = processingCommandCache;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
@@ -116,23 +123,26 @@ namespace ENode.Eventing.Impl
                 case SynchronizeStatus.SynchronizerConcurrentException:
                     return false;
                 case SynchronizeStatus.Failed:
-                    CleanEvents(context, synchronizeResult.ErrorInfo);
+                    CompleteCommandTask(context.EventStream, synchronizeResult.Exception);
+                    CleanEvents(context);
                     return true;
                 default:
                 {
                     Func<object, bool> persistEventsCallback = (obj) =>
                     {
-                        if (context.HasConcurrentException)
+                        var eventStream = context.EventStream;
+                        if (context.ConcurrentException != null)
                         {
-                            RefreshMemoryCache(context.EventStream);
-                            RetryCommand(context, context.ErrorInfo, new ActionInfo("RetryCommandCallback", data => { context.Queue.Delete(context.EventStream); return true; }, null, null));
+                            RefreshMemoryCache(eventStream);
+                            RetryCommand(context, context.ConcurrentException, new ActionInfo("RetryCommandCallback", data => { context.Queue.Delete(eventStream); return true; }, null, null));
                         }
                         else
                         {
-                            RefreshMemoryCache(context.EventStream);
-                            _waitingCommandService.SendWaitingCommand(context.EventStream.AggregateRootId);
-                            SyncAfterEventPersisted(context.EventStream);
-                            PublishEvents(context.EventStream, new ActionInfo("PublishEventsCallback", data => { CleanEvents(context); return true; }, null, null));
+                            RefreshMemoryCache(eventStream);
+                            CompleteCommandTask(eventStream, null);
+                            SendWaitingCommand(eventStream);
+                            SyncAfterEventPersisted(eventStream);
+                            PublishEvents(eventStream, new ActionInfo("PublishEventsCallback", data => { CleanEvents(context); return true; }, null, null));
                         }
                         return true;
                     };
@@ -159,7 +169,7 @@ namespace ENode.Eventing.Impl
 
                     if (ex is ConcurrentException)
                     {
-                        context.SetConcurrentException(new ErrorInfo(errorMessage, ex));
+                        context.SetConcurrentException(ex as ConcurrentException);
                         return true;
                     }
 
@@ -168,6 +178,28 @@ namespace ENode.Eventing.Impl
             };
 
             _actionExecutionService.TryAction("PersistEvents", persistEvents, 3, successCallback);
+        }
+        private void CompleteCommandTask(EventStream eventStream, Exception exception)
+        {
+            foreach (var evnt in eventStream.Events)
+            {
+                if (_commandCompletionEventManager.IsCompletionEvent(evnt))
+                {
+                    if (exception == null)
+                    {
+                        _commandTaskManager.CompleteCommandTask(eventStream.CommandId);
+                    }
+                    else
+                    {
+                        _commandTaskManager.CompleteCommandTask(eventStream.CommandId, exception);
+                    }
+                    break;
+                }
+            }
+        }
+        private void SendWaitingCommand(EventStream eventStream)
+        {
+            _waitingCommandService.SendWaitingCommand(eventStream.AggregateRootId);
         }
         private void RefreshMemoryCache(EventStream eventStream)
         {
@@ -255,7 +287,7 @@ namespace ENode.Eventing.Impl
                             synchronizer.GetInnerSynchronizer().GetType().Name,
                             eventStream.GetStreamInformation());
                         _logger.Error(errorMessage, ex);
-                        result.ErrorInfo = new ErrorInfo(errorMessage, ex);
+                        result.Exception = ex;
                         if (ex is ConcurrentException)
                         {
                             result.Status = SynchronizeStatus.SynchronizerConcurrentException;
@@ -290,7 +322,7 @@ namespace ENode.Eventing.Impl
                 }
             }
         }
-        private void RetryCommand(EventStreamContext context, ErrorInfo errorInfo, ActionInfo successCallback)
+        private void RetryCommand(EventStreamContext context, ConcurrentException concurrentException, ActionInfo successCallback)
         {
             Func<bool> retryCommand = () =>
             {
@@ -300,7 +332,7 @@ namespace ENode.Eventing.Impl
                     var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                     if (commandInfo != null)
                     {
-                        _retryCommandService.RetryCommand(commandInfo, eventStream, errorInfo);
+                        _retryCommandService.RetryCommand(commandInfo, eventStream, concurrentException);
                     }
                     else
                     {
@@ -315,7 +347,7 @@ namespace ENode.Eventing.Impl
             };
             _actionExecutionService.TryAction("RetryCommand", retryCommand, 3, successCallback);
         }
-        private void CleanEvents(EventStreamContext context, ErrorInfo errorInfo = null)
+        private void CleanEvents(EventStreamContext context)
         {
             _processingCommandCache.TryRemove(context.EventStream.CommandId);
             context.Queue.Delete(context.EventStream);
@@ -326,7 +358,7 @@ namespace ENode.Eventing.Impl
         class SynchronizeResult
         {
             public SynchronizeStatus Status { get; set; }
-            public ErrorInfo ErrorInfo { get; set; }
+            public Exception Exception { get; set; }
         }
         enum SynchronizeStatus
         {

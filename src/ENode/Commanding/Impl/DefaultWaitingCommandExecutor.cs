@@ -13,6 +13,7 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="commandTaskManager"></param>
         /// <param name="waitingCommandCache"></param>
         /// <param name="processingCommandCache"></param>
         /// <param name="commandHandlerProvider"></param>
@@ -23,6 +24,7 @@ namespace ENode.Commanding.Impl
         /// <param name="commandContext"></param>
         /// <param name="loggerFactory"></param>
         public DefaultWaitingCommandExecutor(
+            ICommandTaskManager commandTaskManager,
             IWaitingCommandCache waitingCommandCache,
             IProcessingCommandCache processingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
@@ -32,7 +34,8 @@ namespace ENode.Commanding.Impl
             IActionExecutionService actionExecutionService,
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)
-            : base(waitingCommandCache,
+            : base(commandTaskManager,
+                waitingCommandCache,
                 processingCommandCache,
                 commandHandlerProvider,
                 aggregateRootTypeProvider,

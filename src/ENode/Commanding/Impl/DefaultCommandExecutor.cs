@@ -16,6 +16,7 @@ namespace ENode.Commanding.Impl
     {
         #region Private Variables
 
+        private readonly ICommandTaskManager _commandTaskManager;
         private readonly IWaitingCommandCache _waitingCommandCache;
         private readonly IProcessingCommandCache _processingCommandCache;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
@@ -33,6 +34,7 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="commandTaskManager"></param>
         /// <param name="waitingCommandCache"></param>
         /// <param name="processingCommandCache"></param>
         /// <param name="commandHandlerProvider"></param>
@@ -44,6 +46,7 @@ namespace ENode.Commanding.Impl
         /// <param name="loggerFactory"></param>
         /// <exception cref="Exception"></exception>
         public DefaultCommandExecutor(
+            ICommandTaskManager commandTaskManager,
             IWaitingCommandCache waitingCommandCache,
             IProcessingCommandCache processingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
@@ -54,6 +57,7 @@ namespace ENode.Commanding.Impl
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)
         {
+            _commandTaskManager = commandTaskManager;
             _waitingCommandCache = waitingCommandCache;
             _processingCommandCache = processingCommandCache;
             _commandHandlerProvider = commandHandlerProvider;
@@ -115,6 +119,7 @@ namespace ENode.Commanding.Impl
             {
                 var errorMessage = string.Format("Command handler not found for {0}", command.GetType().FullName);
                 _logger.Fatal(errorMessage);
+                _commandTaskManager.CompleteCommandTask(command.Id, errorMessage);
                 queue.Delete(command);
                 return;
             }
@@ -139,6 +144,7 @@ namespace ENode.Commanding.Impl
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
                 var errorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
                 _logger.Error(errorMessage, ex);
+                _commandTaskManager.CompleteCommandTask(command.Id, ex);
                 queue.Delete(command);
             }
             finally

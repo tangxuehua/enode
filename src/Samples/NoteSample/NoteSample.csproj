@@ -40,26 +40,8 @@
     <Reference Include="log4net">
       <HintPath>..\..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Bson">
-      <HintPath>..\..\..\packages\mongocsharpdriver.1.8.2\lib\net35\MongoDB.Bson.dll</HintPath>
-    </Reference>
-    <Reference Include="MongoDB.Driver">
-      <HintPath>..\..\..\packages\mongocsharpdriver.1.8.2\lib\net35\MongoDB.Driver.dll</HintPath>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\packages\Newtonsoft.Json.4.5.11\lib\net40\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceStack.Common">
-      <HintPath>..\..\..\packages\ServiceStack.Common.3.9.49\lib\net35\ServiceStack.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceStack.Interfaces">
-      <HintPath>..\..\..\packages\ServiceStack.Common.3.9.49\lib\net35\ServiceStack.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceStack.Redis">
-      <HintPath>..\..\..\packages\ServiceStack.Redis.3.9.51\lib\net35\ServiceStack.Redis.dll</HintPath>
-    </Reference>
-    <Reference Include="ServiceStack.Text">
-      <HintPath>..\..\..\packages\ServiceStack.Text.3.9.49\lib\net35\ServiceStack.Text.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -80,11 +62,6 @@
     <Compile Include="DomainEvents\NoteTitleChanged.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="IENodeFrameworkInitializer.cs" />
-    <Compile Include="ENodeFrameworkUnitTestInitializer.cs" />
-    <Compile Include="ENodeFrameworkSqlInitializer.cs" />
-    <Compile Include="ENodeFrameworkMongoInitializer.cs" />
-    <Compile Include="ENodeFrameworkRedisInitializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Extensions\ENode.Autofac\ENode.Autofac.csproj">
@@ -99,14 +76,6 @@
       <Project>{0f063898-fb02-47d9-b6c6-7a4cfe4b6c51}</Project>
       <Name>ENode.Log4Net</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Extensions\ENode.Mongo\ENode.Mongo.csproj">
-      <Project>{25dda9f0-dc61-4446-9364-b29376215155}</Project>
-      <Name>ENode.Mongo</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Extensions\ENode.Redis\ENode.Redis.csproj">
-      <Project>{6c201374-2f02-4134-8098-9d7d8dfce31a}</Project>
-      <Name>ENode.Redis</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>
@@ -118,9 +87,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="TableGenerateSQL.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

@@ -1,26 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Diagnostics;
-using System.Threading;
+using System.Reflection;
+using ENode;
+using ENode.Autofac;
 using ENode.Commanding;
-using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.JsonNet;
+using ENode.Log4Net;
 using NoteSample.Commands;
-using NoteSample.DomainEvents;
 
 namespace NoteSample
 {
     class Program
     {
-        public static ManualResetEvent Signal = new ManualResetEvent(false);
-
         static void Main(string[] args)
         {
-            new ENodeFrameworkUnitTestInitializer().Initialize();
-            //new ENodeFrameworkSqlInitializer().Initialize();
-            //new ENodeFrameworkMongoInitializer().Initialize();
-            //new ENodeFrameworkRedisInitializer().Initialize();
+            InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
@@ -29,28 +23,29 @@ namespace NoteSample
             var command1 = new CreateNote(noteId, "Sample Note");
             var command2 = new ChangeNoteTitle(noteId, "Modified Note");
 
-            commandService.Send(command1);
-            Signal.WaitOne();
+            var task = commandService.Send(command1);
+            task.Wait();
 
-            Signal = new ManualResetEvent(false);
-            commandService.Send(command2);
-            Signal.WaitOne();
+            task = commandService.Send(command2);
+            task.Wait();
 
-            Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
         }
-    }
 
-    [Component]
-    public class SyncService : IEventHandler<NoteCreated>, IEventHandler<NoteTitleChanged>
-    {
-        public void Handle(NoteCreated evnt)
+        static void InitializeENodeFramework()
         {
-            Program.Signal.Set();
-        }
-        public void Handle(NoteTitleChanged evnt)
-        {
-            Program.Signal.Set();
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+
+            Configuration
+                .Create()
+                .UseAutofac()
+                .RegisterFrameworkComponents()
+                .RegisterBusinessComponents(assemblies)
+                .UseLog4Net()
+                .UseJsonNet()
+                .CreateAllDefaultProcessors()
+                .Initialize(assemblies)
+                .Start();
         }
     }
 }

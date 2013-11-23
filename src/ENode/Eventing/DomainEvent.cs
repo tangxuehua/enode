@@ -18,8 +18,8 @@ namespace ENode.Eventing
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            _aggregateRootId = aggregateRootId;
             _id = Guid.NewGuid();
+            _aggregateRootId = aggregateRootId;
             SourceId = aggregateRootId;
         }
 
