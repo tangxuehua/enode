@@ -88,28 +88,28 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>Execute the given event stream.
+        /// <summary>Execute the given event stream message.
         /// </summary>
         /// <param name="message"></param>
-        /// <param name="queue"></param>
-        public override void Execute(EventStream eventStream, IMessageQueue<EventStream> queue)
+        public override void Execute(Message<EventStream> message)
         {
-            var context = new EventStreamContext { EventStream = eventStream, Queue = queue };
+            //TODO
+            //var context = new EventStreamContext { EventStream = eventStream, Queue = queue };
 
-            Func<bool> commitEvents = () =>
-            {
-                try
-                {
-                    return CommitEvents(context);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Exception raised when committing events:{0}.", context.EventStream.GetStreamInformation()), ex);
-                    return false;
-                }
-            };
+            //Func<bool> commitEvents = () =>
+            //{
+            //    try
+            //    {
+            //        return CommitEvents(context);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        _logger.Error(string.Format("Exception raised when committing events:{0}.", context.EventStream.GetStreamInformation()), ex);
+            //        return false;
+            //    }
+            //};
 
-            _actionExecutionService.TryAction("CommitEvents", commitEvents, 3, null);
+            //_actionExecutionService.TryAction("CommitEvents", commitEvents, 3, null);
         }
 
         #region Private Methods
@@ -131,19 +131,20 @@ namespace ENode.Eventing.Impl
                     Func<object, bool> persistEventsCallback = (obj) =>
                     {
                         var eventStream = context.EventStream;
-                        if (context.ConcurrentException != null)
-                        {
-                            RefreshMemoryCache(eventStream);
-                            RetryCommand(context, context.ConcurrentException, new ActionInfo("RetryCommandCallback", data => { context.Queue.Delete(eventStream); return true; }, null, null));
-                        }
-                        else
-                        {
-                            RefreshMemoryCache(eventStream);
-                            CompleteCommandTask(eventStream, null);
-                            SendWaitingCommand(eventStream);
-                            SyncAfterEventPersisted(eventStream);
-                            PublishEvents(eventStream, new ActionInfo("PublishEventsCallback", data => { CleanEvents(context); return true; }, null, null));
-                        }
+                        //TODO
+                        //if (context.ConcurrentException != null)
+                        //{
+                        //    RefreshMemoryCache(eventStream);
+                        //    RetryCommand(context, context.ConcurrentException, new ActionInfo("RetryCommandCallback", data => { context.Queue.Delete(eventStream); return true; }, null, null));
+                        //}
+                        //else
+                        //{
+                        //    RefreshMemoryCache(eventStream);
+                        //    CompleteCommandTask(eventStream, null);
+                        //    SendWaitingCommand(eventStream);
+                        //    SyncAfterEventPersisted(eventStream);
+                        //    PublishEvents(eventStream, new ActionInfo("PublishEventsCallback", data => { CleanEvents(context); return true; }, null, null));
+                        //}
                         return true;
                     };
 
@@ -169,7 +170,7 @@ namespace ENode.Eventing.Impl
 
                     if (ex is ConcurrentException)
                     {
-                        context.SetConcurrentException(ex as ConcurrentException);
+                        //context.SetConcurrentException(ex as ConcurrentException);
                         return true;
                     }
 
@@ -327,22 +328,17 @@ namespace ENode.Eventing.Impl
             Func<bool> retryCommand = () =>
             {
                 var eventStream = context.EventStream;
-                if (!((IMessage)eventStream).IsRestoreFromStorage())
+
+                var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
+                if (commandInfo != null)
                 {
-                    var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
-                    if (commandInfo != null)
-                    {
-                        _retryCommandService.RetryCommand(commandInfo, eventStream, concurrentException);
-                    }
-                    else
-                    {
-                        _logger.ErrorFormat("The command need to retry cannot be found from command processing cache, commandId:{0}", eventStream.CommandId);
-                    }
+                    _retryCommandService.RetryCommand(commandInfo, eventStream, concurrentException);
                 }
                 else
                 {
-                    _logger.InfoFormat("The command with id {0} will not be retry as the current event stream is restored from the message store.", eventStream.CommandId);
+                    _logger.ErrorFormat("The command need to retry cannot be found from command processing cache, commandId:{0}", eventStream.CommandId);
                 }
+
                 return true;
             };
             _actionExecutionService.TryAction("RetryCommand", retryCommand, 3, successCallback);
@@ -350,7 +346,8 @@ namespace ENode.Eventing.Impl
         private void CleanEvents(EventStreamContext context)
         {
             _processingCommandCache.TryRemove(context.EventStream.CommandId);
-            context.Queue.Delete(context.EventStream);
+            //TODO
+            //context.Queue.Delete(context.EventStream);
         }
 
         #endregion

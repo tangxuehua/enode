@@ -50,13 +50,13 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>Execute the given event stream.
+        /// <summary>Execute the given event stream message.
         /// </summary>
-        /// <param name="eventStream"></param>
-        /// <param name="queue"></param>
-        public override void Execute(EventStream eventStream, IMessageQueue<EventStream> queue)
+        /// <param name="message"></param>
+        public override void Execute(Message<EventStream> message)
         {
-            DispatchEventsToHandlers(new EventStreamContext { EventStream = eventStream, Queue = queue });
+            //TODO
+            //DispatchEventsToHandlers(new EventStreamContext { EventStream = eventStream, Queue = queue });
         }
 
         #region Private Methods
@@ -89,13 +89,12 @@ namespace ENode.Eventing.Impl
                     new ActionInfo("DispatchEventsToHandlersCallback",
                         data => {
                             UpdatePublishedEventStreamVersion(context.EventStream);
-                            context.Queue.Delete(context.EventStream);
                             return true;
                         }, null, null));
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when dispatching events:{0}", context.EventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when dispatching event stream:{0}", context.EventStream.GetStreamInformation()), ex);
             }
         }
         private bool DispatchEventsToHandlers(EventStream stream)

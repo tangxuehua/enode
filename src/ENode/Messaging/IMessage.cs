@@ -4,16 +4,13 @@ namespace ENode.Messaging
 {
     /// <summary>Represents a message.
     /// </summary>
-    public interface IMessage
+    public interface IMessage : IMessagePayload
     {
-        /// <summary>Represents the unique identifier for the message.
+        /// <summary>Represents the payload object of the message.
         /// </summary>
-        Guid Id { get; }
-        /// <summary>Returns whether the message is restore from the message store.
+        object Payload { get; }
+        /// <summary>Represents which queue the message from.
         /// </summary>
-        bool IsRestoreFromStorage();
-        /// <summary>Mark the message that is restored from storage.
-        /// </summary>
-        void MarkAsRestoreFromStorage();
+        string QueueName { get; }
     }
 }

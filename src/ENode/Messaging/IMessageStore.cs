@@ -14,17 +14,16 @@ namespace ENode.Messaging
         /// </summary>
         /// <param name="queueName">The name of the queue.</param>
         /// <param name="message">The message object.</param>
-        void AddMessage(string queueName, IMessage message);
+        void AddMessage(IMessage message);
         /// <summary>Remove a existing message from the queue.
         /// </summary>
         /// <param name="queueName">The name of the queue.</param>
         /// <param name="message">The message object.</param>
-        void RemoveMessage(string queueName, IMessage message);
+        void RemoveMessage(IMessage message);
         /// <summary>Get all the existing messages of the queue.
         /// </summary>
-        /// <typeparam name="T">The type of the message.</typeparam>
         /// <param name="queueName">The name of the queue.</param>
         /// <returns>Returns all the existing messages.</returns>
-        IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage;
+        IEnumerable<IMessage> GetMessages(string queueName);
     }
 }

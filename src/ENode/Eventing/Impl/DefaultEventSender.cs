@@ -1,4 +1,5 @@
 ﻿using System;
+using ENode.Messaging;
 
 namespace ENode.Eventing.Impl
 {
@@ -26,7 +27,7 @@ namespace ENode.Eventing.Impl
                 throw new Exception("Could not route event stream to an appropriate uncommitted event queue.");
             }
 
-            eventQueue.Enqueue(eventStream);
+            eventQueue.Enqueue(new Message<EventStream>(Guid.NewGuid(), eventStream, eventQueue.Name));
         }
     }
 }

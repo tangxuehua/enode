@@ -82,12 +82,11 @@ namespace ENode.Commanding.Impl
         /// <summary>Execute the given command message.
         /// </summary>
         /// <param name="message">The command message.</param>
-        /// <param name="queue">The queue which the command message belongs to.</param>
-        public override void Execute(ICommand command, IMessageQueue<ICommand> queue)
+        public override void Execute(Message<ICommand> message)
         {
-            if (!CheckWaitingCommand(command))
+            if (!CheckWaitingCommand(message.Payload))
             {
-                HandleCommand(command, queue);
+                HandleCommand(message.Payload);
             }
         }
 
@@ -111,7 +110,7 @@ namespace ENode.Commanding.Impl
         /// </summary>
         /// <param name="command"></param>
         /// <param name="queue"></param>
-        protected virtual void HandleCommand(ICommand command, IMessageQueue<ICommand> queue)
+        protected virtual void HandleCommand(ICommand command)
         {
             var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
 
@@ -120,7 +119,6 @@ namespace ENode.Commanding.Impl
                 var errorMessage = string.Format("Command handler not found for {0}", command.GetType().FullName);
                 _logger.Fatal(errorMessage);
                 _commandTaskManager.CompleteCommandTask(command.Id, errorMessage);
-                queue.Delete(command);
                 return;
             }
 
@@ -131,12 +129,11 @@ namespace ENode.Commanding.Impl
                 var dirtyAggregate = GetDirtyAggregate(_trackingContext);
                 if (dirtyAggregate != null)
                 {
-                    CommitAggregate(dirtyAggregate, command, queue);
+                    CommitAggregate(dirtyAggregate, command);
                 }
                 else
                 {
                     _logger.Info("No dirty aggregate found, finish the command execution directly.");
-                    queue.Delete(command);
                 }
             }
             catch (Exception ex)
@@ -145,7 +142,6 @@ namespace ENode.Commanding.Impl
                 var errorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
                 _logger.Error(errorMessage, ex);
                 _commandTaskManager.CompleteCommandTask(command.Id, ex);
-                queue.Delete(command);
             }
             finally
             {
@@ -174,7 +170,7 @@ namespace ENode.Commanding.Impl
 
             return dirtyAggregateRoots.Single();
         }
-        private void CommitAggregate(IAggregateRoot dirtyAggregate, ICommand command, IMessageQueue<ICommand> queue)
+        private void CommitAggregate(IAggregateRoot dirtyAggregate, ICommand command)
         {
             var eventStream = CreateEventStream(dirtyAggregate, command);
 
@@ -184,7 +180,7 @@ namespace ENode.Commanding.Impl
                     "SendEvents",
                     () => SendEvents(eventStream),
                     3,
-                    new ActionInfo("SendEventsCallback", data => { queue.Delete(command); return true; }, null, null));
+                    null);
             }
             else
             {
@@ -192,7 +188,7 @@ namespace ENode.Commanding.Impl
                     "PublishEvents",
                     () => PublishEvents(eventStream),
                     3,
-                    new ActionInfo("PublishEventsCallback", data => { _processingCommandCache.TryRemove(eventStream.CommandId); queue.Delete(command); return true; }, null, null));
+                    new ActionInfo("PublishEventsCallback", data => { _processingCommandCache.TryRemove(eventStream.CommandId); return true; }, null, null));
             }
         }
         private EventStream CreateEventStream(IAggregateRoot aggregateRoot, ICommand command)

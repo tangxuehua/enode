@@ -1,6 +1,8 @@
-﻿using ENode.Eventing;
+﻿using System;
+using ENode.Eventing;
 using ENode.Infrastructure.Concurrent;
 using ENode.Infrastructure.Logging;
+using ENode.Messaging;
 
 namespace ENode.Commanding.Impl
 {
@@ -36,7 +38,7 @@ namespace ENode.Commanding.Impl
 
             if (commandInfo.RetriedCount < command.RetryCount)
             {
-                _retryCommandQueue.Enqueue(commandInfo.Command);
+                _retryCommandQueue.Enqueue(new Message<ICommand>(Guid.NewGuid(), commandInfo.Command, _retryCommandQueue.Name));
                 commandInfo.IncreaseRetriedCount();
             }
             else

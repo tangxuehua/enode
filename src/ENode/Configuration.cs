@@ -367,7 +367,6 @@ namespace ENode
         public Configuration Start()
         {
             ValidateProcessors();
-            InitializeProcessors();
             StartProcessors();
             ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name).Info("enode framework started...");
 
@@ -414,23 +413,6 @@ namespace ENode
             if (_committedEventProcessors.Count == 0)
             {
                 throw new Exception("Committed event processor count cannot be zero.");
-            }
-        }
-        private void InitializeProcessors()
-        {
-            foreach (var commandProcessor in _commandProcessors)
-            {
-                commandProcessor.Initialize();
-            }
-            _retryCommandProcessor.Initialize();
-            _waitingCommandProcessor.Initialize();
-            foreach (var eventProcessor in _uncommittedEventProcessors)
-            {
-                eventProcessor.Initialize();
-            }
-            foreach (var eventProcessor in _committedEventProcessors)
-            {
-                eventProcessor.Initialize();
             }
         }
         private void StartProcessors()

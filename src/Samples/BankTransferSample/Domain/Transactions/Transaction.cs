@@ -167,6 +167,10 @@ namespace BankTransferSample.Domain.Transactions
         {
             Status = TransactionStatus.Completed;
         }
+        private void Handle(TransactionAborted evnt)
+        {
+            Status = TransactionStatus.Aborted;
+        }
 
         #endregion
     }

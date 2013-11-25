@@ -1,4 +1,6 @@
-﻿using ENode.Infrastructure.Logging;
+﻿using System;
+using ENode.Infrastructure.Logging;
+using ENode.Messaging;
 
 namespace ENode.Commanding.Impl
 {
@@ -31,7 +33,7 @@ namespace ENode.Commanding.Impl
 
             if (command != null)
             {
-                _waitingCommandQueue.Enqueue(command);
+                _waitingCommandQueue.Enqueue(new Message<ICommand>(Guid.NewGuid(), command, _waitingCommandQueue.Name));
             }
         }
     }

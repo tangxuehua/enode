@@ -8,6 +8,7 @@ using ENode.Infrastructure.Sql;
 
 namespace ENode.Messaging.Impl.SQL
 {
+    //TODO,refactory.
     /// <summary>The SQL implementation of IMessageStore.
     /// </summary>
     public class SqlMessageStore : IMessageStore
@@ -48,43 +49,42 @@ namespace ENode.Messaging.Impl.SQL
         public void Initialize(string queueName) { }
         /// <summary>Persist a new message to the queue.
         /// </summary>
-        /// <param name="queueName"></param>
         /// <param name="message"></param>
-        public void AddMessage(string queueName, IMessage message)
+        public void AddMessage(IMessage message)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
-            {
-                var tableName = _queueTableNameProvider.GetTable(queueName);
-                var messageData = _binarySerializer.Serialize(message);
-                connection.Insert(new { MessageId = message.Id, MessageData = messageData }, tableName);
-            });
+            //_connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
+            //{
+            //    var tableName = _queueTableNameProvider.GetTable(queueName);
+            //    var messageData = _binarySerializer.Serialize(message);
+            //    connection.Insert(new { MessageId = message.Id, MessageData = messageData }, tableName);
+            //});
         }
         /// <summary>Remove a existing message from the queue.
         /// </summary>
-        /// <param name="queueName"></param>
         /// <param name="message"></param>
-        public void RemoveMessage(string queueName, IMessage message)
+        public void RemoveMessage(IMessage message)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
-            {
-                var tableName = _queueTableNameProvider.GetTable(queueName);
-                connection.Delete(new { MessageId = message.Id }, tableName);
-            });
+            //_connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
+            //{
+            //    var tableName = _queueTableNameProvider.GetTable(queueName);
+            //    connection.Delete(new { MessageId = message.Id }, tableName);
+            //});
         }
         /// <summary>Get all the existing messages of the queue.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="queueName"></param>
         /// <returns></returns>
-        public IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage
+        public IEnumerable<IMessage> GetMessages(string queueName)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<T>>(connection =>
-            {
-                var tableName = _queueTableNameProvider.GetTable(queueName);
-                var items = connection.QueryAll(tableName);
+            return null;
+            //TODO
+            //return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<T>>(connection =>
+            //{
+            //    var tableName = _queueTableNameProvider.GetTable(queueName);
+            //    var items = connection.QueryAll(tableName);
 
-                return items.Select(item => _binarySerializer.Deserialize<T>((byte[]) item.MessageData)).ToList();
-            });
+            //    return items.Select(item => _binarySerializer.Deserialize<T>((byte[]) item.MessageData)).ToList();
+            //});
         }
     }
 }

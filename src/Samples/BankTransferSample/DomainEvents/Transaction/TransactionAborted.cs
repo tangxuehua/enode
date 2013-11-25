@@ -7,7 +7,7 @@ namespace BankTransferSample.DomainEvents.Transaction
     /// <summary>交易已终止
     /// </summary>
     [Serializable]
-    public class TransactionAborted : DomainEvent<Guid>, ISourcingEvent
+    public class TransactionAborted : DomainEvent<Guid>, ISourcingEvent, ICompletionEvent
     {
         public TransactionInfo TransactionInfo { get; private set; }
         public DateTime AbortedTime { get; private set; }

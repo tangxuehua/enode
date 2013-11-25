@@ -6,7 +6,7 @@ namespace ENode.Commanding
     /// <summary>Represents an abstract base command.
     /// </summary>
     [Serializable]
-    public abstract class Command : Message, ICommand
+    public abstract class Command : ICommand
     {
         private object _aggregateRootId;
         private int _retryCount;
@@ -14,6 +14,9 @@ namespace ENode.Commanding
         public const int DefaultRetryCount = 5;
         public const int MaxRetryCount = 50;
 
+        /// <summary>Represents the unique identifier of the command.
+        /// </summary>
+        public Guid Id { get; private set; }
         /// <summary>Represents the id of aggregate root which will be created or updated by the current command.
         /// </summary>
         object ICommand.AggregateRootId
@@ -65,7 +68,7 @@ namespace ENode.Commanding
         /// <param name="aggregateRootId"></param>
         /// <param name="millisecondsTimeout"></param>
         /// <param name="retryCount"></param>
-        protected Command(object aggregateRootId, int millisecondsTimeout, int retryCount) : base(Guid.NewGuid())
+        protected Command(object aggregateRootId, int millisecondsTimeout, int retryCount)
         {
             if (aggregateRootId == null)
             {
@@ -75,6 +78,7 @@ namespace ENode.Commanding
             {
                 throw new ArgumentException("Command millisecondsTimeout cannot be small than zero.");
             }
+            Id = Guid.NewGuid();
             _aggregateRootId = aggregateRootId;
             MillisecondsTimeout = millisecondsTimeout;
             RetryCount = retryCount;

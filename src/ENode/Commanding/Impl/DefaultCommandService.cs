@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using ENode.Messaging;
 
 namespace ENode.Commanding.Impl
 {
@@ -38,7 +39,7 @@ namespace ENode.Commanding.Impl
             }
 
             var task = _commandTaskManager.CreateCommandTask(command.Id);
-            commandQueue.Enqueue(command);
+            commandQueue.Enqueue(new Message<ICommand>(Guid.NewGuid(), command, commandQueue.Name));
             return task;
         }
     }

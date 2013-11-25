@@ -11,7 +11,7 @@ namespace ENode.Eventing
     /// </remarks>
     /// </summary>
     [Serializable]
-    public class EventStream : Message
+    public class EventStream : IMessagePayload
     {
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -35,8 +35,8 @@ namespace ENode.Eventing
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
         public EventStream(Guid id, object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IDomainEvent> events)
-            : base(id)
         {
+            Id = id;
             AggregateRootId = aggregateRootId;
             AggregateRootName = aggregateRootName;
             CommandId = commandId;
@@ -45,6 +45,9 @@ namespace ENode.Eventing
             Events = events ?? new List<IDomainEvent>();
         }
 
+        /// <summary>The id of the event stream.
+        /// </summary>
+        public Guid Id { get; private set; }
         /// <summary>The aggregate root id.
         /// </summary>
         public object AggregateRootId { get; private set; }

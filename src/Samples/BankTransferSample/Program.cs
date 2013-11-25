@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            ConcurrentModifyTest.Run();
+            BasicTest.Run();
         }
     }
 }

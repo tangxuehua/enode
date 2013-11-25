@@ -4,35 +4,35 @@ namespace ENode.Messaging
 {
     /// <summary>Represents a message.
     /// </summary>
-    [Serializable]
-    public class Message : IMessage
+    public class Message<TPayload> : IMessage where TPayload : class, IMessagePayload
     {
-        [NonSerialized]
-        private bool _isRestoreFromStorage = false;
-
         /// <summary>Represents the unique identifier for the message.
         /// </summary>
         public Guid Id { get; private set; }
+        /// <summary>Represents the payload object of the message.
+        /// </summary>
+        public TPayload Payload { get; private set; }
+        /// <summary>Represents which queue the message from.
+        /// </summary>
+        public string QueueName { get; private set; }
 
-        /// <summary>Parameterized constructor
+        /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="id"></param>
-        public Message(Guid id)
+        /// <param name="payload"></param>
+        /// <param name="queueName"></param>
+        public Message(Guid id, TPayload payload, string queueName)
         {
             Id = id;
+            Payload = payload;
+            QueueName = queueName;
         }
 
-        /// <summary>Returns whether the message is restore from the message store.
+        /// <summary>Represents the payload object of the message.
         /// </summary>
-        bool IMessage.IsRestoreFromStorage()
+        object IMessage.Payload
         {
-            return _isRestoreFromStorage;
-        }
-        /// <summary>Mark the message that is restored from storage.
-        /// </summary>
-        void IMessage.MarkAsRestoreFromStorage()
-        {
-            _isRestoreFromStorage = true;
+            get { return this.Payload; }
         }
     }
 }

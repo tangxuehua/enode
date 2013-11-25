@@ -1,14 +1,13 @@
 ﻿namespace ENode.Messaging
 {
-    /// <summary>Represents a message executor.
+    /// <summary>Represents a local in-memory based message executor.
     /// </summary>
-    public interface IMessageExecutor<TMessage> where TMessage : class, IMessage
+    public interface IMessageExecutor<TMessagePayload> where TMessagePayload : class, IMessagePayload
     {
-        /// <summary>Execute the given queue message.
+        /// <summary>Execute the given message.
         /// </summary>
         /// <param name="message"></param>
-        /// <param name="queue"></param>
         /// <returns></returns>
-        void Execute(TMessage message, IMessageQueue<TMessage> queue);
+        void Execute(Message<TMessagePayload> message);
     }
 }

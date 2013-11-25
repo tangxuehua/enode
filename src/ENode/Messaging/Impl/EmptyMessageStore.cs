@@ -12,19 +12,16 @@ namespace ENode.Messaging.Impl
         public void Initialize(string queueName) { }
         /// <summary>Persist a new message to the queue.
         /// </summary>
-        /// <param name="queueName"></param>
         /// <param name="message"></param>
-        public void AddMessage(string queueName, IMessage message) { }
+        public void AddMessage(IMessage message) { }
         /// <summary>Remove a existing message from the queue.
         /// </summary>
-        /// <param name="queueName"></param>
         /// <param name="message"></param>
-        public void RemoveMessage(string queueName, IMessage message) { }
+        public void RemoveMessage(IMessage message) { }
         /// <summary>Get all the existing messages of the queue.
         /// </summary>
         /// <param name="queueName"></param>
-        /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public IEnumerable<T> GetMessages<T>(string queueName) where T : class, IMessage { return new T[] { }; }
+        public IEnumerable<IMessage> GetMessages(string queueName) { return new IMessage[] { }; }
     }
 }

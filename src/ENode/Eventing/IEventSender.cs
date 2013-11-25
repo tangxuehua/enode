@@ -1,6 +1,8 @@
-﻿namespace ENode.Eventing
+﻿using ENode.Messaging;
+
+namespace ENode.Eventing
 {
-    /// <summary>Represents an event sender to send the uncommitted event stream to process asynchronously.
+    /// <summary>Represents a sender to send the uncommitted event stream to process asynchronously.
     /// </summary>
     public interface IEventSender
     {

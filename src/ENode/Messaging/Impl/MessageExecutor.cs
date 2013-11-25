@@ -1,14 +1,13 @@
 ﻿namespace ENode.Messaging.Impl
 {
-    /// <summary>The abstract base implementation of IMessageExecutor.
+    /// <summary>The abstract implementation of IMessageExecutor.
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
-    public abstract class MessageExecutor<TMessage> : IMessageExecutor<TMessage> where TMessage : class, IMessage
+    public abstract class MessageExecutor<TMessagePayload> : IMessageExecutor<TMessagePayload> where TMessagePayload : class, IMessagePayload
     {
         /// <summary>Execute the given message.
         /// </summary>
         /// <param name="message"></param>
-        /// <param name="queue"></param>
-        public abstract void Execute(TMessage message, IMessageQueue<TMessage> queue);
+        public abstract void Execute(Message<TMessagePayload> message);
     }
 }

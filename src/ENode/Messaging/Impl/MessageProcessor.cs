@@ -5,15 +5,12 @@ using ENode.Infrastructure.Logging;
 
 namespace ENode.Messaging.Impl
 {
-    /// <summary>The abstract base message processor implementation of IMessageProcessor.
+    /// <summary>The abstract implementation of IMessageProcessor.
     /// </summary>
-    /// <typeparam name="TQueue">The type of the message queue.</typeparam>
-    /// <typeparam name="TMessageExecutor">The type of the message executor.</typeparam>
-    /// <typeparam name="TMessage">The type of the message.</typeparam>
-    public abstract class MessageProcessor<TQueue, TMessageExecutor, TMessage> : IMessageProcessor<TQueue, TMessage>
-        where TQueue : class, IMessageQueue<TMessage>
-        where TMessageExecutor : class, IMessageExecutor<TMessage>
-        where TMessage : class, IMessage
+    public abstract class MessageProcessor<TQueue, TMessageExecutor, TMessagePayload> : IMessageProcessor<TQueue, TMessagePayload>
+        where TQueue : class, IMessageQueue<TMessagePayload>
+        where TMessageExecutor : class, IMessageExecutor<TMessagePayload>
+        where TMessagePayload : class, IMessagePayload
     {
         private readonly IList<Worker> _workers;
         private readonly TQueue _bindingQueue;
@@ -32,8 +29,6 @@ namespace ENode.Messaging.Impl
         /// <param name="bindingQueue"></param>
         /// <param name="messageExecutorCount"></param>
         /// <param name="messageDequeueIntervalMilliseconds"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="Exception"></exception>
         protected MessageProcessor(TQueue bindingQueue, int messageExecutorCount, int messageDequeueIntervalMilliseconds)
         {
             if (bindingQueue == null)
@@ -42,7 +37,7 @@ namespace ENode.Messaging.Impl
             }
             if (messageExecutorCount <= 0)
             {
-                throw new Exception(string.Format("There must at least one message executor for {0}.", GetType().Name));
+                throw new ArgumentException(string.Format("There must at least one message executor for {0}.", GetType().Name));
             }
 
             _bindingQueue = bindingQueue;
@@ -67,12 +62,6 @@ namespace ENode.Messaging.Impl
             _started = false;
         }
 
-        /// <summary>Initialize the message processor.
-        /// </summary>
-        public void Initialize()
-        {
-            _bindingQueue.Initialize();
-        }
         /// <summary>Start the message processor.
         /// </summary>
         public void Start()
@@ -93,11 +82,11 @@ namespace ENode.Messaging.Impl
             if (message == null) return;
             try
             {
-                messageExecutor.Execute(message, _bindingQueue);
+                messageExecutor.Execute(message);
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when handling queue message:{0}.", message), ex);
+                _logger.Error(string.Format("Exception raised when executing message:{0}.", message), ex);
             }
         }
     }

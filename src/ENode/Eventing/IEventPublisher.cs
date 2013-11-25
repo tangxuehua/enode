@@ -6,6 +6,6 @@
     {
         /// <summary>Publish a given committed event stream to all the event handlers.
         /// </summary>
-        void Publish(EventStream stream);
+        void Publish(EventStream eventStream);
     }
 }
