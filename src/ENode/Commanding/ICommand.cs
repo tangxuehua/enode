@@ -5,7 +5,7 @@ namespace ENode.Commanding
 {
     /// <summary>Represents a command.
     /// </summary>
-    public interface ICommand : IMessagePayload
+    public interface ICommand : IPayload
     {
         /// <summary>Represents the id of aggregate root which will be created or updated by the command.
         /// </summary>

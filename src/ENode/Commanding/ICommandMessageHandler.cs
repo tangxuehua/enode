@@ -4,7 +4,7 @@ namespace ENode.Commanding
 {
     /// <summary>Represents a command executor interface.
     /// </summary>
-    public interface ICommandExecutor : IMessageExecutor<ICommand>
+    public interface ICommandMessageHandler : IMessageHandler<ICommand>
     {
     }
 }

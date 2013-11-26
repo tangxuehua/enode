@@ -9,8 +9,8 @@ namespace ENode.Messaging.Impl
     /// </summary>
     public abstract class MessageProcessor<TQueue, TMessageExecutor, TMessagePayload> : IMessageProcessor<TQueue, TMessagePayload>
         where TQueue : class, IMessageQueue<TMessagePayload>
-        where TMessageExecutor : class, IMessageExecutor<TMessagePayload>
-        where TMessagePayload : class, IMessagePayload
+        where TMessageExecutor : class, IMessageHandler<TMessagePayload>
+        where TMessagePayload : class, IPayload
     {
         private readonly IList<Worker> _workers;
         private readonly TQueue _bindingQueue;
@@ -82,7 +82,7 @@ namespace ENode.Messaging.Impl
             if (message == null) return;
             try
             {
-                messageExecutor.Execute(message);
+                messageExecutor.Handle(message);
             }
             catch (Exception ex)
             {

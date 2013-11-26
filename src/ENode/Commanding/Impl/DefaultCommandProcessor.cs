@@ -4,7 +4,7 @@ namespace ENode.Commanding.Impl
 {
     /// <summary>The default command processor.
     /// </summary>
-    public class DefaultCommandProcessor : MessageProcessor<ICommandQueue, ICommandExecutor, ICommand>, ICommandProcessor
+    public class DefaultCommandProcessor : MessageProcessor<ICommandQueue, ICommandMessageHandler, ICommand>, ICommandProcessor
     {
         /// <summary>Parameterized constructor.
         /// </summary>

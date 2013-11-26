@@ -2,11 +2,11 @@
 
 namespace ENode.Messaging.Impl
 {
-    /// <summary>The default implementation of processed message executor interface.
+    /// <summary>The default implementation of IProcessedMessageMessageHandler.
     /// </summary>
-    public class DefaultProcessedMessageExecutor : MessageExecutor<IMessage>, IProcessedMessageExecutor
+    public class DefaultProcessedMessageMessageHandler : MessageHandler<IMessage>, IProcessedMessageMessageHandler
     {
-        public override void Execute(Message<IMessage> message)
+        public override void Handle(Message<IMessage> message)
         {
             //try
             //{

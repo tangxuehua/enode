@@ -2,7 +2,7 @@
 {
     /// <summary>Represents a processed message executor.
     /// </summary>
-    public interface IProcessedMessageExecutor : IMessageExecutor<IMessage>
+    public interface IProcessedMessageMessageHandler : IMessageHandler<IMessage>
     {
     }
 }

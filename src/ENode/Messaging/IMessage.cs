@@ -4,7 +4,7 @@ namespace ENode.Messaging
 {
     /// <summary>Represents a message.
     /// </summary>
-    public interface IMessage : IMessagePayload
+    public interface IMessage : IPayload
     {
         /// <summary>Represents the payload object of the message.
         /// </summary>

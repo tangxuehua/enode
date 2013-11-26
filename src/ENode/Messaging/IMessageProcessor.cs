@@ -4,7 +4,7 @@
     /// </summary>
     public interface IMessageProcessor<out TQueue, TMessagePayload>
         where TQueue : class, IMessageQueue<TMessagePayload>
-        where TMessagePayload : class, IMessagePayload
+        where TMessagePayload : class, IPayload
     {
         /// <summary>Represents the binding message queue.
         /// </summary>

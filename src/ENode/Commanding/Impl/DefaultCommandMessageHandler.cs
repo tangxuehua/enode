@@ -10,9 +10,9 @@ using ENode.Messaging.Impl;
 
 namespace ENode.Commanding.Impl
 {
-    /// <summary>The default implementation of command executor interface.
+    /// <summary>The default implementation of ICommandMessageHandler.
     /// </summary>
-    public class DefaultCommandExecutor : MessageExecutor<ICommand>, ICommandExecutor
+    public class DefaultCommandMessageHandler : MessageHandler<ICommand>, ICommandMessageHandler
     {
         #region Private Variables
 
@@ -21,8 +21,8 @@ namespace ENode.Commanding.Impl
         private readonly IProcessingCommandCache _processingCommandCache;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
-        private readonly IEventSender _eventSender;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IUncommittedEventSender _uncommittedEventSender;
+        private readonly ICommittedEventSender _committedEventSender;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ICommandContext _commandContext;
         private readonly ITrackingContext _trackingContext;
@@ -40,19 +40,19 @@ namespace ENode.Commanding.Impl
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="eventSender"></param>
-        /// <param name="eventPublisher"></param>
+        /// <param name="committedEventSender"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="commandContext"></param>
         /// <param name="loggerFactory"></param>
         /// <exception cref="Exception"></exception>
-        public DefaultCommandExecutor(
+        public DefaultCommandMessageHandler(
             ICommandTaskManager commandTaskManager,
             IWaitingCommandCache waitingCommandCache,
             IProcessingCommandCache processingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
-            IEventSender eventSender,
-            IEventPublisher eventPublisher,
+            IUncommittedEventSender uncommittedEventSender,
+            ICommittedEventSender committedEventSender,
             IActionExecutionService actionExecutionService,
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)
@@ -62,8 +62,8 @@ namespace ENode.Commanding.Impl
             _processingCommandCache = processingCommandCache;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
-            _eventSender = eventSender;
-            _eventPublisher = eventPublisher;
+            _uncommittedEventSender = uncommittedEventSender;
+            _committedEventSender = committedEventSender;
             _actionExecutionService = actionExecutionService;
             _commandContext = commandContext;
             _trackingContext = commandContext as ITrackingContext;
@@ -79,10 +79,10 @@ namespace ENode.Commanding.Impl
 
         #region Public Methods
 
-        /// <summary>Execute the given command message.
+        /// <summary>Handle the given command message.
         /// </summary>
         /// <param name="message">The command message.</param>
-        public override void Execute(Message<ICommand> message)
+        public override void Handle(Message<ICommand> message)
         {
             if (!CheckWaitingCommand(message.Payload))
             {
@@ -212,7 +212,7 @@ namespace ENode.Commanding.Impl
         {
             try
             {
-                _eventSender.Send(eventStream);
+                _uncommittedEventSender.Send(eventStream);
                 return true;
             }
             catch (Exception ex)
@@ -225,7 +225,7 @@ namespace ENode.Commanding.Impl
         {
             try
             {
-                _eventPublisher.Publish(eventStream);
+                _committedEventSender.Send(eventStream);
                 return true;
             }
             catch (Exception ex)

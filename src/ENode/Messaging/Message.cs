@@ -4,7 +4,8 @@ namespace ENode.Messaging
 {
     /// <summary>Represents a message.
     /// </summary>
-    public class Message<TPayload> : IMessage where TPayload : class, IMessagePayload
+    [Serializable]
+    public class Message<TPayload> : IMessage where TPayload : class, IPayload
     {
         /// <summary>Represents the unique identifier for the message.
         /// </summary>

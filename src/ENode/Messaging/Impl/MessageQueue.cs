@@ -8,7 +8,7 @@ namespace ENode.Messaging.Impl
     /// <summary>The abstract implementation of IMessageQueue.
     /// </summary>
     /// <typeparam name="TMessagePayload">The type of the message payload.</typeparam>
-    public abstract class MessageQueue<TMessagePayload> : IMessageQueue<TMessagePayload> where TMessagePayload : class, IMessagePayload
+    public abstract class MessageQueue<TMessagePayload> : IMessageQueue<TMessagePayload> where TMessagePayload : class, IPayload
     {
         private readonly BlockingCollection<Message<TMessagePayload>> _queue = new BlockingCollection<Message<TMessagePayload>>(new ConcurrentQueue<Message<TMessagePayload>>());
 

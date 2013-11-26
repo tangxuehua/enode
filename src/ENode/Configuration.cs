@@ -176,15 +176,15 @@ namespace ENode
             Register<IUncommittedEventQueueRouter, DefaultUncommittedEventQueueRouter>();
             Register<ICommittedEventQueueRouter, DefaultCommittedEventQueueRouter>();
             Register<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
-            Register<IEventSender, DefaultEventSender>();
-            Register<IEventPublisher, DefaultEventPublisher>();
+            Register<IUncommittedEventSender, DefaultUncommittedEventSender>();
+            Register<ICommittedEventSender, DefaultCommittedEventSender>();
 
             Register<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
             Register<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
-            Register<ICommandExecutor, DefaultCommandExecutor>(LifeStyle.Transient);
-            Register<IWaitingCommandExecutor, DefaultWaitingCommandExecutor>(LifeStyle.Transient);
-            Register<IUncommittedEventExecutor, DefaultUncommittedEventExecutor>(LifeStyle.Transient);
-            Register<ICommittedEventExecutor, DefaultCommittedEventExecutor>(LifeStyle.Transient);
+            Register<ICommandMessageHandler, DefaultCommandMessageHandler>(LifeStyle.Transient);
+            Register<IWaitingCommandMessageHandler, DefaultWaitingCommandMessageHandler>(LifeStyle.Transient);
+            Register<IUncommittedEventMessageHandler, DefaultUncommittedEventMessageHandler>(LifeStyle.Transient);
+            Register<ICommittedEventMessageHandler, DefaultCommittedEventMessageHandler>(LifeStyle.Transient);
 
             return this;
         }
@@ -381,7 +381,7 @@ namespace ENode
             {
                 foreach (var type in assembly.GetTypes().Where(
                     x => x.IsClass && (
-                        typeof(IMessage).IsAssignableFrom(x) ||
+                        typeof(IPayload).IsAssignableFrom(x) ||
                         typeof(IDomainEvent).IsAssignableFrom(x) ||
                         typeof(IAggregateRoot).IsAssignableFrom(x))))
                 {

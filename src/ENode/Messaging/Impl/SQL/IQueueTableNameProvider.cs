@@ -1,4 +1,4 @@
-﻿namespace ENode.Messaging
+﻿namespace ENode.Messaging.Impl.SQL
 {
     /// <summary>Represents a provider to provide the queue table name.
     /// </summary>

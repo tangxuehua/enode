@@ -4,7 +4,7 @@ namespace ENode.Commanding.Impl
 {
     /// <summary>The waiting command processor.
     /// </summary>
-    public class DefaultWaitingCommandProcessor : MessageProcessor<ICommandQueue, IWaitingCommandExecutor, ICommand>, ICommandProcessor
+    public class DefaultWaitingCommandProcessor : MessageProcessor<ICommandQueue, IWaitingCommandMessageHandler, ICommand>, ICommandProcessor
     {
         /// <summary>Parameterized constructor.
         /// </summary>

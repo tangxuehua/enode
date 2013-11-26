@@ -2,7 +2,7 @@
 {
     /// <summary>Represents a processor to process the processed messages.
     /// </summary>
-    public class DefaultProcessedMessageProcessor : MessageProcessor<IProcessedMessageQueue, IProcessedMessageExecutor, IMessage>, IProcessedMessageProcessor
+    public class DefaultProcessedMessageProcessor : MessageProcessor<IProcessedMessageQueue, IProcessedMessageMessageHandler, IMessage>, IProcessedMessageProcessor
     {
         /// <summary>Parameterized constructor.
         /// </summary>

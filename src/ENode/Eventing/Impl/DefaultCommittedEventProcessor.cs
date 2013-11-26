@@ -4,7 +4,7 @@ namespace ENode.Eventing.Impl
 {
     /// <summary>The default implementation of ICommittedEventProcessor.
     /// </summary>
-    public class DefaultCommittedEventProcessor : MessageProcessor<ICommittedEventQueue, ICommittedEventExecutor, EventStream>, ICommittedEventProcessor
+    public class DefaultCommittedEventProcessor : MessageProcessor<ICommittedEventQueue, ICommittedEventMessageHandler, EventStream>, ICommittedEventProcessor
     {
         /// <summary>Parameterized constructor.
         /// </summary>

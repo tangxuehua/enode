@@ -5,9 +5,9 @@ using ENode.Infrastructure.Retring;
 
 namespace ENode.Commanding.Impl
 {
-    /// <summary>The default implementation of waiting command executor interface.
+    /// <summary>The default implementation of IWaitingCommandMessageHandler.
     /// </summary>
-    public class DefaultWaitingCommandExecutor : DefaultCommandExecutor, IWaitingCommandExecutor
+    public class DefaultWaitingCommandMessageHandler : DefaultCommandMessageHandler, IWaitingCommandMessageHandler
     {
         #region Constructors
 
@@ -23,14 +23,14 @@ namespace ENode.Commanding.Impl
         /// <param name="actionExecutionService"></param>
         /// <param name="commandContext"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultWaitingCommandExecutor(
+        public DefaultWaitingCommandMessageHandler(
             ICommandTaskManager commandTaskManager,
             IWaitingCommandCache waitingCommandCache,
             IProcessingCommandCache processingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
-            IEventSender eventSender,
-            IEventPublisher eventPublisher,
+            IUncommittedEventSender uncommittedEventSender,
+            ICommittedEventSender committedEventSender,
             IActionExecutionService actionExecutionService,
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)
@@ -39,8 +39,8 @@ namespace ENode.Commanding.Impl
                 processingCommandCache,
                 commandHandlerProvider,
                 aggregateRootTypeProvider,
-                eventSender,
-                eventPublisher,
+                uncommittedEventSender,
+                committedEventSender,
                 actionExecutionService,
                 commandContext,
                 loggerFactory)

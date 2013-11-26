@@ -7,9 +7,9 @@ using ENode.Messaging.Impl;
 namespace ENode.Eventing.Impl
 {
     /// <summary>
-    /// The default implementation of ICommittedEventExecutor.
+    /// The default implementation of ICommittedEventMessageHandler.
     /// </summary>
-    public class DefaultCommittedEventExecutor : MessageExecutor<EventStream>, ICommittedEventExecutor
+    public class DefaultCommittedEventMessageHandler : MessageHandler<EventStream>, ICommittedEventMessageHandler
     {
         #region Private Variables
 
@@ -32,7 +32,7 @@ namespace ENode.Eventing.Impl
         /// <param name="eventHandleInfoCache"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultCommittedEventExecutor(
+        public DefaultCommittedEventMessageHandler(
             IEventHandlerProvider eventHandlerProvider,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
@@ -53,7 +53,7 @@ namespace ENode.Eventing.Impl
         /// <summary>Execute the given event stream message.
         /// </summary>
         /// <param name="message"></param>
-        public override void Execute(Message<EventStream> message)
+        public override void Handle(Message<EventStream> message)
         {
             //TODO
             //DispatchEventsToHandlers(new EventStreamContext { EventStream = eventStream, Queue = queue });
@@ -61,7 +61,7 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
-        private void DispatchEventsToHandlers(EventStreamContext context)
+        private void DispatchEventsToHandlers(EventProcessingContext context)
         {
             Func<bool> dispatchEventsToHandlers = () =>
             {

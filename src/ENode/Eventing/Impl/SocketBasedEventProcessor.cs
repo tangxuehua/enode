@@ -17,11 +17,11 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private readonly IList<Worker> _workers;
-        private readonly BlockingCollection<ReceiveContext> _queue = new BlockingCollection<ReceiveContext>(new ConcurrentQueue<ReceiveContext>());
+        private readonly IUncommittedEventSender _uncommittedEventSender;
         private readonly IServerSocket _serverSocket;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventStore _eventStore;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly ICommittedEventSender _committedEventSender;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly IEventSynchronizerProvider _eventSynchronizerProvider;
         private readonly ILogger _logger;
@@ -55,10 +55,11 @@ namespace ENode.Eventing.Impl
             }
 
             _workers = new List<Worker>();
+            _uncommittedEventSender = ObjectContainer.Resolve<IUncommittedEventSender>();
             _serverSocket = ObjectContainer.Resolve<IServerSocket>();
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventStore = ObjectContainer.Resolve<IEventStore>();
-            _eventPublisher = ObjectContainer.Resolve<IEventPublisher>();
+            _committedEventSender = ObjectContainer.Resolve<ICommittedEventSender>();
             _actionExecutionService = ObjectContainer.Resolve<IActionExecutionService>();
             _eventSynchronizerProvider = ObjectContainer.Resolve<IEventSynchronizerProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
@@ -79,7 +80,7 @@ namespace ENode.Eventing.Impl
         {
             if (_started) return;
 
-            _serverSocket.Start((receiveContext) => _queue.Add(receiveContext));
+            _serverSocket.Start((receiveContext) => _uncommittedEventSender.Send(receiveContext));
 
             _started = true;
             _logger.InfoFormat("{0} started...", this.GetType().Name);
@@ -91,7 +92,7 @@ namespace ENode.Eventing.Impl
         {
             var receiveContext = _queue.Take();
 
-            var context = new EventStreamContext { EventStream = ParseEventData(receiveContext.Message) };
+            var context = new EventProcessingContext { EventStream = ParseEventData(receiveContext.Message) };
 
             try
             {
@@ -102,7 +103,7 @@ namespace ENode.Eventing.Impl
                 _logger.Error(string.Format("Exception raised when committing eventStream:{0}.", context.EventStream.GetStreamInformation()), ex);
             }
 
-            var result = new EventProcessResult { EventStreamId = context.EventStream.Id, ProcessStatus = context.ProcessStatus };
+            var result = new EventProcessResult { EventStreamId = context.EventStream.Id, Status = context.ProcessStatus };
             receiveContext.ReplyMessage = _binarySerializer.Serialize(result);
             receiveContext.MessageProcessedCallback(receiveContext);
         }
@@ -110,7 +111,7 @@ namespace ENode.Eventing.Impl
         {
             return _binarySerializer.Deserialize<EventStream>(eventData);
         }
-        private void CommitEvents(EventStreamContext context)
+        private void CommitEvents(EventProcessingContext context)
         {
             SyncBeforeEventPersisting(context);
             if (context.ProcessStatus != EventProcessStatus.Success)
@@ -127,7 +128,7 @@ namespace ENode.Eventing.Impl
             SyncAfterEventPersisted(context);
             PublishEvents(context);
         }
-        private void PersistEvents(EventStreamContext context)
+        private void PersistEvents(EventProcessingContext context)
         {
             var eventStream = context.EventStream;
 
@@ -157,7 +158,7 @@ namespace ENode.Eventing.Impl
 
             _actionExecutionService.TryRecursively("PersistEvents", persistEvents, 3);
         }
-        private void PublishEvents(EventStreamContext context)
+        private void PublishEvents(EventProcessingContext context)
         {
             var eventStream = context.EventStream;
 
@@ -165,7 +166,7 @@ namespace ENode.Eventing.Impl
             {
                 try
                 {
-                    _eventPublisher.Publish(eventStream);
+                    _committedEventSender.Send(eventStream);
                 }
                 catch (Exception ex)
                 {
@@ -178,7 +179,7 @@ namespace ENode.Eventing.Impl
 
             _actionExecutionService.TryRecursively("PublishEvents", publishEvents, 3);
         }
-        private void SyncBeforeEventPersisting(EventStreamContext context)
+        private void SyncBeforeEventPersisting(EventProcessingContext context)
         {
             Func<bool> syncBeforeEventPersisting = () =>
             {
@@ -234,7 +235,7 @@ namespace ENode.Eventing.Impl
 
             _actionExecutionService.TryRecursively("SyncBeforeEventPersisting", syncBeforeEventPersisting, 3);
         }
-        private void SyncAfterEventPersisted(EventStreamContext context)
+        private void SyncAfterEventPersisted(EventProcessingContext context)
         {
             foreach (var evnt in context.EventStream.Events)
             {

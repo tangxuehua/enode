@@ -9,9 +9,9 @@ using ENode.Messaging.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>The default implementation of IUncommittedEventExecutor.
+    /// <summary>The default implementation of IUncommittedEventMessageHandler.
     /// </summary>
-    public class DefaultUncommittedEventExecutor : MessageExecutor<EventStream>, IUncommittedEventExecutor
+    public class DefaultUncommittedEventMessageHandler : MessageHandler<EventStream>, IUncommittedEventMessageHandler
     {
         #region Private Variables
 
@@ -26,7 +26,7 @@ namespace ENode.Eventing.Impl
         private readonly IRepository _repository;
         private readonly IRetryCommandService _retryCommandService;
         private readonly IEventStore _eventStore;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly ICommittedEventSender _committedEventSender;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly IEventSynchronizerProvider _eventSynchronizerProvider;
         private readonly ILogger _logger;
@@ -52,7 +52,7 @@ namespace ENode.Eventing.Impl
         /// <param name="actionExecutionService"></param>
         /// <param name="eventSynchronizerProvider"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultUncommittedEventExecutor(
+        public DefaultUncommittedEventMessageHandler(
             ICommandCompletionEventManager commandCompletionEventManager,
             ICommandTaskManager commandTaskManager,
             IWaitingCommandService waitingCommandService,
@@ -64,7 +64,7 @@ namespace ENode.Eventing.Impl
             IRepository repository,
             IRetryCommandService retryCommandService,
             IEventStore eventStore,
-            IEventPublisher eventPublisher,
+            ICommittedEventSender committedEventSender,
             IActionExecutionService actionExecutionService,
             IEventSynchronizerProvider eventSynchronizerProvider,
             ILoggerFactory loggerFactory)
@@ -80,7 +80,7 @@ namespace ENode.Eventing.Impl
             _repository = repository;
             _retryCommandService = retryCommandService;
             _eventStore = eventStore;
-            _eventPublisher = eventPublisher;
+            _committedEventSender = committedEventSender;
             _actionExecutionService = actionExecutionService;
             _eventSynchronizerProvider = eventSynchronizerProvider;
             _logger = loggerFactory.Create(GetType().Name);
@@ -88,10 +88,10 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>Execute the given event stream message.
+        /// <summary>Handle the given event stream message.
         /// </summary>
         /// <param name="message"></param>
-        public override void Execute(Message<EventStream> message)
+        public override void Handle(Message<EventStream> message)
         {
             //TODO
             //var context = new EventStreamContext { EventStream = eventStream, Queue = queue };
@@ -114,7 +114,7 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
-        private bool CommitEvents(EventStreamContext context)
+        private bool CommitEvents(EventProcessingContext context)
         {
             var synchronizeResult = SyncBeforeEventPersisting(context.EventStream);
 
@@ -154,7 +154,7 @@ namespace ENode.Eventing.Impl
                 }
             }
         }
-        private void PersistEvents(EventStreamContext context, ActionInfo successCallback)
+        private void PersistEvents(EventProcessingContext context, ActionInfo successCallback)
         {
             Func<bool> persistEvents = () =>
             {
@@ -256,7 +256,7 @@ namespace ENode.Eventing.Impl
             {
                 try
                 {
-                    _eventPublisher.Publish(eventStream);
+                    _committedEventSender.Send(eventStream);
                     return true;
                 }
                 catch (Exception ex)
@@ -323,7 +323,7 @@ namespace ENode.Eventing.Impl
                 }
             }
         }
-        private void RetryCommand(EventStreamContext context, ConcurrentException concurrentException, ActionInfo successCallback)
+        private void RetryCommand(EventProcessingContext context, ConcurrentException concurrentException, ActionInfo successCallback)
         {
             Func<bool> retryCommand = () =>
             {
@@ -343,7 +343,7 @@ namespace ENode.Eventing.Impl
             };
             _actionExecutionService.TryAction("RetryCommand", retryCommand, 3, successCallback);
         }
-        private void CleanEvents(EventStreamContext context)
+        private void CleanEvents(EventProcessingContext context)
         {
             _processingCommandCache.TryRemove(context.EventStream.CommandId);
             //TODO
