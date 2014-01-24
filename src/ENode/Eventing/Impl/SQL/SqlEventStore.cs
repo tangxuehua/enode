@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using ECommon.IoC;
+using ECommon.Serializing;
 using ENode.Domain;
 using ENode.Infrastructure;
-using ENode.Infrastructure.Concurrent;
 using ENode.Infrastructure.Dapper;
-using ENode.Infrastructure.Serializing;
 using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing.Impl.SQL

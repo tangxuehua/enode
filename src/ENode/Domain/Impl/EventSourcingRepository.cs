@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ECommon.IoC;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Snapshoting;

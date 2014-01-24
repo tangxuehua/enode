@@ -1,5 +1,5 @@
 ﻿using ENode.Eventing;
-using ENode.Infrastructure.Concurrent;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {

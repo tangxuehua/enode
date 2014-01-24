@@ -1,4 +1,6 @@
 ﻿using System;
+using ECommon.Logging;
+using ENode.Configurations;
 using ENode.Infrastructure.Logging;
 using ENode.Messaging;
 
@@ -27,7 +29,7 @@ namespace ENode.Commanding.Impl
         {
             if (_waitingCommandQueue == null)
             {
-                _waitingCommandQueue = Configuration.Instance.GetWaitingCommandQueue();
+                _waitingCommandQueue = ENodeConfiguration.Instance.GetWaitingCommandQueue();
             }
             var command = _waitingCommandCache.FetchWaitingCommand(aggregateRootId);
 

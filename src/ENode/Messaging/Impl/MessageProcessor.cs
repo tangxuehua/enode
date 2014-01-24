@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using ECommon.IoC;
+using ECommon.Logging;
+using ECommon.Scheduling;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Logging;
 
@@ -10,7 +13,6 @@ namespace ENode.Messaging.Impl
     public abstract class MessageProcessor<TQueue, TMessageExecutor, TMessagePayload> : IMessageProcessor<TQueue, TMessagePayload>
         where TQueue : class, IMessageQueue<TMessagePayload>
         where TMessageExecutor : class, IMessageHandler<TMessagePayload>
-        where TMessagePayload : class, IPayload
     {
         private readonly IList<Worker> _workers;
         private readonly TQueue _bindingQueue;

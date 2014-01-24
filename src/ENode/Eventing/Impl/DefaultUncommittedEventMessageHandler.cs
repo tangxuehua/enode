@@ -1,9 +1,9 @@
 ﻿using System;
+using ECommon.Logging;
+using ECommon.Retring;
 using ENode.Commanding;
 using ENode.Domain;
-using ENode.Infrastructure.Concurrent;
-using ENode.Infrastructure.Logging;
-using ENode.Infrastructure.Retring;
+using ENode.Infrastructure;
 using ENode.Messaging;
 using ENode.Messaging.Impl;
 

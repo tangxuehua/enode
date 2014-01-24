@@ -1,6 +1,5 @@
 ﻿using System;
 using ENode.Eventing.Impl;
-using ENode.Infrastructure.Concurrent;
 using ENode.Messaging;
 
 namespace ENode.Eventing

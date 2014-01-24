@@ -3,7 +3,7 @@
     /// <summary>The abstract implementation of IMessageHandler.
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
-    public abstract class MessageHandler<TMessagePayload> : IMessageHandler<TMessagePayload> where TMessagePayload : class, IPayload
+    public abstract class MessageHandler<TMessagePayload> : IMessageHandler<TMessagePayload>
     {
         /// <summary>Handle the given message.
         /// </summary>

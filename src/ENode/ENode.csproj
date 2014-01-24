@@ -63,7 +63,7 @@
     <Compile Include="Commanding\IWaitingCommandCache.cs" />
     <Compile Include="Commanding\ICommandCompletionEventManager.cs" />
     <Compile Include="Commanding\ICommandTaskManager.cs" />
-    <Compile Include="Configuration.cs" />
+    <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
     <Compile Include="Domain\IEventSourcingService.cs" />
@@ -90,11 +90,9 @@
     <Compile Include="Eventing\EventProcessingContext.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
     <Compile Include="Eventing\ICompletionEvent.cs" />
-    <Compile Include="Eventing\EventProcessStatus.cs" />
     <Compile Include="Eventing\MessageContext.cs" />
-    <Compile Include="Infrastructure\DelegateFactory.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
-    <Compile Include="Infrastructure\Concurrent\ConcurrentException.cs" />
+    <Compile Include="Infrastructure\ConcurrentException.cs" />
     <Compile Include="Eventing\EventStream.cs" />
     <Compile Include="Eventing\IDomainEvent.cs" />
     <Compile Include="Eventing\ICommittedEventMessageHandler.cs" />
@@ -127,28 +125,12 @@
     <Compile Include="Eventing\IEventSynchronizerProvider.cs" />
     <Compile Include="Eventing\Impl\DefaultEventSynchronizerProvider.cs" />
     <Compile Include="Eventing\Impl\EventSynchronizerWrapper.cs" />
-    <Compile Include="Infrastructure\ObjectId.cs" />
-    <Compile Include="Infrastructure\Retring\DefaultActionExecutionService.cs" />
-    <Compile Include="Infrastructure\Socketing\DefaultClientSocket.cs" />
-    <Compile Include="Infrastructure\Socketing\DefaultSocketService.cs" />
-    <Compile Include="Infrastructure\Socketing\IClientSocket.cs" />
-    <Compile Include="Infrastructure\Socketing\IServerSocket.cs" />
-    <Compile Include="Infrastructure\Socketing\ISocketService.cs" />
-    <Compile Include="Infrastructure\Socketing\ReceiveState.cs" />
-    <Compile Include="Infrastructure\Socketing\SendContext.cs" />
-    <Compile Include="Infrastructure\Socketing\DefaultServerSocket.cs" />
-    <Compile Include="Infrastructure\Socketing\SocketUtils.cs" />
-    <Compile Include="Infrastructure\Socketing\ReceiveContext.cs" />
     <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
-    <Compile Include="Infrastructure\IObjectContainer.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
-    <Compile Include="Infrastructure\Retring\ActionInfo.cs" />
-    <Compile Include="Infrastructure\Retring\IActionExecutionService.cs" />
     <Compile Include="Infrastructure\Sql\ISqlQueryDbConnectionFactory.cs" />
     <Compile Include="Messaging\IMessageSender.cs" />
     <Compile Include="Messaging\IMessageQueueRouter.cs" />
     <Compile Include="Messaging\Impl\MessageSender.cs" />
-    <Compile Include="Messaging\IPayload.cs" />
     <Compile Include="Messaging\IMessageStore.cs" />
     <Compile Include="Messaging\IMessage.cs" />
     <Compile Include="Messaging\Impl\DefaultProcessedMessageQueue.cs" />
@@ -174,29 +156,14 @@
     <Compile Include="Commanding\Impl\DefaultCommandHandlerProvider.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandContext.cs" />
     <Compile Include="Commanding\Impl\DefaultProcessingCommandCache.cs" />
-    <Compile Include="Infrastructure\Concurrent\ReaderWriterLockSlimExtensions.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Infrastructure\Serializing\DefaultBinarySerializer.cs" />
     <Compile Include="Messaging\IMessageHandler.cs" />
+    <Compile Include="Messaging\IMessageReplyFutureCache.cs" />
     <Compile Include="Messaging\Message.cs" />
     <Compile Include="Infrastructure\Dapper\SqlMapper_Extensions.cs" />
-    <Compile Include="Infrastructure\Concurrent\LockUtility.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Infrastructure\Utils.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Infrastructure\Dapper\SqlMapper.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Infrastructure\PerformanceTesting\PerformanceTester.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Infrastructure\TypeUtils.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Infrastructure\Worker.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Commanding\ICommandHandlerProvider.cs" />
@@ -208,11 +175,8 @@
     <Compile Include="Domain\IAggregateRootInternalHandlerProvider.cs" />
     <Compile Include="Commanding\ICommand.cs" />
     <Compile Include="Commanding\Command.cs" />
-    <Compile Include="Infrastructure\Serializing\IBinarySerializer.cs" />
     <Compile Include="Commanding\ICommandService.cs" />
     <Compile Include="Commanding\ICommandHandler.cs" />
-    <Compile Include="Infrastructure\ComponentAttribute.cs" />
-    <Compile Include="Infrastructure\ObjectContainer.cs" />
     <Compile Include="Messaging\IProcessedMessageProcessor.cs" />
     <Compile Include="Messaging\IProcessedMessageQueue.cs" />
     <Compile Include="Snapshoting\Impl\EmptySnapshotStore.cs" />
@@ -221,9 +185,6 @@
     <Compile Include="Domain\Impl\DefaultAggregateRootTypeProvider.cs" />
     <Compile Include="Commanding\ICommandContext.cs" />
     <Compile Include="Domain\ValueObject.cs" />
-    <Compile Include="Infrastructure\Serializing\IJsonSerializer.cs" />
-    <Compile Include="Infrastructure\Logging\ILogger.cs" />
-    <Compile Include="Infrastructure\Logging\ILoggerFactory.cs" />
     <Compile Include="Domain\Impl\DefaultAggregateRootInternalHandlerProvider.cs" />
     <Compile Include="Domain\Impl\DefaultAggregateRootFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -239,6 +200,9 @@
     <Compile Include="Commanding\CommandTimeoutException.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="ECommon">
+      <HintPath>..\..\packages\ecommon.1.0.1\lib\net40\ECommon.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -250,7 +214,9 @@
     <Content Include="SqlScripts\TableGenerateSQL.sql" />
     <Compile Include="Commanding\Impl\DefaultCommandService.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

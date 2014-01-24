@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ECommon.Utilities;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
@@ -22,7 +23,7 @@ namespace ENode.Domain.Impl
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var aggregateRootType in assembly.GetTypes().Where(TypeUtils.IsAggregateRoot))
+                foreach (var aggregateRootType in assembly.GetTypes().Where(ENode.Infrastructure.TypeUtils.IsAggregateRoot))
                 {
                     var entries = from method in aggregateRootType.GetMethods(bindingFlags)
                                   let parameters = method.GetParameters()

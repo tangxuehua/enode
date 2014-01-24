@@ -95,5 +95,21 @@ namespace ENode.Mongo
             var collection = db.GetCollection(collectionName);
             return collection;
         }
+
+
+        public void AddMessage(IMessage message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveMessage(IMessage message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<IMessage> GetMessages(string queueName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

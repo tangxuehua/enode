@@ -1,4 +1,5 @@
 ﻿using System;
+using ECommon.Logging;
 
 namespace ENode.Infrastructure.Logging
 {

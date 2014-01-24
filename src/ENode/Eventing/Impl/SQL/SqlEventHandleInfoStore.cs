@@ -1,4 +1,5 @@
 ﻿using System;
+using ECommon.IoC;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Dapper;
 using ENode.Infrastructure.Sql;

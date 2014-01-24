@@ -5,8 +5,11 @@ namespace ENode.Commanding
 {
     /// <summary>Represents a command.
     /// </summary>
-    public interface ICommand : IPayload
+    public interface ICommand
     {
+        /// <summary>Represents the unique identifier of the command.
+        /// </summary>
+        Guid Id { get; }
         /// <summary>Represents the id of aggregate root which will be created or updated by the command.
         /// </summary>
         object AggregateRootId { get; }

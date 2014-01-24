@@ -64,18 +64,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Extensions\ENode.Autofac\ENode.Autofac.csproj">
-      <Project>{b4258b15-71b1-4b3b-960a-6a1c75ca2004}</Project>
-      <Name>ENode.Autofac</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Extensions\ENode.JsonNet\ENode.JsonNet.csproj">
-      <Project>{92b95148-23f9-4aa8-b5dd-fcbde0e0eb88}</Project>
-      <Name>ENode.JsonNet</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Extensions\ENode.Log4Net\ENode.Log4Net.csproj">
-      <Project>{0f063898-fb02-47d9-b6c6-7a4cfe4b6c51}</Project>
-      <Name>ENode.Log4Net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>

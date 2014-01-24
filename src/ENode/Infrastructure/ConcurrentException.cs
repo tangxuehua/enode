@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ENode.Infrastructure.Concurrent
+namespace ENode.Infrastructure
 {
     /// <summary>Represents a concurrent exception.
     /// </summary>

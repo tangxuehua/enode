@@ -7,7 +7,6 @@ namespace ENode.Messaging.Impl
     public abstract class MessageSender<TMessageQueueRouter, TMessageQueue, TMessagePayload> : IMessageSender<TMessagePayload>
         where TMessageQueue : class, IMessageQueue<TMessagePayload>
         where TMessageQueueRouter : class, IMessageQueueRouter<TMessageQueue, TMessagePayload>
-        where TMessagePayload : class, IPayload
     {
         private readonly TMessageQueueRouter _queueRouter;
 
@@ -18,10 +17,23 @@ namespace ENode.Messaging.Impl
         {
             _queueRouter = queueRouter;
         }
+
         /// <summary>Send the given payload object to a specific message queue.
         /// </summary>
         /// <param name="payload"></param>
         public void Send(TMessagePayload payload)
+        {
+            Send(payload, Guid.NewGuid());
+        }
+        /// <summary>Send the given payload object to a specific message queue.
+        /// </summary>
+        public void Send(TMessagePayload payload, Guid messageId)
+        {
+            Send(payload, messageId, null);
+        }
+        /// <summary>Send the given payload object to a specific message queue.
+        /// </summary>
+        public void Send(TMessagePayload payload, Guid messageId, Action<Guid, object> messageHandledCallback)
         {
             var queue = _queueRouter.Route(payload);
             if (queue == null)
@@ -29,7 +41,12 @@ namespace ENode.Messaging.Impl
                 throw new Exception("Could not route an appropriate message queue.");
             }
 
-            queue.Enqueue(new Message<TMessagePayload>(Guid.NewGuid(), payload, queue.Name));
+            var message = new Message<TMessagePayload>(messageId, payload, queue.Name);
+            if (messageHandledCallback != null)
+            {
+                message.Handled += messageHandledCallback;
+            }
+            queue.Enqueue(message);
         }
     }
 }

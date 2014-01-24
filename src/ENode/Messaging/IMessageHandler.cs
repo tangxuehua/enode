@@ -2,12 +2,11 @@
 {
     /// <summary>Represents a local in-memory based message handler.
     /// </summary>
-    public interface IMessageHandler<TMessagePayload> where TMessagePayload : class, IPayload
+    public interface IMessageHandler<TMessagePayload>
     {
         /// <summary>Handle the given message.
         /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
+        /// <param name="message">The message to handle.</param>
         void Handle(Message<TMessagePayload> message);
     }
 }

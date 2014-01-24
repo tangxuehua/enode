@@ -5,7 +5,7 @@ namespace ENode.Messaging
     /// <summary>Represents a message.
     /// </summary>
     [Serializable]
-    public class Message<TPayload> : IMessage where TPayload : class, IPayload
+    public class Message<TPayload> : IMessage
     {
         /// <summary>Represents the unique identifier for the message.
         /// </summary>
@@ -34,6 +34,20 @@ namespace ENode.Messaging
         object IMessage.Payload
         {
             get { return this.Payload; }
+        }
+
+        /// <summary>An event which will be raised when the message was handled.
+        /// </summary>
+        public event Action<Guid, object> Handled;
+
+        /// <summary>Raise the Handled event.
+        /// </summary>
+        public void OnHandled(object result)
+        {
+            if (Handled != null)
+            {
+                Handled(Id, result);
+            }
         }
     }
 }

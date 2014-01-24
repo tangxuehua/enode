@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ECommon.Configurations;
+using ECommon.IoC;
+using ECommon.Logging;
+using ECommon.Retring;
+using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Commanding.Impl;
 using ENode.Domain;
@@ -12,8 +17,6 @@ using ENode.Eventing.Impl.InMemory;
 using ENode.Eventing.Impl.SQL;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Logging;
-using ENode.Infrastructure.Retring;
-using ENode.Infrastructure.Serializing;
 using ENode.Infrastructure.Sql;
 using ENode.Messaging;
 using ENode.Messaging.Impl;
@@ -21,14 +24,15 @@ using ENode.Messaging.Impl.SQL;
 using ENode.Snapshoting;
 using ENode.Snapshoting.Impl;
 
-namespace ENode
+namespace ENode.Configurations
 {
-    /// <summary>ENode framework global configuration entry point.
+    /// <summary>Configuration class for enode framework.
     /// </summary>
-    public class Configuration
+    public class ENodeConfiguration
     {
         #region Private Vairables
 
+        private readonly Configuration _configuration;
         private readonly IList<Type> _assemblyInitializerServiceTypes;
         private readonly IList<ICommandProcessor> _commandProcessors;
         private ICommandProcessor _retryCommandProcessor;
@@ -38,9 +42,17 @@ namespace ENode
 
         #endregion
 
-        /// <summary>The single access point of the configuration.
-        /// </summary>
-        public static Configuration Instance { get; private set; }
+        public static ENodeConfiguration Instance { get; private set; }
+
+        public static ENodeConfiguration CreateENode(Configuration configuration)
+        {
+            if (Instance != null)
+            {
+                throw new Exception("Could not create enode configuration instance twice.");
+            }
+            Instance = new ENodeConfiguration(configuration);
+            return Instance;
+        }
 
         /// <summary>Get all the command queues.
         /// </summary>
@@ -81,116 +93,80 @@ namespace ENode
             return _committedEventProcessors.Select(x => x.BindingQueue);
         }
 
-        /// <summary>Private constructor, for implementation of singleton pattern.
+        /// <summary>Parameterized constructor.
         /// </summary>
-        private Configuration()
+        private ENodeConfiguration(Configuration configuration)
         {
+            _configuration = configuration;
             _assemblyInitializerServiceTypes = new List<Type>();
             _commandProcessors = new List<ICommandProcessor>();
             _uncommittedEventProcessors = new List<IUncommittedEventProcessor>();
             _committedEventProcessors = new List<ICommittedEventProcessor>();
         }
 
-        /// <summary>Create a new instance of configuration.
-        /// </summary>
-        /// <returns></returns>
-        public static Configuration Create()
-        {
-            if (Instance != null)
-            {
-                throw new Exception("Could not create configuration instance twice.");
-            }
-            Instance = new Configuration();
-            return Instance;
-        }
-
-        /// <summary>Register a implementer type as a service implementation.
-        /// </summary>
-        /// <typeparam name="TService">The service type.</typeparam>
-        /// <typeparam name="TImplementer">The implementer type.</typeparam>
-        /// <param name="life">The life cycle of the implementer type.</param>
-        public Configuration Register<TService, TImplementer>(LifeStyle life = LifeStyle.Singleton)
-            where TService : class
-            where TImplementer : class, TService
-        {
-            ObjectContainer.Register<TService, TImplementer>(life);
-            if (IsAssemblyInitializer<TImplementer>())
-            {
-                _assemblyInitializerServiceTypes.Add(typeof(TService));
-            }
-            return this;
-        }
-        /// <summary>Set the default service instance.
-        /// <remarks>
-        /// The life cycle of the instance is singleton.
-        /// </remarks>
-        /// </summary>
-        public Configuration SetDefault<TService, TImplementer>(TImplementer instance)
-            where TService : class
-            where TImplementer : class, TService
-        {
-            ObjectContainer.RegisterInstance<TService, TImplementer>(instance);
-            if (IsAssemblyInitializer(instance))
-            {
-                _assemblyInitializerServiceTypes.Add(typeof(TService));
-            }
-            return this;
-        }
         /// <summary>Register all the default components of enode framework.
         /// </summary>
-        public Configuration RegisterFrameworkComponents()
+        public ENodeConfiguration RegisterENodeComponents()
         {
-            Register<ILoggerFactory, EmptyLoggerFactory>();
-            Register<IBinarySerializer, DefaultBinarySerializer>();
-            Register<IDbConnectionFactory, DefaultDbConnectionFactory>();
-            Register<IMessageStore, EmptyMessageStore>();
+            _configuration.SetDefault<ILoggerFactory, EmptyLoggerFactory>();
+            _configuration.SetDefault<IBinarySerializer, DefaultBinarySerializer>();
+            _configuration.SetDefault<IDbConnectionFactory, DefaultDbConnectionFactory>();
+            _configuration.SetDefault<IMessageStore, EmptyMessageStore>();
 
-            Register<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();
-            Register<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
-            Register<IEventSourcingService, DefaultEventSourcingService>();
-            Register<IAggregateRootFactory, DefaultAggregateRootFactory>();
-            Register<IMemoryCache, DefaultMemoryCache>();
-            Register<IRepository, EventSourcingRepository>();
-            Register<IMemoryCacheRebuilder, DefaultMemoryCacheRebuilder>();
+            _configuration.SetDefault<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();
+            _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
+            _configuration.SetDefault<IEventSourcingService, DefaultEventSourcingService>();
+            _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
+            _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
+            _configuration.SetDefault<IRepository, EventSourcingRepository>();
+            _configuration.SetDefault<IMemoryCacheRebuilder, DefaultMemoryCacheRebuilder>();
 
-            Register<ISnapshotter, DefaultSnapshotter>();
-            Register<ISnapshotPolicy, NoSnapshotPolicy>();
-            Register<ISnapshotStore, EmptySnapshotStore>();
+            _configuration.SetDefault<ISnapshotter, DefaultSnapshotter>();
+            _configuration.SetDefault<ISnapshotPolicy, NoSnapshotPolicy>();
+            _configuration.SetDefault<ISnapshotStore, EmptySnapshotStore>();
 
-            Register<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
-            Register<ICommandQueueRouter, DefaultCommandQueueRouter>();
-            Register<IProcessingCommandCache, DefaultProcessingCommandCache>();
-            Register<IWaitingCommandCache, DefaultWaitingCommandCache>();
-            Register<IWaitingCommandService, DefaultWaitingCommandService>();
-            Register<ICommandTaskManager, DefaultCommandTaskManager>();
-            Register<ICommandCompletionEventManager, DefaultCommandCompletionEventManager>();
-            Register<ICommandService, DefaultCommandService>();
-            Register<IRetryCommandService, DefaultRetryCommandService>();
+            _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
+            _configuration.SetDefault<ICommandQueueRouter, DefaultCommandQueueRouter>();
+            _configuration.SetDefault<IProcessingCommandCache, DefaultProcessingCommandCache>();
+            _configuration.SetDefault<IWaitingCommandCache, DefaultWaitingCommandCache>();
+            _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
+            _configuration.SetDefault<ICommandTaskManager, DefaultCommandTaskManager>();
+            _configuration.SetDefault<ICommandCompletionEventManager, DefaultCommandCompletionEventManager>();
+            _configuration.SetDefault<ICommandService, DefaultCommandService>();
+            _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
 
-            Register<IEventHandlerProvider, DefaultEventHandlerProvider>();
-            Register<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
-            Register<IEventStore, InMemoryEventStore>();
-            Register<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
-            Register<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
-            Register<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
-            Register<IUncommittedEventQueueRouter, DefaultUncommittedEventQueueRouter>();
-            Register<ICommittedEventQueueRouter, DefaultCommittedEventQueueRouter>();
-            Register<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
-            Register<IUncommittedEventSender, DefaultUncommittedEventSender>();
-            Register<ICommittedEventSender, DefaultCommittedEventSender>();
+            _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
+            _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
+            _configuration.SetDefault<IEventStore, InMemoryEventStore>();
+            _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
+            _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
+            _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
+            _configuration.SetDefault<IUncommittedEventQueueRouter, DefaultUncommittedEventQueueRouter>();
+            _configuration.SetDefault<ICommittedEventQueueRouter, DefaultCommittedEventQueueRouter>();
+            _configuration.SetDefault<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
+            _configuration.SetDefault<IUncommittedEventSender, DefaultUncommittedEventSender>();
+            _configuration.SetDefault<ICommittedEventSender, DefaultCommittedEventSender>();
 
-            Register<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
-            Register<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
-            Register<ICommandMessageHandler, DefaultCommandMessageHandler>(LifeStyle.Transient);
-            Register<IWaitingCommandMessageHandler, DefaultWaitingCommandMessageHandler>(LifeStyle.Transient);
-            Register<IUncommittedEventMessageHandler, DefaultUncommittedEventMessageHandler>(LifeStyle.Transient);
-            Register<ICommittedEventMessageHandler, DefaultCommittedEventMessageHandler>(LifeStyle.Transient);
+            _configuration.SetDefault<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
+            _configuration.SetDefault<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
+            _configuration.SetDefault<ICommandMessageHandler, DefaultCommandMessageHandler>(LifeStyle.Transient);
+            _configuration.SetDefault<IWaitingCommandMessageHandler, DefaultWaitingCommandMessageHandler>(LifeStyle.Transient);
+            _configuration.SetDefault<IUncommittedEventMessageHandler, DefaultUncommittedEventMessageHandler>(LifeStyle.Transient);
+            _configuration.SetDefault<ICommittedEventMessageHandler, DefaultCommittedEventMessageHandler>(LifeStyle.Transient);
+
+            _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
+            _assemblyInitializerServiceTypes.Add(typeof(IEventSynchronizerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(IEventHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootTypeProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(ICommandCompletionEventManager));
 
             return this;
         }
         /// <summary>Register all the business components from the given assemblies.
         /// </summary>
-        public Configuration RegisterBusinessComponents(params Assembly[] assemblies)
+        public ENodeConfiguration RegisterBusinessComponents(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
@@ -210,11 +186,12 @@ namespace ENode
             }
             return this;
         }
+
         /// <summary>Use SQL DB as the storage of the whole framework.
         /// </summary>
         /// <param name="connectionString">The connection string of the DB.</param>
         /// <returns></returns>
-        public Configuration UseSql(string connectionString)
+        public ENodeConfiguration UseSql(string connectionString)
         {
             return UseSql(connectionString, "Event", null, "EventPublishInfo", "EventHandleInfo");
         }
@@ -226,23 +203,23 @@ namespace ENode
         /// <param name="eventPublishInfoTable">The table used to store all the event publish information.</param>
         /// <param name="eventHandleInfoTable">The table used to store all the event handle information.</param>
         /// <returns></returns>
-        public Configuration UseSql(string connectionString, string eventTable, string queueNameFormat, string eventPublishInfoTable, string eventHandleInfoTable)
+        public ENodeConfiguration UseSql(string connectionString, string eventTable, string queueNameFormat, string eventPublishInfoTable, string eventHandleInfoTable)
         {
-            SetDefault<IEventTableNameProvider, DefaultEventTableNameProvider>(new DefaultEventTableNameProvider(eventTable));
-            SetDefault<IQueueTableNameProvider, DefaultQueueTableNameProvider>(new DefaultQueueTableNameProvider(queueNameFormat));
-            SetDefault<IMessageStore, SqlMessageStore>(new SqlMessageStore(connectionString));
-            SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
-            SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
-            SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
+            _configuration.SetDefault<IEventTableNameProvider, DefaultEventTableNameProvider>(new DefaultEventTableNameProvider(eventTable));
+            _configuration.SetDefault<IQueueTableNameProvider, DefaultQueueTableNameProvider>(new DefaultQueueTableNameProvider(queueNameFormat));
+            _configuration.SetDefault<IMessageStore, SqlMessageStore>(new SqlMessageStore(connectionString));
+            _configuration.SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
+            _configuration.SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
+            _configuration.SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
             return this;
         }
         /// <summary>Use the default sql querydb connection factory.
         /// </summary>
         /// <param name="connectionString">The connection string of the SQL DB.</param>
         /// <returns></returns>
-        public Configuration UseDefaultSqlQueryDbConnectionFactory(string connectionString)
+        public ENodeConfiguration UseDefaultSqlQueryDbConnectionFactory(string connectionString)
         {
-            SetDefault<ISqlQueryDbConnectionFactory, DefaultSqlQueryDbConnectionFactory>(new DefaultSqlQueryDbConnectionFactory(connectionString));
+            _configuration.SetDefault<ISqlQueryDbConnectionFactory, DefaultSqlQueryDbConnectionFactory>(new DefaultSqlQueryDbConnectionFactory(connectionString));
             return this;
         }
 
@@ -250,7 +227,7 @@ namespace ENode
         /// </summary>
         /// <param name="commandProcessor"></param>
         /// <returns></returns>
-        public Configuration AddCommandProcessor(ICommandProcessor commandProcessor)
+        public ENodeConfiguration AddCommandProcessor(ICommandProcessor commandProcessor)
         {
             _commandProcessors.Add(commandProcessor);
             return this;
@@ -259,7 +236,7 @@ namespace ENode
         /// </summary>
         /// <param name="commandProcessor"></param>
         /// <returns></returns>
-        public Configuration SetRetryCommandProcessor(ICommandProcessor commandProcessor)
+        public ENodeConfiguration SetRetryCommandProcessor(ICommandProcessor commandProcessor)
         {
             _retryCommandProcessor = commandProcessor;
             return this;
@@ -268,7 +245,7 @@ namespace ENode
         /// </summary>
         /// <param name="commandProcessor"></param>
         /// <returns></returns>
-        public Configuration SetWaitingCommandProcessor(ICommandProcessor commandProcessor)
+        public ENodeConfiguration SetWaitingCommandProcessor(ICommandProcessor commandProcessor)
         {
             _waitingCommandProcessor = commandProcessor;
             return this;
@@ -277,7 +254,7 @@ namespace ENode
         /// </summary>
         /// <param name="eventProcessor"></param>
         /// <returns></returns>
-        public Configuration AddUncommittedEventProcessor(IUncommittedEventProcessor eventProcessor)
+        public ENodeConfiguration AddUncommittedEventProcessor(IUncommittedEventProcessor eventProcessor)
         {
             _uncommittedEventProcessors.Add(eventProcessor);
             return this;
@@ -286,7 +263,7 @@ namespace ENode
         /// </summary>
         /// <param name="eventProcessor"></param>
         /// <returns></returns>
-        public Configuration AddCommittedEventProcessor(ICommittedEventProcessor eventProcessor)
+        public ENodeConfiguration AddCommittedEventProcessor(ICommittedEventProcessor eventProcessor)
         {
             _committedEventProcessors.Add(eventProcessor);
             return this;
@@ -294,7 +271,7 @@ namespace ENode
         /// <summary>Create all the message processors with the default queue names at once.
         /// </summary>
         /// <returns></returns>
-        public Configuration CreateAllDefaultProcessors()
+        public ENodeConfiguration CreateAllDefaultProcessors()
         {
             return CreateAllDefaultProcessors(
                 new string[] { "CommandQueue" },
@@ -313,7 +290,7 @@ namespace ENode
         /// <param name="committedEventQueueNames">Represents the committed event queue names.</param>
         /// <param name="option">The message processor creation option.</param>
         /// <returns></returns>
-        public Configuration CreateAllDefaultProcessors(
+        public ENodeConfiguration CreateAllDefaultProcessors(
             IEnumerable<string> commandQueueNames,
             string retryCommandQueueName,
             string waitingCommandQueueName,
@@ -352,7 +329,7 @@ namespace ENode
         /// <summary>Initialize all the assembly initializers with the given assemblies.
         /// </summary>
         /// <returns></returns>
-        public Configuration Initialize(params Assembly[] assemblies)
+        public ENodeConfiguration Initialize(params Assembly[] assemblies)
         {
             ValidateSerializableTypes(assemblies);
             foreach (var assemblyInitializer in _assemblyInitializerServiceTypes.Select(ObjectContainer.Resolve).OfType<IAssemblyInitializer>())
@@ -364,11 +341,11 @@ namespace ENode
         /// <summary>Start the enode framework.
         /// </summary>
         /// <returns></returns>
-        public Configuration Start()
+        public ENodeConfiguration Start()
         {
             ValidateProcessors();
             StartProcessors();
-            ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name).Info("enode framework started...");
+            ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name).Info("enode started...");
 
             return this;
         }
@@ -381,7 +358,7 @@ namespace ENode
             {
                 foreach (var type in assembly.GetTypes().Where(
                     x => x.IsClass && (
-                        typeof(IPayload).IsAssignableFrom(x) ||
+                        typeof(ICommand).IsAssignableFrom(x) ||
                         typeof(IDomainEvent).IsAssignableFrom(x) ||
                         typeof(IAggregateRoot).IsAssignableFrom(x))))
                 {

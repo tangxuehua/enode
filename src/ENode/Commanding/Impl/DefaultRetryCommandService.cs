@@ -1,7 +1,8 @@
 ﻿using System;
+using ECommon.Logging;
+using ENode.Configurations;
 using ENode.Eventing;
-using ENode.Infrastructure.Concurrent;
-using ENode.Infrastructure.Logging;
+using ENode.Infrastructure;
 using ENode.Messaging;
 
 namespace ENode.Commanding.Impl
@@ -32,7 +33,7 @@ namespace ENode.Commanding.Impl
         {
             if (_retryCommandQueue == null)
             {
-                _retryCommandQueue = Configuration.Instance.GetRetryCommandQueue();
+                _retryCommandQueue = ENodeConfiguration.Instance.GetRetryCommandQueue();
             }
             var command = commandInfo.Command;
 

@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using ECommon.IoC;
+using ECommon.Logging;
+using ECommon.Retring;
+using ECommon.Scheduling;
+using ECommon.Serializing;
+using ECommon.Socketing;
 using ENode.Infrastructure;
-using ENode.Infrastructure.Concurrent;
-using ENode.Infrastructure.Logging;
-using ENode.Infrastructure.Retring;
-using ENode.Infrastructure.Serializing;
-using ENode.Infrastructure.Socketing;
+using ENode.Messaging;
 
 namespace ENode.Eventing.Impl
 {
@@ -17,8 +18,9 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private readonly IList<Worker> _workers;
+        private readonly IMessageReplyFutureCache<ReceiveContext> _eventReplyFutureCache;
         private readonly IUncommittedEventSender _uncommittedEventSender;
-        private readonly IServerSocket _serverSocket;
+        //private readonly ServerSocket _serverSocket;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventStore _eventStore;
         private readonly ICommittedEventSender _committedEventSender;
@@ -55,8 +57,10 @@ namespace ENode.Eventing.Impl
             }
 
             _workers = new List<Worker>();
+            _eventReplyFutureCache = ObjectContainer.Resolve<IMessageReplyFutureCache<ReceiveContext>>();
             _uncommittedEventSender = ObjectContainer.Resolve<IUncommittedEventSender>();
-            _serverSocket = ObjectContainer.Resolve<IServerSocket>();
+            //TODO
+            //_serverSocket = new ServerSocket(;
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventStore = ObjectContainer.Resolve<IEventStore>();
             _committedEventSender = ObjectContainer.Resolve<ICommittedEventSender>();
@@ -64,7 +68,8 @@ namespace ENode.Eventing.Impl
             _eventSynchronizerProvider = ObjectContainer.Resolve<IEventSynchronizerProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
 
-            _serverSocket.Bind(address, port).Listen(backlog);
+            //TODO
+            //_serverSocket.Bind(address, port).Listen(backlog);
 
             for (var index = 0; index < workerCount; index++)
             {
@@ -80,7 +85,22 @@ namespace ENode.Eventing.Impl
         {
             if (_started) return;
 
-            _serverSocket.Start((receiveContext) => _uncommittedEventSender.Send(receiveContext));
+            //TODO
+            //_serverSocket.Start((receiveContext) =>
+            //{
+            //    var messageId = Guid.NewGuid();
+            //    _eventReplyFutureCache.Add(messageId, receiveContext);
+            //    var eventStream = _binarySerializer.Deserialize<EventStream>(receiveContext.ReceivedMessage);
+            //    _uncommittedEventSender.Send(eventStream, messageId, (currentMessageId, reply) =>
+            //    {
+            //        ReceiveContext currentReceiveContext;
+            //        if (_eventReplyFutureCache.TryRemove(currentMessageId, out currentReceiveContext))
+            //        {
+            //            currentReceiveContext.ReplyMessage = _binarySerializer.Serialize(reply);
+            //            currentReceiveContext.MessageHandledCallback(currentReceiveContext);
+            //        }
+            //    });
+            //});
 
             _started = true;
             _logger.InfoFormat("{0} started...", this.GetType().Name);
@@ -90,26 +110,23 @@ namespace ENode.Eventing.Impl
 
         private void HandleEventStream()
         {
-            var receiveContext = _queue.Take();
+            //TODO
+            //var receiveContext = _queue.Take();
 
-            var context = new EventProcessingContext { EventStream = ParseEventData(receiveContext.Message) };
+            //var context = new EventProcessingContext { EventStream = ParseEventData(receiveContext.Message) };
 
-            try
-            {
-                CommitEvents(context);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("Exception raised when committing eventStream:{0}.", context.EventStream.GetStreamInformation()), ex);
-            }
+            //try
+            //{
+            //    CommitEvents(context);
+            //}
+            //catch (Exception ex)
+            //{
+            //    _logger.Error(string.Format("Exception raised when committing eventStream:{0}.", context.EventStream.GetStreamInformation()), ex);
+            //}
 
-            var result = new EventProcessResult { EventStreamId = context.EventStream.Id, Status = context.ProcessStatus };
-            receiveContext.ReplyMessage = _binarySerializer.Serialize(result);
-            receiveContext.MessageProcessedCallback(receiveContext);
-        }
-        private EventStream ParseEventData(byte[] eventData)
-        {
-            return _binarySerializer.Deserialize<EventStream>(eventData);
+            //var result = new EventProcessResult { EventStreamId = context.EventStream.Id, Status = context.ProcessStatus };
+            //receiveContext.ReplyMessage = _binarySerializer.Serialize(result);
+            //receiveContext.MessageProcessedCallback(receiveContext);
         }
         private void CommitEvents(EventProcessingContext context)
         {

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using ECommon.IoC;
+using ECommon.Logging;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Logging;
 
@@ -8,7 +10,7 @@ namespace ENode.Messaging.Impl
     /// <summary>The abstract implementation of IMessageQueue.
     /// </summary>
     /// <typeparam name="TMessagePayload">The type of the message payload.</typeparam>
-    public abstract class MessageQueue<TMessagePayload> : IMessageQueue<TMessagePayload> where TMessagePayload : class, IPayload
+    public abstract class MessageQueue<TMessagePayload> : IMessageQueue<TMessagePayload>
     {
         private readonly BlockingCollection<Message<TMessagePayload>> _queue = new BlockingCollection<Message<TMessagePayload>>(new ConcurrentQueue<Message<TMessagePayload>>());
 

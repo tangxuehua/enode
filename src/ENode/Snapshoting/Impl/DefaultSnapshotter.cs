@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Linq;
-using System.Reflection;
+using ECommon.Serializing;
 using ENode.Domain;
-using ENode.Infrastructure.Serializing;
 
 namespace ENode.Snapshoting.Impl
 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using ECommon.IoC;
 using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl

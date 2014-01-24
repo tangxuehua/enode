@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using ECommon.IoC;
 using ENode.Domain;
 
 namespace ENode.Infrastructure

@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading;
+using ENode.Configurations;
 
 namespace ENode.Eventing.Impl
 {
@@ -18,7 +19,7 @@ namespace ENode.Eventing.Impl
         {
             if (_eventQueues == null)
             {
-                _eventQueues = Configuration.Instance.GetCommitedEventQueues().ToArray();
+                _eventQueues = ENodeConfiguration.Instance.GetCommitedEventQueues().ToArray();
             }
 
             return _eventQueues.Length > 0 ? _eventQueues[(Interlocked.Increment(ref _index) - 1) % _eventQueues.Length] : null;

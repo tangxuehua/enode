@@ -2,7 +2,7 @@
 {
     /// <summary>Represents a local in-memory based message queue.
     /// </summary>
-    public interface IMessageQueue<TMessagePayload> where TMessagePayload : class, IPayload
+    public interface IMessageQueue<TMessagePayload>
     {
         /// <summary>The name of the queue.
         /// </summary>

@@ -1,6 +1,6 @@
 ﻿using System;
-using ENode.Infrastructure.Logging;
-using ENode.Infrastructure.Retring;
+using ECommon.Logging;
+using ECommon.Retring;
 using ENode.Messaging;
 using ENode.Messaging.Impl;
 

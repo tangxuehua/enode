@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading;
+using ENode.Configurations;
 
 namespace ENode.Commanding.Impl
 {
@@ -18,7 +19,7 @@ namespace ENode.Commanding.Impl
         {
             if (_commandQueues == null)
             {
-                _commandQueues = Configuration.Instance.GetCommandQueues().ToArray();
+                _commandQueues = ENodeConfiguration.Instance.GetCommandQueues().ToArray();
             }
 
             return _commandQueues.Length > 0 ? _commandQueues[(Interlocked.Increment(ref _index) - 1) % _commandQueues.Length] : null;

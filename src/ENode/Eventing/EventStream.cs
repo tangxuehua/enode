@@ -11,7 +11,7 @@ namespace ENode.Eventing
     /// </remarks>
     /// </summary>
     [Serializable]
-    public class EventStream : IPayload
+    public class EventStream
     {
         /// <summary>Parameterized constructor.
         /// </summary>
