@@ -62,7 +62,7 @@ namespace ENode.Commanding
                 throw new ArgumentNullException("exception");
             }
             Status = CommandResultStatus.Failed;
-            ErrorMessage = exception.Message;
+            ErrorMessage = errorMessage;
             Exception = exception;
         }
     }
