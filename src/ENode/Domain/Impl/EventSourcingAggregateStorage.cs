@@ -76,7 +76,7 @@ namespace ENode.Domain.Impl
             }
 
             var eventsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.Version + 1, long.MaxValue);
-            _eventSourcingService.ReplayEventStream(aggregateRootFromSnapshot, eventsAfterSnapshot);
+            _eventSourcingService.ReplayEvents(aggregateRootFromSnapshot, eventsAfterSnapshot);
             aggregateRoot = aggregateRootFromSnapshot;
             return true;
         }
@@ -88,7 +88,7 @@ namespace ENode.Domain.Impl
             if (streams == null || !eventStreams.Any()) return null;
 
             var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
-            _eventSourcingService.ReplayEventStream(aggregateRoot, eventStreams);
+            _eventSourcingService.ReplayEvents(aggregateRoot, eventStreams);
 
             return aggregateRoot;
         }

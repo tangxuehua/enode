@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using ENode.Eventing;
 
 namespace ENode.Domain
@@ -10,6 +9,6 @@ namespace ENode.Domain
     {
         /// <summary>Replay the given event streams on the given aggregate root.
         /// </summary>
-        void ReplayEventStream(IAggregateRoot aggregateRoot, IEnumerable<EventStream> eventStreams);
+        void ReplayEvents(IAggregateRoot aggregateRoot, IEnumerable<EventStream> eventStreams);
     }
 }

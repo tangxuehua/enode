@@ -87,7 +87,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<ILoggerFactory, EmptyLoggerFactory>();
             _configuration.SetDefault<IBinarySerializer, DefaultBinarySerializer>();
             _configuration.SetDefault<IDbConnectionFactory, DefaultDbConnectionFactory>();
-            _configuration.SetDefault<IMessageStore, EmptyMessageStore>();
 
             _configuration.SetDefault<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
@@ -117,6 +116,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
             _configuration.SetDefault<IPublishEventService, DefaultPublishEventService>();
+            _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
 
             _configuration.SetDefault<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
             _configuration.SetDefault<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
@@ -176,7 +176,6 @@ namespace ENode.Configurations
         {
             _configuration.SetDefault<IEventTableNameProvider, DefaultEventTableNameProvider>(new DefaultEventTableNameProvider(eventTable));
             _configuration.SetDefault<IQueueTableNameProvider, DefaultQueueTableNameProvider>(new DefaultQueueTableNameProvider(queueNameFormat));
-            _configuration.SetDefault<IMessageStore, SqlMessageStore>(new SqlMessageStore(connectionString));
             _configuration.SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
             _configuration.SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
             _configuration.SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));

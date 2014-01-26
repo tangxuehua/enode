@@ -71,7 +71,7 @@ namespace ENode.Domain.Impl
                 }
             }
         }
-        public void ReplayEventStream(IAggregateRoot aggregateRoot, IEnumerable<EventStream> eventStreams)
+        public void ReplayEvents(IAggregateRoot aggregateRoot, IEnumerable<EventStream> eventStreams)
         {
             foreach (var eventStream in eventStreams)
             {

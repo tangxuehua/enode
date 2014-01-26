@@ -115,20 +115,11 @@
     <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Infrastructure\Sql\ISqlQueryDbConnectionFactory.cs" />
-    <Compile Include="Messaging\IMessageSender.cs" />
     <Compile Include="Messaging\IMessageQueueRouter.cs" />
-    <Compile Include="Messaging\Impl\MessageSender.cs" />
-    <Compile Include="Messaging\IMessageStore.cs" />
     <Compile Include="Messaging\IMessage.cs" />
-    <Compile Include="Messaging\Impl\DefaultProcessedMessageQueue.cs" />
-    <Compile Include="Messaging\Impl\DefaultProcessedMessageMessageHandler.cs" />
-    <Compile Include="Messaging\Impl\DefaultProcessedMessageProcessor.cs" />
     <Compile Include="Messaging\Impl\SQL\DefaultQueueTableNameProvider.cs" />
-    <Compile Include="Messaging\Impl\EmptyMessageStore.cs" />
-    <Compile Include="Messaging\IProcessedMessageMessageHandler.cs" />
     <Compile Include="Messaging\Impl\SQL\IQueueTableNameProvider.cs" />
     <Compile Include="Messaging\Impl\MessageProcessor.cs" />
-    <Compile Include="Messaging\Impl\SQL\SqlMessageStore.cs" />
     <Compile Include="Messaging\IMessageProcessor.cs" />
     <Compile Include="Messaging\Impl\MessageHandler.cs" />
     <Compile Include="Messaging\IMessageQueue.cs" />
@@ -142,7 +133,6 @@
     <Compile Include="Commanding\Impl\DefaultCommandContext.cs" />
     <Compile Include="Commanding\Impl\DefaultProcessingCommandCache.cs" />
     <Compile Include="Messaging\IMessageHandler.cs" />
-    <Compile Include="Messaging\IMessageReplyFutureCache.cs" />
     <Compile Include="Messaging\Message.cs" />
     <Compile Include="Infrastructure\Dapper\SqlMapper_Extensions.cs" />
     <Compile Include="Infrastructure\Dapper\SqlMapper.cs">
@@ -162,8 +152,6 @@
     <Compile Include="Commanding\Command.cs" />
     <Compile Include="Commanding\ICommandService.cs" />
     <Compile Include="Commanding\ICommandHandler.cs" />
-    <Compile Include="Messaging\IProcessedMessageProcessor.cs" />
-    <Compile Include="Messaging\IProcessedMessageQueue.cs" />
     <Compile Include="Snapshoting\Impl\EmptySnapshotStore.cs" />
     <Compile Include="Domain\IMemoryCache.cs" />
     <Compile Include="Domain\Impl\DefaultMemoryCache.cs" />

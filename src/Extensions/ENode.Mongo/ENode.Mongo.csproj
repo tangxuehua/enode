@@ -57,7 +57,6 @@
     <Compile Include="MongoEventHandleInfoStore.cs" />
     <Compile Include="MongoEventPublishInfoStore.cs" />
     <Compile Include="MongoEventStore.cs" />
-    <Compile Include="MongoMessageStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

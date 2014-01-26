@@ -3,7 +3,7 @@ using ENode.Domain;
 
 namespace ENode.Commanding
 {
-    /// <summary>Represents an internal tracking context for tracking aggregate roots withing a command context.
+    /// <summary>Represents a tracking context for tracking changed aggregate roots in the command handler.
     /// </summary>
     public interface ITrackingContext
     {

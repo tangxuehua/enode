@@ -185,7 +185,7 @@ namespace ENode.Eventing.Impl
                 if (eventStream.Version == 1)
                 {
                     var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
-                    _eventSourcingService.ReplayEventStream(aggregateRoot, new EventStream[] { eventStream });
+                    _eventSourcingService.ReplayEvents(aggregateRoot, new EventStream[] { eventStream });
                     _memoryCache.Set(aggregateRoot);
                 }
                 else if (eventStream.Version > 1)
@@ -201,7 +201,7 @@ namespace ENode.Eventing.Impl
                     }
                     else if (aggregateRoot.Version + 1 == eventStream.Version)
                     {
-                        _eventSourcingService.ReplayEventStream(aggregateRoot, new EventStream[] { eventStream });
+                        _eventSourcingService.ReplayEvents(aggregateRoot, new EventStream[] { eventStream });
                         _memoryCache.Set(aggregateRoot);
                     }
                     else if (aggregateRoot.Version + 1 < eventStream.Version)
