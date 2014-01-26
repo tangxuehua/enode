@@ -48,13 +48,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandConsumer.cs" />
+    <Compile Include="EventProcessContext.cs" />
     <Compile Include="CommandExecuteContext.cs" />
+    <Compile Include="EventConsumer.cs" />
+    <Compile Include="EventPublisher.cs" />
+    <Compile Include="EventStreamData.cs" />
+    <Compile Include="IEventTypeCodeProvider.cs" />
+    <Compile Include="IEventTopicProvider.cs" />
     <Compile Include="Payload.cs" />
     <Compile Include="CommandService.cs" />
     <Compile Include="PayloadUtils.cs" />
     <Compile Include="ICommandTypeCodeProvider.cs" />
     <Compile Include="ICommandTopicProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TypeData.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\eNode\ENode.csproj">

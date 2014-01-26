@@ -95,7 +95,7 @@ namespace ENode.Eventing.Impl
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("Exception raised when committing events:{0}.", context.EventStream.GetStreamInformation()), ex);
+                    _logger.Error(string.Format("Exception raised when committing events:{0}.", context.EventStream), ex);
                     return false;
                 }
             });
@@ -155,7 +155,7 @@ namespace ENode.Eventing.Impl
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("{0} raised when persisting events:{1}", ex.GetType().Name, context.EventStream.GetStreamInformation()), ex);
+                    _logger.Error(string.Format("{0} raised when persisting events:{1}", ex.GetType().Name, context.EventStream), ex);
                     if (ex is ConcurrentException)
                     {
                         context.ConcurrentException = ex as ConcurrentException;
@@ -216,7 +216,7 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when refreshing memory cache by event stream:{0}", eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when refreshing memory cache by event stream:{0}", eventStream), ex);
             }
         }
         private void RefreshMemoryCacheFromEventStore(EventStream eventStream)
@@ -236,7 +236,7 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when refreshing memory cache by event stream:{0}", eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when refreshing memory cache by event stream:{0}", eventStream), ex);
             }
         }
         private void PublishEvents(EventCommittingContext context)
@@ -261,7 +261,7 @@ namespace ENode.Eventing.Impl
                         var errorMessage = string.Format(
                             "Exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, events:{1}",
                             synchronizer.GetInnerSynchronizer().GetType().Name,
-                            eventStream.GetStreamInformation());
+                            eventStream);
                         _logger.Error(errorMessage, ex);
 
                         if (ex is ConcurrentException)
@@ -295,7 +295,7 @@ namespace ENode.Eventing.Impl
                         _logger.Error(string.Format(
                             "Exception raised when calling synchronizer's OnAfterPersisted method. synchronizer:{0}, events:{1}",
                             synchronizer.GetInnerSynchronizer().GetType().Name,
-                            eventStream.GetStreamInformation()), ex);
+                            eventStream), ex);
                     }
                 }
             }

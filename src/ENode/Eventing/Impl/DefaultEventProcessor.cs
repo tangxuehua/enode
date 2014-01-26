@@ -1,15 +1,10 @@
 ﻿using System;
 using ECommon.Logging;
 using ECommon.Retring;
-using ENode.Messaging;
-using ENode.Messaging.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>
-    /// The default implementation of ICommittedEventMessageHandler.
-    /// </summary>
-    public class DefaultCommittedEventMessageHandler : MessageHandler<EventStream>, ICommittedEventMessageHandler
+    public class DefaultEventProcessor : IEventProcessor
     {
         #region Private Variables
 
@@ -32,7 +27,7 @@ namespace ENode.Eventing.Impl
         /// <param name="eventHandleInfoCache"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultCommittedEventMessageHandler(
+        public DefaultEventProcessor(
             IEventHandlerProvider eventHandlerProvider,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
@@ -50,20 +45,16 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>Execute the given event stream message.
-        /// </summary>
-        /// <param name="message"></param>
-        public override void Handle(Message<EventStream> message)
+        public void Process(EventStream eventStream, IEventProcessContext context)
         {
-            //TODO
-            //DispatchEventsToHandlers(new EventStreamContext { EventStream = eventStream, Queue = queue });
+            DispatchEventsToHandlers(new EventProcessingContext(eventStream, context));
         }
 
         #region Private Methods
 
         private void DispatchEventsToHandlers(EventProcessingContext context)
         {
-            Func<bool> dispatchEventsToHandlers = () =>
+            var dispatchEventsToHandlers = new Func<bool>(() =>
             {
                 var eventStream = context.EventStream;
                 switch (eventStream.Version)
@@ -78,29 +69,27 @@ namespace ENode.Eventing.Impl
                         }
                         return lastPublishedVersion + 1 > eventStream.Version;
                 }
-            };
+            });
 
             try
             {
-                _actionExecutionService.TryAction(
-                    "DispatchEventsToHandlers",
-                    dispatchEventsToHandlers,
-                    3,
-                    new ActionInfo("DispatchEventsToHandlersCallback",
-                        data => {
-                            UpdatePublishedEventStreamVersion(context.EventStream);
-                            return true;
-                        }, null, null));
+                _actionExecutionService.TryAction("DispatchEventsToHandlers", dispatchEventsToHandlers, 3, new ActionInfo("DispatchEventsToHandlersCallback", obj =>
+                {
+                    var currentContext = obj as EventProcessingContext;
+                    UpdatePublishedEventStreamVersion(currentContext.EventStream);
+                    currentContext.EventProcessContext.OnEventProcessed(currentContext.EventStream);
+                    return true;
+                }, context, null));
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when dispatching event stream:{0}", context.EventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when dispatching event stream:{0}", context.EventStream), ex);
             }
         }
-        private bool DispatchEventsToHandlers(EventStream stream)
+        private bool DispatchEventsToHandlers(EventStream eventStream)
         {
-            bool success = true;
-            foreach (var evnt in stream.Events)
+            var success = true;
+            foreach (var evnt in eventStream.Events)
             {
                 foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
                 {
@@ -112,7 +101,7 @@ namespace ENode.Eventing.Impl
             }
             if (success)
             {
-                foreach (var evnt in stream.Events)
+                foreach (var evnt in eventStream.Events)
                 {
                     _eventHandleInfoCache.RemoveEventHandleInfo(evnt.Id);
                 }
@@ -134,7 +123,7 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when {0} handling {1}.", handler.GetInnerEventHandler().GetType().Name, evnt.GetType().Name), ex);
+                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", handler.GetInnerEventHandler().GetType().Name, evnt.GetType().Name), ex);
                 return false;
             }
         }

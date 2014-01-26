@@ -86,33 +86,17 @@ namespace ENode.Eventing
         /// <summary>Get all the event type names, sperated by | character.
         /// </summary>
         /// <returns></returns>
-        public string GetEventInformation()
+        public string GetEventNames()
         {
             return string.Join("|", Events.Select(x => x.GetType().Name));
-        }
-        /// <summary>Get the whole event stream string information.
-        /// </summary>
-        /// <returns></returns>
-        public string GetStreamInformation()
-        {
-            var items = new List<object>
-            {
-                Id,
-                AggregateRootName,
-                AggregateRootId,
-                Version,
-                string.Join("-", Events.Select(x => x.GetType().Name)),
-                CommandId,
-                Timestamp
-            };
-            return string.Join("|", items);
         }
         /// <summary>Overrides to return the whole event stream information.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            return GetEventInformation();
+            var format = "[Id={0},AggregateRootName={1},AggregateRootId={2},Version={3},CommandId={4},Timestamp={5},Events={6}";
+            return string.Format(format, Id, AggregateRootName, AggregateRootId, Version, CommandId, Timestamp, GetEventNames());
         }
     }
 }

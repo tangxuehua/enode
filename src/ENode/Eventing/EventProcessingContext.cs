@@ -1,12 +1,16 @@
-﻿using ENode.Eventing.Impl;
-
-namespace ENode.Eventing
+﻿namespace ENode.Eventing
 {
-    /// <summary>An internal class to contains the context information when processing an event stream.
+    /// <summary>An internal class to contains the context information when processing the committed event stream.
     /// </summary>
     internal class EventProcessingContext
     {
-        public EventStream EventStream { get; set; }
-        public EventProcessStatus ProcessStatus { get; set; }
+        public EventStream EventStream { get; private set; }
+        public IEventProcessContext EventProcessContext { get; private set; }
+
+        public EventProcessingContext(EventStream eventStream, IEventProcessContext eventProcessContext)
+        {
+            EventStream = eventStream;
+            EventProcessContext = eventProcessContext;
+        }
     }
 }

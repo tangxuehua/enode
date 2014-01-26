@@ -26,12 +26,12 @@ namespace ENode.Eventing.Impl
             {
                 try
                 {
-                    _eventPublisher.Send(eventStream);
+                    _eventPublisher.PublishEvent(eventStream);
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream.GetStreamInformation()), ex);
+                    _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream), ex);
                     return false;
                 }
             });

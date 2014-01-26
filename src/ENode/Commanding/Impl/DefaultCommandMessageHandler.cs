@@ -204,7 +204,7 @@ namespace ENode.Commanding.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when sending events:{0}", eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when sending events:{0}", eventStream), ex);
                 return false;
             }
         }
@@ -212,12 +212,12 @@ namespace ENode.Commanding.Impl
         {
             try
             {
-                _committedEventSender.Send(eventStream);
+                //_committedEventSender.Send(eventStream);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream.GetStreamInformation()), ex);
+                _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream), ex);
                 return false;
             }
         }

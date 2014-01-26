@@ -2,9 +2,10 @@
 
 namespace ENode.Eventing
 {
-    /// <summary>Represents a publisher to publish the committed event stream to a specific message queue.
+    /// <summary>Represents a publisher to publish the committed event stream to all the event handlers.
     /// </summary>
-    public interface IEventPublisher : IMessageSender<EventStream>
+    public interface IEventPublisher
     {
+        void PublishEvent(EventStream eventStream);
     }
 }

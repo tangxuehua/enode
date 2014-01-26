@@ -34,14 +34,20 @@ namespace ENode.Configurations
 
         private readonly Configuration _configuration;
         private readonly IList<Type> _assemblyInitializerServiceTypes;
-        private readonly IList<ICommandProcessor> _commandProcessors;
         private ICommandProcessor _retryCommandProcessor;
         private ICommandProcessor _waitingCommandProcessor;
-        private readonly IList<ICommittedEventProcessor> _committedEventProcessors;
 
         #endregion
 
         public static ENodeConfiguration Instance { get; private set; }
+
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        private ENodeConfiguration(Configuration configuration)
+        {
+            _configuration = configuration;
+            _assemblyInitializerServiceTypes = new List<Type>();
+        }
 
         public static ENodeConfiguration CreateENode(Configuration configuration)
         {
@@ -53,12 +59,6 @@ namespace ENode.Configurations
             return Instance;
         }
 
-        /// <summary>Get all the command queues.
-        /// </summary>
-        public IEnumerable<ICommandQueue> GetCommandQueues()
-        {
-            return _commandProcessors.Select(x => x.BindingQueue);
-        }
         /// <summary>Get the retry command queue.
         /// </summary>
         public ICommandQueue GetRetryCommandQueue()
@@ -78,22 +78,6 @@ namespace ENode.Configurations
                 throw new Exception("The command queue for waiting command is not configured.");
             }
             return _waitingCommandProcessor.BindingQueue;
-        }
-        /// <summary>Get all the committed event queues.
-        /// </summary>
-        public IEnumerable<ICommittedEventQueue> GetCommitedEventQueues()
-        {
-            return _committedEventProcessors.Select(x => x.BindingQueue);
-        }
-
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        private ENodeConfiguration(Configuration configuration)
-        {
-            _configuration = configuration;
-            _assemblyInitializerServiceTypes = new List<Type>();
-            _commandProcessors = new List<ICommandProcessor>();
-            _committedEventProcessors = new List<ICommittedEventProcessor>();
         }
 
         /// <summary>Register all the default components of enode framework.
@@ -131,16 +115,13 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
-            _configuration.SetDefault<ICommittedEventQueueRouter, DefaultCommittedEventQueueRouter>();
             _configuration.SetDefault<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
             _configuration.SetDefault<IPublishEventService, DefaultPublishEventService>();
-            _configuration.SetDefault<IEventPublisher, DefaultEventPublisher>();
 
             _configuration.SetDefault<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
             _configuration.SetDefault<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
             _configuration.SetDefault<ICommandMessageHandler, DefaultCommandMessageHandler>(LifeStyle.Transient);
             _configuration.SetDefault<IWaitingCommandMessageHandler, DefaultWaitingCommandMessageHandler>(LifeStyle.Transient);
-            _configuration.SetDefault<ICommittedEventMessageHandler, DefaultCommittedEventMessageHandler>(LifeStyle.Transient);
 
             _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
             _assemblyInitializerServiceTypes.Add(typeof(IEventSynchronizerProvider));
@@ -211,15 +192,6 @@ namespace ENode.Configurations
             return this;
         }
 
-        /// <summary>Add a command processor.
-        /// </summary>
-        /// <param name="commandProcessor"></param>
-        /// <returns></returns>
-        public ENodeConfiguration AddCommandProcessor(ICommandProcessor commandProcessor)
-        {
-            _commandProcessors.Add(commandProcessor);
-            return this;
-        }
         /// <summary>Set the command processor to process the retried command.
         /// </summary>
         /// <param name="commandProcessor"></param>
@@ -238,51 +210,23 @@ namespace ENode.Configurations
             _waitingCommandProcessor = commandProcessor;
             return this;
         }
-        /// <summary>Add a committed event processor.
-        /// </summary>
-        /// <param name="eventProcessor"></param>
-        /// <returns></returns>
-        public ENodeConfiguration AddCommittedEventProcessor(ICommittedEventProcessor eventProcessor)
-        {
-            _committedEventProcessors.Add(eventProcessor);
-            return this;
-        }
         /// <summary>Create all the message processors with the default queue names at once.
         /// </summary>
         /// <returns></returns>
         public ENodeConfiguration CreateAllDefaultProcessors()
         {
-            return CreateAllDefaultProcessors(
-                new string[] { "CommandQueue" },
-                "RetryCommandQueue",
-                "WaitingCommandQueue",
-                new string[] { "UncommittedEventQueue" },
-                new string[] { "CommittedEventQueue" });
+            return CreateAllDefaultProcessors("RetryCommandQueue", "WaitingCommandQueue");
         }
 
         /// <summary>Create all the message processors with the given queue names at once.
         /// </summary>
-        /// <param name="commandQueueNames">Represents the command queue names.</param>
         /// <param name="retryCommandQueueName">Represents the retry command queue name.</param>
         /// <param name="waitingCommandQueueName">Represents the waiting command queue name.</param>
-        /// <param name="uncommittedEventQueueNames">Represents the uncommitted event queue names.</param>
-        /// <param name="committedEventQueueNames">Represents the committed event queue names.</param>
         /// <param name="option">The message processor creation option.</param>
         /// <returns></returns>
-        public ENodeConfiguration CreateAllDefaultProcessors(
-            IEnumerable<string> commandQueueNames,
-            string retryCommandQueueName,
-            string waitingCommandQueueName,
-            IEnumerable<string> uncommittedEventQueueNames,
-            IEnumerable<string> committedEventQueueNames,
-            MessageProcessorOption option = null)
+        public ENodeConfiguration CreateAllDefaultProcessors(string retryCommandQueueName, string waitingCommandQueueName, MessageProcessorOption option = null)
         {
             var messageProcessorOption = option ?? MessageProcessorOption.Default;
-
-            foreach (var queueName in commandQueueNames)
-            {
-                _commandProcessors.Add(new DefaultCommandProcessor(new DefaultCommandQueue(queueName), messageProcessorOption.CommandExecutorCount));
-            }
 
             _retryCommandProcessor = new DefaultCommandProcessor(
                 new DefaultCommandQueue(retryCommandQueueName),
@@ -292,11 +236,6 @@ namespace ENode.Configurations
             _waitingCommandProcessor = new DefaultWaitingCommandProcessor(
                 new DefaultCommandQueue(waitingCommandQueueName),
                 messageProcessorOption.WaitingCommandExecutorCount);
-
-            foreach (var queueName in committedEventQueueNames)
-            {
-                _committedEventProcessors.Add(new DefaultCommittedEventProcessor(new DefaultCommittedEventQueue(queueName), messageProcessorOption.CommittedEventExecutorCount));
-            }
 
             return this;
         }
@@ -345,10 +284,6 @@ namespace ENode.Configurations
         }
         private void ValidateProcessors()
         {
-            if (_commandProcessors.Count == 0)
-            {
-                throw new Exception("Command processor count cannot be zero.");
-            }
             if (_retryCommandProcessor == null)
             {
                 throw new Exception("Retry command processor count cannot be null.");
@@ -357,23 +292,11 @@ namespace ENode.Configurations
             {
                 throw new Exception("Wating command processor count cannot be null.");
             }
-            if (_committedEventProcessors.Count == 0)
-            {
-                throw new Exception("Committed event processor count cannot be zero.");
-            }
         }
         private void StartProcessors()
         {
-            foreach (var commandProcessor in _commandProcessors)
-            {
-                commandProcessor.Start();
-            }
             _retryCommandProcessor.Start();
             _waitingCommandProcessor.Start();
-            foreach (var eventProcessor in _committedEventProcessors)
-            {
-                eventProcessor.Start();
-            }
         }
 
         private static LifeStyle ParseLife(Type type)
@@ -405,32 +328,20 @@ namespace ENode.Configurations
         /// </summary>
         public static readonly MessageProcessorOption Default = new MessageProcessorOption();
 
-        /// <summary>The command executor count.
-        /// </summary>
-        public int CommandExecutorCount { get; set; }
         /// <summary>The retry command executor count.
         /// </summary>
         public int RetryCommandExecutorCount { get; set; }
         /// <summary>The waiing command executor count.
         /// </summary>
         public int WaitingCommandExecutorCount { get; set; }
-        /// <summary>The uncommitted event executor count.
-        /// </summary>
-        public int UncommittedEventExecutorCount { get; set; }
-        /// <summary>The committed event executor count.
-        /// </summary>
-        public int CommittedEventExecutorCount { get; set; }
         /// <summary>The retry command dequeue interval milliseconds.
         /// </summary>
         public int RetryCommandDequeueIntervalMilliseconds { get; set; }
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="commandExecutorCount"></param>
         /// <param name="retryCommandExecutorCount"></param>
         /// <param name="waitingCommandExecutorCount"></param>
-        /// <param name="uncommittedEventExecutorCount"></param>
-        /// <param name="committedEventExecutorCount"></param>
         /// <param name="retryCommandDequeueIntervalMilliseconds"></param>
         public MessageProcessorOption(
             int commandExecutorCount = 1,
@@ -440,11 +351,8 @@ namespace ENode.Configurations
             int committedEventExecutorCount = 1,
             int retryCommandDequeueIntervalMilliseconds = 50)
         {
-            CommandExecutorCount = commandExecutorCount;
             RetryCommandExecutorCount = retryCommandExecutorCount;
             WaitingCommandExecutorCount = waitingCommandExecutorCount;
-            UncommittedEventExecutorCount = uncommittedEventExecutorCount;
-            CommittedEventExecutorCount = committedEventExecutorCount;
             RetryCommandDequeueIntervalMilliseconds = retryCommandDequeueIntervalMilliseconds;
         }
     }
