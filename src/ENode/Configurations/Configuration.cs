@@ -20,7 +20,6 @@ using ENode.Infrastructure.Logging;
 using ENode.Infrastructure.Sql;
 using ENode.Messaging;
 using ENode.Messaging.Impl;
-using ENode.Messaging.Impl.SQL;
 using ENode.Snapshoting;
 using ENode.Snapshoting.Impl;
 
@@ -175,7 +174,6 @@ namespace ENode.Configurations
         public ENodeConfiguration UseSql(string connectionString, string eventTable, string queueNameFormat, string eventPublishInfoTable, string eventHandleInfoTable)
         {
             _configuration.SetDefault<IEventTableNameProvider, DefaultEventTableNameProvider>(new DefaultEventTableNameProvider(eventTable));
-            _configuration.SetDefault<IQueueTableNameProvider, DefaultQueueTableNameProvider>(new DefaultQueueTableNameProvider(queueNameFormat));
             _configuration.SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
             _configuration.SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
             _configuration.SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));

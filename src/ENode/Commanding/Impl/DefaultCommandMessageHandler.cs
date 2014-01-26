@@ -12,7 +12,7 @@ namespace ENode.Commanding.Impl
 {
     /// <summary>The default implementation of ICommandMessageHandler.
     /// </summary>
-    public class DefaultCommandMessageHandler : MessageHandler<ICommand>, ICommandMessageHandler
+    public class DefaultCommandMessageHandler : MessageHandler<EventCommittingContext>, ICommandMessageHandler
     {
         #region Private Variables
 
@@ -75,12 +75,13 @@ namespace ENode.Commanding.Impl
         /// <summary>Handle the given command message.
         /// </summary>
         /// <param name="message">The command message.</param>
-        public override void Handle(Message<ICommand> message)
+        public override void Handle(Message<EventCommittingContext> message)
         {
-            if (!CheckWaitingCommand(message.Payload))
-            {
-                HandleCommand(message.Payload);
-            }
+            //TODO
+            //if (!CheckWaitingCommand(message.Payload))
+            //{
+            //    HandleCommand(message.Payload);
+            //}
         }
 
         #endregion

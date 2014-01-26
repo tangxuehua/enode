@@ -1,10 +1,11 @@
-﻿using ENode.Messaging.Impl;
+﻿using ENode.Eventing;
+using ENode.Messaging.Impl;
 
 namespace ENode.Commanding.Impl
 {
     /// <summary>The default command processor.
     /// </summary>
-    public class DefaultCommandProcessor : MessageProcessor<ICommandQueue, ICommandMessageHandler, ICommand>, ICommandProcessor
+    public class DefaultCommandProcessor : MessageProcessor<ICommandQueue, ICommandMessageHandler, EventCommittingContext>, ICommandProcessor
     {
         /// <summary>Parameterized constructor.
         /// </summary>

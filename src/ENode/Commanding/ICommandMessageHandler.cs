@@ -1,10 +1,11 @@
-﻿using ENode.Messaging;
+﻿using ENode.Eventing;
+using ENode.Messaging;
 
 namespace ENode.Commanding
 {
-    /// <summary>Represents a command executor interface.
+    /// <summary>Represents a command message handler interface.
     /// </summary>
-    public interface ICommandMessageHandler : IMessageHandler<ICommand>
+    public interface ICommandMessageHandler : IMessageHandler<EventCommittingContext>
     {
     }
 }

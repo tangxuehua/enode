@@ -35,7 +35,8 @@ namespace ENode.Commanding.Impl
 
             if (command != null)
             {
-                _waitingCommandQueue.Enqueue(new Message<ICommand>(Guid.NewGuid(), command, _waitingCommandQueue.Name));
+                //TODO
+                //_waitingCommandQueue.Enqueue(new Message<ICommand>(Guid.NewGuid(), command, _waitingCommandQueue.Name));
             }
         }
     }

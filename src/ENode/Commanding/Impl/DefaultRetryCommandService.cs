@@ -2,7 +2,6 @@
 using ECommon.Logging;
 using ENode.Configurations;
 using ENode.Eventing;
-using ENode.Infrastructure;
 using ENode.Messaging;
 
 namespace ENode.Commanding.Impl
@@ -25,9 +24,8 @@ namespace ENode.Commanding.Impl
         /// <summary>Retry the given command.
         /// </summary>
         /// <param name="commandInfo"></param>
-        /// <param name="eventStream"></param>
-        /// <param name="concurrentException"></param>
-        public void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ConcurrentException concurrentException)
+        /// <param name="eventCommittingContext"></param>
+        public void RetryCommand(CommandInfo commandInfo, EventCommittingContext eventCommittingContext)
         {
             if (_retryCommandQueue == null)
             {
@@ -37,7 +35,7 @@ namespace ENode.Commanding.Impl
 
             if (commandInfo.RetriedCount < command.RetryCount)
             {
-                _retryCommandQueue.Enqueue(new Message<ICommand>(Guid.NewGuid(), commandInfo.Command, _retryCommandQueue.Name));
+                _retryCommandQueue.Enqueue(new Message<EventCommittingContext>(Guid.NewGuid(), eventCommittingContext, _retryCommandQueue.Name));
                 commandInfo.IncreaseRetriedCount();
             }
             else

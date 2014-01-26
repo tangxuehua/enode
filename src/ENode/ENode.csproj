@@ -115,10 +115,7 @@
     <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Infrastructure\Sql\ISqlQueryDbConnectionFactory.cs" />
-    <Compile Include="Messaging\IMessageQueueRouter.cs" />
     <Compile Include="Messaging\IMessage.cs" />
-    <Compile Include="Messaging\Impl\SQL\DefaultQueueTableNameProvider.cs" />
-    <Compile Include="Messaging\Impl\SQL\IQueueTableNameProvider.cs" />
     <Compile Include="Messaging\Impl\MessageProcessor.cs" />
     <Compile Include="Messaging\IMessageProcessor.cs" />
     <Compile Include="Messaging\Impl\MessageHandler.cs" />

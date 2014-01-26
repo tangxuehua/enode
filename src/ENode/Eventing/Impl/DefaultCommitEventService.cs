@@ -309,7 +309,7 @@ namespace ENode.Eventing.Impl
                 var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                 if (commandInfo != null)
                 {
-                    _retryCommandService.RetryCommand(commandInfo, eventStream, context.ConcurrentException);
+                    _retryCommandService.RetryCommand(commandInfo, context);
                 }
                 else
                 {

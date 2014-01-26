@@ -9,6 +9,6 @@ namespace ENode.Commanding
     {
         /// <summary>Retry the given command.
         /// </summary>
-        void RetryCommand(CommandInfo commandInfo, EventStream eventStream, ConcurrentException concurrentException);
+        void RetryCommand(CommandInfo commandInfo, EventCommittingContext context);
     }
 }
