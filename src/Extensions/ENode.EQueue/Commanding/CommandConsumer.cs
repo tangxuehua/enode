@@ -7,6 +7,7 @@ using ENode.Commanding;
 using ENode.Domain;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
+using EQueue.Utils;
 
 namespace ENode.EQueue
 {
@@ -44,7 +45,7 @@ namespace ENode.EQueue
 
         void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
         {
-            var payload = PayloadUtils.DecodePayload(message.Body);
+            var payload = ByteTypeDataUtils.Decode(message.Body);
             var type = _commandTypeCodeProvider.GetType(payload.TypeCode);
             var command = _binarySerializer.Deserialize(payload.Data, type) as ICommand;
 

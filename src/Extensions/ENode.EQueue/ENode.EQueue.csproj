@@ -47,7 +47,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TypeData.cs" />
     <Compile Include="Commanding\CommandConsumer.cs" />
     <Compile Include="Eventing\EventProcessContext.cs" />
     <Compile Include="Commanding\CommandExecuteContext.cs" />
@@ -56,13 +55,10 @@
     <Compile Include="Eventing\EventStreamData.cs" />
     <Compile Include="Eventing\IEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\IEventTopicProvider.cs" />
-    <Compile Include="ByteTypeData.cs" />
     <Compile Include="Commanding\CommandService.cs" />
-    <Compile Include="PayloadUtils.cs" />
     <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\ICommandTopicProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StringTypeData.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\eNode\ENode.csproj">

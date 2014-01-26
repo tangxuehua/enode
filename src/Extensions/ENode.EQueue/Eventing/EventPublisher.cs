@@ -6,6 +6,7 @@ using ECommon.Socketing;
 using ENode.Eventing;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
+using EQueue.Utils;
 
 namespace ENode.EQueue
 {

@@ -6,6 +6,7 @@ using ECommon.Socketing;
 using ENode.Commanding;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
+using EQueue.Utils;
 
 namespace ENode.EQueue
 {
@@ -43,7 +44,7 @@ namespace ENode.EQueue
             var raw = _binarySerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
             var typeCode = _commandTypeCodeProvider.GetTypeCode(command);
-            var data = PayloadUtils.EncodePayload(new ByteTypeData(typeCode, raw));
+            var data = ByteTypeDataUtils.Encode(new ByteTypeData(typeCode, raw));
             var message = new Message(topic, data);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
             _producer.SendAsync(message, command.AggregateRootId).ContinueWith(sendTask =>

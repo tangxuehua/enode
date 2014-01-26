@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using EQueue.Utils;
 
 namespace ENode.EQueue
 {
