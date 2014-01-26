@@ -82,6 +82,14 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
+        /// <summary>Set the command executor.
+        /// </summary>
+        /// <param name="commandExecutor"></param>
+        public void SetCommandExecutor(ICommandExecutor commandExecutor)
+        {
+            _retryCommandService.SetCommandExecutor(commandExecutor);
+            _waitingCommandService.SetCommandExecutor(commandExecutor);
+        }
         /// <summary>Commit the domain events to the eventstore and publish the domain events.
         /// </summary>
         /// <param name="context"></param>

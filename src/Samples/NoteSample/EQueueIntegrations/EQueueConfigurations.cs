@@ -1,28 +1,72 @@
-﻿using ENode.Commanding;
+﻿using ECommon.JsonNet;
+using ECommon.Log4Net;
+using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.Eventing;
+using EQueue.Broker;
+using EQueue.Configurations;
 
 namespace NoteSample.EQueueIntegrations
 {
+    public static class ENodeConfigurationExtensions
+    {
+        public static ENodeConfiguration UseLog4Net(this ENodeConfiguration enodeConfiguration)
+        {
+            enodeConfiguration.GetCommonConfiguration().UseLog4Net();
+            return enodeConfiguration;
+        }
+        public static ENodeConfiguration UseLog4Net(this ENodeConfiguration enodeConfiguration, string configFile)
+        {
+            enodeConfiguration.GetCommonConfiguration().UseLog4Net(configFile);
+            return enodeConfiguration;
+        }
+        public static ENodeConfiguration UseJsonNet(this ENodeConfiguration enodeConfiguration)
+        {
+            enodeConfiguration.GetCommonConfiguration().UseJsonNet();
+            return enodeConfiguration;
+        }
+    }
     public static class EQueueConfigurations
     {
+        private static BrokerController _broker;
+        private static CommandService _commandService;
+        private static CommandConsumer _commandConsumer;
+        private static EventPublisher _eventPublisher;
+        private static EventConsumer _eventConsumer;
+
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
 
-            var commandService = new CommandService();
-            var commandConsumer = new CommandConsumer();
-            var eventPublisher = new EventPublisher();
-            var eventConsumer = new EventConsumer();
+            configuration.RegisterEQueueComponents();
+            configuration.SetDefault<ICommandTopicProvider, CommandTopicManager>();
+            configuration.SetDefault<IEventTopicProvider, EventTopicManager>();
+            configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeManager>();
+            configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
 
-            configuration.SetDefault<ICommandService, CommandService>(commandService);
-            configuration.SetDefault<IEventPublisher, EventPublisher>(eventPublisher);
+            _broker = new BrokerController().Initialize();
+            _commandService = new CommandService();
+            _eventPublisher = new EventPublisher();
 
-            commandService.Start();
-            commandConsumer.Start();
-            eventPublisher.Start();
-            eventConsumer.Start();
+            configuration.SetDefault<ICommandService, CommandService>(_commandService);
+            configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
+
+            _commandConsumer = new CommandConsumer();
+            _eventConsumer = new EventConsumer();
+
+            _commandConsumer.Subscribe("NoteCommandTopic");
+            _eventConsumer.Subscribe("NoteTopic");
+
+            return enodeConfiguration;
+        }
+        public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
+        {
+            _broker.Start();
+            _eventConsumer.Start();
+            _commandConsumer.Start();
+            _eventPublisher.Start();
+            _commandService.Start();
 
             return enodeConfiguration;
         }

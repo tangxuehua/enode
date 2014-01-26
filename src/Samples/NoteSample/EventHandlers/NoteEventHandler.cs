@@ -1,6 +1,8 @@
 ﻿using System;
 using ECommon.IoC;
+using ENode.Commanding;
 using ENode.Eventing;
+using NoteSample.Commands;
 using NoteSample.DomainEvents;
 
 namespace NoteSample.EventHandlers
@@ -10,9 +12,17 @@ namespace NoteSample.EventHandlers
         IEventHandler<NoteCreatedEvent>,
         IEventHandler<NoteTitleChangedEvent>
     {
+        private ICommandService _commandService;
+
+        public NoteEventHandler(ICommandService commandService)
+        {
+            _commandService = commandService;
+        }
+
         public void Handle(NoteCreatedEvent evnt)
         {
             Console.WriteLine("Note created, title：{0}", evnt.Title);
+            _commandService.Send(new ChangeNoteTitleCommand(evnt.SourceId, "Modified Note"));
         }
         public void Handle(NoteTitleChangedEvent evnt)
         {

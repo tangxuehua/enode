@@ -53,6 +53,7 @@ namespace ENode.Commanding.Impl
             _publishEventService = publishEventService;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().Name);
+            _commitEventService.SetCommandExecutor(this);
         }
 
         #endregion

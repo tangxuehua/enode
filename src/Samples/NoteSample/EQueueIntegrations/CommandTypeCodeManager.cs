@@ -8,7 +8,6 @@ using NoteSample.Commands;
 
 namespace NoteSample.EQueueIntegrations
 {
-    [Component]
     public class CommandTypeCodeManager : ICommandTypeCodeProvider
     {
         private IDictionary<int, Type> _typeCodeDict = new Dictionary<int, Type>();

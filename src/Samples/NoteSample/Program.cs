@@ -20,13 +20,11 @@ namespace NoteSample
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
-            var noteId = Guid.NewGuid();
-
-            var command1 = new CreateNoteCommand(noteId, "Sample Note");
-            var command2 = new ChangeNoteTitleCommand(noteId, "Modified Note");
-
-            commandService.Send(command1);
-            commandService.Send(command2);
+            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note1"));
+            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note2"));
+            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note3"));
+            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note4"));
+            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note5"));
 
             Console.ReadLine();
         }
@@ -38,14 +36,15 @@ namespace NoteSample
             Configuration
                 .Create()
                 .UseAutofac()
-                .UseLog4Net()
-                .UseJsonNet()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .Initialize(assemblies)
+                .UseLog4Net()
+                .UseJsonNet()
                 .UseEQueue()
-                .Start();
+                .InitializeENode(assemblies)
+                .StartEnode()
+                .StartEQueue();
         }
     }
 }

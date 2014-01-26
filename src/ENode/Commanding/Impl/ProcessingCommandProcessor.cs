@@ -9,15 +9,14 @@ namespace ENode.Commanding.Impl
     {
         private readonly BlockingCollection<ProcessingCommand> _queue;
         private readonly Worker _worker;
-        private readonly ICommandExecutor _commandExecutor;
+        private ICommandExecutor _commandExecutor;
 
         /// <summary>Parameterized costructor.
         /// </summary>
         /// <param name="commandExecutor"></param>
-        public ProcessingCommandProcessor(ICommandExecutor commandExecutor)
+        public ProcessingCommandProcessor()
         {
             _queue = new BlockingCollection<ProcessingCommand>(new ConcurrentQueue<ProcessingCommand>());
-            _commandExecutor = commandExecutor;
             _worker = new Worker(() =>
             {
                 var processingCommand = _queue.Take();
@@ -25,6 +24,19 @@ namespace ENode.Commanding.Impl
             });
         }
 
+        /// <summary>Returns whether the command executor is null.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsCommandExecutorNull()
+        {
+            return _commandExecutor == null;
+        }
+        /// <summary>Set the command executor.
+        /// </summary>
+        public void SetCommandExecutor(ICommandExecutor commandExecutor)
+        {
+            _commandExecutor = commandExecutor;
+        }
         /// <summary>Start the processing command processor.
         /// </summary>
         public void Start()

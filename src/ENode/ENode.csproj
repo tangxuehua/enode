@@ -68,6 +68,7 @@
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
+    <Compile Include="Eventing\Impl\DefaultEventPublisher.cs" />
     <Compile Include="Eventing\Impl\DefaultPublishEventService.cs" />
     <Compile Include="Eventing\IPublishEventService.cs" />
     <Compile Include="Eventing\ISourcingEvent.cs" />

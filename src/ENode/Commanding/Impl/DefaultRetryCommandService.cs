@@ -12,12 +12,18 @@ namespace ENode.Commanding.Impl
         /// <summary>Parameterized costructor.
         /// </summary>
         /// <param name="loggerFactory"></param>
-        public DefaultRetryCommandService(ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
+        public DefaultRetryCommandService(ILoggerFactory loggerFactory)
         {
-            _processor = new ProcessingCommandProcessor(commandExecutor);
+            _processor = new ProcessingCommandProcessor();
             _logger = loggerFactory.Create(GetType().Name);
         }
 
+        /// <summary>Set the command executor.
+        /// </summary>
+        public void SetCommandExecutor(ICommandExecutor commandExecutor)
+        {
+            _processor.SetCommandExecutor(commandExecutor);
+        }
         /// <summary>Start the retry command service.
         /// </summary>
         public void Start()

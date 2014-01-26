@@ -4,7 +4,6 @@ using ENode.Eventing;
 
 namespace NoteSample.EQueueIntegrations
 {
-    [Component]
     public class EventTopicManager : IEventTopicProvider
     {
         public string GetTopic(EventStream eventStream)

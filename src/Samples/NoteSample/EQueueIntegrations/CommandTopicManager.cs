@@ -4,7 +4,6 @@ using ENode.EQueue;
 
 namespace NoteSample.EQueueIntegrations
 {
-    [Component]
     public class CommandTopicManager : ICommandTopicProvider
     {
         public string GetTopic(ICommand command)

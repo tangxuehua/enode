@@ -47,9 +47,6 @@
     <Reference Include="ECommon.JsonNet">
       <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.0\lib\net40\ECommon.JsonNet.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.Log4Net">
-      <HintPath>..\..\..\packages\ecommon.log4net.1.0.0\lib\net40\ECommon.Log4Net.dll</HintPath>
-    </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
@@ -85,12 +82,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="log4net.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\ecommon\src\Extensions\ECommon.Log4Net\ECommon.Log4Net.csproj">
+      <Project>{c69cf480-4b6b-4006-8c17-43054c1ebe1c}</Project>
+      <Name>ECommon.Log4Net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>

@@ -8,7 +8,6 @@ using NoteSample.DomainEvents;
 
 namespace NoteSample.EQueueIntegrations
 {
-    [Component]
     public class EventTypeCodeManager : IEventTypeCodeProvider
     {
         private IDictionary<int, Type> _typeCodeDict = new Dictionary<int, Type>();

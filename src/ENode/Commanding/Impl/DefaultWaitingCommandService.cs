@@ -11,12 +11,18 @@
         /// </summary>
         /// <param name="waitingCommandCache"></param>
         /// <param name="commandExecutor"></param>
-        public DefaultWaitingCommandService(IWaitingCommandCache waitingCommandCache, ICommandExecutor commandExecutor)
+        public DefaultWaitingCommandService(IWaitingCommandCache waitingCommandCache)
         {
             _waitingCommandCache = waitingCommandCache;
-            _processor = new ProcessingCommandProcessor(commandExecutor);
+            _processor = new ProcessingCommandProcessor();
         }
 
+        /// <summary>Set the command executor.
+        /// </summary>
+        public void SetCommandExecutor(ICommandExecutor commandExecutor)
+        {
+            _processor.SetCommandExecutor(commandExecutor);
+        }
         /// <summary>Start the waiting command service.
         /// </summary>
         public void Start()

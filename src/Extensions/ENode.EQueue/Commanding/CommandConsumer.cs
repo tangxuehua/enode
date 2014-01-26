@@ -21,7 +21,7 @@ namespace ENode.EQueue
         private readonly IRepository _repository;
         private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
 
-        public CommandConsumer() : this("Default") { }
+        public CommandConsumer() : this("DefaultCommandConsumer") { }
         public CommandConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }
         public CommandConsumer(ConsumerSetting setting, string groupName) : this(string.Format("CommandConsumer@{0}", SocketUtils.GetLocalIPV4()), setting, groupName) { }
         public CommandConsumer(string id, ConsumerSetting setting, string groupName)
@@ -37,6 +37,11 @@ namespace ENode.EQueue
         public CommandConsumer Start()
         {
             _consumer.Start();
+            return this;
+        }
+        public CommandConsumer Subscribe(string topic)
+        {
+            _consumer.Subscribe(topic);
             return this;
         }
         public CommandConsumer Shutdown()

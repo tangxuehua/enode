@@ -88,6 +88,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
             _configuration.SetDefault<ICommandCompletionEventManager, DefaultCommandCompletionEventManager>();
             _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
+            _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
 
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
@@ -96,8 +97,10 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
-            _configuration.SetDefault<IPublishEventService, DefaultPublishEventService>();
+            _configuration.SetDefault<IEventPublisher, DefaultEventPublisher>(new DefaultEventPublisher());
+            _configuration.SetDefault<ICommitEventService, DefaultCommitEventService>();
             _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
+            _configuration.SetDefault<IPublishEventService, DefaultPublishEventService>();
 
             _configuration.SetDefault<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
 
@@ -171,7 +174,7 @@ namespace ENode.Configurations
         /// <summary>Initialize all the assembly initializers with the given assemblies.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration Initialize(params Assembly[] assemblies)
+        public ENodeConfiguration InitializeENode(params Assembly[] assemblies)
         {
             ValidateSerializableTypes(assemblies);
             foreach (var assemblyInitializer in _assemblyInitializerServiceTypes.Select(ObjectContainer.Resolve).OfType<IAssemblyInitializer>())
@@ -183,7 +186,7 @@ namespace ENode.Configurations
         /// <summary>Start the enode framework.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration Start()
+        public ENodeConfiguration StartEnode()
         {
             ObjectContainer.Resolve<IRetryCommandService>().Start();
             ObjectContainer.Resolve<IWaitingCommandService>().Start();
