@@ -6,6 +6,10 @@ namespace ENode.Commanding
     /// </summary>
     public interface ICommandCompletionEventManager
     {
+        /// <summary>Check whether the given domain event represents the end of a business process.
+        /// </summary>
+        /// <param name="domainEvent"></param>
+        /// <returns></returns>
         bool IsCompletionEvent(IDomainEvent domainEvent);
     }
 }

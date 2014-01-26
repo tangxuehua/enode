@@ -140,5 +140,19 @@ namespace ENode.Eventing.Impl
         }
 
         #endregion
+
+        /// <summary>An internal class to contains the context information when processing the committed event stream.
+        /// </summary>
+        class EventProcessingContext
+        {
+            public EventStream EventStream { get; private set; }
+            public IEventProcessContext EventProcessContext { get; private set; }
+
+            public EventProcessingContext(EventStream eventStream, IEventProcessContext eventProcessContext)
+            {
+                EventStream = eventStream;
+                EventProcessContext = eventProcessContext;
+            }
+        }
     }
 }

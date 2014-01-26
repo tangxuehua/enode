@@ -1,7 +1,4 @@
-﻿using ENode.Eventing;
-using ENode.Infrastructure;
-
-namespace ENode.Commanding
+﻿namespace ENode.Commanding
 {
     /// <summary>Represents a command retry service.
     /// </summary>
@@ -9,6 +6,9 @@ namespace ENode.Commanding
     {
         /// <summary>Retry the given command.
         /// </summary>
-        void RetryCommand(CommandInfo commandInfo, EventCommittingContext context);
+        void RetryCommand(ProcessingCommand processingCommand);
+        /// <summary>Start the retry command service.
+        /// </summary>
+        void Start();
     }
 }

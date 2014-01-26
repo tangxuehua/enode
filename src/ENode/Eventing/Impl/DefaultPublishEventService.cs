@@ -20,7 +20,7 @@ namespace ENode.Eventing.Impl
             _logger = loggerFactory.Create(GetType().Name);
         }
 
-        public void PublishEvent(EventStream eventStream, ICommand command, ICommandExecuteContext commandExecuteContext)
+        public void PublishEvent(EventStream eventStream, ProcessingCommand processingCommand)
         {
             var publishEvents = new Func<bool>(() =>
             {
@@ -38,8 +38,8 @@ namespace ENode.Eventing.Impl
 
             _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, new ActionInfo("PublishEventsCallback", data =>
             {
-                _processingCommandCache.TryRemove(eventStream.CommandId);
-                commandExecuteContext.OnCommandExecuted(command);
+                _processingCommandCache.Remove(eventStream.CommandId);
+                processingCommand.CommandExecuteContext.OnCommandExecuted(processingCommand.Command);
                 return true;
             }, null, null));
         }

@@ -19,9 +19,11 @@ namespace ENode.EQueue
             _trackingAggregateRoots = new List<IAggregateRoot>();
             _repository = repository;
             QueueMessage = queueMessage;
+            CheckCommandWaiting = true;
             CommandHandledAction = commandHandledAction;
         }
 
+        public bool CheckCommandWaiting { get; set; }
         public void OnCommandExecuted(ICommand command)
         {
             CommandHandledAction(command, QueueMessage);

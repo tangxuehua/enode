@@ -1,8 +1,4 @@
-﻿using System;
-using ECommon.Logging;
-using ENode.Configurations;
-using ENode.Eventing;
-using ENode.Messaging;
+﻿using ECommon.Logging;
 
 namespace ENode.Commanding.Impl
 {
@@ -10,33 +6,35 @@ namespace ENode.Commanding.Impl
     /// </summary>
     public class DefaultRetryCommandService : IRetryCommandService
     {
-        private ICommandQueue _retryCommandQueue;
+        private readonly ProcessingCommandProcessor _processor;
         private readonly ILogger _logger;
 
         /// <summary>Parameterized costructor.
         /// </summary>
         /// <param name="loggerFactory"></param>
-        public DefaultRetryCommandService(ILoggerFactory loggerFactory)
+        public DefaultRetryCommandService(ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
         {
+            _processor = new ProcessingCommandProcessor(commandExecutor);
             _logger = loggerFactory.Create(GetType().Name);
         }
 
-        /// <summary>Retry the given command.
+        /// <summary>Start the retry command service.
         /// </summary>
-        /// <param name="commandInfo"></param>
-        /// <param name="eventCommittingContext"></param>
-        public void RetryCommand(CommandInfo commandInfo, EventCommittingContext eventCommittingContext)
+        public void Start()
         {
-            if (_retryCommandQueue == null)
-            {
-                _retryCommandQueue = ENodeConfiguration.Instance.GetRetryCommandQueue();
-            }
-            var command = commandInfo.Command;
+            _processor.Start();
+        }
 
-            if (commandInfo.RetriedCount < command.RetryCount)
+        /// <summary>Retry the given processing command.
+        /// </summary>
+        /// <param name="processingCommand"></param>
+        public void RetryCommand(ProcessingCommand processingCommand)
+        {
+            var command = processingCommand.Command;
+            if (processingCommand.RetriedCount < command.RetryCount)
             {
-                _retryCommandQueue.Enqueue(new Message<EventCommittingContext>(Guid.NewGuid(), eventCommittingContext, _retryCommandQueue.Name));
-                commandInfo.IncreaseRetriedCount();
+                processingCommand.IncreaseRetriedCount();
+                _processor.AddProcessingCommand(processingCommand);
             }
             else
             {

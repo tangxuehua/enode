@@ -85,17 +85,17 @@ namespace ENode.Eventing.Impl
         /// <summary>Commit the domain events to the eventstore and publish the domain events.
         /// </summary>
         /// <param name="context"></param>
-        public void CommitEvent(EventCommittingContext context)
+        public void CommitEvent(EventStream eventStream, ProcessingCommand processingCommand)
         {
             var commitEvents = new Func<bool>(() =>
             {
                 try
                 {
-                    return CommitEvents(context);
+                    return CommitEvents(new EventCommittingContext(eventStream, processingCommand));
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("Exception raised when committing events:{0}.", context.EventStream), ex);
+                    _logger.Error(string.Format("Exception raised when committing events:{0}.", eventStream), ex);
                     return false;
                 }
             });
@@ -114,7 +114,8 @@ namespace ENode.Eventing.Impl
                 case SynchronizeStatus.SynchronizerConcurrentException:
                     return false;
                 case SynchronizeStatus.Failed:
-                    CompleteCommandExecution(context);
+                    _processingCommandCache.Remove(context.EventStream.CommandId);
+                    context.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(context.ProcessingCommand.Command);
                     return true;
                 default:
                 {
@@ -241,7 +242,7 @@ namespace ENode.Eventing.Impl
         }
         private void PublishEvents(EventCommittingContext context)
         {
-            _publishEventService.PublishEvent(context.EventStream, context.Command, context.CommandExecuteContext);
+            _publishEventService.PublishEvent(context.EventStream, context.ProcessingCommand);
         }
         private SynchronizeStatus SyncBeforeEventPersisting(EventStream eventStream)
         {
@@ -306,10 +307,10 @@ namespace ENode.Eventing.Impl
             {
                 var eventStream = context.EventStream;
 
-                var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
-                if (commandInfo != null)
+                var processingCommand = _processingCommandCache.Get(eventStream.CommandId);
+                if (processingCommand != null)
                 {
-                    _retryCommandService.RetryCommand(commandInfo, context);
+                    _retryCommandService.RetryCommand(processingCommand);
                 }
                 else
                 {
@@ -320,11 +321,6 @@ namespace ENode.Eventing.Impl
             };
             _actionExecutionService.TryAction("RetryCommand", retryCommand, 3, null);
         }
-        private void CompleteCommandExecution(EventCommittingContext context)
-        {
-            _processingCommandCache.TryRemove(context.EventStream.CommandId);
-            context.CommandExecuteContext.OnCommandExecuted(context.Command);
-        }
 
         #endregion
 
@@ -333,6 +329,18 @@ namespace ENode.Eventing.Impl
             Success,
             SynchronizerConcurrentException,
             Failed
+        }
+        class EventCommittingContext
+        {
+            public EventStream EventStream { get; private set; }
+            public ProcessingCommand ProcessingCommand { get; private set; }
+            public ConcurrentException ConcurrentException { get; set; }
+
+            public EventCommittingContext(EventStream eventStream, ProcessingCommand processingCommand)
+            {
+                EventStream = eventStream;
+                ProcessingCommand = processingCommand;
+            }
         }
     }
 }

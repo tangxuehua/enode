@@ -4,6 +4,6 @@ namespace ENode.Eventing
 {
     public interface IPublishEventService
     {
-        void PublishEvent(EventStream eventStream, ICommand command, ICommandExecuteContext commandExecuteContext);
+        void PublishEvent(EventStream eventStream, ProcessingCommand processingCommand);
     }
 }

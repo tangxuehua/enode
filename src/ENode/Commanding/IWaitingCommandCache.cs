@@ -9,11 +9,11 @@ namespace ENode.Commanding
         /// <summary>Try to add a waiting command for the specified aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        /// <param name="command"></param>
-        bool AddWaitingCommand(object aggregateRootId, ICommand command);
+        /// <param name="processingCommand"></param>
+        bool AddWaitingCommand(object aggregateRootId, ProcessingCommand processingCommand);
         /// <summary>Try to fetch a waiting command for the specified aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        ICommand FetchWaitingCommand(object aggregateRootId);
+        ProcessingCommand FetchWaitingCommand(object aggregateRootId);
     }
 }

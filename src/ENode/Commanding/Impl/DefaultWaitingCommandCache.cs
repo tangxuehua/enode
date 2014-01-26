@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace ENode.Commanding.Impl
 {
@@ -8,7 +7,7 @@ namespace ENode.Commanding.Impl
     public class DefaultWaitingCommandCache : IWaitingCommandCache
     {
         private readonly IDictionary<object, int> _processingCommandCountDict = new Dictionary<object, int>();
-        private readonly IDictionary<object, Queue<ICommand>> _waitingCommandDict = new Dictionary<object, Queue<ICommand>>();
+        private readonly IDictionary<object, Queue<ProcessingCommand>> _processingCommandQueueDict = new Dictionary<object, Queue<ProcessingCommand>>();
 
         /// <summary>Try to add a waiting command for the specified aggregate.
         /// <remarks>
@@ -23,8 +22,8 @@ namespace ENode.Commanding.Impl
         /// </remarks>
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        /// <param name="command"></param>
-        public bool AddWaitingCommand(object aggregateRootId, ICommand command)
+        /// <param name="processingCommand"></param>
+        public bool AddWaitingCommand(object aggregateRootId, ProcessingCommand processingCommand)
         {
             lock (this)
             {
@@ -38,11 +37,11 @@ namespace ENode.Commanding.Impl
                 }
                 if (_processingCommandCountDict[aggregateRootId] > 1)
                 {
-                    if (!_waitingCommandDict.ContainsKey(aggregateRootId))
+                    if (!_processingCommandQueueDict.ContainsKey(aggregateRootId))
                     {
-                        _waitingCommandDict.Add(aggregateRootId, new Queue<ICommand>());
+                        _processingCommandQueueDict.Add(aggregateRootId, new Queue<ProcessingCommand>());
                     }
-                    _waitingCommandDict[aggregateRootId].Enqueue(command);
+                    _processingCommandQueueDict[aggregateRootId].Enqueue(processingCommand);
                     return true;
                 }
                 return false;
@@ -52,24 +51,24 @@ namespace ENode.Commanding.Impl
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public ICommand FetchWaitingCommand(object aggregateRootId)
+        public ProcessingCommand FetchWaitingCommand(object aggregateRootId)
         {
             lock (this)
             {
                 if (_processingCommandCountDict.ContainsKey(aggregateRootId))
                 {
-                    ICommand command = null;
+                    ProcessingCommand processingCommand = null;
                     _processingCommandCountDict[aggregateRootId] -= 1;
                     if (_processingCommandCountDict[aggregateRootId] > 0)
                     {
-                        command = _waitingCommandDict[aggregateRootId].Dequeue();
+                        processingCommand = _processingCommandQueueDict[aggregateRootId].Dequeue();
                     }
                     else
                     {
                         _processingCommandCountDict.Remove(aggregateRootId);
-                        _waitingCommandDict.Remove(aggregateRootId);
+                        _processingCommandQueueDict.Remove(aggregateRootId);
                     }
-                    return command;
+                    return processingCommand;
                 }
                 return null;
             }

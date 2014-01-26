@@ -65,62 +65,56 @@ namespace ENode.Commanding.Impl
         /// <param name="context">The context when executing the command.</param>
         public void Execute(ICommand command, ICommandExecuteContext context)
         {
-            if (!CheckWaitingCommand(command))
-            {
-                HandleCommand(command, context);
-            }
-        }
-
-        #endregion
-
-        #region Protected Methods
-
-        /// <summary>Check whether the command is added to the waiting command cache.
-        /// </summary>
-        /// <param name="command"></param>
-        /// <returns></returns>
-        protected virtual bool CheckWaitingCommand(ICommand command)
-        {
-            if (command is ICreatingAggregateCommand)
-            {
-                return false;
-            }
-            return _waitingCommandCache.AddWaitingCommand(command.AggregateRootId, command);
-        }
-        /// <summary>Acutally handle the command.
-        /// </summary>
-        /// <param name="command"></param>
-        protected virtual void HandleCommand(ICommand command, ICommandExecuteContext context)
-        {
-            var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
-            if (commandHandler == null)
-            {
-                _logger.Fatal(string.Format("Command handler not found for {0}", command.GetType().FullName));
-                context.OnCommandExecuted(command);
-                return;
-            }
-
-            try
-            {
-                _processingCommandCache.Add(command);
-                commandHandler.Handle(context, command);
-                CommitChanges(context, command);
-            }
-            catch (Exception ex)
-            {
-                var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}], commandId:{2}, aggregateRootId:{3}.", commandHandlerType.Name, command.GetType().Name, command.Id, command.AggregateRootId), ex);
-                throw;
-            }
+            HandleCommand(new ProcessingCommand(command, context));
         }
 
         #endregion
 
         #region Private Methods
 
-        private void CommitChanges(ICommandExecuteContext commandExecuteContext, ICommand command)
+        private void HandleCommand(ProcessingCommand processingCommand)
         {
-            var dirtyAggregate = GetDirtyAggregate(commandExecuteContext);
+            if (processingCommand.CommandExecuteContext.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
+            {
+                return;
+            }
+
+            var command = processingCommand.Command;
+            var context = processingCommand.CommandExecuteContext;
+            var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
+            if (commandHandler == null)
+            {
+                _logger.Fatal(string.Format("Command handler not found for {0}", command.GetType().FullName));
+                processingCommand.CommandExecuteContext.OnCommandExecuted(command);
+                return;
+            }
+
+            try
+            {
+                _processingCommandCache.Add(processingCommand);
+                commandHandler.Handle(context, command);
+                CommitChanges(processingCommand);
+            }
+            catch (Exception ex)
+            {
+                var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
+                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}], commandId:{2}, aggregateRootId:{3}.", commandHandlerType.Name, command.GetType().Name, command.Id, command.AggregateRootId), ex);
+                context.OnCommandExecuted(command);
+            }
+        }
+        private bool TryToAddWaitingCommand(ProcessingCommand processingCommand)
+        {
+            if (processingCommand.Command is ICreatingAggregateCommand)
+            {
+                return false;
+            }
+            return _waitingCommandCache.AddWaitingCommand(processingCommand.Command.AggregateRootId, processingCommand);
+        }
+        private void CommitChanges(ProcessingCommand processingCommand)
+        {
+            var command = processingCommand.Command;
+            var context = processingCommand.CommandExecuteContext;
+            var dirtyAggregate = GetDirtyAggregate(context);
             if (dirtyAggregate == null)
             {
                 _logger.Info("No dirty aggregate found.");
@@ -129,11 +123,11 @@ namespace ENode.Commanding.Impl
             var eventStream = CreateEventStream(dirtyAggregate, command);
             if (eventStream.Events.Any(x => x is ISourcingEvent))
             {
-                _commitEventService.CommitEvent(new EventCommittingContext(eventStream, command, commandExecuteContext));
+                _commitEventService.CommitEvent(eventStream, processingCommand);
             }
             else
             {
-                _publishEventService.PublishEvent(eventStream, command, commandExecuteContext);
+                _publishEventService.PublishEvent(eventStream, processingCommand);
             }
         }
         private IAggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)

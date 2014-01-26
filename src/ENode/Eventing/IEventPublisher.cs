@@ -1,6 +1,4 @@
-﻿using ENode.Messaging;
-
-namespace ENode.Eventing
+﻿namespace ENode.Eventing
 {
     /// <summary>Represents a publisher to publish the committed event stream to all the event handlers.
     /// </summary>

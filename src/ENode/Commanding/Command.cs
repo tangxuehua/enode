@@ -1,5 +1,4 @@
 ﻿using System;
-using ENode.Messaging;
 
 namespace ENode.Commanding
 {
@@ -25,7 +24,7 @@ namespace ENode.Commanding
                 return _aggregateRootId;
             }
         }
-        /// <summary>Get or set times which the command should be retry. The retry count must small than the MaxRetryCount;
+        /// <summary>Get or set the count which the command should be retry. The retry count must small than the MaxRetryCount;
         /// </summary>
         public int RetryCount
         {

@@ -6,18 +6,18 @@ namespace ENode.Commanding
     /// </summary>
     public interface IProcessingCommandCache
     {
-        /// <summary>Add a command into memory cache.
+        /// <summary>Add a processing command to memory cache.
         /// </summary>
-        /// <param name="command"></param>
-        void Add(ICommand command);
-        /// <summary>Try to remove a command from memory cache.
+        /// <param name="processingCommand"></param>
+        void Add(ProcessingCommand processingCommand);
+        /// <summary>Remove a processing command from memory cache.
         /// </summary>
         /// <param name="commandId"></param>
-        void TryRemove(Guid commandId);
-        /// <summary>Get the command info from memory cache.
+        void Remove(Guid commandId);
+        /// <summary>Try to get a processing command from memory cache if exists.
         /// </summary>
         /// <param name="commandId"></param>
         /// <returns></returns>
-        CommandInfo Get(Guid commandId);
+        ProcessingCommand Get(Guid commandId);
     }
 }

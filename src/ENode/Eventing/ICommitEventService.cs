@@ -1,7 +1,8 @@
-﻿namespace ENode.Eventing
+﻿using ENode.Commanding;
+namespace ENode.Eventing
 {
     public interface ICommitEventService
     {
-        void CommitEvent(EventCommittingContext context);
+        void CommitEvent(EventStream eventStream, ProcessingCommand processingCommand);
     }
 }

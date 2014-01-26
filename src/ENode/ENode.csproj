@@ -39,22 +39,13 @@
     <DocumentationFile>bin\Release\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Commanding\CommandInfo.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
-    <Compile Include="Commanding\ICommandProcessor.cs" />
-    <Compile Include="Commanding\ICommandQueue.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandMessageHandler.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandProcessor.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandQueue.cs" />
-    <Compile Include="Eventing\EventCommittingContext.cs" />
+    <Compile Include="Commanding\Impl\ProcessingCommandProcessor.cs" />
+    <Compile Include="Commanding\ProcessingCommand.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
-    <Compile Include="Commanding\ICommandMessageHandler.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
-    <Compile Include="Commanding\Impl\DefaultWaitingCommandProcessor.cs" />
-    <Compile Include="Commanding\Impl\DefaultWaitingCommandMessageHandler.cs" />
     <Compile Include="Commanding\ICreatingAggregateCommand.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandCompletionEventManager.cs" />
-    <Compile Include="Commanding\IWaitingCommandMessageHandler.cs" />
     <Compile Include="Commanding\ICommandExecutor.cs" />
     <Compile Include="Commanding\Impl\DefaultWaitingCommandService.cs" />
     <Compile Include="Commanding\IWaitingCommandService.cs" />
@@ -73,7 +64,6 @@
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Eventing\AggregateVersionInfo.cs" />
-    <Compile Include="Eventing\EventProcessResult.cs" />
     <Compile Include="Eventing\IEventProcessContext.cs" />
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
@@ -84,7 +74,6 @@
     <Compile Include="Eventing\IEventSynchronizer.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
     <Compile Include="Eventing\IEventProcessor.cs" />
-    <Compile Include="Eventing\EventProcessingContext.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
     <Compile Include="Eventing\ICompletionEvent.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
@@ -115,22 +104,13 @@
     <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Infrastructure\Sql\ISqlQueryDbConnectionFactory.cs" />
-    <Compile Include="Messaging\IMessage.cs" />
-    <Compile Include="Messaging\Impl\MessageProcessor.cs" />
-    <Compile Include="Messaging\IMessageProcessor.cs" />
-    <Compile Include="Messaging\Impl\MessageHandler.cs" />
-    <Compile Include="Messaging\IMessageQueue.cs" />
-    <Compile Include="Messaging\Impl\MessageQueue.cs" />
     <Compile Include="Commanding\IRetryCommandService.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />
     <Compile Include="Domain\Impl\EventSourcingRepository.cs" />
     <Compile Include="Domain\IRepository.cs" />
     <Compile Include="Commanding\Impl\CommandHandlerWrapper.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandHandlerProvider.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandContext.cs" />
     <Compile Include="Commanding\Impl\DefaultProcessingCommandCache.cs" />
-    <Compile Include="Messaging\IMessageHandler.cs" />
-    <Compile Include="Messaging\Message.cs" />
     <Compile Include="Infrastructure\Dapper\SqlMapper_Extensions.cs" />
     <Compile Include="Infrastructure\Dapper\SqlMapper.cs">
       <SubType>Code</SubType>

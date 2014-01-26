@@ -1,25 +1,27 @@
-﻿using System;
-using ECommon.Logging;
-using ENode.Configurations;
-using ENode.Infrastructure.Logging;
-using ENode.Messaging;
-
-namespace ENode.Commanding.Impl
+﻿namespace ENode.Commanding.Impl
 {
     /// <summary>The default implementation of IWaitingCommandService.
     /// </summary>
     public class DefaultWaitingCommandService : IWaitingCommandService
     {
         private readonly IWaitingCommandCache _waitingCommandCache;
-        private ICommandQueue _waitingCommandQueue;
+        private readonly ProcessingCommandProcessor _processor;
 
         /// <summary>Parameterized costructor.
         /// </summary>
         /// <param name="waitingCommandCache"></param>
-        /// <param name="loggerFactory"></param>
-        public DefaultWaitingCommandService(IWaitingCommandCache waitingCommandCache, ILoggerFactory loggerFactory)
+        /// <param name="commandExecutor"></param>
+        public DefaultWaitingCommandService(IWaitingCommandCache waitingCommandCache, ICommandExecutor commandExecutor)
         {
             _waitingCommandCache = waitingCommandCache;
+            _processor = new ProcessingCommandProcessor(commandExecutor);
+        }
+
+        /// <summary>Start the waiting command service.
+        /// </summary>
+        public void Start()
+        {
+            _processor.Start();
         }
 
         /// <summary>Try to send an available waiting command to the waiting command queue.
@@ -27,16 +29,11 @@ namespace ENode.Commanding.Impl
         /// <param name="aggregateRootId">The aggregate root id.</param>
         public void SendWaitingCommand(object aggregateRootId)
         {
-            if (_waitingCommandQueue == null)
+            var processingCommand = _waitingCommandCache.FetchWaitingCommand(aggregateRootId);
+            if (processingCommand != null)
             {
-                _waitingCommandQueue = ENodeConfiguration.Instance.GetWaitingCommandQueue();
-            }
-            var command = _waitingCommandCache.FetchWaitingCommand(aggregateRootId);
-
-            if (command != null)
-            {
-                //TODO
-                //_waitingCommandQueue.Enqueue(new Message<ICommand>(Guid.NewGuid(), command, _waitingCommandQueue.Name));
+                processingCommand.CommandExecuteContext.CheckCommandWaiting = false;
+                _processor.AddProcessingCommand(processingCommand);
             }
         }
     }

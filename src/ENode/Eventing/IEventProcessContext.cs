@@ -1,6 +1,6 @@
 ﻿namespace ENode.Eventing
 {
-    /// <summary>Represents a context environment for event processor processing committed event stream.
+    /// <summary>Represents a context environment for processing committed event stream.
     /// </summary>
     public interface IEventProcessContext
     {
