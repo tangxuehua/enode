@@ -48,8 +48,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commanding\CommandConsumer.cs" />
-    <Compile Include="Eventing\EventProcessContext.cs" />
-    <Compile Include="Commanding\CommandExecuteContext.cs" />
     <Compile Include="Eventing\EventConsumer.cs" />
     <Compile Include="Eventing\EventPublisher.cs" />
     <Compile Include="Eventing\EventStreamData.cs" />
