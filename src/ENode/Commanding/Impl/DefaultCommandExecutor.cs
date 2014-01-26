@@ -5,27 +5,20 @@ using ECommon.Logging;
 using ECommon.Retring;
 using ENode.Domain;
 using ENode.Eventing;
-using ENode.Messaging;
-using ENode.Messaging.Impl;
 
 namespace ENode.Commanding.Impl
 {
-    /// <summary>The default implementation of ICommandMessageHandler.
-    /// </summary>
-    public class DefaultCommandMessageHandler : MessageHandler<ICommand>, ICommandMessageHandler
+    public class DefaultCommandExecutor : ICommandExecutor
     {
         #region Private Variables
 
-        private readonly ICommandTaskManager _commandTaskManager;
         private readonly IWaitingCommandCache _waitingCommandCache;
         private readonly IProcessingCommandCache _processingCommandCache;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
-        private readonly IUncommittedEventSender _uncommittedEventSender;
-        private readonly IEventPublisher _committedEventSender;
+        private readonly ICommitEventService _commitEventService;
+        private readonly IEventPublisher _eventPublisher;
         private readonly IActionExecutionService _actionExecutionService;
-        private readonly ICommandContext _commandContext;
-        private readonly ITrackingContext _trackingContext;
         private readonly ILogger _logger;
 
         #endregion
@@ -34,59 +27,47 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="commandTaskManager"></param>
         /// <param name="waitingCommandCache"></param>
         /// <param name="processingCommandCache"></param>
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
-        /// <param name="eventSender"></param>
-        /// <param name="committedEventSender"></param>
+        /// <param name="commitEventService"></param>
+        /// <param name="eventPublisher"></param>
         /// <param name="actionExecutionService"></param>
-        /// <param name="commandContext"></param>
         /// <param name="loggerFactory"></param>
-        /// <exception cref="Exception"></exception>
-        public DefaultCommandMessageHandler(
-            ICommandTaskManager commandTaskManager,
+        public DefaultCommandExecutor(
             IWaitingCommandCache waitingCommandCache,
             IProcessingCommandCache processingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
-            IUncommittedEventSender uncommittedEventSender,
-            IEventPublisher committedEventSender,
+            ICommitEventService commitEventService,
+            IEventPublisher eventPublisher,
             IActionExecutionService actionExecutionService,
-            ICommandContext commandContext,
             ILoggerFactory loggerFactory)
         {
-            _commandTaskManager = commandTaskManager;
             _waitingCommandCache = waitingCommandCache;
             _processingCommandCache = processingCommandCache;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
-            _uncommittedEventSender = uncommittedEventSender;
-            _committedEventSender = committedEventSender;
+            _commitEventService = commitEventService;
+            _eventPublisher = eventPublisher;
             _actionExecutionService = actionExecutionService;
-            _commandContext = commandContext;
-            _trackingContext = commandContext as ITrackingContext;
             _logger = loggerFactory.Create(GetType().Name);
-
-            if (_trackingContext == null)
-            {
-                throw new Exception("Command context must also implement ITrackingContext interface.");
-            }
         }
 
         #endregion
 
         #region Public Methods
 
-        /// <summary>Handle the given command message.
+        /// <summary>Executes the given command.
         /// </summary>
-        /// <param name="message">The command message.</param>
-        public override void Handle(Message<ICommand> message)
+        /// <param name="command">The command to execute.</param>
+        /// <param name="context">The context when executing the command.</param>
+        public void Execute(ICommand command, ICommandExecuteContext context)
         {
-            if (!CheckWaitingCommand(message.Payload))
+            if (!CheckWaitingCommand(command))
             {
-                HandleCommand(message.Payload);
+                HandleCommand(command, context);
             }
         }
 
@@ -109,39 +90,27 @@ namespace ENode.Commanding.Impl
         /// <summary>Acutally handle the command.
         /// </summary>
         /// <param name="command"></param>
-        /// <param name="queue"></param>
-        protected virtual void HandleCommand(ICommand command)
+        protected virtual void HandleCommand(ICommand command, ICommandExecuteContext context)
         {
             var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
-
             if (commandHandler == null)
             {
-                var errorMessage = string.Format("Command handler not found for {0}", command.GetType().FullName);
-                _logger.Fatal(errorMessage);
-                _commandTaskManager.CompleteCommandTask(command.Id, errorMessage);
+                _logger.Fatal(string.Format("Command handler not found for {0}", command.GetType().FullName));
+                context.OnCommandExecuted(command);
                 return;
             }
 
             try
             {
                 _processingCommandCache.Add(command);
-                commandHandler.Handle(_commandContext, command);
-                var dirtyAggregate = GetDirtyAggregate(_trackingContext);
-                if (dirtyAggregate != null)
-                {
-                    CommitAggregate(dirtyAggregate, command);
-                }
-                else
-                {
-                    _logger.Info("No dirty aggregate found, finish the command execution directly.");
-                }
+                commandHandler.Handle(context, command);
+                CommitChanges(context, command);
             }
             catch (Exception ex)
             {
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                var errorMessage = string.Format("Exception raised when {0} handling {1}, command id:{2}.", commandHandlerType.Name, command.GetType().Name, command.Id);
-                _logger.Error(errorMessage, ex);
-                _commandTaskManager.CompleteCommandTask(command.Id, ex);
+                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}], commandId:{2}, aggregateRootId:{3}.", commandHandlerType.Name, command.GetType().Name, command.Id, command.AggregateRootId), ex);
+                throw;
             }
         }
 
@@ -166,25 +135,22 @@ namespace ENode.Commanding.Impl
 
             return dirtyAggregateRoots.Single();
         }
-        private void CommitAggregate(IAggregateRoot dirtyAggregate, ICommand command)
+        private void CommitChanges(ICommandExecuteContext commandExecuteContext, ICommand command)
         {
+            var dirtyAggregate = GetDirtyAggregate(commandExecuteContext);
+            if (dirtyAggregate == null)
+            {
+                _logger.Info("No dirty aggregate found.");
+                return;
+            }
             var eventStream = CreateEventStream(dirtyAggregate, command);
-
             if (eventStream.Events.Any(x => x is ISourcingEvent))
             {
-                _actionExecutionService.TryAction(
-                    "SendEvents",
-                    () => SendEvents(eventStream),
-                    3,
-                    null);
+                _commitEventService.CommitEvent(new EventCommittingContext(eventStream, command, commandExecuteContext));
             }
             else
             {
-                _actionExecutionService.TryAction(
-                    "PublishEvents",
-                    () => PublishEvents(eventStream),
-                    3,
-                    new ActionInfo("PublishEventsCallback", data => { _processingCommandCache.TryRemove(eventStream.CommandId); return true; }, null, null));
+                PublishEvents(eventStream, command, commandExecuteContext);
             }
         }
         private EventStream CreateEventStream(IAggregateRoot aggregateRoot, ICommand command)
@@ -204,31 +170,28 @@ namespace ENode.Commanding.Impl
                 DateTime.UtcNow,
                 uncommittedEvents);
         }
-        private bool SendEvents(EventStream eventStream)
+        private void PublishEvents(EventStream eventStream, ICommand command, ICommandExecuteContext commandExecuteContext)
         {
-            try
+            var publishEvents = new Func<bool>(() =>
             {
-                _uncommittedEventSender.Send(eventStream);
+                try
+                {
+                    _eventPublisher.Send(eventStream);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream.GetStreamInformation()), ex);
+                    return false;
+                }
+            });
+
+            _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, new ActionInfo("PublishEventsCallback", data =>
+            {
+                _processingCommandCache.TryRemove(eventStream.CommandId);
+                commandExecuteContext.OnCommandExecuted(command);
                 return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("Exception raised when sending events:{0}", eventStream.GetStreamInformation()), ex);
-                return false;
-            }
-        }
-        private bool PublishEvents(EventStream eventStream)
-        {
-            try
-            {
-                _committedEventSender.Send(eventStream);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream.GetStreamInformation()), ex);
-                return false;
-            }
+            }, null, null));
         }
         private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IDomainEvent> evnts)
         {

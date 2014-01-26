@@ -31,7 +31,7 @@ namespace ENode.Commanding.Impl
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IUncommittedEventSender uncommittedEventSender,
-            ICommittedEventSender committedEventSender,
+            IEventPublisher committedEventSender,
             IActionExecutionService actionExecutionService,
             ICommandContext commandContext,
             ILoggerFactory loggerFactory)

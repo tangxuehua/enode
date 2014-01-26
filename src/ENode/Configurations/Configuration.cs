@@ -118,6 +118,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventSourcingService, DefaultEventSourcingService>();
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
+            _configuration.SetDefault<IAggregateStorage, EventSourcingAggregateStorage>();
             _configuration.SetDefault<IRepository, EventSourcingRepository>();
             _configuration.SetDefault<IMemoryCacheRebuilder, DefaultMemoryCacheRebuilder>();
 
@@ -145,7 +146,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommittedEventQueueRouter, DefaultCommittedEventQueueRouter>();
             _configuration.SetDefault<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
             _configuration.SetDefault<IUncommittedEventSender, DefaultUncommittedEventSender>();
-            _configuration.SetDefault<ICommittedEventSender, DefaultCommittedEventSender>();
+            _configuration.SetDefault<IEventPublisher, DefaultEventPublisher>();
 
             _configuration.SetDefault<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
             _configuration.SetDefault<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);

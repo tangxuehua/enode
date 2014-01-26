@@ -4,26 +4,23 @@ using ECommon.Retring;
 using ENode.Commanding;
 using ENode.Domain;
 using ENode.Infrastructure;
-using ENode.Messaging;
-using ENode.Messaging.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>The default implementation of IUncommittedEventMessageHandler.
+    /// <summary>The default implementation of ICommitService.
     /// </summary>
-    public class DefaultUncommittedEventMessageHandler : MessageHandler<EventStream>, IUncommittedEventMessageHandler
+    public class DefaultCommitEventService : ICommitEventService
     {
         #region Private Variables
 
         private readonly ICommandCompletionEventManager _commandCompletionEventManager;
-        private readonly ICommandTaskManager _commandTaskManager;
         private readonly IWaitingCommandService _waitingCommandService;
         private readonly IProcessingCommandCache _processingCommandCache;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IEventSourcingService _eventSourcingService;
         private readonly IMemoryCache _memoryCache;
-        private readonly IRepository _repository;
+        private readonly IAggregateStorage _aggregateStorage;
         private readonly IRetryCommandService _retryCommandService;
         private readonly IEventStore _eventStore;
         private readonly IEventPublisher _committedEventSender;
@@ -38,30 +35,28 @@ namespace ENode.Eventing.Impl
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="commandCompletionEventManager"></param>
-        /// <param name="commandTaskManager"></param>
         /// <param name="waitingCommandService"></param>
         /// <param name="processingCommandCache"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="aggregateRootFactory"></param>
         /// <param name="eventSourcingService"></param>
         /// <param name="memoryCache"></param>
-        /// <param name="repository"></param>
+        /// <param name="aggregateStorage"></param>
         /// <param name="retryCommandService"></param>
         /// <param name="eventStore"></param>
-        /// <param name="eventPublisher"></param>
+        /// <param name="committedEventSender"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="eventSynchronizerProvider"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultUncommittedEventMessageHandler(
+        public DefaultCommitEventService(
             ICommandCompletionEventManager commandCompletionEventManager,
-            ICommandTaskManager commandTaskManager,
             IWaitingCommandService waitingCommandService,
             IProcessingCommandCache processingCommandCache,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IAggregateRootFactory aggregateRootFactory,
             IEventSourcingService eventSourcingService,
             IMemoryCache memoryCache,
-            IRepository repository,
+            IAggregateStorage aggregateStorage,
             IRetryCommandService retryCommandService,
             IEventStore eventStore,
             IEventPublisher committedEventSender,
@@ -70,14 +65,13 @@ namespace ENode.Eventing.Impl
             ILoggerFactory loggerFactory)
         {
             _commandCompletionEventManager = commandCompletionEventManager;
-            _commandTaskManager = commandTaskManager;
             _waitingCommandService = waitingCommandService;
             _processingCommandCache = processingCommandCache;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _aggregateRootFactory = aggregateRootFactory;
             _eventSourcingService = eventSourcingService;
             _memoryCache = memoryCache;
-            _repository = repository;
+            _aggregateStorage = aggregateStorage;
             _retryCommandService = retryCommandService;
             _eventStore = eventStore;
             _committedEventSender = committedEventSender;
@@ -88,75 +82,75 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>Handle the given event stream message.
+        /// <summary>Commit the domain events to the eventstore and publish the domain events.
         /// </summary>
-        /// <param name="message"></param>
-        public override void Handle(Message<EventStream> message)
+        /// <param name="context"></param>
+        public void CommitEvent(EventCommittingContext context)
         {
-            //TODO
-            //var context = new EventStreamContext { EventStream = eventStream, Queue = queue };
+            var commitEvents = new Func<bool>(() =>
+            {
+                try
+                {
+                    return CommitEvents(context);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(string.Format("Exception raised when committing events:{0}.", context.EventStream.GetStreamInformation()), ex);
+                    return false;
+                }
+            });
 
-            //Func<bool> commitEvents = () =>
-            //{
-            //    try
-            //    {
-            //        return CommitEvents(context);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        _logger.Error(string.Format("Exception raised when committing events:{0}.", context.EventStream.GetStreamInformation()), ex);
-            //        return false;
-            //    }
-            //};
-
-            //_actionExecutionService.TryAction("CommitEvents", commitEvents, 3, null);
+            _actionExecutionService.TryAction("CommitEvents", commitEvents, 3, null);
         }
 
         #region Private Methods
 
-        private bool CommitEvents(EventProcessingContext context)
+        private bool CommitEvents(EventCommittingContext context)
         {
-            var synchronizeResult = SyncBeforeEventPersisting(context.EventStream);
+            var synchronizeStatus = SyncBeforeEventPersisting(context.EventStream);
 
-            switch (synchronizeResult.Status)
+            switch (synchronizeStatus)
             {
                 case SynchronizeStatus.SynchronizerConcurrentException:
                     return false;
                 case SynchronizeStatus.Failed:
-                    CompleteCommandTask(context.EventStream, synchronizeResult.Exception);
-                    CleanEvents(context);
+                    CompleteCommandExecution(context);
                     return true;
                 default:
                 {
-                    Func<object, bool> persistEventsCallback = (obj) =>
+                    var persistEventsCallback = new Func<object, bool>(obj =>
                     {
-                        var eventStream = context.EventStream;
-                        //TODO
-                        //if (context.ConcurrentException != null)
-                        //{
-                        //    RefreshMemoryCache(eventStream);
-                        //    RetryCommand(context, context.ConcurrentException, new ActionInfo("RetryCommandCallback", data => { context.Queue.Delete(eventStream); return true; }, null, null));
-                        //}
-                        //else
-                        //{
-                        //    RefreshMemoryCache(eventStream);
-                        //    CompleteCommandTask(eventStream, null);
-                        //    SendWaitingCommand(eventStream);
-                        //    SyncAfterEventPersisted(eventStream);
-                        //    PublishEvents(eventStream, new ActionInfo("PublishEventsCallback", data => { CleanEvents(context); return true; }, null, null));
-                        //}
-                        return true;
-                    };
+                        var currentContext = obj as EventCommittingContext;
+                        var eventStream = currentContext.EventStream;
 
-                    PersistEvents(context, new ActionInfo("PersistEventsCallback", persistEventsCallback, null, null));
+                        if (currentContext.ConcurrentException != null)
+                        {
+                            RefreshMemoryCacheFromEventStore(eventStream);
+                            RetryCommand(currentContext);
+                        }
+                        else
+                        {
+                            RefreshMemoryCache(eventStream);
+                            SendWaitingCommand(eventStream);
+                            SyncAfterEventPersisted(eventStream);
+                            PublishEvents(eventStream, new ActionInfo("PublishEventsCallback", data =>
+                            {
+                                CompleteCommandExecution(data as EventCommittingContext);
+                                return true;
+                            }, currentContext, null));
+                        }
+                        return true;
+                    });
+
+                    PersistEvents(context, new ActionInfo("PersistEventsCallback", persistEventsCallback, context, null));
 
                     return true;
                 }
             }
         }
-        private void PersistEvents(EventProcessingContext context, ActionInfo successCallback)
+        private void PersistEvents(EventCommittingContext context, ActionInfo successCallback)
         {
-            Func<bool> persistEvents = () =>
+            var persistEvents = new Func<bool>(() =>
             {
                 try
                 {
@@ -165,38 +159,17 @@ namespace ENode.Eventing.Impl
                 }
                 catch (Exception ex)
                 {
-                    var errorMessage = string.Format("{0} raised when persisting events:{1}", ex.GetType().Name, context.EventStream.GetStreamInformation());
-                    _logger.Error(errorMessage, ex);
-
+                    _logger.Error(string.Format("{0} raised when persisting events:{1}", ex.GetType().Name, context.EventStream.GetStreamInformation()), ex);
                     if (ex is ConcurrentException)
                     {
-                        //context.SetConcurrentException(ex as ConcurrentException);
+                        context.ConcurrentException = ex as ConcurrentException;
                         return true;
                     }
-
                     return false;
                 }
-            };
+            });
 
             _actionExecutionService.TryAction("PersistEvents", persistEvents, 3, successCallback);
-        }
-        private void CompleteCommandTask(EventStream eventStream, Exception exception)
-        {
-            foreach (var evnt in eventStream.Events)
-            {
-                if (_commandCompletionEventManager.IsCompletionEvent(evnt))
-                {
-                    if (exception == null)
-                    {
-                        _commandTaskManager.CompleteCommandTask(eventStream.CommandId);
-                    }
-                    else
-                    {
-                        _commandTaskManager.CompleteCommandTask(eventStream.CommandId, exception);
-                    }
-                    break;
-                }
-            }
         }
         private void SendWaitingCommand(EventStream eventStream)
         {
@@ -224,7 +197,7 @@ namespace ENode.Eventing.Impl
                     var aggregateRoot = _memoryCache.Get(eventStream.AggregateRootId, aggregateRootType);
                     if (aggregateRoot == null)
                     {
-                        aggregateRoot = _repository.Get(aggregateRootType, eventStream.AggregateRootId);
+                        aggregateRoot = _aggregateStorage.Get(aggregateRootType, eventStream.AggregateRootId);
                         if (aggregateRoot != null)
                         {
                             _memoryCache.Set(aggregateRoot);
@@ -237,7 +210,7 @@ namespace ENode.Eventing.Impl
                     }
                     else if (aggregateRoot.Version + 1 < eventStream.Version)
                     {
-                        aggregateRoot = _repository.Get(aggregateRootType, eventStream.AggregateRootId);
+                        aggregateRoot = _aggregateStorage.Get(aggregateRootType, eventStream.AggregateRootId);
                         if (aggregateRoot != null)
                         {
                             _memoryCache.Set(aggregateRoot);
@@ -250,9 +223,29 @@ namespace ENode.Eventing.Impl
                 _logger.Error(string.Format("Exception raised when refreshing memory cache by event stream:{0}", eventStream.GetStreamInformation()), ex);
             }
         }
+        private void RefreshMemoryCacheFromEventStore(EventStream eventStream)
+        {
+            try
+            {
+                var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName);
+                if (aggregateRootType == null)
+                {
+                    throw new Exception(string.Format("Could not find aggregate root type by aggregate root name {0}", eventStream.AggregateRootName));
+                }
+                var aggregateRoot = _aggregateStorage.Get(aggregateRootType, eventStream.AggregateRootId);
+                if (aggregateRoot != null)
+                {
+                    _memoryCache.Set(aggregateRoot);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Exception raised when refreshing memory cache by event stream:{0}", eventStream.GetStreamInformation()), ex);
+            }
+        }
         private void PublishEvents(EventStream eventStream, ActionInfo successCallback)
         {
-            Func<bool> publishEvents = () =>
+            var publishEvents = new Func<bool>(() =>
             {
                 try
                 {
@@ -264,13 +257,13 @@ namespace ENode.Eventing.Impl
                     _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream.GetStreamInformation()), ex);
                     return false;
                 }
-            };
+            });
 
             _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, successCallback);
         }
-        private SynchronizeResult SyncBeforeEventPersisting(EventStream eventStream)
+        private SynchronizeStatus SyncBeforeEventPersisting(EventStream eventStream)
         {
-            var result = new SynchronizeResult {Status = SynchronizeStatus.Success};
+            var status = SynchronizeStatus.Success;
 
             foreach (var evnt in eventStream.Events)
             {
@@ -288,19 +281,21 @@ namespace ENode.Eventing.Impl
                             synchronizer.GetInnerSynchronizer().GetType().Name,
                             eventStream.GetStreamInformation());
                         _logger.Error(errorMessage, ex);
-                        result.Exception = ex;
+
                         if (ex is ConcurrentException)
                         {
-                            result.Status = SynchronizeStatus.SynchronizerConcurrentException;
-                            return result;
+                            status = SynchronizeStatus.SynchronizerConcurrentException;
                         }
-                        result.Status = SynchronizeStatus.Failed;
-                        return result;
+                        else
+                        {
+                            status = SynchronizeStatus.Failed;
+                        }
+                        return status;
                     }
                 }
             }
 
-            return result;
+            return status;
         }
         private void SyncAfterEventPersisted(EventStream eventStream)
         {
@@ -323,7 +318,7 @@ namespace ENode.Eventing.Impl
                 }
             }
         }
-        private void RetryCommand(EventProcessingContext context, ConcurrentException concurrentException, ActionInfo successCallback)
+        private void RetryCommand(EventCommittingContext context)
         {
             Func<bool> retryCommand = () =>
             {
@@ -332,31 +327,25 @@ namespace ENode.Eventing.Impl
                 var commandInfo = _processingCommandCache.Get(eventStream.CommandId);
                 if (commandInfo != null)
                 {
-                    _retryCommandService.RetryCommand(commandInfo, eventStream, concurrentException);
+                    _retryCommandService.RetryCommand(commandInfo, eventStream, context.ConcurrentException);
                 }
                 else
                 {
-                    _logger.ErrorFormat("The command need to retry cannot be found from command processing cache, commandId:{0}", eventStream.CommandId);
+                    _logger.ErrorFormat("The command need to retry cannot be found in command processing cache, commandId:{0}", eventStream.CommandId);
                 }
 
                 return true;
             };
-            _actionExecutionService.TryAction("RetryCommand", retryCommand, 3, successCallback);
+            _actionExecutionService.TryAction("RetryCommand", retryCommand, 3, null);
         }
-        private void CleanEvents(EventProcessingContext context)
+        private void CompleteCommandExecution(EventCommittingContext context)
         {
             _processingCommandCache.TryRemove(context.EventStream.CommandId);
-            //TODO
-            //context.Queue.Delete(context.EventStream);
+            context.CommandExecuteContext.OnCommandExecuted(context.Command);
         }
 
         #endregion
 
-        class SynchronizeResult
-        {
-            public SynchronizeStatus Status { get; set; }
-            public Exception Exception { get; set; }
-        }
         enum SynchronizeStatus
         {
             Success,

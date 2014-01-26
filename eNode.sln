@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode", "src\eNode\ENode.csproj", "{F884F01A-ED67-4F21-8576-FD2588491B24}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}"
@@ -23,6 +25,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Redis", "src\Extensions\ENode.Redis\ENode.Redis.csproj", "{6C201374-2F02-4134-8098-9D7D8DFCE31A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankTransferSample", "src\Samples\BankTransferSample\BankTransferSample.csproj", "{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.EQueue", "src\Extensions\ENode.EQueue\ENode.EQueue.csproj", "{8B5368E5-8518-4684-90EB-048DCBF76E9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EQueue", "src\Extensions\EQueue\EQueue.csproj", "{CE352FFB-7034-4F71-8D93-78ECED099125}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -94,6 +100,26 @@ Global
 		{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}.Release|x86.ActiveCfg = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|x86.ActiveCfg = Release|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CE352FFB-7034-4F71-8D93-78ECED099125}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -104,6 +130,8 @@ Global
 		{63EAC41D-65DA-4E14-95B0-BEAE86442F4F} = {8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}
 		{25DDA9F0-DC61-4446-9364-B29376215155} = {93D62F41-6B3D-4828-BA92-13F6CFB3E388}
 		{6C201374-2F02-4134-8098-9D7D8DFCE31A} = {93D62F41-6B3D-4828-BA92-13F6CFB3E388}
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A} = {93D62F41-6B3D-4828-BA92-13F6CFB3E388}
+		{CE352FFB-7034-4F71-8D93-78ECED099125} = {93D62F41-6B3D-4828-BA92-13F6CFB3E388}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.2\lib\NET35

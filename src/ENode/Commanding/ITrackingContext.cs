@@ -11,8 +11,5 @@ namespace ENode.Commanding
         /// </summary>
         /// <returns></returns>
         IEnumerable<IAggregateRoot> GetTrackedAggregateRoots();
-        /// <summary>Clear all the tracked aggregates.
-        /// </summary>
-        void Clear();
     }
 }

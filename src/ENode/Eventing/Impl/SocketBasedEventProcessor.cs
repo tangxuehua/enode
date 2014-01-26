@@ -23,7 +23,7 @@ namespace ENode.Eventing.Impl
         //private readonly ServerSocket _serverSocket;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventStore _eventStore;
-        private readonly ICommittedEventSender _committedEventSender;
+        private readonly IEventPublisher _committedEventSender;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly IEventSynchronizerProvider _eventSynchronizerProvider;
         private readonly ILogger _logger;
@@ -63,7 +63,7 @@ namespace ENode.Eventing.Impl
             //_serverSocket = new ServerSocket(;
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventStore = ObjectContainer.Resolve<IEventStore>();
-            _committedEventSender = ObjectContainer.Resolve<ICommittedEventSender>();
+            _committedEventSender = ObjectContainer.Resolve<IEventPublisher>();
             _actionExecutionService = ObjectContainer.Resolve<IActionExecutionService>();
             _eventSynchronizerProvider = ObjectContainer.Resolve<IEventSynchronizerProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
