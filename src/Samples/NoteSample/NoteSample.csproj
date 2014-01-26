@@ -72,6 +72,7 @@
     <Compile Include="Commands\ChangeNoteTitleCommand.cs" />
     <Compile Include="Commands\CreateNoteCommand.cs" />
     <Compile Include="Domain\Note.cs" />
+    <Compile Include="EQueueIntegrations\EQueueConfigurations.cs" />
     <Compile Include="EQueueIntegrations\EventTypeCodeManager.cs" />
     <Compile Include="EQueueIntegrations\EventTopicManager.cs" />
     <Compile Include="EQueueIntegrations\CommandTypeCodeManager.cs" />

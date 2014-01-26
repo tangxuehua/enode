@@ -54,6 +54,13 @@ namespace ENode.Configurations
             return Instance;
         }
 
+        /// <summary>Get the ecommon configuration.
+        /// </summary>
+        /// <returns></returns>
+        public Configuration GetCommonConfiguration()
+        {
+            return _configuration;
+        }
         /// <summary>Register all the default components of enode framework.
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()

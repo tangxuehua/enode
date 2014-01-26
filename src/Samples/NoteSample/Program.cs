@@ -8,6 +8,7 @@ using ECommon.Log4Net;
 using ENode.Commanding;
 using ENode.Configurations;
 using NoteSample.Commands;
+using NoteSample.EQueueIntegrations;
 
 namespace NoteSample
 {
@@ -43,6 +44,7 @@ namespace NoteSample
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .Initialize(assemblies)
+                .UseEQueue()
                 .Start();
         }
     }

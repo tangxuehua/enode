@@ -19,6 +19,7 @@ namespace ENode.EQueue
         private readonly IEventProcessor _eventProcessor;
         private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
 
+        public EventConsumer() : this("Default") { }
         public EventConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }
         public EventConsumer(ConsumerSetting setting, string groupName) : this(string.Format("EventConsumer@{0}", SocketUtils.GetLocalIPV4()), setting, groupName) { }
         public EventConsumer(string id, ConsumerSetting setting, string groupName)
