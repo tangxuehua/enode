@@ -47,21 +47,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandConsumer.cs" />
-    <Compile Include="EventProcessContext.cs" />
-    <Compile Include="CommandExecuteContext.cs" />
-    <Compile Include="EventConsumer.cs" />
-    <Compile Include="EventPublisher.cs" />
-    <Compile Include="EventStreamData.cs" />
-    <Compile Include="IEventTypeCodeProvider.cs" />
-    <Compile Include="IEventTopicProvider.cs" />
-    <Compile Include="Payload.cs" />
-    <Compile Include="CommandService.cs" />
-    <Compile Include="PayloadUtils.cs" />
-    <Compile Include="ICommandTypeCodeProvider.cs" />
-    <Compile Include="ICommandTopicProvider.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TypeData.cs" />
+    <Compile Include="Commanding\CommandConsumer.cs" />
+    <Compile Include="Eventing\EventProcessContext.cs" />
+    <Compile Include="Commanding\CommandExecuteContext.cs" />
+    <Compile Include="Eventing\EventConsumer.cs" />
+    <Compile Include="Eventing\EventPublisher.cs" />
+    <Compile Include="Eventing\EventStreamData.cs" />
+    <Compile Include="Eventing\IEventTypeCodeProvider.cs" />
+    <Compile Include="Eventing\IEventTopicProvider.cs" />
+    <Compile Include="ByteTypeData.cs" />
+    <Compile Include="Commanding\CommandService.cs" />
+    <Compile Include="PayloadUtils.cs" />
+    <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
+    <Compile Include="Commanding\ICommandTopicProvider.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringTypeData.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\eNode\ENode.csproj">

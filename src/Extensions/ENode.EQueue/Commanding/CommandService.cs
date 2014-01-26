@@ -43,7 +43,7 @@ namespace ENode.EQueue
             var raw = _binarySerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
             var typeCode = _commandTypeCodeProvider.GetTypeCode(command);
-            var data = PayloadUtils.EncodePayload(new Payload(raw, typeCode));
+            var data = PayloadUtils.EncodePayload(new ByteTypeData(typeCode, raw));
             var message = new Message(topic, data);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
             _producer.SendAsync(message, command.AggregateRootId).ContinueWith(sendTask =>

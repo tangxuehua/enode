@@ -69,7 +69,7 @@ namespace ENode.EQueue
             {
                 var typeCode = _eventTypeCodeProvider.GetTypeCode(evnt);
                 var eventData = _jsonSerializer.Serialize(evnt);
-                data.Events.Add(new TypeData { TypeCode = typeCode, Data = eventData });
+                data.Events.Add(new StringTypeData(typeCode, eventData));
             }
 
             return data;

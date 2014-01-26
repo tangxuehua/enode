@@ -8,7 +8,7 @@ namespace ENode.EQueue
 {
     public class PayloadUtils
     {
-        public static byte[] EncodePayload(Payload payload)
+        public static byte[] EncodePayload(ByteTypeData payload)
         {
             var typeCodeBytes = BitConverter.GetBytes(payload.TypeCode);
             var data = new byte[typeCodeBytes.Length + payload.Data.Length];
@@ -18,7 +18,7 @@ namespace ENode.EQueue
 
             return data;
         }
-        public static Payload DecodePayload(byte[] buffer)
+        public static ByteTypeData DecodePayload(byte[] buffer)
         {
             var typeCodeBytes = new byte[4];
             var dataBytes = new byte[buffer.Length - 4];
@@ -27,7 +27,7 @@ namespace ENode.EQueue
 
             var typeCode = BitConverter.ToInt32(typeCodeBytes, 0);
 
-            return new Payload(dataBytes, typeCode);
+            return new ByteTypeData(typeCode, dataBytes);
         }
     }
 }
