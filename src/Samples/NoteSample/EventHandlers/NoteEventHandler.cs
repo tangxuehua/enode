@@ -1,20 +1,20 @@
 ﻿using System;
+using ECommon.IoC;
 using ENode.Eventing;
-using ENode.Infrastructure;
 using NoteSample.DomainEvents;
 
 namespace NoteSample.EventHandlers
 {
     [Component]
     public class NoteEventHandler :
-        IEventHandler<NoteCreated>,
-        IEventHandler<NoteTitleChanged>
+        IEventHandler<NoteCreatedEvent>,
+        IEventHandler<NoteTitleChangedEvent>
     {
-        public void Handle(NoteCreated evnt)
+        public void Handle(NoteCreatedEvent evnt)
         {
             Console.WriteLine("Note created, title：{0}", evnt.Title);
         }
-        public void Handle(NoteTitleChanged evnt)
+        public void Handle(NoteTitleChangedEvent evnt)
         {
             Console.WriteLine("Note title changed, title：{0}", evnt.Title);
         }

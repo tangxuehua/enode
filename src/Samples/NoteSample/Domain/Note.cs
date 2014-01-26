@@ -15,22 +15,22 @@ namespace NoteSample.Domain
         public Note(Guid id, string title)
         {
             var currentTime = DateTime.Now;
-            RaiseEvent(new NoteCreated(id, title, currentTime, currentTime));
+            RaiseEvent(new NoteCreatedEvent(id, title, currentTime, currentTime));
         }
 
         public void ChangeTitle(string title)
         {
-            RaiseEvent(new NoteTitleChanged(Id, title, DateTime.Now));
+            RaiseEvent(new NoteTitleChangedEvent(Id, title, DateTime.Now));
         }
 
-        private void Handle(NoteCreated evnt)
+        private void Handle(NoteCreatedEvent evnt)
         {
             Id = evnt.SourceId;
             Title = evnt.Title;
             CreatedTime = evnt.CreatedTime;
             UpdatedTime = evnt.UpdatedTime;
         }
-        private void Handle(NoteTitleChanged evnt)
+        private void Handle(NoteTitleChangedEvent evnt)
         {
             Title = evnt.Title;
             UpdatedTime = evnt.UpdatedTime;

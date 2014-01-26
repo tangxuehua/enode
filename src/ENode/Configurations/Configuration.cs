@@ -224,4 +224,12 @@ namespace ENode.Configurations
 
         #endregion
     }
+
+    public static class ConfigurationExtensions
+    {
+        public static ENodeConfiguration CreateENode(this Configuration configuration)
+        {
+            return ENodeConfiguration.CreateENode(configuration);
+        }
+    }
 }

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Reflection;
-using ENode;
-using ENode.Autofac;
+using ECommon.Autofac;
+using ECommon.Configurations;
+using ECommon.IoC;
+using ECommon.JsonNet;
+using ECommon.Log4Net;
 using ENode.Commanding;
-using ENode.Infrastructure;
-using ENode.JsonNet;
-using ENode.Log4Net;
+using ENode.Configurations;
 using NoteSample.Commands;
 
 namespace NoteSample
@@ -20,14 +21,11 @@ namespace NoteSample
 
             var noteId = Guid.NewGuid();
 
-            var command1 = new CreateNote(noteId, "Sample Note");
-            var command2 = new ChangeNoteTitle(noteId, "Modified Note");
+            var command1 = new CreateNoteCommand(noteId, "Sample Note");
+            var command2 = new ChangeNoteTitleCommand(noteId, "Modified Note");
 
-            var task = commandService.Send(command1);
-            task.Wait();
-
-            task = commandService.Send(command2);
-            task.Wait();
+            commandService.Send(command1);
+            commandService.Send(command2);
 
             Console.ReadLine();
         }
@@ -39,11 +37,11 @@ namespace NoteSample
             Configuration
                 .Create()
                 .UseAutofac()
-                .RegisterFrameworkComponents()
-                .RegisterBusinessComponents(assemblies)
                 .UseLog4Net()
                 .UseJsonNet()
-                .CreateAllDefaultProcessors()
+                .CreateENode()
+                .RegisterENodeComponents()
+                .RegisterBusinessComponents(assemblies)
                 .Initialize(assemblies)
                 .Start();
         }
