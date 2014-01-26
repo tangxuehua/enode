@@ -37,7 +37,6 @@ namespace ENode.Configurations
         private readonly IList<ICommandProcessor> _commandProcessors;
         private ICommandProcessor _retryCommandProcessor;
         private ICommandProcessor _waitingCommandProcessor;
-        private readonly IList<IUncommittedEventProcessor> _uncommittedEventProcessors;
         private readonly IList<ICommittedEventProcessor> _committedEventProcessors;
 
         #endregion
@@ -80,12 +79,6 @@ namespace ENode.Configurations
             }
             return _waitingCommandProcessor.BindingQueue;
         }
-        /// <summary>Get all the uncommitted event queues.
-        /// </summary>
-        public IEnumerable<IUncommittedEventQueue> GetUncommitedEventQueues()
-        {
-            return _uncommittedEventProcessors.Select(x => x.BindingQueue);
-        }
         /// <summary>Get all the committed event queues.
         /// </summary>
         public IEnumerable<ICommittedEventQueue> GetCommitedEventQueues()
@@ -100,7 +93,6 @@ namespace ENode.Configurations
             _configuration = configuration;
             _assemblyInitializerServiceTypes = new List<Type>();
             _commandProcessors = new List<ICommandProcessor>();
-            _uncommittedEventProcessors = new List<IUncommittedEventProcessor>();
             _committedEventProcessors = new List<ICommittedEventProcessor>();
         }
 
@@ -127,13 +119,10 @@ namespace ENode.Configurations
             _configuration.SetDefault<ISnapshotStore, EmptySnapshotStore>();
 
             _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
-            _configuration.SetDefault<ICommandQueueRouter, DefaultCommandQueueRouter>();
             _configuration.SetDefault<IProcessingCommandCache, DefaultProcessingCommandCache>();
             _configuration.SetDefault<IWaitingCommandCache, DefaultWaitingCommandCache>();
             _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
-            _configuration.SetDefault<ICommandTaskManager, DefaultCommandTaskManager>();
             _configuration.SetDefault<ICommandCompletionEventManager, DefaultCommandCompletionEventManager>();
-            _configuration.SetDefault<ICommandService, DefaultCommandService>();
             _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
 
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
@@ -142,17 +131,15 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
-            _configuration.SetDefault<IUncommittedEventQueueRouter, DefaultUncommittedEventQueueRouter>();
             _configuration.SetDefault<ICommittedEventQueueRouter, DefaultCommittedEventQueueRouter>();
             _configuration.SetDefault<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
-            _configuration.SetDefault<IUncommittedEventSender, DefaultUncommittedEventSender>();
+            _configuration.SetDefault<IPublishEventService, DefaultPublishEventService>();
             _configuration.SetDefault<IEventPublisher, DefaultEventPublisher>();
 
             _configuration.SetDefault<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
             _configuration.SetDefault<ICommandContext, DefaultCommandContext>(LifeStyle.Transient);
             _configuration.SetDefault<ICommandMessageHandler, DefaultCommandMessageHandler>(LifeStyle.Transient);
             _configuration.SetDefault<IWaitingCommandMessageHandler, DefaultWaitingCommandMessageHandler>(LifeStyle.Transient);
-            _configuration.SetDefault<IUncommittedEventMessageHandler, DefaultUncommittedEventMessageHandler>(LifeStyle.Transient);
             _configuration.SetDefault<ICommittedEventMessageHandler, DefaultCommittedEventMessageHandler>(LifeStyle.Transient);
 
             _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
@@ -251,15 +238,6 @@ namespace ENode.Configurations
             _waitingCommandProcessor = commandProcessor;
             return this;
         }
-        /// <summary>Add an uncommitted event processor.
-        /// </summary>
-        /// <param name="eventProcessor"></param>
-        /// <returns></returns>
-        public ENodeConfiguration AddUncommittedEventProcessor(IUncommittedEventProcessor eventProcessor)
-        {
-            _uncommittedEventProcessors.Add(eventProcessor);
-            return this;
-        }
         /// <summary>Add a committed event processor.
         /// </summary>
         /// <param name="eventProcessor"></param>
@@ -314,11 +292,6 @@ namespace ENode.Configurations
             _waitingCommandProcessor = new DefaultWaitingCommandProcessor(
                 new DefaultCommandQueue(waitingCommandQueueName),
                 messageProcessorOption.WaitingCommandExecutorCount);
-
-            foreach (var queueName in uncommittedEventQueueNames)
-            {
-                _uncommittedEventProcessors.Add(new DefaultUncommittedEventProcessor(new DefaultUncommittedEventQueue(queueName), messageProcessorOption.UncommittedEventExecutorCount));
-            }
 
             foreach (var queueName in committedEventQueueNames)
             {
@@ -384,10 +357,6 @@ namespace ENode.Configurations
             {
                 throw new Exception("Wating command processor count cannot be null.");
             }
-            if (_uncommittedEventProcessors.Count == 0)
-            {
-                throw new Exception("Uncommitted event processor count cannot be zero.");
-            }
             if (_committedEventProcessors.Count == 0)
             {
                 throw new Exception("Committed event processor count cannot be zero.");
@@ -401,10 +370,6 @@ namespace ENode.Configurations
             }
             _retryCommandProcessor.Start();
             _waitingCommandProcessor.Start();
-            foreach (var eventProcessor in _uncommittedEventProcessors)
-            {
-                eventProcessor.Start();
-            }
             foreach (var eventProcessor in _committedEventProcessors)
             {
                 eventProcessor.Start();

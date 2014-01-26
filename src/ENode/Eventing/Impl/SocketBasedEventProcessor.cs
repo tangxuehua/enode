@@ -19,7 +19,6 @@ namespace ENode.Eventing.Impl
 
         private readonly IList<Worker> _workers;
         private readonly IMessageReplyFutureCache<ReceiveContext> _eventReplyFutureCache;
-        private readonly IUncommittedEventSender _uncommittedEventSender;
         //private readonly ServerSocket _serverSocket;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventStore _eventStore;
@@ -58,7 +57,6 @@ namespace ENode.Eventing.Impl
 
             _workers = new List<Worker>();
             _eventReplyFutureCache = ObjectContainer.Resolve<IMessageReplyFutureCache<ReceiveContext>>();
-            _uncommittedEventSender = ObjectContainer.Resolve<IUncommittedEventSender>();
             //TODO
             //_serverSocket = new ServerSocket(;
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();

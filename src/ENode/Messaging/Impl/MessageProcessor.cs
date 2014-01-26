@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using ECommon.IoC;
 using ECommon.Logging;
 using ECommon.Scheduling;
-using ENode.Infrastructure;
-using ENode.Infrastructure.Logging;
 
 namespace ENode.Messaging.Impl
 {
@@ -75,7 +73,7 @@ namespace ENode.Messaging.Impl
                 worker.Start();
             }
             _started = true;
-            _logger.InfoFormat("Processor started, binding queue {0}, worker count:{1}.", _bindingQueue.Name, _workers.Count);
+            _logger.InfoFormat("[0] started, binding queue {1}, worker count:{2}.", GetType().Name, _bindingQueue.Name, _workers.Count);
         }
 
         private void ProcessMessage(TMessageExecutor messageExecutor)

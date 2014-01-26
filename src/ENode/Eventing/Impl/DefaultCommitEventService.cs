@@ -23,7 +23,7 @@ namespace ENode.Eventing.Impl
         private readonly IAggregateStorage _aggregateStorage;
         private readonly IRetryCommandService _retryCommandService;
         private readonly IEventStore _eventStore;
-        private readonly IEventPublisher _committedEventSender;
+        private readonly IPublishEventService _publishEventService;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly IEventSynchronizerProvider _eventSynchronizerProvider;
         private readonly ILogger _logger;
@@ -44,7 +44,7 @@ namespace ENode.Eventing.Impl
         /// <param name="aggregateStorage"></param>
         /// <param name="retryCommandService"></param>
         /// <param name="eventStore"></param>
-        /// <param name="committedEventSender"></param>
+        /// <param name="publishEventService"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="eventSynchronizerProvider"></param>
         /// <param name="loggerFactory"></param>
@@ -59,7 +59,7 @@ namespace ENode.Eventing.Impl
             IAggregateStorage aggregateStorage,
             IRetryCommandService retryCommandService,
             IEventStore eventStore,
-            IEventPublisher committedEventSender,
+            IPublishEventService publishEventService,
             IActionExecutionService actionExecutionService,
             IEventSynchronizerProvider eventSynchronizerProvider,
             ILoggerFactory loggerFactory)
@@ -74,7 +74,7 @@ namespace ENode.Eventing.Impl
             _aggregateStorage = aggregateStorage;
             _retryCommandService = retryCommandService;
             _eventStore = eventStore;
-            _committedEventSender = committedEventSender;
+            _publishEventService = publishEventService;
             _actionExecutionService = actionExecutionService;
             _eventSynchronizerProvider = eventSynchronizerProvider;
             _logger = loggerFactory.Create(GetType().Name);
@@ -133,11 +133,7 @@ namespace ENode.Eventing.Impl
                             RefreshMemoryCache(eventStream);
                             SendWaitingCommand(eventStream);
                             SyncAfterEventPersisted(eventStream);
-                            PublishEvents(eventStream, new ActionInfo("PublishEventsCallback", data =>
-                            {
-                                CompleteCommandExecution(data as EventCommittingContext);
-                                return true;
-                            }, currentContext, null));
+                            PublishEvents(currentContext);
                         }
                         return true;
                     });
@@ -243,23 +239,9 @@ namespace ENode.Eventing.Impl
                 _logger.Error(string.Format("Exception raised when refreshing memory cache by event stream:{0}", eventStream.GetStreamInformation()), ex);
             }
         }
-        private void PublishEvents(EventStream eventStream, ActionInfo successCallback)
+        private void PublishEvents(EventCommittingContext context)
         {
-            var publishEvents = new Func<bool>(() =>
-            {
-                try
-                {
-                    _committedEventSender.Send(eventStream);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream.GetStreamInformation()), ex);
-                    return false;
-                }
-            });
-
-            _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, successCallback);
+            _publishEventService.PublishEvent(context.EventStream, context.Command, context.CommandExecuteContext);
         }
         private SynchronizeStatus SyncBeforeEventPersisting(EventStream eventStream)
         {

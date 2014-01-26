@@ -2,8 +2,6 @@
 using System.Collections.Concurrent;
 using ECommon.IoC;
 using ECommon.Logging;
-using ENode.Infrastructure;
-using ENode.Infrastructure.Logging;
 
 namespace ENode.Messaging.Impl
 {

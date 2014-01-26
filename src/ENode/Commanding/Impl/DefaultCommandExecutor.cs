@@ -17,7 +17,7 @@ namespace ENode.Commanding.Impl
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly ICommitEventService _commitEventService;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IPublishEventService _publishEventService;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
 
@@ -32,7 +32,7 @@ namespace ENode.Commanding.Impl
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="commitEventService"></param>
-        /// <param name="eventPublisher"></param>
+        /// <param name="publishEventService"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
@@ -41,7 +41,7 @@ namespace ENode.Commanding.Impl
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             ICommitEventService commitEventService,
-            IEventPublisher eventPublisher,
+            IPublishEventService publishEventService,
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
@@ -50,7 +50,7 @@ namespace ENode.Commanding.Impl
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _commitEventService = commitEventService;
-            _eventPublisher = eventPublisher;
+            _publishEventService = publishEventService;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().Name);
         }
@@ -118,23 +118,6 @@ namespace ENode.Commanding.Impl
 
         #region Private Methods
 
-        private static IAggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
-        {
-            var trackedAggregateRoots = trackingContext.GetTrackedAggregateRoots();
-            var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Any()).ToList();
-            var dirtyAggregateRootCount = dirtyAggregateRoots.Count();
-
-            if (dirtyAggregateRootCount == 0)
-            {
-                return null;
-            }
-            if (dirtyAggregateRootCount > 1)
-            {
-                throw new Exception("Detected more than one dirty aggregates.");
-            }
-
-            return dirtyAggregateRoots.Single();
-        }
         private void CommitChanges(ICommandExecuteContext commandExecuteContext, ICommand command)
         {
             var dirtyAggregate = GetDirtyAggregate(commandExecuteContext);
@@ -150,8 +133,25 @@ namespace ENode.Commanding.Impl
             }
             else
             {
-                PublishEvents(eventStream, command, commandExecuteContext);
+                _publishEventService.PublishEvent(eventStream, command, commandExecuteContext);
             }
+        }
+        private IAggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
+        {
+            var trackedAggregateRoots = trackingContext.GetTrackedAggregateRoots();
+            var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Any()).ToList();
+            var dirtyAggregateRootCount = dirtyAggregateRoots.Count();
+
+            if (dirtyAggregateRootCount == 0)
+            {
+                return null;
+            }
+            if (dirtyAggregateRootCount > 1)
+            {
+                throw new Exception("Detected more than one dirty aggregates.");
+            }
+
+            return dirtyAggregateRoots.Single();
         }
         private EventStream CreateEventStream(IAggregateRoot aggregateRoot, ICommand command)
         {
@@ -169,29 +169,6 @@ namespace ENode.Commanding.Impl
                 command.Id,
                 DateTime.UtcNow,
                 uncommittedEvents);
-        }
-        private void PublishEvents(EventStream eventStream, ICommand command, ICommandExecuteContext commandExecuteContext)
-        {
-            var publishEvents = new Func<bool>(() =>
-            {
-                try
-                {
-                    _eventPublisher.Send(eventStream);
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream.GetStreamInformation()), ex);
-                    return false;
-                }
-            });
-
-            _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, new ActionInfo("PublishEventsCallback", data =>
-            {
-                _processingCommandCache.TryRemove(eventStream.CommandId);
-                commandExecuteContext.OnCommandExecuted(command);
-                return true;
-            }, null, null));
         }
         private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IDomainEvent> evnts)
         {

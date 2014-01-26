@@ -41,6 +41,11 @@
   <ItemGroup>
     <Compile Include="Commanding\CommandInfo.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
+    <Compile Include="Commanding\ICommandProcessor.cs" />
+    <Compile Include="Commanding\ICommandQueue.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandMessageHandler.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandProcessor.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandQueue.cs" />
     <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
     <Compile Include="Commanding\ICommandMessageHandler.cs" />
@@ -48,25 +53,16 @@
     <Compile Include="Commanding\Impl\DefaultWaitingCommandProcessor.cs" />
     <Compile Include="Commanding\Impl\DefaultWaitingCommandMessageHandler.cs" />
     <Compile Include="Commanding\ICreatingAggregateCommand.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandTaskManager.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandCompletionEventManager.cs" />
     <Compile Include="Commanding\IWaitingCommandMessageHandler.cs" />
-    <Compile Include="Commanding\ICommandQueue.cs" />
-    <Compile Include="Commanding\ICommandProcessor.cs" />
     <Compile Include="Commanding\ICommandExecutor.cs" />
     <Compile Include="Commanding\Impl\DefaultWaitingCommandService.cs" />
     <Compile Include="Commanding\IWaitingCommandService.cs" />
     <Compile Include="Commanding\Impl\DefaultWaitingCommandCache.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandQueue.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandProcessor.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandMessageHandler.cs" />
     <Compile Include="Commanding\Impl\DefaultRetryCommandService.cs" />
-    <Compile Include="Commanding\CommandExecutionException.cs" />
-    <Compile Include="Commanding\CommandQueueNotFoundException.cs" />
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
     <Compile Include="Commanding\IWaitingCommandCache.cs" />
     <Compile Include="Commanding\ICommandCompletionEventManager.cs" />
-    <Compile Include="Commanding\ICommandTaskManager.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
@@ -80,20 +76,12 @@
     <Compile Include="Eventing\EventProcessResult.cs" />
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
-    <Compile Include="Eventing\Impl\DefaultUncommittedEventProcessor.cs" />
+    <Compile Include="Eventing\Impl\DefaultPublishEventService.cs" />
+    <Compile Include="Eventing\IPublishEventService.cs" />
     <Compile Include="Eventing\ISourcingEvent.cs" />
     <Compile Include="Eventing\IEventSynchronizer.cs" />
-    <Compile Include="Eventing\IUncommittedEventSender.cs" />
-    <Compile Include="Eventing\Impl\DefaultUncommittedEventSender.cs" />
-    <Compile Include="Eventing\Impl\DefaultUncommittedEventQueue.cs" />
-    <Compile Include="Eventing\Impl\DefaultUncommittedEventQueueRouter.cs" />
-    <Compile Include="Eventing\Impl\DefaultUncommittedEventMessageHandler.cs" />
     <Compile Include="Eventing\Impl\SocketBasedEventProcessor.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
-    <Compile Include="Eventing\IUncommittedEventMessageHandler.cs" />
-    <Compile Include="Eventing\IUncommittedEventProcessor.cs" />
-    <Compile Include="Eventing\IUncommittedEventQueue.cs" />
-    <Compile Include="Eventing\IUncommittedEventQueueRouter.cs" />
     <Compile Include="Eventing\IEventProcessor.cs" />
     <Compile Include="Eventing\EventProcessingContext.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
@@ -155,9 +143,7 @@
     <Compile Include="Messaging\IMessageQueue.cs" />
     <Compile Include="Messaging\Impl\MessageQueue.cs" />
     <Compile Include="Commanding\IRetryCommandService.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandQueueRouter.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />
-    <Compile Include="Commanding\ICommandQueueRouter.cs" />
     <Compile Include="Domain\Impl\EventSourcingRepository.cs" />
     <Compile Include="Domain\IRepository.cs" />
     <Compile Include="Commanding\Impl\CommandHandlerWrapper.cs" />
@@ -205,7 +191,6 @@
     <Compile Include="Infrastructure\Sql\IDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\Sql\DefaultDbConnectionFactory.cs" />
     <Compile Include="Commanding\AggregateRootNotFoundException.cs" />
-    <Compile Include="Commanding\CommandTimeoutException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ECommon">
@@ -220,7 +205,6 @@
   <ItemGroup>
     <Content Include="Eventing\Impl\SQL\TableGenerateSQL.sql" />
     <Content Include="SqlScripts\TableGenerateSQL.sql" />
-    <Compile Include="Commanding\Impl\DefaultCommandService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
