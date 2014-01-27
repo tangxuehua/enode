@@ -11,7 +11,6 @@ namespace ENode.Domain
     [Serializable]
     public abstract class AggregateRoot<TAggregateRootId> : IAggregateRoot
     {
-        private object _uniqueId;
         private Queue<IDomainEvent> _uncommittedEvents;
         private long _version;
         private TAggregateRootId _id;
@@ -27,7 +26,6 @@ namespace ENode.Domain
             protected set
             {
                 _id = value;
-                _uniqueId = value;
             }
         }
 
@@ -52,7 +50,7 @@ namespace ENode.Domain
         {
             get
             {
-                return _uniqueId;
+                return _id;
             }
         }
         /// <summary>The version of aggregate root.

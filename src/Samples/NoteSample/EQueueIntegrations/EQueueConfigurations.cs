@@ -5,6 +5,7 @@ using ENode.Configurations;
 using ENode.EQueue;
 using ENode.Eventing;
 using EQueue.Broker;
+using EQueue.Clients.Consumers;
 using EQueue.Configurations;
 
 namespace NoteSample.EQueueIntegrations
@@ -52,8 +53,12 @@ namespace NoteSample.EQueueIntegrations
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
 
-            _commandConsumer = new CommandConsumer();
-            _eventConsumer = new EventConsumer();
+            var consumerSetting = ConsumerSetting.Default;
+            consumerSetting.HeartbeatBrokerInterval = 1000;
+            consumerSetting.UpdateTopicQueueCountInterval = 1000;
+            consumerSetting.RebalanceInterval = 1000;
+            _commandConsumer = new CommandConsumer(consumerSetting);
+            _eventConsumer = new EventConsumer(consumerSetting);
 
             _commandConsumer.Subscribe("NoteCommandTopic");
             _eventConsumer.Subscribe("NoteTopic");

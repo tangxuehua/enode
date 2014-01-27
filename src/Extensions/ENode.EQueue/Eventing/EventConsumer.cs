@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using ECommon.IoC;
 using ECommon.Serializing;
 using ECommon.Socketing;
@@ -12,6 +13,8 @@ namespace ENode.EQueue
 {
     public class EventConsumer : IMessageHandler
     {
+        private static int _consumerIndex;
+        private const string DefaultGroupName = "DefaultEventConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IJsonSerializer _jsonSerializer;
@@ -19,9 +22,11 @@ namespace ENode.EQueue
         private readonly IEventProcessor _eventProcessor;
         private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
 
-        public EventConsumer() : this("DefaultEventConsumer") { }
+        public EventConsumer() : this(DefaultGroupName) { }
+        public EventConsumer(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
         public EventConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }
-        public EventConsumer(ConsumerSetting setting, string groupName) : this(string.Format("EventConsumer@{0}", SocketUtils.GetLocalIPV4()), setting, groupName) { }
+        public EventConsumer(ConsumerSetting setting, string groupName)
+            : this(string.Format("{0}@{1}-{2}", SocketUtils.GetLocalIPV4(), typeof(EventConsumer).Name, Interlocked.Increment(ref _consumerIndex)), setting, groupName) { }
         public EventConsumer(string id, ConsumerSetting setting, string groupName)
         {
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using ECommon.IoC;
 using ECommon.Serializing;
 using ECommon.Socketing;
@@ -14,6 +15,8 @@ namespace ENode.EQueue
 {
     public class CommandConsumer : IMessageHandler
     {
+        private static int _consumerIndex;
+        private const string DefaultGroupName = "DefaultCommandConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
@@ -21,9 +24,10 @@ namespace ENode.EQueue
         private readonly IRepository _repository;
         private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
 
-        public CommandConsumer() : this("DefaultCommandConsumer") { }
+        public CommandConsumer() : this(DefaultGroupName) { }
+        public CommandConsumer(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
         public CommandConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }
-        public CommandConsumer(ConsumerSetting setting, string groupName) : this(string.Format("CommandConsumer@{0}", SocketUtils.GetLocalIPV4()), setting, groupName) { }
+        public CommandConsumer(ConsumerSetting setting, string groupName) : this(string.Format("{0}@{1}-{2}", SocketUtils.GetLocalIPV4(), typeof(CommandConsumer).Name, Interlocked.Increment(ref _consumerIndex)), setting, groupName) { }
         public CommandConsumer(string id, ConsumerSetting setting, string groupName)
         {
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();

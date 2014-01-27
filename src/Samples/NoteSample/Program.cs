@@ -20,11 +20,10 @@ namespace NoteSample
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
-            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note1"));
-            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note2"));
-            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note3"));
-            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note4"));
-            commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note5"));
+            for (var index = 1; index <= 5; index++)
+            {
+                commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note" + index));
+            }
 
             Console.ReadLine();
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using ECommon.IoC;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -12,6 +13,7 @@ namespace ENode.EQueue
 {
     public class EventPublisher : IEventPublisher
     {
+        private static int _eventPublisherIndex;
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IBinarySerializer _binarySerializer;
@@ -20,7 +22,7 @@ namespace ENode.EQueue
         private readonly Producer _producer;
 
         public EventPublisher() : this(ProducerSetting.Default) { }
-        public EventPublisher(ProducerSetting setting) : this(string.Format("EventPublisher@{0}", SocketUtils.GetLocalIPV4()), setting) { }
+        public EventPublisher(ProducerSetting setting) : this(string.Format("{0}@{1}-{2}", SocketUtils.GetLocalIPV4(), typeof(EventPublisher).Name, Interlocked.Increment(ref _eventPublisherIndex)), setting) { }
         public EventPublisher(string id, ProducerSetting setting)
         {
             _producer = new Producer(id, setting);

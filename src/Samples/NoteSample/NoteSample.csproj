@@ -44,9 +44,6 @@
     <Reference Include="ECommon.Autofac">
       <HintPath>..\..\..\packages\ecommon.autofac.1.0.0\lib\net40\ECommon.Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.JsonNet">
-      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.0\lib\net40\ECommon.JsonNet.dll</HintPath>
-    </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
@@ -88,6 +85,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\ecommon\src\Extensions\ECommon.JsonNet\ECommon.JsonNet.csproj">
+      <Project>{a118c5a4-52c3-4659-860a-31ee526b0877}</Project>
+      <Name>ECommon.JsonNet</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\ecommon\src\Extensions\ECommon.Log4Net\ECommon.Log4Net.csproj">
       <Project>{c69cf480-4b6b-4006-8c17-43054c1ebe1c}</Project>
       <Name>ECommon.Log4Net</Name>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,8 +11,8 @@ namespace ENode.Eventing.Impl.InMemory
     /// </summary>
     public class InMemoryEventStore : IEventStore
     {
-        private readonly Dictionary<AggregateKey, AggregateVersionInfo> _aggregateVersionDict = new Dictionary<AggregateKey, AggregateVersionInfo>();
-        private readonly Dictionary<AggregateKey, IList<EventStream>> _aggregateEventsDict = new Dictionary<AggregateKey, IList<EventStream>>();
+        private readonly ConcurrentDictionary<AggregateKey, AggregateVersionInfo> _aggregateVersionDict = new ConcurrentDictionary<AggregateKey, AggregateVersionInfo>();
+        private readonly ConcurrentDictionary<AggregateKey, IList<EventStream>> _aggregateEventsDict = new ConcurrentDictionary<AggregateKey, IList<EventStream>>();
 
         /// <summary>Append the event stream to the event store.
         /// </summary>
@@ -24,8 +25,8 @@ namespace ENode.Eventing.Impl.InMemory
 
             if (stream.Version == 1)
             {
-                _aggregateVersionDict.Add(aggregateKey, new AggregateVersionInfo { CurrentVersion = 1 });
-                _aggregateEventsDict.Add(aggregateKey, new List<EventStream>());
+                _aggregateVersionDict.TryAdd(aggregateKey, new AggregateVersionInfo { CurrentVersion = 1 });
+                _aggregateEventsDict.TryAdd(aggregateKey, new List<EventStream>());
                 return;
             }
 

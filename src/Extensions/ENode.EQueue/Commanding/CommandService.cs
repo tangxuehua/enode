@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using ECommon.IoC;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -12,6 +13,7 @@ namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
+        private static int _commandServiceIndex;
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTopicProvider _commandTopicProvider;
@@ -19,7 +21,7 @@ namespace ENode.EQueue
         private readonly Producer _producer;
 
         public CommandService() : this(ProducerSetting.Default) { }
-        public CommandService(ProducerSetting setting) : this(string.Format("CommandService@{0}", SocketUtils.GetLocalIPV4()), setting) { }
+        public CommandService(ProducerSetting setting) : this(string.Format("{0}@{1}-{2}", SocketUtils.GetLocalIPV4(), typeof(CommandService).Name, Interlocked.Increment(ref _commandServiceIndex)), setting) { }
         public CommandService(string id, ProducerSetting setting)
         {
             _producer = new Producer(id, setting);

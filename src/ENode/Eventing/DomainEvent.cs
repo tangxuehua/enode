@@ -7,9 +7,6 @@ namespace ENode.Eventing
     [Serializable]
     public class DomainEvent<TAggregateRootId> : IDomainEvent
     {
-        private Guid _id;
-        private object _aggregateRootId;
-
         /// <summary>Parameterized constructor.
         /// </summary>
         public DomainEvent(TAggregateRootId aggregateRootId)
@@ -18,25 +15,20 @@ namespace ENode.Eventing
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            _id = Guid.NewGuid();
-            _aggregateRootId = aggregateRootId;
+            Id = Guid.NewGuid();
             SourceId = aggregateRootId;
         }
 
-        /// <summary>Represents the unique identifier for the domain event.
+        /// <summary>Represents the unique id of the domain event.
         /// </summary>
         public Guid Id { get; private set; }
         /// <summary>Represents the unique id of the aggregate root which raised this domain event.
         /// </summary>
         public TAggregateRootId SourceId { get; private set; }
 
-        Guid IDomainEvent.Id
-        {
-            get { return _id; }
-        }
         object IDomainEvent.AggregateRootId
         {
-            get { return _aggregateRootId; }
+            get { return SourceId; }
         }
     }
 }
