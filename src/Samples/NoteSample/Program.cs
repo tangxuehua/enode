@@ -20,10 +20,17 @@ namespace NoteSample
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
-            for (var index = 1; index <= 5; index++)
+            var noteId = Guid.NewGuid();
+            var command1 = new CreateNoteCommand(noteId, "Note Version1");
+            var command2 = new ChangeNoteTitleCommand(noteId, "Note Version2");
+
+            commandService.Send(command1).ContinueWith(task =>
             {
-                commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note" + index));
-            }
+                if (task.Result.Status == CommandResultStatus.Success)
+                {
+                    commandService.Send(command2);
+                }
+            });
 
             Console.ReadLine();
         }

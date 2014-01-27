@@ -7,14 +7,16 @@ namespace BankTransferSample.Commands
     /// <summary>创建一笔转账交易
     /// </summary>
     [Serializable]
-    public class CreateTransaction : Command, ICreatingAggregateCommand
+    public class CreateTransaction : Command, ICreatingAggregateCommand, IStartProcessCommand
     {
         public TransactionInfo TransactionInfo { get; private set; }
+        public object ProcessId { get; private set; }
 
         public CreateTransaction(TransactionInfo transactionInfo)
             : base(transactionInfo.TransactionId)
         {
             TransactionInfo = transactionInfo;
+            ProcessId = transactionInfo.TransactionId;
         }
     }
     /// <summary>发起转账交易

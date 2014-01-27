@@ -5,6 +5,7 @@ using ECommon.Logging;
 using ECommon.Serializing;
 using ECommon.Socketing;
 using ENode.Commanding;
+using ENode.EQueue.Commanding;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -18,6 +19,7 @@ namespace ENode.EQueue
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTopicProvider _commandTopicProvider;
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
+        private readonly CompletedCommandProcessor _completedCommandProcessor;
         private readonly Producer _producer;
 
         public CommandService() : this(ProducerSetting.Default) { }
@@ -28,6 +30,7 @@ namespace ENode.EQueue
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ICommandTopicProvider>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
+            _completedCommandProcessor = ObjectContainer.Resolve<CompletedCommandProcessor>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
         }
 
@@ -49,15 +52,13 @@ namespace ENode.EQueue
             var data = ByteTypeDataUtils.Encode(new ByteTypeData(typeCode, raw));
             var message = new Message(topic, data);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
+
+            _completedCommandProcessor.RegisterProcessingCommand(command, taskCompletionSource);
             _producer.SendAsync(message, command.AggregateRootId).ContinueWith(sendTask =>
             {
-                if (sendTask.Result.SendStatus == SendStatus.Success)
+                if (sendTask.Result.SendStatus == SendStatus.Failed)
                 {
-                    taskCompletionSource.SetResult(CommandResult.Success);
-                }
-                else
-                {
-                    taskCompletionSource.SetResult(new CommandResult("Send command failed."));
+                    _completedCommandProcessor.NotifyCommandSendFailed(command);
                 }
             });
             return taskCompletionSource.Task;

@@ -86,7 +86,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<IProcessingCommandCache, DefaultProcessingCommandCache>();
             _configuration.SetDefault<IWaitingCommandCache, DefaultWaitingCommandCache>();
             _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
-            _configuration.SetDefault<ICommandCompletionEventManager, DefaultCommandCompletionEventManager>();
             _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
 
@@ -110,7 +109,6 @@ namespace ENode.Configurations
             _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootTypeProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(ICommandCompletionEventManager));
 
             return this;
         }

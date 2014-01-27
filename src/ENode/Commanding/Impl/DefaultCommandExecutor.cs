@@ -156,6 +156,7 @@ namespace ENode.Commanding.Impl
             var aggregateRootType = aggregateRoot.GetType();
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
             var aggregateRootId = uncommittedEvents.First().AggregateRootId;
+            var hasProcessCompletedEvent = uncommittedEvents.Any(x => x is IProcessCompletedEvent);
 
             return new EventStream(
                 aggregateRootId,
@@ -163,6 +164,7 @@ namespace ENode.Commanding.Impl
                 aggregateRoot.Version + 1,
                 command.Id,
                 DateTime.UtcNow,
+                hasProcessCompletedEvent,
                 uncommittedEvents);
         }
         private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IDomainEvent> evnts)

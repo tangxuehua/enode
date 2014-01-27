@@ -7,7 +7,7 @@ namespace BankTransferSample.DomainEvents.Transaction
     /// <summary>交易已完成
     /// </summary>
     [Serializable]
-    public class TransactionCompleted : DomainEvent<Guid>, ISourcingEvent, ICompletionEvent
+    public class TransactionCompleted : DomainEvent<Guid>, ISourcingEvent, IProcessCompletedEvent
     {
         public TransactionInfo TransactionInfo { get; private set; }
         public DateTime CompletedTime { get; private set; }
@@ -16,6 +16,11 @@ namespace BankTransferSample.DomainEvents.Transaction
         {
             TransactionInfo = transactionInfo;
             CompletedTime = completedTime;
+        }
+
+        public Guid ProcessId
+        {
+            get { return TransactionInfo.TransactionId; }
         }
     }
 }

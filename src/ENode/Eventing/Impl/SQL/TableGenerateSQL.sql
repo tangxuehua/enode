@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[Event](
     [AggregateRootName] [nvarchar](128) NOT NULL,
     [CommandId] [uniqueidentifier] NOT NULL,
     [Timestamp] [datetime] NOT NULL,
+    [HasProcessCompletedEvent] [bit] NOT NULL,
     [Events] [nvarchar](max) NOT NULL,
  CONSTRAINT [PK_Event] PRIMARY KEY CLUSTERED
 (

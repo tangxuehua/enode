@@ -40,12 +40,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commanding\CommandResult.cs" />
+    <Compile Include="Commanding\IStartProcessCommand.cs" />
     <Compile Include="Commanding\Impl\ProcessingCommandProcessor.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
     <Compile Include="Commanding\ICreatingAggregateCommand.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandCompletionEventManager.cs" />
     <Compile Include="Commanding\ICommandExecutor.cs" />
     <Compile Include="Commanding\Impl\DefaultWaitingCommandService.cs" />
     <Compile Include="Commanding\IWaitingCommandService.cs" />
@@ -53,7 +53,6 @@
     <Compile Include="Commanding\Impl\DefaultRetryCommandService.cs" />
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
     <Compile Include="Commanding\IWaitingCommandCache.cs" />
-    <Compile Include="Commanding\ICommandCompletionEventManager.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
@@ -70,13 +69,14 @@
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\Impl\DefaultEventPublisher.cs" />
     <Compile Include="Eventing\Impl\DefaultPublishEventService.cs" />
+    <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IPublishEventService.cs" />
     <Compile Include="Eventing\ISourcingEvent.cs" />
     <Compile Include="Eventing\IEventSynchronizer.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
     <Compile Include="Eventing\IEventProcessor.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
-    <Compile Include="Eventing\ICompletionEvent.cs" />
+    <Compile Include="Eventing\SourcingEvent.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\ConcurrentException.cs" />
     <Compile Include="Eventing\EventStream.cs" />

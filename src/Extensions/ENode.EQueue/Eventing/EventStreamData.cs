@@ -12,6 +12,7 @@ namespace ENode.EQueue
         public Guid CommandId { get; set; }
         public long Version { get; set; }
         public DateTime Timestamp { get; set; }
+        public bool HasProcessCompletedEvent { get; set; }
         public IList<StringTypeData> Events { get; set; }
 
         public EventStreamData()

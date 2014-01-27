@@ -20,8 +20,8 @@ namespace ENode.Eventing
         /// <param name="commandId"></param>
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
-        public EventStream(object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IDomainEvent> events)
-            : this(Guid.NewGuid(), aggregateRootId, aggregateRootName, version, commandId, timestamp, events)
+        public EventStream(object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, bool hasProcessCompletedEvent, IEnumerable<IDomainEvent> events)
+            : this(Guid.NewGuid(), aggregateRootId, aggregateRootName, version, commandId, timestamp, hasProcessCompletedEvent, events)
         {
         }
         /// <summary>Parameterized constructor.
@@ -33,7 +33,7 @@ namespace ENode.Eventing
         /// <param name="commandId"></param>
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
-        public EventStream(Guid id, object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, IEnumerable<IDomainEvent> events)
+        public EventStream(Guid id, object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, bool hasProcessCompletedEvent, IEnumerable<IDomainEvent> events)
         {
             Id = id;
             AggregateRootId = aggregateRootId;
@@ -41,6 +41,7 @@ namespace ENode.Eventing
             CommandId = commandId;
             Version = version;
             Timestamp = timestamp;
+            HasProcessCompletedEvent = hasProcessCompletedEvent;
             Events = events ?? new List<IDomainEvent>();
         }
 
@@ -62,6 +63,9 @@ namespace ENode.Eventing
         /// <summary>The occurred time of the event stream.
         /// </summary>
         public DateTime Timestamp { get; private set; }
+        /// <summary>Represents whether the current event stream has at least one IProcessCompletedEvent.
+        /// </summary>
+        public bool HasProcessCompletedEvent { get; private set; }
         /// <summary>The domain events of the event stream.
         /// </summary>
         public IEnumerable<IDomainEvent> Events { get; private set; }
@@ -94,8 +98,8 @@ namespace ENode.Eventing
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[Id={0},AggregateRootName={1},AggregateRootId={2},Version={3},CommandId={4},Timestamp={5},Events={6}";
-            return string.Format(format, Id, AggregateRootName, AggregateRootId, Version, CommandId, Timestamp, GetEventNames());
+            var format = "[Id={0},AggregateRootName={1},AggregateRootId={2},Version={3},CommandId={4},Timestamp={5},HasProcessCompletedEvent={6},Events={7}";
+            return string.Format(format, Id, AggregateRootName, AggregateRootId, Version, CommandId, Timestamp, HasProcessCompletedEvent, GetEventNames());
         }
     }
 }

@@ -24,13 +24,6 @@ namespace ENode.Commanding.Impl
             });
         }
 
-        /// <summary>Returns whether the command executor is null.
-        /// </summary>
-        /// <returns></returns>
-        public bool IsCommandExecutorNull()
-        {
-            return _commandExecutor == null;
-        }
         /// <summary>Set the command executor.
         /// </summary>
         public void SetCommandExecutor(ICommandExecutor commandExecutor)

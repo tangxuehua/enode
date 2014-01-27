@@ -169,6 +169,7 @@ namespace ENode.Eventing.Impl.SQL
                     sqlEventStream.Version,
                     sqlEventStream.CommandId,
                     sqlEventStream.Timestamp,
+                    sqlEventStream.HasProcessCompletedEvent,
                     _jsonSerializer.Deserialize<IEnumerable<IDomainEvent>>(sqlEventStream.Events));
         }
         private SqlEventStream BuildSqlEventStreamFrom(EventStream eventStream)
@@ -181,6 +182,7 @@ namespace ENode.Eventing.Impl.SQL
                 CommandId = eventStream.CommandId,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
+                HasProcessCompletedEvent = eventStream.HasProcessCompletedEvent,
                 Events = _jsonSerializer.Serialize(eventStream.Events)
             };
         }
@@ -193,6 +195,7 @@ namespace ENode.Eventing.Impl.SQL
             public Guid CommandId { get; set; }
             public long Version { get; set; }
             public DateTime Timestamp { get; set; }
+            public bool HasProcessCompletedEvent { get; set; }
             public string Events { get; set; }
         }
 

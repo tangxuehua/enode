@@ -1,32 +1,20 @@
 ﻿using System;
 using ECommon.IoC;
-using ENode.Commanding;
 using ENode.Eventing;
-using NoteSample.Commands;
 using NoteSample.DomainEvents;
 
 namespace NoteSample.EventHandlers
 {
     [Component]
-    public class NoteEventHandler :
-        IEventHandler<NoteCreatedEvent>,
-        IEventHandler<NoteTitleChangedEvent>
+    public class NoteEventHandler : IEventHandler<NoteCreatedEvent>, IEventHandler<NoteTitleChangedEvent>
     {
-        private ICommandService _commandService;
-
-        public NoteEventHandler(ICommandService commandService)
-        {
-            _commandService = commandService;
-        }
-
         public void Handle(NoteCreatedEvent evnt)
         {
-            Console.WriteLine("Note created, title：{0}", evnt.Title);
-            _commandService.Send(new ChangeNoteTitleCommand(evnt.SourceId, "Modified Note"));
+            Console.WriteLine("Note created, Title：{0}", evnt.Title);
         }
         public void Handle(NoteTitleChangedEvent evnt)
         {
-            Console.WriteLine("Note title changed, title：{0}", evnt.Title);
+            Console.WriteLine("Note updated, Title：{0}", evnt.Title);
         }
     }
 }

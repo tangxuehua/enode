@@ -13,7 +13,6 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private readonly ICommandCompletionEventManager _commandCompletionEventManager;
         private readonly IWaitingCommandService _waitingCommandService;
         private readonly IProcessingCommandCache _processingCommandCache;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
@@ -34,7 +33,6 @@ namespace ENode.Eventing.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="commandCompletionEventManager"></param>
         /// <param name="waitingCommandService"></param>
         /// <param name="processingCommandCache"></param>
         /// <param name="aggregateRootTypeProvider"></param>
@@ -49,7 +47,6 @@ namespace ENode.Eventing.Impl
         /// <param name="eventSynchronizerProvider"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommitEventService(
-            ICommandCompletionEventManager commandCompletionEventManager,
             IWaitingCommandService waitingCommandService,
             IProcessingCommandCache processingCommandCache,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
@@ -64,7 +61,6 @@ namespace ENode.Eventing.Impl
             IEventSynchronizerProvider eventSynchronizerProvider,
             ILoggerFactory loggerFactory)
         {
-            _commandCompletionEventManager = commandCompletionEventManager;
             _waitingCommandService = waitingCommandService;
             _processingCommandCache = processingCommandCache;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
