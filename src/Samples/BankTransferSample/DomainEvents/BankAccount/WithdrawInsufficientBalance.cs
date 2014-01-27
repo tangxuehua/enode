@@ -1,11 +1,13 @@
 ﻿using System;
 using ENode.Eventing;
+using Newtonsoft.Json;
 
 namespace BankTransferSample.DomainEvents.BankAccount
 {
     /// <summary>余额不足不允许取款操作
     /// </summary>
     [Serializable]
+    [JsonObject(MemberSerialization.Fields)]
     public class WithdrawInsufficientBalance : DomainEvent<string>
     {
         /// <summary>取款金额

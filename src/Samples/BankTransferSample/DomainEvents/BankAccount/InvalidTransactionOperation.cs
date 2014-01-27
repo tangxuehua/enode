@@ -1,11 +1,13 @@
 ﻿using System;
 using ENode.Eventing;
+using Newtonsoft.Json;
 
 namespace BankTransferSample.DomainEvents.BankAccount
 {
     /// <summary>在转账交易已完成后进行了无效的操作
     /// </summary>
     [Serializable]
+    [JsonObject(MemberSerialization.Fields)]
     public class InvalidTransactionOperation : DomainEvent<string>
     {
         public Guid TransactionId { get; private set; }

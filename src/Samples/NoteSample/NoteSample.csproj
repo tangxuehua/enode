@@ -44,6 +44,14 @@
     <Reference Include="ECommon.Autofac">
       <HintPath>..\..\..\packages\ecommon.autofac.1.0.0\lib\net40\ECommon.Autofac.dll</HintPath>
     </Reference>
+    <Reference Include="ECommon.JsonNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.0\lib\net40\ECommon.JsonNet.dll</HintPath>
+    </Reference>
+    <Reference Include="ECommon.Log4Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\ecommon.log4net.1.0.0\lib\net40\ECommon.Log4Net.dll</HintPath>
+    </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
@@ -85,13 +93,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\ecommon\src\Extensions\ECommon.JsonNet\ECommon.JsonNet.csproj">
-      <Project>{a118c5a4-52c3-4659-860a-31ee526b0877}</Project>
-      <Name>ECommon.JsonNet</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\ecommon\src\Extensions\ECommon.Log4Net\ECommon.Log4Net.csproj">
-      <Project>{c69cf480-4b6b-4006-8c17-43054c1ebe1c}</Project>
-      <Name>ECommon.Log4Net</Name>
+    <ProjectReference Include="..\..\..\..\equeue\src\EQueue\EQueue.csproj">
+      <Project>{ce352ffb-7034-4f71-8d93-78eced099125}</Project>
+      <Name>EQueue</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
@@ -100,10 +104,6 @@
     <ProjectReference Include="..\..\Extensions\ENode.EQueue\ENode.EQueue.csproj">
       <Project>{8b5368e5-8518-4684-90eb-048dcbf76e9a}</Project>
       <Name>ENode.EQueue</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Extensions\EQueue\EQueue.csproj">
-      <Project>{ce352ffb-7034-4f71-8d93-78eced099125}</Project>
-      <Name>EQueue</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

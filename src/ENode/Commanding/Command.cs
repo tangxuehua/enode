@@ -7,7 +7,6 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class Command : ICommand
     {
-        private object _aggregateRootId;
         private int _retryCount;
         public const int DefaultRetryCount = 5;
         public const int MaxRetryCount = 50;
@@ -17,13 +16,7 @@ namespace ENode.Commanding
         public Guid Id { get; private set; }
         /// <summary>Represents the id of aggregate root which will be created or updated by the current command.
         /// </summary>
-        object ICommand.AggregateRootId
-        {
-            get
-            {
-                return _aggregateRootId;
-            }
-        }
+        public object AggregateRootId { get; private set; }
         /// <summary>Get or set the count which the command should be retry. The retry count must small than the MaxRetryCount;
         /// </summary>
         public int RetryCount
@@ -56,8 +49,8 @@ namespace ENode.Commanding
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            _aggregateRootId = aggregateRootId;
             Id = Guid.NewGuid();
+            AggregateRootId = aggregateRootId;
             RetryCount = retryCount;
         }
 

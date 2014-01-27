@@ -1,11 +1,13 @@
 ﻿using System;
 using ENode.Eventing;
+using Newtonsoft.Json;
 
 namespace BankTransferSample.DomainEvents.BankAccount
 {
     /// <summary>交易转出已提交
     /// </summary>
     [Serializable]
+    [JsonObject(MemberSerialization.Fields)]
     public class DebitCommitted : SourcingEvent<string>
     {
         /// <summary>交易ID

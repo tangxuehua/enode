@@ -1,12 +1,14 @@
 ﻿using System;
 using BankTransferSample.Domain;
 using ENode.Eventing;
+using Newtonsoft.Json;
 
 namespace BankTransferSample.DomainEvents.Transaction
 {
     /// <summary>交易已开始
     /// </summary>
     [Serializable]
+    [JsonObject(MemberSerialization.Fields)]
     public class TransactionStarted : DomainEvent<Guid>, ISourcingEvent
     {
         public TransactionInfo TransactionInfo { get; private set; }

@@ -11,12 +11,13 @@ namespace ENode.Eventing
         /// </summary>
         public DomainEvent(TAggregateRootId aggregateRootId)
         {
-            //if (aggregateRootId == null)
-            //{
-            //    throw new ArgumentNullException("aggregateRootId");
-            //}
+            if (aggregateRootId == null)
+            {
+                throw new ArgumentNullException("aggregateRootId");
+            }
             Id = Guid.NewGuid();
             SourceId = aggregateRootId;
+            AggregateRootId = aggregateRootId;
         }
 
         /// <summary>Represents the unique id of the domain event.
@@ -25,10 +26,6 @@ namespace ENode.Eventing
         /// <summary>Represents the unique id of the aggregate root which raised this domain event.
         /// </summary>
         public TAggregateRootId SourceId { get; private set; }
-
-        object IDomainEvent.AggregateRootId
-        {
-            get { return SourceId; }
-        }
+        public object AggregateRootId { get; private set; }
     }
 }

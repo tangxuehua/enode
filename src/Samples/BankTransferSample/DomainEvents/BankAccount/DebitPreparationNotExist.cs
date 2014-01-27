@@ -1,11 +1,13 @@
 ﻿using System;
 using ENode.Eventing;
+using Newtonsoft.Json;
 
 namespace BankTransferSample.DomainEvents.BankAccount
 {
     /// <summary>交易预转出信息不存在
     /// </summary>
     [Serializable]
+    [JsonObject(MemberSerialization.Fields)]
     public class DebitPreparationNotExist  : DomainEvent<string>
     {
         public Guid TransactionId { get; private set; }

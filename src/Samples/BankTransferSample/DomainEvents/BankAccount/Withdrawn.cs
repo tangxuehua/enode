@@ -1,11 +1,13 @@
 ﻿using System;
 using ENode.Eventing;
+using Newtonsoft.Json;
 
 namespace BankTransferSample.DomainEvents.BankAccount
 {
     /// <summary>已取款
     /// </summary>
     [Serializable]
+    [JsonObject(MemberSerialization.Fields)]
     public class Withdrawn : SourcingEvent<string>
     {
         /// <summary>取款金额

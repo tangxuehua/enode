@@ -1,7 +1,7 @@
 ﻿using System;
+using ECommon.IoC;
+using ECommon.Serializing;
 using ENode.Domain;
-using ENode.Infrastructure;
-using ENode.Infrastructure.Serializing;
 using ServiceStack.Redis;
 
 namespace ENode.Redis

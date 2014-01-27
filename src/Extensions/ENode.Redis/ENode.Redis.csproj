@@ -33,6 +33,9 @@
     <DocumentationFile>bin\Release\ENode.Redis.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ECommon">
+      <HintPath>..\..\..\packages\ecommon.1.0.1\lib\net40\ECommon.dll</HintPath>
+    </Reference>
     <Reference Include="ServiceStack.Common">
       <HintPath>..\..\..\packages\ServiceStack.Common.3.9.56\lib\net35\ServiceStack.Common.dll</HintPath>
     </Reference>
@@ -42,7 +45,8 @@
     <Reference Include="ServiceStack.Redis">
       <HintPath>..\..\..\packages\ServiceStack.Redis.3.9.51\lib\net35\ServiceStack.Redis.dll</HintPath>
     </Reference>
-    <Reference Include="ServiceStack.Text">
+    <Reference Include="ServiceStack.Text, Version=3.9.56.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\ServiceStack.Text.3.9.56\lib\net35\ServiceStack.Text.dll</HintPath>
     </Reference>
     <Reference Include="System" />

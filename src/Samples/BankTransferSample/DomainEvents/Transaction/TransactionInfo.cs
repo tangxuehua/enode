@@ -1,10 +1,12 @@
 ﻿using System;
+using Newtonsoft.Json;
 
 namespace BankTransferSample.DomainEvents.Transaction
 {
     /// <summary>转账信息值对象，包含了一次转账交易的基本信息
     /// </summary>
     [Serializable]
+    [JsonObject(MemberSerialization.Fields)]
     public class TransactionInfo
     {
         /// <summary>转账交易ID
