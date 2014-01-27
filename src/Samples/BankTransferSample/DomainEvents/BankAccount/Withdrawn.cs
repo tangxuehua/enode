@@ -6,7 +6,7 @@ namespace BankTransferSample.DomainEvents.BankAccount
     /// <summary>已取款
     /// </summary>
     [Serializable]
-    public class Withdrawn : DomainEvent<string>, ISourcingEvent, ICompletionEvent
+    public class Withdrawn : SourcingEvent<string>
     {
         /// <summary>取款金额
         /// </summary>

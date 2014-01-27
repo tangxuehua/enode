@@ -4,6 +4,7 @@ using EQueue.Utils;
 
 namespace ENode.EQueue
 {
+    [Serializable]
     public class EventStreamData
     {
         public Guid Id { get; set; }

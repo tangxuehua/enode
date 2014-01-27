@@ -1,5 +1,6 @@
 ﻿using BankTransferSample.Commands;
 using BankTransferSample.Domain.BankAccounts;
+using ECommon.IoC;
 using ENode.Commanding;
 using ENode.Infrastructure;
 

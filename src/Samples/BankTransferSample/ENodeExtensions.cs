@@ -9,7 +9,7 @@ using EQueue.Broker;
 using EQueue.Clients.Consumers;
 using EQueue.Configurations;
 
-namespace NoteSample.EQueueIntegrations
+namespace BankTransferSample.EQueueIntegrations
 {
     public static class ENodeExtensions
     {
@@ -51,9 +51,9 @@ namespace NoteSample.EQueueIntegrations
             _commandConsumer = new CommandConsumer(consumerSetting);
             _eventConsumer = new EventConsumer(consumerSetting);
 
-            _commandConsumer.Subscribe("NoteCommandTopic");
-            _eventConsumer.Subscribe("NoteEventTopic");
-            _completedCommandProcessor.Subscribe("NoteEventTopic");
+            _commandConsumer.Subscribe("BankTransferCommandTopic");
+            _eventConsumer.Subscribe("BankTransferEventTopic");
+            _completedCommandProcessor.Subscribe("BankTransferEventTopic");
 
             return enodeConfiguration;
         }

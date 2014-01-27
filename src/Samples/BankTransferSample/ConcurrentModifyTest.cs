@@ -7,13 +7,14 @@ using BankTransferSample.Domain.BankAccounts;
 using BankTransferSample.DomainEvents.BankAccount;
 using BankTransferSample.DomainEvents.Transaction;
 using ENode;
-using ENode.Autofac;
+using ECommon.Autofac;
+using ECommon.JsonNet;
+using ECommon.Log4Net;
 using ENode.Commanding;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
-using ENode.JsonNet;
-using ENode.Log4Net;
+
 
 namespace BankTransferSample
 {

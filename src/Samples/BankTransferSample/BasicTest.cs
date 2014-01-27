@@ -5,27 +5,23 @@ using System.Threading.Tasks;
 using BankTransferSample.Commands;
 using BankTransferSample.DomainEvents.BankAccount;
 using BankTransferSample.DomainEvents.Transaction;
-using ENode;
-using ENode.Autofac;
+using BankTransferSample.EQueueIntegrations;
+using ECommon.Autofac;
+using ECommon.Configurations;
+using ECommon.IoC;
 using ENode.Commanding;
-using ENode.Domain;
+using ENode.Configurations;
 using ENode.Eventing;
-using ENode.Infrastructure;
-using ENode.JsonNet;
-using ENode.Log4Net;
 
 namespace BankTransferSample
 {
     public class BasicTest
     {
-        public static ManualResetEvent Signal = new ManualResetEvent(false);
-
         public static void Run()
         {
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
-            var memoryCache = ObjectContainer.Resolve<IMemoryCache>();
 
             //创建两个银行账户
             var createAccountCommand1 = new CreateAccount("00001", "雪华");
@@ -34,7 +30,7 @@ namespace BankTransferSample
             var task2 = commandService.Send(createAccountCommand2);
             Task.WaitAll(task1, task2);
 
-            Thread.Sleep(100);
+            Thread.Sleep(500);
             Console.WriteLine(string.Empty);
 
             //每个账户都存入1000元
@@ -44,23 +40,16 @@ namespace BankTransferSample
             task2 = commandService.Send(depositCommand2);
             Task.WaitAll(task1, task2);
 
-            Thread.Sleep(100);
+            Thread.Sleep(500);
             Console.WriteLine(string.Empty);
 
             //账户1向账户2转账300元
-            var task = commandService.Send(new CreateTransaction(new TransactionInfo(Guid.NewGuid(), "00001", "00002", 300D)));
-            task.Wait();
-
-            Thread.Sleep(100);
-            Console.WriteLine(string.Empty);
-
+            commandService.Send(new CreateTransaction(new TransactionInfo(Guid.NewGuid(), "00001", "00002", 300D))).Wait();
             //账户2向账户1转账500元
-            task = commandService.Send(new CreateTransaction(new TransactionInfo(Guid.NewGuid(), "00002", "00001", 500D)));
-            task.Wait();
+            commandService.Send(new CreateTransaction(new TransactionInfo(Guid.NewGuid(), "00002", "00001", 500D))).Wait();
 
-            Thread.Sleep(100);
+            Thread.Sleep(500);
             Console.WriteLine(string.Empty);
-
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
         }
@@ -72,13 +61,15 @@ namespace BankTransferSample
             Configuration
                 .Create()
                 .UseAutofac()
-                .RegisterFrameworkComponents()
+                .CreateENode()
+                .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .UseLog4Net()
                 .UseJsonNet()
-                .CreateAllDefaultProcessors()
-                .Initialize(assemblies)
-                .Start();
+                .UseEQueue()
+                .InitializeENode(assemblies)
+                .StartEnode()
+                .StartEQueue();
         }
     }
 
@@ -103,13 +94,6 @@ namespace BankTransferSample
         IEventHandler<TransactionCompleted>,                //交易已完成
         IEventHandler<TransactionAborted>                   //交易已终止
     {
-        private readonly ICommandService _commandService;
-
-        public BasicTestEventLogger(ICommandService commandService)
-        {
-            _commandService = commandService;
-        }
-
         public void Handle(AccountCreated evnt)
         {
             Console.WriteLine("账号已创建，账号：{0}，所有者：{1}", evnt.SourceId, evnt.Owner);
@@ -177,10 +161,12 @@ namespace BankTransferSample
         public void Handle(TransactionCompleted evnt)
         {
             Console.WriteLine("交易已完成，交易ID：{0}", evnt.SourceId);
+            Console.WriteLine(string.Empty);
         }
         public void Handle(TransactionAborted evnt)
         {
             Console.WriteLine("交易已终止，交易ID：{0}", evnt.SourceId);
+            Console.WriteLine(string.Empty);
         }
     }
 }

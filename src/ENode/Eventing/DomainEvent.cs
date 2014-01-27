@@ -11,10 +11,10 @@ namespace ENode.Eventing
         /// </summary>
         public DomainEvent(TAggregateRootId aggregateRootId)
         {
-            if (aggregateRootId == null)
-            {
-                throw new ArgumentNullException("aggregateRootId");
-            }
+            //if (aggregateRootId == null)
+            //{
+            //    throw new ArgumentNullException("aggregateRootId");
+            //}
             Id = Guid.NewGuid();
             SourceId = aggregateRootId;
         }

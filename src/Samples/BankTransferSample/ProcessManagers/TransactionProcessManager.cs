@@ -2,6 +2,7 @@
 using BankTransferSample.Commands;
 using BankTransferSample.DomainEvents.BankAccount;
 using BankTransferSample.DomainEvents.Transaction;
+using ECommon.IoC;
 using ENode.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;

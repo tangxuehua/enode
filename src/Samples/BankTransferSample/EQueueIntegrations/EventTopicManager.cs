@@ -1,14 +1,13 @@
-﻿using ECommon.IoC;
-using ENode.EQueue;
+﻿using ENode.EQueue;
 using ENode.Eventing;
 
-namespace NoteSample.EQueueIntegrations
+namespace BankTransferSample.EQueueIntegrations
 {
     public class EventTopicManager : IEventTopicProvider
     {
         public string GetTopic(EventStream eventStream)
         {
-            return "NoteEventTopic";
+            return "BankTransferEventTopic";
         }
     }
 }

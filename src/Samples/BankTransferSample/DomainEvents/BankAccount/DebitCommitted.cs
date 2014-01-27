@@ -6,7 +6,7 @@ namespace BankTransferSample.DomainEvents.BankAccount
     /// <summary>交易转出已提交
     /// </summary>
     [Serializable]
-    public class DebitCommitted : DomainEvent<string>, ISourcingEvent
+    public class DebitCommitted : SourcingEvent<string>
     {
         /// <summary>交易ID
         /// </summary>
