@@ -38,9 +38,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\Autofac.3.3.0\lib\net40\Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon">
-      <HintPath>..\..\..\packages\ecommon.1.0.1\lib\net40\ECommon.dll</HintPath>
-    </Reference>
     <Reference Include="ECommon.Autofac">
       <HintPath>..\..\..\packages\ecommon.autofac.1.0.0\lib\net40\ECommon.Autofac.dll</HintPath>
     </Reference>
@@ -113,6 +110,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\ecommon\src\ECommon\ECommon.csproj">
+      <Project>{d60f17ce-ff99-42cd-af71-97c157b17af3}</Project>
+      <Name>ECommon</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\ecommon\src\Extensions\ECommon.JsonNet\ECommon.JsonNet.csproj">
       <Project>{a118c5a4-52c3-4659-860a-31ee526b0877}</Project>
       <Name>ECommon.JsonNet</Name>

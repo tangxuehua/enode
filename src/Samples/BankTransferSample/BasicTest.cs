@@ -24,33 +24,20 @@ namespace BankTransferSample
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
             //创建两个银行账户
-            var createAccountCommand1 = new CreateAccount("00001", "雪华");
-            var createAccountCommand2 = new CreateAccount("00002", "凯锋");
-            var task1 = commandService.Send(createAccountCommand1);
-            var task2 = commandService.Send(createAccountCommand2);
+            var task1 = commandService.Send(new CreateAccount("00001", "雪华"));
+            var task2 = commandService.Send(new CreateAccount("00002", "凯锋"));
             Task.WaitAll(task1, task2);
-
-            Thread.Sleep(500);
-            Console.WriteLine(string.Empty);
 
             //每个账户都存入1000元
-            var depositCommand1 = new Deposit("00001", 1000);
-            var depositCommand2 = new Deposit("00002", 1000);
-            task1 = commandService.Send(depositCommand1);
-            task2 = commandService.Send(depositCommand2);
+            task1 = commandService.Send(new Deposit("00001", 1000));
+            task2 = commandService.Send(new Deposit("00002", 1000));
             Task.WaitAll(task1, task2);
-
-            Thread.Sleep(500);
-            Console.WriteLine(string.Empty);
 
             //账户1向账户2转账300元
             commandService.Send(new CreateTransaction(new TransactionInfo(Guid.NewGuid(), "00001", "00002", 300D))).Wait();
             //账户2向账户1转账500元
             commandService.Send(new CreateTransaction(new TransactionInfo(Guid.NewGuid(), "00002", "00001", 500D))).Wait();
 
-            Thread.Sleep(500);
-            Console.WriteLine(string.Empty);
-            Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
         }
 
@@ -94,13 +81,25 @@ namespace BankTransferSample
         IEventHandler<TransactionCompleted>,                //交易已完成
         IEventHandler<TransactionAborted>                   //交易已终止
     {
+        private static int _accountCreatedCount = 0;
+        private static int _depositedCount = 0;
+        private static int _transactionCompletedCount = 0;
+
         public void Handle(AccountCreated evnt)
         {
             Console.WriteLine("账号已创建，账号：{0}，所有者：{1}", evnt.SourceId, evnt.Owner);
+            if (Interlocked.Increment(ref _accountCreatedCount) == 2)
+            {
+                Console.WriteLine(string.Empty);
+            }
         }
         public void Handle(Deposited evnt)
         {
             Console.WriteLine("存款已成功，账号：{0}，金额：{1}，当前余额：{2}", evnt.SourceId, evnt.Amount, evnt.CurrentBalance);
+            if (Interlocked.Increment(ref _depositedCount) == 2)
+            {
+                Console.WriteLine(string.Empty);
+            }
         }
         public void Handle(Withdrawn evnt)
         {
@@ -162,6 +161,11 @@ namespace BankTransferSample
         {
             Console.WriteLine("交易已完成，交易ID：{0}", evnt.SourceId);
             Console.WriteLine(string.Empty);
+
+            if (Interlocked.Increment(ref _transactionCompletedCount) == 2)
+            {
+                Console.WriteLine("Press Enter to exit...");
+            }
         }
         public void Handle(TransactionAborted evnt)
         {
