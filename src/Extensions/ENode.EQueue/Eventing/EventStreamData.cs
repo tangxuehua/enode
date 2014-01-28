@@ -14,11 +14,11 @@ namespace ENode.EQueue
         public long Version { get; set; }
         public DateTime Timestamp { get; set; }
         public bool HasProcessCompletedEvent { get; set; }
-        public IList<StringTypeData> Events { get; set; }
+        public IList<ByteTypeData> Events { get; set; }
 
         public EventStreamData()
         {
-            Events = new List<StringTypeData>();
+            Events = new List<ByteTypeData>();
         }
     }
 }

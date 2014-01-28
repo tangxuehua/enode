@@ -15,7 +15,6 @@ namespace ENode.EQueue
     {
         private static int _eventPublisherIndex;
         private readonly ILogger _logger;
-        private readonly IJsonSerializer _jsonSerializer;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventTopicProvider _eventTopicProvider;
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
@@ -26,7 +25,6 @@ namespace ENode.EQueue
         public EventPublisher(string id, ProducerSetting setting)
         {
             _producer = new Producer(id, setting);
-            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<IEventTopicProvider>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
@@ -72,8 +70,8 @@ namespace ENode.EQueue
             foreach (var evnt in eventStream.Events)
             {
                 var typeCode = _eventTypeCodeProvider.GetTypeCode(evnt);
-                var eventData = _jsonSerializer.Serialize(evnt);
-                data.Events.Add(new StringTypeData(typeCode, eventData));
+                var eventData = _binarySerializer.Serialize(evnt);
+                data.Events.Add(new ByteTypeData(typeCode, eventData));
             }
 
             return data;

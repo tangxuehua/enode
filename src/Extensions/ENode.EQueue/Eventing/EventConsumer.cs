@@ -17,7 +17,6 @@ namespace ENode.EQueue
         private const string DefaultGroupName = "DefaultEventConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly IJsonSerializer _jsonSerializer;
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventProcessor _eventProcessor;
         private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
@@ -32,7 +31,6 @@ namespace ENode.EQueue
         public EventConsumer(string id, ConsumerSetting setting, string groupName)
         {
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
             _messageContextDict = new ConcurrentDictionary<Guid, IMessageContext>();
@@ -80,7 +78,7 @@ namespace ENode.EQueue
             foreach (var typeData in data.Events)
             {
                 var eventType = _eventTypeCodeProvider.GetType(typeData.TypeCode);
-                var evnt = _jsonSerializer.Deserialize(typeData.Data, eventType) as IDomainEvent;
+                var evnt = _binarySerializer.Deserialize(typeData.Data, eventType) as IDomainEvent;
                 events.Add(evnt);
             }
 
