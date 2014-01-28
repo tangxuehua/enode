@@ -23,6 +23,8 @@ namespace BankTransferSample
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
+            Console.WriteLine(string.Empty);
+
             //创建两个银行账户
             var task1 = commandService.Send(new CreateAccount("00001", "雪华"));
             var task2 = commandService.Send(new CreateAccount("00002", "凯锋"));

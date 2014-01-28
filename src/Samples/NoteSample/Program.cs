@@ -24,6 +24,8 @@ namespace NoteSample
             var command1 = new CreateNoteCommand(noteId, "Note Version1");
             var command2 = new ChangeNoteTitleCommand(noteId, "Note Version2");
 
+            Console.WriteLine(string.Empty);
+
             commandService.Send(command1).ContinueWith(task =>
             {
                 if (task.Result.Status == CommandResultStatus.Success)
