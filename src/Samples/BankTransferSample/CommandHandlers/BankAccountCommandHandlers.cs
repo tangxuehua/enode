@@ -2,7 +2,6 @@
 using BankTransferSample.Domain.BankAccounts;
 using ECommon.IoC;
 using ENode.Commanding;
-using ENode.Infrastructure;
 
 namespace BankTransferSample.CommandHandlers
 {
@@ -22,39 +21,39 @@ namespace BankTransferSample.CommandHandlers
     {
         public void Handle(ICommandContext context, CreateAccount command)
         {
-            context.Add(new BankAccount(command.AccountId, command.Owner));
+            context.Add(new BankAccount(command.AggregateRootId, command.Owner));
         }
         public void Handle(ICommandContext context, Deposit command)
         {
-            context.Get<BankAccount>(command.AccountId).Deposit(command.Amount);
+            context.Get<BankAccount>(command.AggregateRootId).Deposit(command.Amount);
         }
         public void Handle(ICommandContext context, Withdraw command)
         {
-            context.Get<BankAccount>(command.AccountId).Withdraw(command.Amount);
+            context.Get<BankAccount>(command.AggregateRootId).Withdraw(command.Amount);
         }
         public void Handle(ICommandContext context, PrepareDebit command)
         {
-            context.Get<BankAccount>(command.AccountId).PrepareDebit(command.TransactionId, command.Amount);
+            context.Get<BankAccount>(command.AggregateRootId).PrepareDebit(command.TransactionId, command.Amount);
         }
         public void Handle(ICommandContext context, PrepareCredit command)
         {
-            context.Get<BankAccount>(command.AccountId).PrepareCredit(command.TransactionId, command.Amount);
+            context.Get<BankAccount>(command.AggregateRootId).PrepareCredit(command.TransactionId, command.Amount);
         }
         public void Handle(ICommandContext context, CommitDebit command)
         {
-            context.Get<BankAccount>(command.AccountId).CommitDebit(command.TransactionId);
+            context.Get<BankAccount>(command.AggregateRootId).CommitDebit(command.TransactionId);
         }
         public void Handle(ICommandContext context, CommitCredit command)
         {
-            context.Get<BankAccount>(command.AccountId).CommitCredit(command.TransactionId);
+            context.Get<BankAccount>(command.AggregateRootId).CommitCredit(command.TransactionId);
         }
         public void Handle(ICommandContext context, AbortDebit command)
         {
-            context.Get<BankAccount>(command.AccountId).AbortDebit(command.TransactionId);
+            context.Get<BankAccount>(command.AggregateRootId).AbortDebit(command.TransactionId);
         }
         public void Handle(ICommandContext context, AbortCredit command)
         {
-            context.Get<BankAccount>(command.AccountId).AbortCredit(command.TransactionId);
+            context.Get<BankAccount>(command.AggregateRootId).AbortCredit(command.TransactionId);
         }
     }
 }

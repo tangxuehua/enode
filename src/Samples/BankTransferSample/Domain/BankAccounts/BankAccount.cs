@@ -224,7 +224,7 @@ namespace BankTransferSample.Domain.BankAccounts
 
         private void Handle(AccountCreated evnt)
         {
-            Id = evnt.SourceId;
+            Id = evnt.AggregateRootId;
             Owner = evnt.Owner;
         }
         private void Handle(Deposited evnt)

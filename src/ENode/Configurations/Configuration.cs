@@ -66,7 +66,7 @@ namespace ENode.Configurations
         public ENodeConfiguration RegisterENodeComponents()
         {
             _configuration.SetDefault<ILoggerFactory, EmptyLoggerFactory>();
-            _configuration.SetDefault<IBinarySerializer, DefaultBinarySerializer>();
+            _configuration.SetDefault<IBinarySerializer, JsonBasedBinarySerializer>();
             _configuration.SetDefault<IDbConnectionFactory, DefaultDbConnectionFactory>();
 
             _configuration.SetDefault<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();

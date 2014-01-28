@@ -5,7 +5,7 @@ namespace ENode.Commanding
     /// <summary>Represents an abstract command.
     /// </summary>
     [Serializable]
-    public abstract class Command : ICommand
+    public abstract class Command<TAggregateRootId> : ICommand
     {
         private int _retryCount;
         public const int DefaultRetryCount = 5;
@@ -14,9 +14,6 @@ namespace ENode.Commanding
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
         public Guid Id { get; private set; }
-        /// <summary>Represents the id of aggregate root which will be created or updated by the current command.
-        /// </summary>
-        public object AggregateRootId { get; private set; }
         /// <summary>Get or set the count which the command should be retry. The retry count must small than the MaxRetryCount;
         /// </summary>
         public int RetryCount
@@ -34,16 +31,25 @@ namespace ENode.Commanding
                 _retryCount = value;
             }
         }
+        /// <summary>Represents the id of aggregate root which is created or updated by the command.
+        /// </summary>
+        public TAggregateRootId AggregateRootId { get; private set; }
+        /// <summary>Represents the id of the aggregate root, this property is only used by framework.
+        /// </summary>
+        object ICommand.AggregateRootId
+        {
+            get { return this.AggregateRootId; }
+        }
 
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        protected Command(object aggregateRootId) : this(aggregateRootId, DefaultRetryCount) { }
+        protected Command(TAggregateRootId aggregateRootId) : this(aggregateRootId, DefaultRetryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="retryCount"></param>
-        protected Command(object aggregateRootId, int retryCount)
+        protected Command(TAggregateRootId aggregateRootId, int retryCount)
         {
             if (aggregateRootId == null)
             {

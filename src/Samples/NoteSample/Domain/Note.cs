@@ -25,7 +25,7 @@ namespace NoteSample.Domain
 
         private void Handle(NoteCreatedEvent evnt)
         {
-            Id = evnt.SourceId;
+            Id = evnt.AggregateRootId;
             Title = evnt.Title;
             CreatedTime = evnt.CreatedTime;
             UpdatedTime = evnt.UpdatedTime;

@@ -32,12 +32,12 @@ namespace BankTransferSample.ProcessManagers
 
         public void Handle(TransactionCreated evnt)
         {
-            _commandService.Send(new StartTransaction(evnt.SourceId));
+            _commandService.Send(new StartTransaction(evnt.AggregateRootId));
         }
         public void Handle(TransactionStarted evnt)
         {
-            _commandService.Send(new PrepareDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId, evnt.TransactionInfo.Amount));
-            _commandService.Send(new PrepareCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId, evnt.TransactionInfo.Amount));
+            _commandService.Send(new PrepareDebit(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId, evnt.TransactionInfo.Amount));
+            _commandService.Send(new PrepareCredit(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId, evnt.TransactionInfo.Amount));
         }
         public void Handle(DebitPrepared evnt)
         {
@@ -53,13 +53,13 @@ namespace BankTransferSample.ProcessManagers
         }
         public void Handle(TransactionCommitted evnt)
         {
-            _commandService.Send(new CommitDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId));
-            _commandService.Send(new CommitCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId));
+            _commandService.Send(new CommitDebit(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId));
+            _commandService.Send(new CommitCredit(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId));
         }
         public void Handle(TransactionAborted evnt)
         {
-            _commandService.Send(new AbortDebit(evnt.TransactionInfo.SourceAccountId, evnt.SourceId));
-            _commandService.Send(new AbortCredit(evnt.TransactionInfo.TargetAccountId, evnt.SourceId));
+            _commandService.Send(new AbortDebit(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId));
+            _commandService.Send(new AbortCredit(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId));
         }
         public void Handle(DebitCommitted evnt)
         {

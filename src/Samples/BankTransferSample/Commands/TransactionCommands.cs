@@ -7,13 +7,12 @@ namespace BankTransferSample.Commands
     /// <summary>创建一笔转账交易
     /// </summary>
     [Serializable]
-    public class CreateTransaction : Command, ICreatingAggregateCommand, IStartProcessCommand
+    public class CreateTransaction : Command<Guid>, ICreatingAggregateCommand, IStartProcessCommand
     {
         public TransactionInfo TransactionInfo { get; private set; }
         public object ProcessId { get; private set; }
 
-        public CreateTransaction(TransactionInfo transactionInfo)
-            : base(transactionInfo.TransactionId)
+        public CreateTransaction(TransactionInfo transactionInfo) : base(transactionInfo.TransactionId)
         {
             TransactionInfo = transactionInfo;
             ProcessId = transactionInfo.TransactionId;
@@ -22,79 +21,55 @@ namespace BankTransferSample.Commands
     /// <summary>发起转账交易
     /// </summary>
     [Serializable]
-    public class StartTransaction : Command
+    public class StartTransaction : Command<Guid>
     {
-        public Guid TransactionId { get; private set; }
-
-        public StartTransaction(Guid transactionId)
-            : base(transactionId)
+        public StartTransaction(Guid transactionId) : base(transactionId)
         {
-            TransactionId = transactionId;
         }
     }
     /// <summary>确认预转出
     /// </summary>
     [Serializable]
-    public class ConfirmDebitPreparation : Command
+    public class ConfirmDebitPreparation : Command<Guid>
     {
-        public Guid TransactionId { get; private set; }
-
-        public ConfirmDebitPreparation(Guid transactionId)
-            : base(transactionId)
+        public ConfirmDebitPreparation(Guid transactionId) : base(transactionId)
         {
-            TransactionId = transactionId;
         }
     }
     /// <summary>确认预转入
     /// </summary>
     [Serializable]
-    public class ConfirmCreditPreparation : Command
+    public class ConfirmCreditPreparation : Command<Guid>
     {
-        public Guid TransactionId { get; private set; }
-
-        public ConfirmCreditPreparation(Guid transactionId)
-            : base(transactionId)
+        public ConfirmCreditPreparation(Guid transactionId) : base(transactionId)
         {
-            TransactionId = transactionId;
         }
     }
     /// <summary>确认转出
     /// </summary>
     [Serializable]
-    public class ConfirmDebit : Command
+    public class ConfirmDebit : Command<Guid>
     {
-        public Guid TransactionId { get; private set; }
-
-        public ConfirmDebit(Guid transactionId)
-            : base(transactionId)
+        public ConfirmDebit(Guid transactionId) : base(transactionId)
         {
-            TransactionId = transactionId;
         }
     }
     /// <summary>确认转入
     /// </summary>
     [Serializable]
-    public class ConfirmCredit : Command
+    public class ConfirmCredit : Command<Guid>
     {
-        public Guid TransactionId { get; private set; }
-
-        public ConfirmCredit(Guid transactionId)
-            : base(transactionId)
+        public ConfirmCredit(Guid transactionId) : base(transactionId)
         {
-            TransactionId = transactionId;
         }
     }
     /// <summary>终止转账交易
     /// </summary>
     [Serializable]
-    public class AbortTransaction : Command
+    public class AbortTransaction : Command<Guid>
     {
-        public Guid TransactionId { get; private set; }
-
-        public AbortTransaction(Guid transactionId)
-            : base(transactionId)
+        public AbortTransaction(Guid transactionId) : base(transactionId)
         {
-            TransactionId = transactionId;
         }
     }
 }

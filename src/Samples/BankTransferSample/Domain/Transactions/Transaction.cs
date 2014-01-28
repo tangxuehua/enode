@@ -135,7 +135,7 @@ namespace BankTransferSample.Domain.Transactions
 
         private void Handle(TransactionCreated evnt)
         {
-            Id = evnt.SourceId;
+            Id = evnt.AggregateRootId;
             TransactionInfo = evnt.TransactionInfo;
             Status = TransactionStatus.Created;
         }

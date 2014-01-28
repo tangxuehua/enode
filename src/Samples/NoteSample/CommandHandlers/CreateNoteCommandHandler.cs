@@ -10,7 +10,7 @@ namespace NoteSample.CommandHandlers
     {
         public void Handle(ICommandContext context, CreateNoteCommand command)
         {
-            context.Add(new Note(command.NoteId, command.Title));
+            context.Add(new Note(command.AggregateRootId, command.Title));
         }
     }
 }

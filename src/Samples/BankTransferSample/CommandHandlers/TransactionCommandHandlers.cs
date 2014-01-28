@@ -2,7 +2,6 @@
 using BankTransferSample.Domain.Transactions;
 using ECommon.IoC;
 using ENode.Commanding;
-using ENode.Infrastructure;
 
 namespace BankTransferSample.CommandHandlers
 {
@@ -24,27 +23,27 @@ namespace BankTransferSample.CommandHandlers
         }
         public void Handle(ICommandContext context, StartTransaction command)
         {
-            context.Get<Transaction>(command.TransactionId).Start();
+            context.Get<Transaction>(command.AggregateRootId).Start();
         }
         public void Handle(ICommandContext context, ConfirmDebitPreparation command)
         {
-            context.Get<Transaction>(command.TransactionId).ConfirmDebitPreparation();
+            context.Get<Transaction>(command.AggregateRootId).ConfirmDebitPreparation();
         }
         public void Handle(ICommandContext context, ConfirmCreditPreparation command)
         {
-            context.Get<Transaction>(command.TransactionId).ConfirmCreditPreparation();
+            context.Get<Transaction>(command.AggregateRootId).ConfirmCreditPreparation();
         }
         public void Handle(ICommandContext context, ConfirmDebit command)
         {
-            context.Get<Transaction>(command.TransactionId).ConfirmDebit();
+            context.Get<Transaction>(command.AggregateRootId).ConfirmDebit();
         }
         public void Handle(ICommandContext context, ConfirmCredit command)
         {
-            context.Get<Transaction>(command.TransactionId).ConfirmCredit();
+            context.Get<Transaction>(command.AggregateRootId).ConfirmCredit();
         }
         public void Handle(ICommandContext context, AbortTransaction command)
         {
-            context.Get<Transaction>(command.TransactionId).Abort();
+            context.Get<Transaction>(command.AggregateRootId).Abort();
         }
     }
 }
