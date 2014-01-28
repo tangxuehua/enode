@@ -38,15 +38,21 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\Autofac.3.3.0\lib\net40\Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon">
-      <HintPath>..\..\..\packages\ecommon.1.0.1\lib\net40\ECommon.dll</HintPath>
+    <Reference Include="ECommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\ecommon.1.0.3\lib\net40\ECommon.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.Autofac">
-      <HintPath>..\..\..\packages\ecommon.autofac.1.0.0\lib\net40\ECommon.Autofac.dll</HintPath>
+    <Reference Include="ECommon.Autofac, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\ecommon.autofac.1.0.3\lib\net40\ECommon.Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="ECommon.JsonNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.3\lib\net40\ECommon.JsonNet.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Log4Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.log4net.1.0.0\lib\net40\ECommon.Log4Net.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.log4net.1.0.3\lib\net40\ECommon.Log4Net.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -89,10 +95,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\ecommon\src\Extensions\ECommon.JsonNet\ECommon.JsonNet.csproj">
-      <Project>{a118c5a4-52c3-4659-860a-31ee526b0877}</Project>
-      <Name>ECommon.JsonNet</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\equeue\src\EQueue\EQueue.csproj">
       <Project>{ce352ffb-7034-4f71-8d93-78eced099125}</Project>
       <Name>EQueue</Name>

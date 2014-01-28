@@ -29,7 +29,7 @@ namespace ENode.EQueue
         public CommandConsumer() : this(DefaultGroupName) { }
         public CommandConsumer(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
         public CommandConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }
-        public CommandConsumer(ConsumerSetting setting, string groupName) : this(string.Format("{0}@{1}-{2}", SocketUtils.GetLocalIPV4(), typeof(CommandConsumer).Name, Interlocked.Increment(ref _consumerIndex)), setting, groupName) { }
+        public CommandConsumer(ConsumerSetting setting, string groupName) : this(string.Format("{0}@{1}-{2}-{3}", SocketUtils.GetLocalIPV4(), typeof(CommandConsumer).Name, Interlocked.Increment(ref _consumerIndex), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffff")), setting, groupName) { }
         public CommandConsumer(string id, ConsumerSetting setting, string groupName)
         {
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();

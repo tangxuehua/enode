@@ -5,8 +5,6 @@ using System.Reflection;
 using ECommon.Configurations;
 using ECommon.IoC;
 using ECommon.Logging;
-using ECommon.Retring;
-using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Commanding.Impl;
 using ENode.Domain;
@@ -16,7 +14,6 @@ using ENode.Eventing.Impl;
 using ENode.Eventing.Impl.InMemory;
 using ENode.Eventing.Impl.SQL;
 using ENode.Infrastructure;
-using ENode.Infrastructure.Logging;
 using ENode.Infrastructure.Sql;
 using ENode.Snapshoting;
 using ENode.Snapshoting.Impl;
@@ -34,6 +31,8 @@ namespace ENode.Configurations
 
         #endregion
 
+        /// <summary>Provides the singleton access instance.
+        /// </summary>
         public static ENodeConfiguration Instance { get; private set; }
 
         /// <summary>Parameterized constructor.
@@ -44,6 +43,10 @@ namespace ENode.Configurations
             _assemblyInitializerServiceTypes = new List<Type>();
         }
 
+        /// <summary>Create the enode configuration instance.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
         public static ENodeConfiguration CreateENode(Configuration configuration)
         {
             if (Instance != null)
@@ -65,8 +68,6 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
-            _configuration.SetDefault<ILoggerFactory, EmptyLoggerFactory>();
-            _configuration.SetDefault<IBinarySerializer, JsonBasedBinarySerializer>();
             _configuration.SetDefault<IDbConnectionFactory, DefaultDbConnectionFactory>();
 
             _configuration.SetDefault<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();
@@ -88,6 +89,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
             _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
+            _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
 
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
@@ -99,9 +101,8 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventPublisher, DefaultEventPublisher>(new DefaultEventPublisher());
             _configuration.SetDefault<ICommitEventService, DefaultCommitEventService>();
             _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
+            _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
             _configuration.SetDefault<IPublishEventService, DefaultPublishEventService>();
-
-            _configuration.SetDefault<IActionExecutionService, DefaultActionExecutionService>(LifeStyle.Transient);
 
             _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
             _assemblyInitializerServiceTypes.Add(typeof(IEventSynchronizerProvider));

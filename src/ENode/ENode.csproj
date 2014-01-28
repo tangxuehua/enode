@@ -40,6 +40,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commanding\CommandResult.cs" />
+    <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
     <Compile Include="Commanding\IStartProcessCommand.cs" />
     <Compile Include="Commanding\Impl\ProcessingCommandProcessor.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\Impl\DefaultEventPublisher.cs" />
     <Compile Include="Eventing\Impl\DefaultPublishEventService.cs" />
+    <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IPublishEventService.cs" />
     <Compile Include="Eventing\ISourcingEvent.cs" />
@@ -121,8 +123,6 @@
     </Compile>
     <Compile Include="Commanding\ICommandHandlerProvider.cs" />
     <Compile Include="Commanding\IProcessingCommandCache.cs" />
-    <Compile Include="Infrastructure\Logging\EmptyLogger.cs" />
-    <Compile Include="Infrastructure\Logging\EmptyLoggerFactory.cs" />
     <Compile Include="Domain\IAggregateRootTypeProvider.cs" />
     <Compile Include="Domain\IAggregateRootFactory.cs" />
     <Compile Include="Domain\IAggregateRootInternalHandlerProvider.cs" />
@@ -150,8 +150,9 @@
     <Compile Include="Commanding\AggregateRootNotFoundException.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="ECommon">
-      <HintPath>..\..\packages\ecommon.1.0.1\lib\net40\ECommon.dll</HintPath>
+    <Reference Include="ECommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\ecommon.1.0.3\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

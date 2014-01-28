@@ -29,7 +29,7 @@ namespace ENode.EQueue.Commanding
         public CompletedCommandProcessor(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
         public CompletedCommandProcessor(string groupName) : this(ConsumerSetting.Default, groupName) { }
         public CompletedCommandProcessor(ConsumerSetting setting, string groupName)
-            : this(string.Format("{0}@{1}-{2}", SocketUtils.GetLocalIPV4(), typeof(CompletedCommandProcessor).Name, Interlocked.Increment(ref _consumerIndex)), setting, groupName) { }
+            : this(string.Format("{0}@{1}-{2}-{3}", SocketUtils.GetLocalIPV4(), typeof(CompletedCommandProcessor).Name, Interlocked.Increment(ref _consumerIndex), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffff")), setting, groupName) { }
         public CompletedCommandProcessor(string id, ConsumerSetting setting, string groupName)
         {
             _processingCommandDict = new ConcurrentDictionary<Guid, TaskCompletionSource<CommandResult>>();

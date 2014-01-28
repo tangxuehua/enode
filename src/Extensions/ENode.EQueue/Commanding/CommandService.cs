@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using ECommon.IoC;
 using ECommon.Logging;
@@ -23,7 +24,7 @@ namespace ENode.EQueue
         private readonly Producer _producer;
 
         public CommandService() : this(ProducerSetting.Default) { }
-        public CommandService(ProducerSetting setting) : this(string.Format("{0}@{1}-{2}", SocketUtils.GetLocalIPV4(), typeof(CommandService).Name, Interlocked.Increment(ref _commandServiceIndex)), setting) { }
+        public CommandService(ProducerSetting setting) : this(string.Format("{0}@{1}-{2}-{3}", SocketUtils.GetLocalIPV4(), typeof(CommandService).Name, Interlocked.Increment(ref _commandServiceIndex), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffff")), setting) { }
         public CommandService(string id, ProducerSetting setting)
         {
             _producer = new Producer(id, setting);

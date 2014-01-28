@@ -109,7 +109,6 @@ namespace BankTransferSample.EQueueIntegrations
                 var completedCommandProcessorAllocatedQueues = _completedCommandProcessor.Consumer.GetCurrentQueues();
                 if (eventConsumerAllocatedQueues.Count() == 4 && commandConsumerAllocatedQueues.Count() == 4 && completedCommandProcessorAllocatedQueues.Count() == 4)
                 {
-                    Console.WriteLine("All consumers' message queue allocation complete.");
                     waitHandle.Set();
                 }
             }, 1000, 1000);

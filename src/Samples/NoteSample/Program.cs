@@ -44,15 +44,16 @@ namespace NoteSample
             Configuration
                 .Create()
                 .UseAutofac()
+                .RegisterCommonComponents()
+                .UseLog4Net()
+                .UseJsonNet()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .UseLog4Net()
-                .UseJsonNet()
                 .UseEQueue()
                 .InitializeENode(assemblies)
-                .StartEnode()
-                .StartEQueue();
+                .StartEQueue()
+                .StartEnode();
         }
     }
 }
