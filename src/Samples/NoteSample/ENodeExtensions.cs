@@ -1,5 +1,10 @@
-﻿using ECommon.JsonNet;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using ECommon.IoC;
+using ECommon.JsonNet;
 using ECommon.Log4Net;
+using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
@@ -66,6 +71,8 @@ namespace NoteSample.EQueueIntegrations
             _commandService.Start();
             _completedCommandProcessor.Start();
 
+            WaitAllConsumerLoadBalanceComplete();
+
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseLog4Net(this ENodeConfiguration enodeConfiguration)
@@ -82,6 +89,26 @@ namespace NoteSample.EQueueIntegrations
         {
             enodeConfiguration.GetCommonConfiguration().UseJsonNet(typeof(ICommand), typeof(IDomainEvent));
             return enodeConfiguration;
+        }
+
+        private static void WaitAllConsumerLoadBalanceComplete()
+        {
+            var scheduleService = ObjectContainer.Resolve<IScheduleService>();
+            var waitHandle = new ManualResetEvent(false);
+            var taskId = scheduleService.ScheduleTask(() =>
+            {
+                var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
+                var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
+                var completedCommandProcessorAllocatedQueues = _completedCommandProcessor.Consumer.GetCurrentQueues();
+                if (eventConsumerAllocatedQueues.Count() == 4 && commandConsumerAllocatedQueues.Count() == 4 && completedCommandProcessorAllocatedQueues.Count() == 4)
+                {
+                    Console.WriteLine("All consumers' message queue allocation complete.");
+                    waitHandle.Set();
+                }
+            }, 1000, 1000);
+
+            waitHandle.WaitOne();
+            scheduleService.ShutdownTask(taskId);
         }
     }
 }

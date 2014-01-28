@@ -22,6 +22,8 @@ namespace ENode.EQueue
         private readonly IEventProcessor _eventProcessor;
         private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
 
+        public Consumer Consumer { get { return _consumer; } }
+
         public EventConsumer() : this(DefaultGroupName) { }
         public EventConsumer(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
         public EventConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }

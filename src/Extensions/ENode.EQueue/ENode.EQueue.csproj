@@ -38,9 +38,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ECommon">
-      <HintPath>..\..\..\packages\ecommon.1.0.1\lib\net40\ECommon.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -60,6 +57,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\ecommon\src\ECommon\ECommon.csproj">
+      <Project>{d60f17ce-ff99-42cd-af71-97c157b17af3}</Project>
+      <Name>ECommon</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\equeue\src\EQueue\EQueue.csproj">
       <Project>{ce352ffb-7034-4f71-8d93-78eced099125}</Project>
       <Name>EQueue</Name>

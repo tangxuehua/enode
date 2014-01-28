@@ -31,7 +31,8 @@ namespace ENode.Eventing.Impl.InMemory
         /// <returns></returns>
         public long GetEventPublishedVersion(object aggregateRootId)
         {
-            return _versionDict[aggregateRootId.ToString()];
+            long version;
+            return _versionDict.TryGetValue(aggregateRootId.ToString(), out version) ? version : 0L;
         }
     }
 }

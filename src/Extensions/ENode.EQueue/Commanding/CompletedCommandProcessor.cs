@@ -23,6 +23,8 @@ namespace ENode.EQueue.Commanding
         private readonly BlockingCollection<EventStreamData> _queue;
         private readonly Worker _worker;
 
+        public Consumer Consumer { get { return _consumer; } }
+
         public CompletedCommandProcessor() : this(DefaultGroupName) { }
         public CompletedCommandProcessor(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
         public CompletedCommandProcessor(string groupName) : this(ConsumerSetting.Default, groupName) { }

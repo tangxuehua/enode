@@ -24,6 +24,8 @@ namespace ENode.EQueue
         private readonly IRepository _repository;
         private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
 
+        public Consumer Consumer { get { return _consumer; } }
+
         public CommandConsumer() : this(DefaultGroupName) { }
         public CommandConsumer(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
         public CommandConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }
