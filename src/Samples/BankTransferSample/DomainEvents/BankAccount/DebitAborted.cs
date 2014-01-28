@@ -7,7 +7,6 @@ namespace BankTransferSample.DomainEvents.BankAccount
     /// <summary>交易转出已终止
     /// </summary>
     [Serializable]
-    [JsonObject(MemberSerialization.Fields)]
     public class DebitAborted : SourcingEvent<string>
     {
         public Guid TransactionId { get; private set; }

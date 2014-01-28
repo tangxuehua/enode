@@ -7,7 +7,6 @@ namespace BankTransferSample.DomainEvents.BankAccount
     /// <summary>交易预转入成功
     /// </summary>
     [Serializable]
-    [JsonObject(MemberSerialization.Fields)]
     public class CreditPrepared : SourcingEvent<string>
     {
         public Guid TransactionId { get; private set; }

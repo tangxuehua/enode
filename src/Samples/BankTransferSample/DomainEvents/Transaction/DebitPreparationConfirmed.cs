@@ -8,7 +8,6 @@ namespace BankTransferSample.DomainEvents.Transaction
     /// <summary>交易预转出已确认
     /// </summary>
     [Serializable]
-    [JsonObject(MemberSerialization.Fields)]
     public class DebitPreparationConfirmed : DomainEvent<Guid>, ISourcingEvent
     {
         public TransactionInfo TransactionInfo { get; private set; }

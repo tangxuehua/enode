@@ -7,7 +7,6 @@ namespace BankTransferSample.DomainEvents.BankAccount
     /// <summary>重复的预转出操作
     /// </summary>
     [Serializable]
-    [JsonObject(MemberSerialization.Fields)]
     public class DuplicatedDebitPreparation : DomainEvent<string>
     {
         public Guid TransactionId { get; private set; }

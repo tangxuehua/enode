@@ -7,7 +7,6 @@ namespace BankTransferSample.DomainEvents.BankAccount
     /// <summary>交易转入已提交
     /// </summary>
     [Serializable]
-    [JsonObject(MemberSerialization.Fields)]
     public class CreditCommitted : SourcingEvent<string>
     {
         /// <summary>交易ID

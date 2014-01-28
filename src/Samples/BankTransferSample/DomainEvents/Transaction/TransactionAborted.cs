@@ -8,7 +8,6 @@ namespace BankTransferSample.DomainEvents.Transaction
     /// <summary>交易已终止
     /// </summary>
     [Serializable]
-    [JsonObject(MemberSerialization.Fields)]
     public class TransactionAborted : DomainEvent<Guid>, ISourcingEvent, IProcessCompletedEvent
     {
         public TransactionInfo TransactionInfo { get; private set; }
