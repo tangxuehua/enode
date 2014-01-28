@@ -80,7 +80,7 @@ namespace NoteSample.EQueueIntegrations
         }
         public static ENodeConfiguration UseJsonNet(this ENodeConfiguration enodeConfiguration)
         {
-            enodeConfiguration.GetCommonConfiguration().UseJsonNet();
+            enodeConfiguration.GetCommonConfiguration().UseJsonNet(typeof(ICommand), typeof(IDomainEvent));
             return enodeConfiguration;
         }
     }

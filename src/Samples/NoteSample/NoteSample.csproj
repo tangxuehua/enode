@@ -44,10 +44,6 @@
     <Reference Include="ECommon.Autofac">
       <HintPath>..\..\..\packages\ecommon.autofac.1.0.0\lib\net40\ECommon.Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.JsonNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.0\lib\net40\ECommon.JsonNet.dll</HintPath>
-    </Reference>
     <Reference Include="ECommon.Log4Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\ecommon.log4net.1.0.0\lib\net40\ECommon.Log4Net.dll</HintPath>
@@ -93,6 +89,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\ecommon\src\Extensions\ECommon.JsonNet\ECommon.JsonNet.csproj">
+      <Project>{a118c5a4-52c3-4659-860a-31ee526b0877}</Project>
+      <Name>ECommon.JsonNet</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\equeue\src\EQueue\EQueue.csproj">
       <Project>{ce352ffb-7034-4f71-8d93-78eced099125}</Project>
       <Name>EQueue</Name>
