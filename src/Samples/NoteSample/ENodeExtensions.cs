@@ -41,6 +41,13 @@ namespace NoteSample.EQueueIntegrations
                 consumerSetting.UpdateTopicQueueCountInterval = 1000;
                 consumerSetting.RebalanceInterval = 1000;
             };
+            var eventConsumerSetting = ConsumerSetting.Default;
+            {
+                eventConsumerSetting.HeartbeatBrokerInterval = 1000;
+                eventConsumerSetting.UpdateTopicQueueCountInterval = 1000;
+                eventConsumerSetting.RebalanceInterval = 1000;
+                eventConsumerSetting.MessageHandleMode = MessageHandleMode.Sequential;
+            };
 
             _broker = new BrokerController().Initialize();
             _completedCommandProcessor = new CompletedCommandProcessor(consumerSetting);
@@ -54,7 +61,7 @@ namespace NoteSample.EQueueIntegrations
             configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer(consumerSetting);
-            _eventConsumer = new EventConsumer(consumerSetting);
+            _eventConsumer = new EventConsumer(eventConsumerSetting);
 
             _commandConsumer.Subscribe("NoteCommandTopic");
             _eventConsumer.Subscribe("NoteEventTopic");

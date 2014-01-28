@@ -77,6 +77,7 @@ namespace ENode.Commanding.Impl
         {
             if (processingCommand.CommandExecuteContext.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
             {
+                _logger.DebugFormat("Added a waiting command:[Type={0},Id={1},AggregateRootId={2}]", processingCommand.Command.GetType().Name, processingCommand.Command.Id, processingCommand.Command.AggregateRootId);
                 return;
             }
 

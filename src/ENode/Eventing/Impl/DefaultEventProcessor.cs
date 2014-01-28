@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using ECommon.Logging;
 using ECommon.Retring;
+using ECommon.Scheduling;
 
 namespace ENode.Eventing.Impl
 {
@@ -8,12 +11,15 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
+        private const int WorkerCount = 4;
         private readonly IEventHandlerProvider _eventHandlerProvider;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IEventHandleInfoStore _eventHandleInfoStore;
         private readonly IEventHandleInfoCache _eventHandleInfoCache;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
+        private readonly IList<BlockingCollection<EventProcessingContext>> _queueList;
+        private readonly IList<Worker> _workerList;
 
         #endregion
 
@@ -41,13 +47,36 @@ namespace ENode.Eventing.Impl
             _eventHandleInfoCache = eventHandleInfoCache;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().Name);
+            _queueList = new List<BlockingCollection<EventProcessingContext>>();
+            for (var index = 0; index < WorkerCount; index++)
+            {
+                _queueList.Add(new BlockingCollection<EventProcessingContext>(new ConcurrentQueue<EventProcessingContext>()));
+            }
+
+            _workerList = new List<Worker>();
+            for (var index = 0; index < WorkerCount; index++)
+            {
+                var queue = _queueList[index];
+                var worker = new Worker(() =>
+                {
+                    DispatchEventsToHandlers(queue.Take());
+                });
+                _workerList.Add(worker);
+                worker.Start();
+            }
         }
 
         #endregion
 
         public void Process(EventStream eventStream, IEventProcessContext context)
         {
-            DispatchEventsToHandlers(new EventProcessingContext(eventStream, context));
+            var processingContext = new EventProcessingContext(eventStream, context);
+            var queueIndex = processingContext.EventStream.AggregateRootId.GetHashCode() % WorkerCount;
+            if (queueIndex < 0)
+            {
+                queueIndex = Math.Abs(queueIndex);
+            }
+            _queueList[queueIndex].Add(processingContext);
         }
 
         #region Private Methods
@@ -67,16 +96,21 @@ namespace ENode.Eventing.Impl
                         {
                             return DispatchEventsToHandlers(eventStream);
                         }
-                        return lastPublishedVersion + 1 > eventStream.Version;
+                        var canPublish = lastPublishedVersion + 1 > eventStream.Version;
+                        if (!canPublish)
+                        {
+                            _logger.DebugFormat("wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
+                        }
+                        return canPublish;
                 }
             });
 
             try
             {
-                _actionExecutionService.TryAction("DispatchEventsToHandlers", dispatchEventsToHandlers, 3, new ActionInfo("DispatchEventsToHandlersCallback", obj =>
+                _actionExecutionService.TryAction("DispatchEventsToHandlers", dispatchEventsToHandlers, 50, new ActionInfo("DispatchEventsToHandlersCallback", obj =>
                 {
                     var currentContext = obj as EventProcessingContext;
-                    UpdatePublishedEventStreamVersion(currentContext.EventStream);
+                    UpdatePublishedVersion(currentContext.EventStream);
                     currentContext.EventProcessContext.OnEventProcessed(currentContext.EventStream);
                     return true;
                 }, context, null));
@@ -127,7 +161,7 @@ namespace ENode.Eventing.Impl
                 return false;
             }
         }
-        private void UpdatePublishedEventStreamVersion(EventStream stream)
+        private void UpdatePublishedVersion(EventStream stream)
         {
             if (stream.Version == 1)
             {
