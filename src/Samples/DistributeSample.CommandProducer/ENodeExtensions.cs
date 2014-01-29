@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using ECommon.IoC;
 using ECommon.Scheduling;
@@ -40,7 +39,8 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
 
-            _completedCommandProcessor.Subscribe("NoteEventTopic");
+            _completedCommandProcessor.Subscribe("NoteEventTopic1");
+            _completedCommandProcessor.Subscribe("NoteEventTopic2");
 
             return enodeConfiguration;
         }
@@ -61,7 +61,7 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
             var taskId = scheduleService.ScheduleTask(() =>
             {
                 var completedCommandProcessorAllocatedQueues = _completedCommandProcessor.Consumer.GetCurrentQueues();
-                if (completedCommandProcessorAllocatedQueues.Count() == 4)
+                if (completedCommandProcessorAllocatedQueues.Count() == 8)
                 {
                     waitHandle.Set();
                 }

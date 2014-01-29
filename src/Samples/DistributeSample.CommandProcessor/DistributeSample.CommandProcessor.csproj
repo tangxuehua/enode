@@ -68,11 +68,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandHandlers\ChangeNoteTitleCommandHandler.cs" />
     <Compile Include="CommandHandlers\CreateNoteCommandHandler.cs" />
     <Compile Include="Domain\Note.cs" />
     <Compile Include="ENodeExtensions.cs" />
-    <Compile Include="EQueueIntegrations\CommandTopicManager.cs" />
     <Compile Include="EQueueIntegrations\CommandTypeCodeManager.cs" />
     <Compile Include="EQueueIntegrations\EventTopicManager.cs" />
     <Compile Include="EQueueIntegrations\EventTypeCodeManager.cs" />

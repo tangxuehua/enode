@@ -17,21 +17,11 @@ namespace DistributeSample.CommandProcessor.Domain
             RaiseEvent(new NoteCreatedEvent(id, title, currentTime, currentTime));
         }
 
-        public void ChangeTitle(string title)
-        {
-            RaiseEvent(new NoteTitleChangedEvent(Id, title, DateTime.Now));
-        }
-
         private void Handle(NoteCreatedEvent evnt)
         {
             Id = evnt.AggregateRootId;
             Title = evnt.Title;
             CreatedTime = evnt.CreatedTime;
-            UpdatedTime = evnt.UpdatedTime;
-        }
-        private void Handle(NoteTitleChangedEvent evnt)
-        {
-            Title = evnt.Title;
             UpdatedTime = evnt.UpdatedTime;
         }
     }

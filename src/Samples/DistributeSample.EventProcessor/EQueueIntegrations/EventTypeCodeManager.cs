@@ -14,7 +14,6 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
         public EventTypeCodeManager()
         {
             _typeCodeDict.Add(100, typeof(NoteCreatedEvent));
-            _typeCodeDict.Add(101, typeof(NoteTitleChangedEvent));
         }
 
         public int GetTypeCode(IDomainEvent domainEvent)

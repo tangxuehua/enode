@@ -1,4 +1,5 @@
-﻿using DistributeSample.CommandProcessor.Domain;
+﻿using System;
+using DistributeSample.CommandProcessor.Domain;
 using DistributeSample.Commands;
 using ECommon.IoC;
 using ENode.Commanding;
@@ -11,6 +12,7 @@ namespace DistributeSample.CommandProcessor.CommandHandlers
         public void Handle(ICommandContext context, CreateNoteCommand command)
         {
             context.Add(new Note(command.AggregateRootId, command.Title));
+            Console.WriteLine("Handled CreateNoteCommand.");
         }
     }
 }

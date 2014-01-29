@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading;
 using DistributeSample.CommandProducer.EQueueIntegrations;
 using DistributeSample.Commands;
 using ECommon.Autofac;
@@ -14,30 +15,24 @@ namespace DistributeSample.CommandProducer
 {
     class Program
     {
+        static int _count;
+
         static void Main(string[] args)
         {
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
-            var noteId = Guid.NewGuid();
-            var command1 = new CreateNoteCommand(noteId, "Note Version1");
-            var command2 = new ChangeNoteTitleCommand(noteId, "Note Version2");
-
-            commandService.Send(command1).ContinueWith(task1 =>
+            for (var index = 1; index <= 10; index++)
             {
-                Console.WriteLine("Sent command1.");
-                if (task1.Result.Status == CommandResultStatus.Success)
+                commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note" + index)).ContinueWith(task =>
                 {
-                    commandService.Send(command2).ContinueWith(task2 =>
+                    if (task.Result.Status == CommandResultStatus.Success)
                     {
-                        if (task2.Result.Status == CommandResultStatus.Success)
-                        {
-                            Console.WriteLine("Sent command2.");
-                        }
-                    });
-                }
-            });
+                        Console.WriteLine("Sent command{0}.", Interlocked.Increment(ref _count));
+                    }
+                });
+            }
 
             Console.ReadLine();
         }

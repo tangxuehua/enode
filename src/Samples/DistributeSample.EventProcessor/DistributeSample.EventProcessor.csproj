@@ -69,7 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ENodeExtensions.cs" />
-    <Compile Include="EQueueIntegrations\EventTopicManager.cs" />
     <Compile Include="EQueueIntegrations\EventTypeCodeManager.cs" />
     <Compile Include="EventHandlers\NoteEventHandler.cs" />
     <Compile Include="Program.cs" />

@@ -19,7 +19,6 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
             var configuration = enodeConfiguration.GetCommonConfiguration();
 
             configuration.RegisterEQueueComponents();
-            configuration.SetDefault<IEventTopicProvider, EventTopicManager>();
             configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
 
             var eventConsumerSetting = ConsumerSetting.Default;
@@ -32,7 +31,8 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
 
             _eventConsumer = new EventConsumer(eventConsumerSetting);
 
-            _eventConsumer.Subscribe("NoteEventTopic");
+            _eventConsumer.Subscribe("NoteEventTopic1");
+            _eventConsumer.Subscribe("NoteEventTopic2");
 
             return enodeConfiguration;
         }
@@ -52,7 +52,7 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
             var taskId = scheduleService.ScheduleTask(() =>
             {
                 var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
-                if (eventConsumerAllocatedQueues.Count() == 4)
+                if (eventConsumerAllocatedQueues.Count() == 8)
                 {
                     waitHandle.Set();
                 }

@@ -14,7 +14,6 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
         public CommandTypeCodeManager()
         {
             _typeCodeDict.Add(100, typeof(CreateNoteCommand));
-            _typeCodeDict.Add(101, typeof(ChangeNoteTitleCommand));
         }
 
         public int GetTypeCode(ICommand command)

@@ -41,7 +41,7 @@ namespace ENode.EQueue.Commanding
         }
         public CompletedCommandProcessor(string id, ConsumerSetting setting, string groupName)
         {
-            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(CompletedCommandProcessor).Name + "Group" : groupName, MessageModel.BroadCasting, this);
+            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(CompletedCommandProcessor).Name + "Group" : groupName, this);
             _processingCommandDict = new ConcurrentDictionary<Guid, TaskCompletionSource<CommandResult>>();
             _processingProcessDict = new ConcurrentDictionary<object, TaskCompletionSource<CommandResult>>();
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
