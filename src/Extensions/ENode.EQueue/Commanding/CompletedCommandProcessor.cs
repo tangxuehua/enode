@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Threading;
 using System.Threading.Tasks;
 using ECommon.IoC;
 using ECommon.Scheduling;
 using ECommon.Serializing;
 using ECommon.Socketing;
+using ECommon.Utilities;
 using ENode.Commanding;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
@@ -14,8 +14,6 @@ namespace ENode.EQueue.Commanding
 {
     public class CompletedCommandProcessor : IMessageHandler
     {
-        private static int _consumerIndex;
-        private const string DefaultGroupName = "DefaultCompletedCommandProcessorGroup";
         private readonly Consumer _consumer;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ConcurrentDictionary<Guid, TaskCompletionSource<CommandResult>> _processingCommandDict;
@@ -25,17 +23,28 @@ namespace ENode.EQueue.Commanding
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public CompletedCommandProcessor() : this(DefaultGroupName) { }
-        public CompletedCommandProcessor(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
-        public CompletedCommandProcessor(string groupName) : this(ConsumerSetting.Default, groupName) { }
+        public CompletedCommandProcessor()
+            : this(ConsumerSetting.Default)
+        {
+        }
+        public CompletedCommandProcessor(ConsumerSetting setting)
+            : this(setting, null)
+        {
+        }
         public CompletedCommandProcessor(ConsumerSetting setting, string groupName)
-            : this(string.Format("{0}@{1}-{2}-{3}", SocketUtils.GetLocalIPV4(), typeof(CompletedCommandProcessor).Name, Interlocked.Increment(ref _consumerIndex), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffff")), setting, groupName) { }
+            : this(setting, null, groupName)
+        {
+        }
+        public CompletedCommandProcessor(ConsumerSetting setting, string name, string groupName)
+            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CompletedCommandProcessor).Name : name, ObjectId.GenerateNewId()), setting, groupName)
+        {
+        }
         public CompletedCommandProcessor(string id, ConsumerSetting setting, string groupName)
         {
+            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(CompletedCommandProcessor).Name + "Group" : groupName, MessageModel.BroadCasting, this);
             _processingCommandDict = new ConcurrentDictionary<Guid, TaskCompletionSource<CommandResult>>();
             _processingProcessDict = new ConcurrentDictionary<object, TaskCompletionSource<CommandResult>>();
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _consumer = new Consumer(id, setting, groupName, MessageModel.BroadCasting, this);
             _queue = new BlockingCollection<EventStreamData>(new ConcurrentQueue<EventStreamData>());
             _worker = new Worker(() =>
             {

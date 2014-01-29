@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using ECommon.IoC;
 using ECommon.Serializing;
 using ECommon.Socketing;
+using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Domain;
 using EQueue.Clients.Consumers;
@@ -15,8 +15,6 @@ namespace ENode.EQueue
 {
     public class CommandConsumer : IMessageHandler
     {
-        private static int _consumerIndex;
-        private const string DefaultGroupName = "DefaultCommandConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
@@ -26,18 +24,34 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public CommandConsumer() : this(DefaultGroupName) { }
-        public CommandConsumer(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
-        public CommandConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }
-        public CommandConsumer(ConsumerSetting setting, string groupName) : this(string.Format("{0}@{1}-{2}-{3}", SocketUtils.GetLocalIPV4(), typeof(CommandConsumer).Name, Interlocked.Increment(ref _consumerIndex), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffff")), setting, groupName) { }
+        public CommandConsumer()
+            : this(ConsumerSetting.Default)
+        {
+        }
+        public CommandConsumer(string groupName)
+            : this(ConsumerSetting.Default, groupName)
+        {
+        }
+        public CommandConsumer(ConsumerSetting setting)
+            : this(setting, null)
+        {
+        }
+        public CommandConsumer(ConsumerSetting setting, string groupName)
+            : this(setting, null, groupName)
+        {
+        }
+        public CommandConsumer(ConsumerSetting setting, string name, string groupName)
+            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName)
+        {
+        }
         public CommandConsumer(string id, ConsumerSetting setting, string groupName)
         {
+            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(CommandConsumer).Name + "Group" : groupName, MessageModel.Clustering, this);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _messageContextDict = new ConcurrentDictionary<Guid, IMessageContext>();
-            _consumer = new Consumer(id, setting, groupName, MessageModel.Clustering, this);
         }
 
         public CommandConsumer Start()

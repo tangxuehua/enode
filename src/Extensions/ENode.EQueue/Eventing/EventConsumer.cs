@@ -5,6 +5,7 @@ using System.Threading;
 using ECommon.IoC;
 using ECommon.Serializing;
 using ECommon.Socketing;
+using ECommon.Utilities;
 using ENode.Eventing;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
@@ -13,8 +14,6 @@ namespace ENode.EQueue
 {
     public class EventConsumer : IMessageHandler
     {
-        private static int _consumerIndex;
-        private const string DefaultGroupName = "DefaultEventConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
@@ -23,18 +22,33 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public EventConsumer() : this(DefaultGroupName) { }
-        public EventConsumer(ConsumerSetting setting) : this(setting, DefaultGroupName) { }
-        public EventConsumer(string groupName) : this(ConsumerSetting.Default, groupName) { }
+        public EventConsumer()
+            : this(ConsumerSetting.Default)
+        {
+        }
+        public EventConsumer(string groupName)
+            : this(ConsumerSetting.Default, groupName)
+        {
+        }
+        public EventConsumer(ConsumerSetting setting)
+            : this(setting, null)
+        {
+        }
         public EventConsumer(ConsumerSetting setting, string groupName)
-            : this(string.Format("{0}@{1}-{2}-{3}", SocketUtils.GetLocalIPV4(), typeof(EventConsumer).Name, Interlocked.Increment(ref _consumerIndex), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffff")), setting, groupName) { }
+            : this(setting, null, groupName)
+        {
+        }
+        public EventConsumer(ConsumerSetting setting, string name, string groupName)
+            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(EventConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName)
+        {
+        }
         public EventConsumer(string id, ConsumerSetting setting, string groupName)
         {
+            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(EventConsumer).Name + "Group" : groupName, MessageModel.Clustering, this);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
             _messageContextDict = new ConcurrentDictionary<Guid, IMessageContext>();
-            _consumer = new Consumer(id, setting, groupName, MessageModel.Clustering, this);
         }
 
         public EventConsumer Start()

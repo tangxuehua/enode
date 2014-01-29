@@ -5,6 +5,7 @@ using ECommon.IoC;
 using ECommon.Logging;
 using ECommon.Serializing;
 using ECommon.Socketing;
+using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.EQueue.Commanding;
 using EQueue.Clients.Producers;
@@ -15,7 +16,6 @@ namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
-        private static int _commandServiceIndex;
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTopicProvider _commandTopicProvider;
@@ -23,11 +23,14 @@ namespace ENode.EQueue
         private readonly CompletedCommandProcessor _completedCommandProcessor;
         private readonly Producer _producer;
 
+        public Producer Producer { get { return _producer; } }
+
         public CommandService() : this(ProducerSetting.Default) { }
-        public CommandService(ProducerSetting setting) : this(string.Format("{0}@{1}-{2}-{3}", SocketUtils.GetLocalIPV4(), typeof(CommandService).Name, Interlocked.Increment(ref _commandServiceIndex), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffff")), setting) { }
-        public CommandService(string id, ProducerSetting setting)
+        public CommandService(ProducerSetting setting) : this(null, setting) { }
+        public CommandService(string name, ProducerSetting setting) : this(setting, string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandService).Name : name, ObjectId.GenerateNewId())) { }
+        public CommandService(ProducerSetting setting, string id)
         {
-            _producer = new Producer(id, setting);
+            _producer = new Producer(setting, id);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ICommandTopicProvider>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();

@@ -152,7 +152,7 @@
   <ItemGroup>
     <Reference Include="ECommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\ecommon.1.0.3\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ecommon.1.0.4\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

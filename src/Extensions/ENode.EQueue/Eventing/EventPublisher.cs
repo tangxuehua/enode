@@ -4,6 +4,7 @@ using ECommon.IoC;
 using ECommon.Logging;
 using ECommon.Serializing;
 using ECommon.Socketing;
+using ECommon.Utilities;
 using ENode.Eventing;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
@@ -13,18 +14,20 @@ namespace ENode.EQueue
 {
     public class EventPublisher : IEventPublisher
     {
-        private static int _eventPublisherIndex;
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventTopicProvider _eventTopicProvider;
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
         private readonly Producer _producer;
 
+        public Producer Producer { get { return _producer; } }
+
         public EventPublisher() : this(ProducerSetting.Default) { }
-        public EventPublisher(ProducerSetting setting) : this(string.Format("{0}@{1}-{2}-{3}", SocketUtils.GetLocalIPV4(), typeof(EventPublisher).Name, Interlocked.Increment(ref _eventPublisherIndex), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffff")), setting) { }
-        public EventPublisher(string id, ProducerSetting setting)
+        public EventPublisher(ProducerSetting setting) : this(null, setting) { }
+        public EventPublisher(string name, ProducerSetting setting) : this(setting, string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(EventPublisher).Name : name, ObjectId.GenerateNewId())) { }
+        public EventPublisher(ProducerSetting setting, string id)
         {
-            _producer = new Producer(id, setting);
+            _producer = new Producer(setting, id);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<IEventTopicProvider>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
