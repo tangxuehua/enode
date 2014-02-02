@@ -128,7 +128,11 @@ namespace ENode.Eventing.Impl
                         var currentContext = obj as EventCommittingContext;
                         var eventStream = currentContext.EventStream;
 
-                        if (currentContext.ConcurrentException != null)
+                        if (currentContext.DuplicateAggregateException != null)
+                        {
+                            return true;
+                        }
+                        else if (currentContext.ConcurrentException != null)
                         {
                             RefreshMemoryCacheFromEventStore(eventStream);
                             RetryCommand(currentContext);
@@ -160,12 +164,17 @@ namespace ENode.Eventing.Impl
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("{0} raised when persisting events:{1}", ex.GetType().Name, context.EventStream), ex);
                     if (ex is ConcurrentException)
                     {
                         context.ConcurrentException = ex as ConcurrentException;
                         return true;
                     }
+                    else if (ex is DuplicateAggregateException)
+                    {
+                        context.DuplicateAggregateException = ex as DuplicateAggregateException;
+                        return true;
+                    }
+                    _logger.Error(string.Format("{0} raised when persisting events:{1}", ex.GetType().Name, context.EventStream), ex);
                     return false;
                 }
             });
@@ -339,6 +348,7 @@ namespace ENode.Eventing.Impl
             public EventStream EventStream { get; private set; }
             public ProcessingCommand ProcessingCommand { get; private set; }
             public ConcurrentException ConcurrentException { get; set; }
+            public DuplicateAggregateException DuplicateAggregateException { get; set; }
 
             public EventCommittingContext(EventStream eventStream, ProcessingCommand processingCommand)
             {

@@ -163,11 +163,10 @@ namespace ENode.Eventing.Impl.SQL
         private EventStream BuildEventStreamFrom(SqlEventStream sqlEventStream)
         {
             return new EventStream(
-                    sqlEventStream.Id,
+                    sqlEventStream.CommandId,
                     sqlEventStream.AggregateRootId,
                     sqlEventStream.AggregateRootName,
                     sqlEventStream.Version,
-                    sqlEventStream.CommandId,
                     sqlEventStream.Timestamp,
                     sqlEventStream.HasProcessCompletedEvent,
                     _jsonSerializer.Deserialize<IEnumerable<IDomainEvent>>(sqlEventStream.Events));
@@ -176,10 +175,9 @@ namespace ENode.Eventing.Impl.SQL
         {
             return new SqlEventStream
             {
-                Id = eventStream.Id,
+                CommandId = eventStream.CommandId,
                 AggregateRootId = eventStream.AggregateRootId,
                 AggregateRootName = eventStream.AggregateRootName,
-                CommandId = eventStream.CommandId,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
                 HasProcessCompletedEvent = eventStream.HasProcessCompletedEvent,
@@ -189,10 +187,9 @@ namespace ENode.Eventing.Impl.SQL
 
         class SqlEventStream
         {
-            public Guid Id { get; set; }
+            public Guid CommandId { get; set; }
             public object AggregateRootId { get; set; }
             public string AggregateRootName { get; set; }
-            public Guid CommandId { get; set; }
             public long Version { get; set; }
             public DateTime Timestamp { get; set; }
             public bool HasProcessCompletedEvent { get; set; }

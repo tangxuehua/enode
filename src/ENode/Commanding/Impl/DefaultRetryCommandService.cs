@@ -40,7 +40,9 @@ namespace ENode.Commanding.Impl
             if (processingCommand.RetriedCount < command.RetryCount)
             {
                 processingCommand.IncreaseRetriedCount();
+                processingCommand.CommandExecuteContext.Clear();
                 _processor.AddProcessingCommand(processingCommand);
+                _logger.DebugFormat("{0} [id:{1}, aggregateId:{2}] retried {3}.", command.GetType().Name, command.Id, command.AggregateRootId, processingCommand.RetriedCount);
             }
             else
             {

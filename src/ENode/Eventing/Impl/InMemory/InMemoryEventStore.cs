@@ -12,7 +12,7 @@ namespace ENode.Eventing.Impl.InMemory
     public class InMemoryEventStore : IEventStore
     {
         private readonly ConcurrentDictionary<AggregateKey, AggregateVersionInfo> _aggregateVersionDict = new ConcurrentDictionary<AggregateKey, AggregateVersionInfo>();
-        private readonly ConcurrentDictionary<AggregateKey, IList<EventStream>> _aggregateEventsDict = new ConcurrentDictionary<AggregateKey, IList<EventStream>>();
+        private readonly ConcurrentDictionary<AggregateKey, ConcurrentDictionary<Guid, EventStream>> _aggregateEventsDict = new ConcurrentDictionary<AggregateKey, ConcurrentDictionary<Guid, EventStream>>();
 
         /// <summary>Append the event stream to the event store.
         /// </summary>
@@ -25,18 +25,39 @@ namespace ENode.Eventing.Impl.InMemory
 
             if (stream.Version == 1)
             {
-                _aggregateVersionDict.TryAdd(aggregateKey, new AggregateVersionInfo { CurrentVersion = 1 });
-                _aggregateEventsDict.TryAdd(aggregateKey, new List<EventStream>());
+                if (_aggregateEventsDict.TryAdd(aggregateKey, new ConcurrentDictionary<Guid, EventStream>(new KeyValuePair<Guid, EventStream>[] { new KeyValuePair<Guid, EventStream>(stream.CommandId, stream) })))
+                {
+                    _aggregateVersionDict.TryAdd(aggregateKey, new AggregateVersionInfo { CurrentVersion = 1 });
+                }
+                else
+                {
+                    if (_aggregateEventsDict[aggregateKey].Any(x => x.Key == stream.CommandId))
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        throw new DuplicateAggregateException("Aggregate [key:{0}] already been created.", aggregateKey);
+                    }
+                }
                 return;
             }
 
-            var aggregateVersionInfo = _aggregateVersionDict[aggregateKey];
-
-            if (aggregateVersionInfo.CurrentVersion >= stream.Version)
+            AggregateVersionInfo aggregateVersionInfo;
+            if (!_aggregateVersionDict.TryGetValue(aggregateKey, out aggregateVersionInfo))
             {
-                if (!_aggregateEventsDict[aggregateKey].Any(x => x.Id == stream.Id))
+                throw new KeyNotFoundException(string.Format("Cannot find aggregate version info by key:{0}", aggregateKey));
+            }
+
+            if (stream.Version <= aggregateVersionInfo.CurrentVersion)
+            {
+                if (_aggregateEventsDict[aggregateKey].Any(x => x.Key == stream.CommandId))
                 {
-                    throw new ConcurrentException("");
+                    return;
+                }
+                else
+                {
+                    throw new ConcurrentException();
                 }
             }
 
@@ -46,7 +67,7 @@ namespace ENode.Eventing.Impl.InMemory
             {
                 if (stream.Version == aggregateVersionInfo.CurrentVersion + 1)
                 {
-                    _aggregateEventsDict[aggregateKey].Add(stream);
+                    _aggregateEventsDict[aggregateKey].TryAdd(stream.CommandId, stream);
                     aggregateVersionInfo.CurrentVersion++;
                 }
                 else
@@ -75,7 +96,12 @@ namespace ENode.Eventing.Impl.InMemory
         /// <returns></returns>
         public IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
         {
-            return _aggregateEventsDict[new AggregateKey(aggregateRootId)].Where(x => x.Version >= minStreamVersion && x.Version <= maxStreamVersion).OrderBy(x => x.Version);
+            ConcurrentDictionary<Guid, EventStream> eventStreams;
+            if (!_aggregateEventsDict.TryGetValue(new AggregateKey(aggregateRootId), out eventStreams))
+            {
+                throw new KeyNotFoundException(string.Format("aggregateKey:[{0}]", aggregateRootId));
+            }
+            return eventStreams.ToArray().Where(x => x.Value.Version >= minStreamVersion && x.Value.Version <= maxStreamVersion).OrderBy(x => x.Value.Version).Select(x => x.Value);
         }
         /// <summary>Query all the event streams from the event store.
         /// </summary>
@@ -85,7 +111,7 @@ namespace ENode.Eventing.Impl.InMemory
             var totalStreams = new List<EventStream>();
             foreach (var streams in _aggregateEventsDict.Values)
             {
-                totalStreams.AddRange(streams);
+                totalStreams.AddRange(streams.Select(x => x.Value).ToArray());
             }
             return totalStreams;
         }
@@ -102,7 +128,7 @@ namespace ENode.Eventing.Impl.InMemory
             public override bool Equals(object obj)
             {
                 var aggregateKey = obj as AggregateKey;
-                if (aggregateKey == null)
+                if (aggregateKey == null || aggregateKey.GetType() != this.GetType())
                 {
                     return false;
                 }
@@ -110,12 +136,26 @@ namespace ENode.Eventing.Impl.InMemory
                 {
                     return true;
                 }
-                return object.Equals(AggregateRootId, aggregateKey.AggregateRootId);
+                return AggregateRootId.Equals(aggregateKey.AggregateRootId);
             }
             public override int GetHashCode()
             {
                 return AggregateRootId.GetHashCode();
             }
+            public override string ToString()
+            {
+                return AggregateRootId.ToString();
+            }
+        }
+        /// <summary>A data structure contains the current version of the aggregate.
+        /// </summary>
+        class AggregateVersionInfo
+        {
+            public const int Editing = 1;
+            public const int UnEditing = 0;
+
+            public int CurrentVersion = 0;
+            public int Status = UnEditing;
         }
     }
 }

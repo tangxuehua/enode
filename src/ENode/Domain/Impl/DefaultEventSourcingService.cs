@@ -110,8 +110,7 @@ namespace ENode.Domain.Impl
         {
             if (eventStream.Version > 1 && !object.Equals(eventStream.AggregateRootId, aggregateRoot.UniqueId))
             {
-                var errorMessage = string.Format("Cannot apply event stream to aggregate root as the AggregateRootId not matched. EventStream Id:{0}, AggregateRootId:{1}; Current AggregateRootId:{2}",
-                                        eventStream.Id,
+                var errorMessage = string.Format("Cannot apply event stream to aggregate root as the AggregateRootId not matched. EventStream aggregateRootId:{0}, current aggregateRootId:{1}",
                                         eventStream.AggregateRootId,
                                         aggregateRoot.UniqueId);
                 throw new Exception(errorMessage);
@@ -119,8 +118,7 @@ namespace ENode.Domain.Impl
 
             if (eventStream.Version != aggregateRoot.Version + 1)
             {
-                var errorMessage = string.Format("Cannot apply event stream to aggregate root as the version not matched. EventStream Id:{0}, Version:{1}; Current AggregateRoot Version:{2}",
-                                        eventStream.Id,
+                var errorMessage = string.Format("Cannot apply event stream to aggregate root as the version not matched. EventStream version:{0}, current aggregateRoot version:{1}",
                                         eventStream.Version,
                                         aggregateRoot.Version);
                 throw new Exception(errorMessage);

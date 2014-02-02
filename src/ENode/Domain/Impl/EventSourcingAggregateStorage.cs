@@ -41,15 +41,14 @@ namespace ENode.Domain.Impl
         {
             if (id == null) throw new ArgumentNullException("id");
 
-            var aggregateRootId = id.ToString();
             var aggregateRoot = default(IAggregateRoot);
 
-            if (TryGetFromSnapshot(aggregateRootId, type, out aggregateRoot))
+            if (TryGetFromSnapshot(id, type, out aggregateRoot))
             {
                 return aggregateRoot;
             }
 
-            var streams = _eventStore.Query(aggregateRootId, type, minStreamVersion, maxStreamVersion);
+            var streams = _eventStore.Query(id, type, minStreamVersion, maxStreamVersion);
             aggregateRoot = BuildAggregateRoot(type, streams);
 
             return aggregateRoot;

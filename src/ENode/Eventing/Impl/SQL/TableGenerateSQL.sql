@@ -1,10 +1,8 @@
---Core Tables
 CREATE TABLE [dbo].[Event](
-    [Id] [uniqueidentifier] NOT NULL,
+    [CommandId] [uniqueidentifier] NOT NULL,
     [AggregateRootId] [nvarchar](36) NOT NULL,
     [Version] [bigint] NOT NULL,
     [AggregateRootName] [nvarchar](128) NOT NULL,
-    [CommandId] [uniqueidentifier] NOT NULL,
     [Timestamp] [datetime] NOT NULL,
     [HasProcessCompletedEvent] [bit] NOT NULL,
     [Events] [nvarchar](max) NOT NULL,
@@ -47,51 +45,6 @@ CREATE TABLE [dbo].[Snapshot](
 (
     [AggregateRootId] ASC,
     [StreamVersion] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
--- Queue Message Tables
-CREATE TABLE [dbo].[CommandQueue](
-    [Id]          INT IDENTITY (1, 1) NOT NULL,
-    [MessageId]   UNIQUEIDENTIFIER NOT NULL,
-    [MessageData] VARBINARY (MAX)  NOT NULL,
- CONSTRAINT [PK_CommandQueue] PRIMARY KEY CLUSTERED
-(
-    [Id] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-CREATE TABLE [dbo].[RetryCommandQueue](
-    [Id]          INT IDENTITY (1, 1) NOT NULL,
-    [MessageId]   UNIQUEIDENTIFIER NOT NULL,
-    [MessageData] VARBINARY (MAX)  NOT NULL,
- CONSTRAINT [PK_RetryCommandQueue] PRIMARY KEY CLUSTERED
-(
-    [Id] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-CREATE TABLE [dbo].[UncommittedEventQueue](
-    [Id]          INT IDENTITY (1, 1) NOT NULL,
-    [MessageId]   UNIQUEIDENTIFIER NOT NULL,
-    [MessageData] VARBINARY (MAX)  NOT NULL,
- CONSTRAINT [PK_UncommittedEventQueue] PRIMARY KEY CLUSTERED
-(
-    [Id] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-) ON [PRIMARY]
-GO
-
-CREATE TABLE [dbo].[CommittedEventQueue](
-    [Id]          INT IDENTITY (1, 1) NOT NULL,
-    [MessageId]   UNIQUEIDENTIFIER NOT NULL,
-    [MessageData] VARBINARY (MAX)  NOT NULL,
- CONSTRAINT [PK_CommittedEventQueue] PRIMARY KEY CLUSTERED
-(
-    [Id] ASC
 )WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO

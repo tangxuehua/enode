@@ -160,10 +160,10 @@ namespace ENode.Commanding.Impl
             var hasProcessCompletedEvent = uncommittedEvents.Any(x => x is IProcessCompletedEvent);
 
             return new EventStream(
+                command.Id,
                 aggregateRootId,
                 aggregateRootName,
                 aggregateRoot.Version + 1,
-                command.Id,
                 DateTime.UtcNow,
                 hasProcessCompletedEvent,
                 uncommittedEvents);

@@ -63,7 +63,6 @@
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
-    <Compile Include="Eventing\AggregateVersionInfo.cs" />
     <Compile Include="Eventing\IEventProcessContext.cs" />
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
@@ -79,6 +78,7 @@
     <Compile Include="Eventing\IEventProcessor.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
     <Compile Include="Eventing\SourcingEvent.cs" />
+    <Compile Include="Infrastructure\DuplicateAggregateException.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\ConcurrentException.cs" />
     <Compile Include="Eventing\EventStream.cs" />

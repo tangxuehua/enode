@@ -14,49 +14,33 @@ namespace ENode.Eventing
     {
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootName"></param>
         /// <param name="version"></param>
-        /// <param name="commandId"></param>
         /// <param name="timestamp"></param>
+        /// <param name="hasProcessCompletedEvent"></param>
         /// <param name="events"></param>
-        public EventStream(object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, bool hasProcessCompletedEvent, IEnumerable<IDomainEvent> events)
-            : this(Guid.NewGuid(), aggregateRootId, aggregateRootName, version, commandId, timestamp, hasProcessCompletedEvent, events)
+        public EventStream(Guid commandId, object aggregateRootId, string aggregateRootName, long version, DateTime timestamp, bool hasProcessCompletedEvent, IEnumerable<IDomainEvent> events)
         {
-        }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="aggregateRootId"></param>
-        /// <param name="aggregateRootName"></param>
-        /// <param name="version"></param>
-        /// <param name="commandId"></param>
-        /// <param name="timestamp"></param>
-        /// <param name="events"></param>
-        public EventStream(Guid id, object aggregateRootId, string aggregateRootName, long version, Guid commandId, DateTime timestamp, bool hasProcessCompletedEvent, IEnumerable<IDomainEvent> events)
-        {
-            Id = id;
+            CommandId = commandId;
             AggregateRootId = aggregateRootId;
             AggregateRootName = aggregateRootName;
-            CommandId = commandId;
             Version = version;
             Timestamp = timestamp;
             HasProcessCompletedEvent = hasProcessCompletedEvent;
             Events = events ?? new List<IDomainEvent>();
         }
 
-        /// <summary>The id of the event stream.
+        /// <summary>The commandId which generate this event stream.
         /// </summary>
-        public Guid Id { get; private set; }
+        public Guid CommandId { get; private set; }
         /// <summary>The aggregate root id.
         /// </summary>
         public object AggregateRootId { get; private set; }
         /// <summary>The aggregate root name.
         /// </summary>
         public string AggregateRootName { get; private set; }
-        /// <summary>The command id.
-        /// </summary>
-        public Guid CommandId { get; private set; }
         /// <summary>The version of the event stream.
         /// </summary>
         public long Version { get; private set; }
@@ -98,8 +82,8 @@ namespace ENode.Eventing
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[Id={0},AggregateRootName={1},AggregateRootId={2},Version={3},CommandId={4},Timestamp={5},HasProcessCompletedEvent={6},Events={7}";
-            return string.Format(format, Id, AggregateRootName, AggregateRootId, Version, CommandId, Timestamp, HasProcessCompletedEvent, GetEventNames());
+            var format = "[CommandId={0},AggregateRootName={1},AggregateRootId={2},Version={3},Timestamp={4},HasProcessCompletedEvent={5},Events={6}]";
+            return string.Format(format, CommandId, AggregateRootName, AggregateRootId, Version, Timestamp, HasProcessCompletedEvent, GetEventNames());
         }
     }
 }
