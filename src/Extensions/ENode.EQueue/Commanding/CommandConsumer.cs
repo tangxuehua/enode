@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using ECommon.IoC;
 using ECommon.Serializing;
 using ECommon.Socketing;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Domain;
+using ENode.Eventing;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -122,8 +124,13 @@ namespace ENode.EQueue
                 {
                     throw new ArgumentNullException("aggregateRoot");
                 }
+                var firstSourcingEvent = aggregateRoot.GetUncommittedEvents().FirstOrDefault(x => x is ISourcingEvent);
+                if (firstSourcingEvent == null)
+                {
+                    throw new NotSupportedException(string.Format("Aggregate [{0}] has no sourcing event, cannot be added.", aggregateRoot.GetType()));
+                }
 
-                _trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
+                _trackingAggregateRoots.TryAdd(firstSourcingEvent.AggregateRootId, aggregateRoot);
             }
             /// <summary>Get the aggregate from the context.
             /// </summary>
