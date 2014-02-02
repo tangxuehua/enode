@@ -24,7 +24,7 @@ namespace ENode.EQueue.Commanding
         public Consumer Consumer { get { return _consumer; } }
 
         public CompletedCommandProcessor()
-            : this(ConsumerSetting.Default)
+            : this(new ConsumerSetting())
         {
         }
         public CompletedCommandProcessor(ConsumerSetting setting)
@@ -55,14 +55,14 @@ namespace ENode.EQueue.Commanding
                 {
                     if (_processingProcessDict.TryGetValue(eventStreamData.AggregateRootId, out taskCompletionSource))
                     {
-                        taskCompletionSource.SetResult(CommandResult.Success);
+                        taskCompletionSource.TrySetResult(CommandResult.Success);
                     }
                 }
                 else
                 {
                     if (_processingCommandDict.TryGetValue(eventStreamData.CommandId, out taskCompletionSource))
                     {
-                        taskCompletionSource.SetResult(CommandResult.Success);
+                        taskCompletionSource.TrySetResult(CommandResult.Success);
                     }
                 }
             });
@@ -85,7 +85,7 @@ namespace ENode.EQueue.Commanding
             var taskCompletionSource = default(TaskCompletionSource<CommandResult>);
             if (_processingCommandDict.TryGetValue(command.Id, out taskCompletionSource))
             {
-                taskCompletionSource.SetResult(new CommandResult("Command send failed."));
+                taskCompletionSource.TrySetResult(new CommandResult("Command send failed."));
             }
             return this;
         }

@@ -21,12 +21,12 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
             configuration.RegisterEQueueComponents();
             configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
 
-            var eventConsumerSetting = ConsumerSetting.Default;
+            var eventConsumerSetting = new ConsumerSetting
             {
-                eventConsumerSetting.HeartbeatBrokerInterval = 1000;
-                eventConsumerSetting.UpdateTopicQueueCountInterval = 1000;
-                eventConsumerSetting.RebalanceInterval = 1000;
-                eventConsumerSetting.MessageHandleMode = MessageHandleMode.Sequential;
+                HeartbeatBrokerInterval = 1000,
+                UpdateTopicQueueCountInterval = 1000,
+                RebalanceInterval = 1000,
+                MessageHandleMode = MessageHandleMode.Sequential
             };
 
             _eventConsumer = new EventConsumer(eventConsumerSetting);

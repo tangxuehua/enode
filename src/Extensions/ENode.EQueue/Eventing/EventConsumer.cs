@@ -19,15 +19,19 @@ namespace ENode.EQueue
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventProcessor _eventProcessor;
         private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
+        private readonly static ConsumerSetting _consumerSetting = new ConsumerSetting
+        {
+            MessageHandleMode = MessageHandleMode.Sequential
+        };
 
         public Consumer Consumer { get { return _consumer; } }
 
         public EventConsumer()
-            : this(ConsumerSetting.Default)
+            : this(_consumerSetting)
         {
         }
         public EventConsumer(string groupName)
-            : this(ConsumerSetting.Default, groupName)
+            : this(_consumerSetting, groupName)
         {
         }
         public EventConsumer(ConsumerSetting setting)
@@ -72,12 +76,12 @@ namespace ENode.EQueue
             var eventStreamData = _binarySerializer.Deserialize(message.Body, typeof(EventStreamData)) as EventStreamData;
             var eventStream = ConvertToEventStream(eventStreamData);
 
-            if (_messageContextDict.TryAdd(eventStream.Id, context))
+            if (_messageContextDict.TryAdd(eventStream.CommandId, context))
             {
                 _eventProcessor.Process(eventStream, new EventProcessContext(message, (processedEventStream, queueMessage) =>
                 {
                     IMessageContext messageContext;
-                    if (_messageContextDict.TryRemove(processedEventStream.Id, out messageContext))
+                    if (_messageContextDict.TryRemove(processedEventStream.CommandId, out messageContext))
                     {
                         messageContext.OnMessageHandled(queueMessage);
                     }
@@ -96,7 +100,7 @@ namespace ENode.EQueue
                 events.Add(evnt);
             }
 
-            return new EventStream(data.AggregateRootId, data.AggregateRootName, data.Version, data.CommandId, data.Timestamp, data.HasProcessCompletedEvent, events);
+            return new EventStream(data.CommandId, data.AggregateRootId, data.AggregateRootName, data.Version, data.Timestamp, data.HasProcessCompletedEvent, events);
         }
 
         class EventProcessContext : IEventProcessContext

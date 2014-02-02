@@ -24,11 +24,11 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
             configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeManager>();
             configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
 
-            var consumerSetting = ConsumerSetting.Default;
+            var consumerSetting = new ConsumerSetting
             {
-                consumerSetting.HeartbeatBrokerInterval = 1000;
-                consumerSetting.UpdateTopicQueueCountInterval = 1000;
-                consumerSetting.RebalanceInterval = 1000;
+                HeartbeatBrokerInterval = 1000,
+                UpdateTopicQueueCountInterval = 1000,
+                RebalanceInterval = 1000
             };
 
             _eventPublisher = new EventPublisher();

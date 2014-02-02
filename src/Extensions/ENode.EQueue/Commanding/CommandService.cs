@@ -25,7 +25,7 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public CommandService() : this(ProducerSetting.Default) { }
+        public CommandService() : this(new ProducerSetting()) { }
         public CommandService(ProducerSetting setting) : this(null, setting) { }
         public CommandService(string name, ProducerSetting setting) : this(setting, string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandService).Name : name, ObjectId.GenerateNewId())) { }
         public CommandService(ProducerSetting setting, string id)

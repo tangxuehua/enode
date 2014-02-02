@@ -54,11 +54,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\ecommon.log4net.1.0.4\lib\net40\ECommon.Log4Net.dll</HintPath>
     </Reference>
-    <Reference Include="ENode.EQueue">
-      <HintPath>..\..\..\packages\enode.equeue.1.0.0\lib\net40\ENode.EQueue.dll</HintPath>
-    </Reference>
     <Reference Include="EQueue">
-      <HintPath>..\..\..\packages\equeue.1.0.0\lib\net40\EQueue.dll</HintPath>
+      <HintPath>..\..\..\packages\equeue.1.0.1\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -84,6 +81,10 @@
     <ProjectReference Include="..\..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Extensions\ENode.EQueue\ENode.EQueue.csproj">
+      <Project>{8b5368e5-8518-4684-90eb-048dcbf76e9a}</Project>
+      <Name>ENode.EQueue</Name>
     </ProjectReference>
     <ProjectReference Include="..\DistributeSample.Events\DistributeSample.Events.csproj">
       <Project>{70916df5-fadc-4517-9185-3ecfe1d43109}</Project>

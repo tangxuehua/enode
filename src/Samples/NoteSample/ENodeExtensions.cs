@@ -34,18 +34,18 @@ namespace NoteSample.EQueueIntegrations
             configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeManager>();
             configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
 
-            var consumerSetting = ConsumerSetting.Default;
+            var consumerSetting = new ConsumerSetting
             {
-                consumerSetting.HeartbeatBrokerInterval = 1000;
-                consumerSetting.UpdateTopicQueueCountInterval = 1000;
-                consumerSetting.RebalanceInterval = 1000;
+                HeartbeatBrokerInterval = 1000,
+                UpdateTopicQueueCountInterval = 1000,
+                RebalanceInterval = 1000
             };
-            var eventConsumerSetting = ConsumerSetting.Default;
+            var eventConsumerSetting = new ConsumerSetting
             {
-                eventConsumerSetting.HeartbeatBrokerInterval = 1000;
-                eventConsumerSetting.UpdateTopicQueueCountInterval = 1000;
-                eventConsumerSetting.RebalanceInterval = 1000;
-                eventConsumerSetting.MessageHandleMode = MessageHandleMode.Sequential;
+                HeartbeatBrokerInterval = 1000,
+                UpdateTopicQueueCountInterval = 1000,
+                RebalanceInterval = 1000,
+                MessageHandleMode = MessageHandleMode.Sequential
             };
 
             _broker = new BrokerController().Initialize();

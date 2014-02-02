@@ -22,7 +22,7 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public EventPublisher() : this(ProducerSetting.Default) { }
+        public EventPublisher() : this(new ProducerSetting()) { }
         public EventPublisher(ProducerSetting setting) : this(null, setting) { }
         public EventPublisher(string name, ProducerSetting setting) : this(setting, string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(EventPublisher).Name : name, ObjectId.GenerateNewId())) { }
         public EventPublisher(ProducerSetting setting, string id)
@@ -62,10 +62,9 @@ namespace ENode.EQueue
         {
             var data = new EventStreamData();
 
-            data.Id = eventStream.Id;
+            data.CommandId = eventStream.CommandId;
             data.AggregateRootId = eventStream.AggregateRootId;
             data.AggregateRootName = eventStream.AggregateRootName;
-            data.CommandId = eventStream.CommandId;
             data.Timestamp = eventStream.Timestamp;
             data.Version = eventStream.Version;
             data.HasProcessCompletedEvent = eventStream.HasProcessCompletedEvent;

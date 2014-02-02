@@ -25,11 +25,11 @@ namespace ENode.EQueue
         public Consumer Consumer { get { return _consumer; } }
 
         public CommandConsumer()
-            : this(ConsumerSetting.Default)
+            : this(new ConsumerSetting())
         {
         }
         public CommandConsumer(string groupName)
-            : this(ConsumerSetting.Default, groupName)
+            : this(new ConsumerSetting(), groupName)
         {
         }
         public CommandConsumer(ConsumerSetting setting)
@@ -91,7 +91,7 @@ namespace ENode.EQueue
 
         class CommandExecuteContext : ICommandExecuteContext
         {
-            private readonly IList<IAggregateRoot> _trackingAggregateRoots;
+            private readonly ConcurrentDictionary<object, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
 
             public Action<ICommand, QueueMessage> CommandHandledAction { get; private set; }
@@ -99,7 +99,7 @@ namespace ENode.EQueue
 
             public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, Action<ICommand, QueueMessage> commandHandledAction)
             {
-                _trackingAggregateRoots = new List<IAggregateRoot>();
+                _trackingAggregateRoots = new ConcurrentDictionary<object, IAggregateRoot>();
                 _repository = repository;
                 QueueMessage = queueMessage;
                 CheckCommandWaiting = true;
@@ -123,7 +123,7 @@ namespace ENode.EQueue
                     throw new ArgumentNullException("aggregateRoot");
                 }
 
-                _trackingAggregateRoots.Add(aggregateRoot);
+                _trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
             }
             /// <summary>Get the aggregate from the context.
             /// </summary>
@@ -160,7 +160,7 @@ namespace ENode.EQueue
 
                 if (aggregateRoot != null)
                 {
-                    _trackingAggregateRoots.Add(aggregateRoot);
+                    _trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
                 }
 
                 return aggregateRoot;
@@ -170,7 +170,13 @@ namespace ENode.EQueue
             /// <returns></returns>
             public IEnumerable<IAggregateRoot> GetTrackedAggregateRoots()
             {
-                return _trackingAggregateRoots;
+                return _trackingAggregateRoots.Values;
+            }
+            /// <summary>Clear all the tracking aggregates.
+            /// </summary>
+            public void Clear()
+            {
+                _trackingAggregateRoots.Clear();
             }
         }
     }

@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode", "src\eNode\ENode.csproj", "{F884F01A-ED67-4F21-8576-FD2588491B24}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}"
@@ -27,6 +29,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributeSample.Commands", "src\Samples\DistributeSample.Commands\DistributeSample.Commands.csproj", "{F03DFFC7-1017-4EC1-AB90-300EB2CD52DD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributeSample.Events", "src\Samples\DistributeSample.Events\DistributeSample.Events.csproj", "{70916DF5-FADC-4517-9185-3ECFE1D43109}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{C0DE6060-8F08-4822-A75E-3C9F227F8F56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.EQueue", "src\Extensions\ENode.EQueue\ENode.EQueue.csproj", "{8B5368E5-8518-4684-90EB-048DCBF76E9A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -118,6 +124,16 @@ Global
 		{70916DF5-FADC-4517-9185-3ECFE1D43109}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{70916DF5-FADC-4517-9185-3ECFE1D43109}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{70916DF5-FADC-4517-9185-3ECFE1D43109}.Release|x86.ActiveCfg = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -131,6 +147,7 @@ Global
 		{23F69243-A08B-485A-A78E-CAEFFB3028E2} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{F03DFFC7-1017-4EC1-AB90-300EB2CD52DD} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{70916DF5-FADC-4517-9185-3ECFE1D43109} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
+		{8B5368E5-8518-4684-90EB-048DCBF76E9A} = {C0DE6060-8F08-4822-A75E-3C9F227F8F56}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.2\lib\NET35
