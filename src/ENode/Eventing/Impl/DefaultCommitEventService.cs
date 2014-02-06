@@ -186,7 +186,6 @@ namespace ENode.Eventing
         {
             try
             {
-                //TODO, check whether the current aggregate is the latest version.
                 _eventSourcingService.ReplayEvents(context.AggregateRoot, new EventStream[] { context.EventStream });
                 _memoryCache.Set(context.AggregateRoot);
             }

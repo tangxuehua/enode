@@ -11,5 +11,6 @@ namespace ENode.Domain
         object UniqueId { get; }
         long Version { get; }
         IEnumerable<IDomainEvent> GetUncommittedEvents();
+        void ClearUncommittedEvents();
     }
 }

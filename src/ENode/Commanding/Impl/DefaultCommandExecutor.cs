@@ -151,6 +151,7 @@ namespace ENode.Commanding.Impl
         private EventStream CreateEventStream(IAggregateRoot aggregateRoot, ICommand command)
         {
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
+            aggregateRoot.ClearUncommittedEvents();
             ValidateEvents(aggregateRoot, uncommittedEvents);
 
             var aggregateRootType = aggregateRoot.GetType();

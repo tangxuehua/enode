@@ -69,6 +69,12 @@ namespace ENode.Domain
         {
             return _uncommittedEvents;
         }
+        /// <summary>Clear all the uncommitted domain events of the current aggregate root.
+        /// </summary>
+        void IAggregateRoot.ClearUncommittedEvents()
+        {
+            _uncommittedEvents.Clear();
+        }
 
         /// <summary>Initialize the aggregate root.
         /// <remarks>This method must be provided as enode will call it when rebuilding the aggregate using event sourcing.
