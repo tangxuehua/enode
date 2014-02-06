@@ -7,6 +7,12 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventStore
     {
+        /// <summary>Start the event store.
+        /// </summary>
+        void Start();
+        /// <summary>Shutdown the event store.
+        /// </summary>
+        void Shutdown();
         /// <summary>Commit the event stream to the event store.
         /// </summary>
         EventCommitStatus Commit(EventStream stream);

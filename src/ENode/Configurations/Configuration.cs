@@ -92,6 +92,9 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
+            _configuration.SetDefault<ICommandIndexStore, InMemoryCommandIndexStore>();
+            _configuration.SetDefault<IVersionIndexStore, InMemoryVersionIndexStore>();
+            _configuration.SetDefault<ICommitLog, InMemoryCommitLog>();
             _configuration.SetDefault<IEventStore, DefaultEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
@@ -154,7 +157,8 @@ namespace ENode.Configurations
         public ENodeConfiguration UseSql(string connectionString, string eventTable, string queueNameFormat, string eventPublishInfoTable, string eventHandleInfoTable)
         {
             _configuration.SetDefault<IEventTableNameProvider, DefaultEventTableNameProvider>(new DefaultEventTableNameProvider(eventTable));
-            _configuration.SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
+            //TODO
+            //_configuration.SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
             _configuration.SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
             _configuration.SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
             return this;
@@ -186,6 +190,7 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration StartEnode()
         {
+            ObjectContainer.Resolve<IEventStore>().Start();
             ObjectContainer.Resolve<IRetryCommandService>().Start();
             ObjectContainer.Resolve<IWaitingCommandService>().Start();
             ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name).Info("enode started...");
