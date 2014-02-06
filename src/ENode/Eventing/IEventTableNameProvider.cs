@@ -10,9 +10,9 @@ namespace ENode.Eventing
         /// <summary>Get table for a specific aggregate root.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        /// <param name="aggregateRootType"></param>
+        /// <param name="aggregateRootName"></param>
         /// <returns></returns>
-        string GetTable(object aggregateRootId, Type aggregateRootType);
+        string GetTable(object aggregateRootId, string aggregateRootName);
         /// <summary>Get all the tables of the eventstore.
         /// </summary>
         /// <returns></returns>

@@ -24,7 +24,7 @@ namespace ENode.Eventing.Impl
             {
                 if (!TypeUtils.IsComponent(handlerType))
                 {
-                    throw new Exception(string.Format("{0} should be marked as component.", handlerType.FullName));
+                    throw new ENodeException("Event handler type [{0}] should be marked as component.", handlerType.FullName);
                 }
                 RegisterEventHandler(handlerType);
             }

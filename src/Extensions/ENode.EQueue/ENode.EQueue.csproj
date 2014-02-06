@@ -54,7 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commanding\CommandConsumer.cs" />
-    <Compile Include="Commanding\CompletedCommandProcessor.cs" />
+    <Compile Include="Commanding\CommandMessage.cs" />
+    <Compile Include="Commanding\CommandResultProcessor.cs" />
+    <Compile Include="Commanding\CommandResultSender.cs" />
     <Compile Include="Eventing\EventConsumer.cs" />
     <Compile Include="Eventing\EventPublisher.cs" />
     <Compile Include="Eventing\EventStreamData.cs" />

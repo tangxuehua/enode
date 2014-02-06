@@ -14,7 +14,7 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
     public static class ENodeExtensions
     {
         private static CommandService _commandService;
-        private static CompletedCommandProcessor _completedCommandProcessor;
+        private static CommandResultProcessor _commandResultProcessor;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
@@ -31,23 +31,20 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
                 RebalanceInterval = 1000
             };
 
-            _completedCommandProcessor = new CompletedCommandProcessor(consumerSetting);
+            _commandResultProcessor = new CommandResultProcessor(consumerSetting);
 
-            configuration.SetDefault<CompletedCommandProcessor, CompletedCommandProcessor>(_completedCommandProcessor);
-
-            _commandService = new CommandService();
+            _commandService = new CommandService(_commandResultProcessor);
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
 
-            _completedCommandProcessor.Subscribe("NoteEventTopic1");
-            _completedCommandProcessor.Subscribe("NoteEventTopic2");
+            _commandResultProcessor.Subscribe("CommandResultTopic");
 
             return enodeConfiguration;
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
             _commandService.Start();
-            _completedCommandProcessor.Start();
+            _commandResultProcessor.Start();
 
             WaitAllConsumerLoadBalanceComplete();
 
@@ -60,8 +57,8 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
             var waitHandle = new ManualResetEvent(false);
             var taskId = scheduleService.ScheduleTask(() =>
             {
-                var completedCommandProcessorAllocatedQueues = _completedCommandProcessor.Consumer.GetCurrentQueues();
-                if (completedCommandProcessorAllocatedQueues.Count() == 8)
+                var commandResultProcessorAllocatedQueues = _commandResultProcessor.Consumer.GetCurrentQueues();
+                if (commandResultProcessorAllocatedQueues.Count() == 4)
                 {
                     waitHandle.Set();
                 }

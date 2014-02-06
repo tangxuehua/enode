@@ -47,7 +47,7 @@ namespace ENode.Commanding.Impl
             {
                 if (!TypeUtils.IsComponent(commandHandlerType))
                 {
-                    throw new Exception(string.Format("{0} should be marked as component.", commandHandlerType.FullName));
+                    throw new ENodeException("Command handler type [{0}] should be marked as component.", commandHandlerType.FullName);
                 }
                 var handlerTypes = commandHandlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<>));
 

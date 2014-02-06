@@ -28,7 +28,7 @@ namespace NoteSample
 
             commandService.Send(command1).ContinueWith(task =>
             {
-                if (task.Result.Status == CommandResultStatus.Success)
+                if (task.Result.Status == CommandStatus.Success)
                 {
                     commandService.Send(command2);
                 }

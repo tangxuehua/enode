@@ -63,12 +63,15 @@
     <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
+    <Compile Include="Eventing\EventCommitStatus.cs" />
+    <Compile Include="Eventing\EventProcessingContext.cs" />
     <Compile Include="Eventing\IEventProcessContext.cs" />
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\Impl\DefaultEventPublisher.cs" />
     <Compile Include="Eventing\Impl\DefaultPublishEventService.cs" />
+    <Compile Include="Eventing\Impl\InMemory\DefaultEventStore.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IPublishEventService.cs" />
@@ -91,7 +94,6 @@
     <Compile Include="Eventing\Impl\EventHandlerWrapper.cs" />
     <Compile Include="Eventing\DomainEvent.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventPublishInfoStore.cs" />
-    <Compile Include="Eventing\Impl\InMemory\InMemoryEventStore.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlEventHandleInfoStore.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlEventPublishInfoStore.cs" />
     <Compile Include="Eventing\Impl\SQL\AggregatePerEventTableNameProvider.cs" />
@@ -113,7 +115,6 @@
     <Compile Include="Domain\IRepository.cs" />
     <Compile Include="Commanding\Impl\CommandHandlerWrapper.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandHandlerProvider.cs" />
-    <Compile Include="Commanding\Impl\DefaultProcessingCommandCache.cs" />
     <Compile Include="Infrastructure\Dapper\SqlMapper_Extensions.cs" />
     <Compile Include="Infrastructure\Dapper\SqlMapper.cs">
       <SubType>Code</SubType>
@@ -122,7 +123,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Commanding\ICommandHandlerProvider.cs" />
-    <Compile Include="Commanding\IProcessingCommandCache.cs" />
     <Compile Include="Domain\IAggregateRootTypeProvider.cs" />
     <Compile Include="Domain\IAggregateRootFactory.cs" />
     <Compile Include="Domain\IAggregateRootInternalHandlerProvider.cs" />

@@ -24,9 +24,9 @@ namespace ENode.Eventing.Impl.SQL
         /// <summary>Get table for a specific aggregate root.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        /// <param name="aggregateRootType"></param>
+        /// <param name="aggregateRootName"></param>
         /// <returns></returns>
-        public string GetTable(object aggregateRootId, Type aggregateRootType)
+        public string GetTable(object aggregateRootId, string aggregateRootName)
         {
             return _tableName;
         }

@@ -51,7 +51,7 @@ namespace ENode.Configurations
         {
             if (Instance != null)
             {
-                throw new Exception("Could not create enode configuration instance twice.");
+                throw new ENodeException("Could not create enode configuration instance twice.");
             }
             Instance = new ENodeConfiguration(configuration);
             return Instance;
@@ -84,7 +84,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<ISnapshotStore, EmptySnapshotStore>();
 
             _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
-            _configuration.SetDefault<IProcessingCommandCache, DefaultProcessingCommandCache>();
             _configuration.SetDefault<IWaitingCommandCache, DefaultWaitingCommandCache>();
             _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
             _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
@@ -93,7 +92,7 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
-            _configuration.SetDefault<IEventStore, InMemoryEventStore>();
+            _configuration.SetDefault<IEventStore, DefaultEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
@@ -208,7 +207,7 @@ namespace ENode.Configurations
                 {
                     if (!type.IsSerializable)
                     {
-                        throw new Exception(string.Format("{0} should be marked as serializable.", type.FullName));
+                        throw new ENodeException("{0} should be marked as serializable.", type.FullName);
                     }
                 }
             }

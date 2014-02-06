@@ -67,7 +67,6 @@ namespace ENode.EQueue
             data.AggregateRootName = eventStream.AggregateRootName;
             data.Timestamp = eventStream.Timestamp;
             data.Version = eventStream.Version;
-            data.HasProcessCompletedEvent = eventStream.HasProcessCompletedEvent;
 
             foreach (var evnt in eventStream.Events)
             {

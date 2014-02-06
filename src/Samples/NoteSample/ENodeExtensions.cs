@@ -1,8 +1,6 @@
 ﻿using System.Linq;
 using System.Threading;
 using ECommon.IoC;
-using ECommon.JsonNet;
-using ECommon.Log4Net;
 using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Configurations;
@@ -22,7 +20,8 @@ namespace NoteSample.EQueueIntegrations
         private static CommandConsumer _commandConsumer;
         private static EventPublisher _eventPublisher;
         private static EventConsumer _eventConsumer;
-        private static CompletedCommandProcessor _completedCommandProcessor;
+        private static CommandResultSender _commandResultSender;
+        private static CommandResultProcessor _commandResultProcessor;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
@@ -49,22 +48,22 @@ namespace NoteSample.EQueueIntegrations
             };
 
             _broker = new BrokerController().Initialize();
-            _completedCommandProcessor = new CompletedCommandProcessor(consumerSetting);
 
-            configuration.SetDefault<CompletedCommandProcessor, CompletedCommandProcessor>(_completedCommandProcessor);
+            _commandResultProcessor = new CommandResultProcessor(consumerSetting);
 
-            _commandService = new CommandService();
+            _commandService = new CommandService(_commandResultProcessor);
+            _commandResultSender = new CommandResultSender();
             _eventPublisher = new EventPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
 
-            _commandConsumer = new CommandConsumer(consumerSetting);
+            _commandConsumer = new CommandConsumer(consumerSetting, _commandResultSender);
             _eventConsumer = new EventConsumer(eventConsumerSetting);
 
             _commandConsumer.Subscribe("NoteCommandTopic");
             _eventConsumer.Subscribe("NoteEventTopic");
-            _completedCommandProcessor.Subscribe("NoteEventTopic");
+            _commandResultProcessor.Subscribe("CommandResultTopic");
 
             return enodeConfiguration;
         }
@@ -75,25 +74,11 @@ namespace NoteSample.EQueueIntegrations
             _commandConsumer.Start();
             _eventPublisher.Start();
             _commandService.Start();
-            _completedCommandProcessor.Start();
+            _commandResultSender.Start();
+            _commandResultProcessor.Start();
 
             WaitAllConsumerLoadBalanceComplete();
 
-            return enodeConfiguration;
-        }
-        public static ENodeConfiguration UseLog4Net(this ENodeConfiguration enodeConfiguration)
-        {
-            enodeConfiguration.GetCommonConfiguration().UseLog4Net();
-            return enodeConfiguration;
-        }
-        public static ENodeConfiguration UseLog4Net(this ENodeConfiguration enodeConfiguration, string configFile)
-        {
-            enodeConfiguration.GetCommonConfiguration().UseLog4Net(configFile);
-            return enodeConfiguration;
-        }
-        public static ENodeConfiguration UseJsonNet(this ENodeConfiguration enodeConfiguration)
-        {
-            enodeConfiguration.GetCommonConfiguration().UseJsonNet(typeof(ICommand), typeof(IDomainEvent));
             return enodeConfiguration;
         }
 
@@ -105,8 +90,8 @@ namespace NoteSample.EQueueIntegrations
             {
                 var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
-                var completedCommandProcessorAllocatedQueues = _completedCommandProcessor.Consumer.GetCurrentQueues();
-                if (eventConsumerAllocatedQueues.Count() == 4 && commandConsumerAllocatedQueues.Count() == 4 && completedCommandProcessorAllocatedQueues.Count() == 4)
+                var commandResultProcessorAllocatedQueues = _commandResultProcessor.Consumer.GetCurrentQueues();
+                if (eventConsumerAllocatedQueues.Count() == 4 && commandConsumerAllocatedQueues.Count() == 4 && commandResultProcessorAllocatedQueues.Count() == 4)
                 {
                     waitHandle.Set();
                 }

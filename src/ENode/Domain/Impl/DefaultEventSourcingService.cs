@@ -58,11 +58,11 @@ namespace ENode.Domain.Impl
                     {
                         if (initializeMethod == null)
                         {
-                            throw new Exception("AggregateRoot must has a private parameterless method named 'Initialize'.");
+                            throw new ENodeException("AggregateRoot must has a private parameterless method named 'Initialize'.");
                         }
                         if (increaseVersionMethod == null)
                         {
-                            throw new Exception("AggregateRoot must has a private parameterless method named 'IncreaseVersion'.");
+                            throw new ENodeException("AggregateRoot must has a private parameterless method named 'IncreaseVersion'.");
                         }
                     }
 
@@ -87,7 +87,7 @@ namespace ENode.Domain.Impl
                 IncreaseAggregateVersion(aggregateRoot);
                 if (aggregateRoot.Version != eventStream.Version)
                 {
-                    throw new Exception(string.Format("Aggregate root version mismatch, expected version: {0}", eventStream.Version));
+                    throw new ENodeException("Aggregate root version mismatch, aggregateId:{0}, current version:{1}, expected version:{2}", aggregateRoot.UniqueId, aggregateRoot.Version, eventStream.Version);
                 }
             }
         }
@@ -113,7 +113,7 @@ namespace ENode.Domain.Impl
                 var errorMessage = string.Format("Cannot apply event stream to aggregate root as the AggregateRootId not matched. EventStream aggregateRootId:{0}, current aggregateRootId:{1}",
                                         eventStream.AggregateRootId,
                                         aggregateRoot.UniqueId);
-                throw new Exception(errorMessage);
+                throw new ENodeException(errorMessage);
             }
 
             if (eventStream.Version != aggregateRoot.Version + 1)
@@ -121,7 +121,7 @@ namespace ENode.Domain.Impl
                 var errorMessage = string.Format("Cannot apply event stream to aggregate root as the version not matched. EventStream version:{0}, current aggregateRoot version:{1}",
                                         eventStream.Version,
                                         aggregateRoot.Version);
-                throw new Exception(errorMessage);
+                throw new ENodeException(errorMessage);
             }
         }
 
@@ -137,7 +137,7 @@ namespace ENode.Domain.Impl
         {
             if (_initializeMethodDict.ContainsKey(aggregateRootType))
             {
-                throw new Exception(string.Format("Found duplicated 'Initialize' method on aggregate: {0}", aggregateRootType.FullName));
+                throw new ENodeException("Found duplicated 'Initialize' method on aggregate:{0}", aggregateRootType.FullName);
             }
             _initializeMethodDict.Add(aggregateRootType, DelegateFactory.CreateDelegate<Action<IAggregateRoot>>(initializeMethod, _parameterTypes));
         }
@@ -145,7 +145,7 @@ namespace ENode.Domain.Impl
         {
             if (_increaseVersionMethodDict.ContainsKey(aggregateRootType))
             {
-                throw new Exception(string.Format("Found duplicated 'IncreaseVersion' method on aggregate: {0}", aggregateRootType.FullName));
+                throw new ENodeException("Found duplicated 'IncreaseVersion' method on aggregate:{0}", aggregateRootType.FullName);
             }
             _increaseVersionMethodDict.Add(aggregateRootType, DelegateFactory.CreateDelegate<Action<IAggregateRoot>>(increaseVersionMethod, _parameterTypes));
         }

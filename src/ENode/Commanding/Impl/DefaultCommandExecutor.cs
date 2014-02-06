@@ -5,6 +5,7 @@ using ECommon.Logging;
 using ECommon.Retring;
 using ENode.Domain;
 using ENode.Eventing;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
 {
@@ -13,7 +14,6 @@ namespace ENode.Commanding.Impl
         #region Private Variables
 
         private readonly IWaitingCommandCache _waitingCommandCache;
-        private readonly IProcessingCommandCache _processingCommandCache;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly ICommitEventService _commitEventService;
@@ -28,7 +28,6 @@ namespace ENode.Commanding.Impl
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="waitingCommandCache"></param>
-        /// <param name="processingCommandCache"></param>
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="commitEventService"></param>
@@ -37,7 +36,6 @@ namespace ENode.Commanding.Impl
         /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
             IWaitingCommandCache waitingCommandCache,
-            IProcessingCommandCache processingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             ICommitEventService commitEventService,
@@ -46,7 +44,6 @@ namespace ENode.Commanding.Impl
             ILoggerFactory loggerFactory)
         {
             _waitingCommandCache = waitingCommandCache;
-            _processingCommandCache = processingCommandCache;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _commitEventService = commitEventService;
@@ -86,22 +83,23 @@ namespace ENode.Commanding.Impl
             var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
             if (commandHandler == null)
             {
-                _logger.Fatal(string.Format("Command handler not found for {0}", command.GetType().FullName));
-                processingCommand.CommandExecuteContext.OnCommandExecuted(command);
+                var errorMessage = string.Format("Command handler not found for [{0}].", command.GetType().FullName);
+                _logger.Error(errorMessage);
+                context.OnCommandExecuted(new CommandResult(command, errorMessage));
                 return;
             }
 
             try
             {
-                _processingCommandCache.Add(processingCommand);
                 commandHandler.Handle(context, command);
                 CommitChanges(processingCommand);
             }
             catch (Exception ex)
             {
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}], commandId:{2}, aggregateRootId:{3}.", commandHandlerType.Name, command.GetType().Name, command.Id, command.AggregateRootId), ex);
-                context.OnCommandExecuted(command);
+                var errorMessage = string.Format("Exception raised when [{0}] handling [{1}], commandId:{2}, aggregateRootId:{3}.", commandHandlerType.Name, command.GetType().Name, command.Id, command.AggregateRootId);
+                _logger.Error(errorMessage, ex);
+                context.OnCommandExecuted(new CommandResult(command, errorMessage));
             }
         }
         private bool TryToAddWaitingCommand(ProcessingCommand processingCommand)
@@ -119,17 +117,18 @@ namespace ENode.Commanding.Impl
             var dirtyAggregate = GetDirtyAggregate(context);
             if (dirtyAggregate == null)
             {
-                _logger.Info("No dirty aggregate found.");
+                _logger.WarnFormat("No aggregate created or modified by [{0}], commandId:{1}, aggregateRootId:{2}.", command.GetType().Name, command.Id, command.AggregateRootId);
+                context.OnCommandExecuted(new CommandResult(command));
                 return;
             }
             var eventStream = CreateEventStream(dirtyAggregate, command);
             if (eventStream.Events.Any(x => x is ISourcingEvent))
             {
-                _commitEventService.CommitEvent(eventStream, processingCommand);
+                _commitEventService.CommitEvent(new EventProcessingContext(dirtyAggregate, eventStream, processingCommand));
             }
             else
             {
-                _publishEventService.PublishEvent(eventStream, processingCommand);
+                _publishEventService.PublishEvent(new EventProcessingContext(dirtyAggregate, eventStream, processingCommand));
             }
         }
         private IAggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
@@ -144,7 +143,7 @@ namespace ENode.Commanding.Impl
             }
             if (dirtyAggregateRootCount > 1)
             {
-                throw new Exception("Detected more than one dirty aggregates.");
+                throw new ENodeException("Detected more than one dirty aggregates [{0}].", dirtyAggregateRootCount);
             }
 
             return dirtyAggregateRoots.Single();
@@ -157,15 +156,13 @@ namespace ENode.Commanding.Impl
             var aggregateRootType = aggregateRoot.GetType();
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
             var aggregateRootId = uncommittedEvents.First().AggregateRootId;
-            var hasProcessCompletedEvent = uncommittedEvents.Any(x => x is IProcessCompletedEvent);
 
             return new EventStream(
                 command.Id,
                 aggregateRootId,
                 aggregateRootName,
                 aggregateRoot.Version + 1,
-                DateTime.UtcNow,
-                hasProcessCompletedEvent,
+                DateTime.Now,
                 uncommittedEvents);
         }
         private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IDomainEvent> evnts)
@@ -175,14 +172,14 @@ namespace ENode.Commanding.Impl
             {
                 if (!object.Equals(evnts[index].AggregateRootId, aggregateRootId))
                 {
-                    throw new Exception(string.Format("Wrong aggregate root id of domain event: {0}.", evnts[index].GetType().FullName));
+                    throw new ENodeException("Wrong aggregate root id of domain event: {0}.", evnts[index].GetType().FullName);
                 }
             }
             if (aggregateRoot.Version > 0)
             {
                 if (!object.Equals(aggregateRoot.UniqueId, aggregateRootId))
                 {
-                    throw new Exception(string.Format("Mismatch aggregate root id. Expected:{0}, Actual:{1}", aggregateRoot.UniqueId, aggregateRootId));
+                    throw new ENodeException("Mismatch aggregate root id. Expected:{0}, Actual:{1}", aggregateRoot.UniqueId, aggregateRootId);
                 }
             }
         }

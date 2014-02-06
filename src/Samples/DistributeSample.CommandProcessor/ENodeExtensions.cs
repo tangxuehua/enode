@@ -13,6 +13,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
     public static class ENodeExtensions
     {
         private static CommandConsumer _commandConsumer;
+        private static CommandResultSender _commandResultSender;
         private static EventPublisher _eventPublisher;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
@@ -31,11 +32,12 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
                 RebalanceInterval = 1000
             };
 
+            _commandResultSender = new CommandResultSender();
             _eventPublisher = new EventPublisher();
 
             configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
 
-            _commandConsumer = new CommandConsumer(consumerSetting);
+            _commandConsumer = new CommandConsumer(consumerSetting, _commandResultSender);
 
             _commandConsumer.Subscribe("NoteCommandTopic1");
             _commandConsumer.Subscribe("NoteCommandTopic2");
@@ -45,6 +47,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
             _commandConsumer.Start();
+            _commandResultSender.Start();
             _eventPublisher.Start();
 
             WaitAllConsumerLoadBalanceComplete();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ECommon.IoC;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using ENode.Snapshoting;
 
 namespace ENode.Domain.Impl
@@ -17,6 +18,7 @@ namespace ENode.Domain.Impl
         private readonly IEventSourcingService _eventSourcingService;
         private readonly IEventStore _eventStore;
         private readonly ISnapshotStore _snapshotStore;
+        private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
 
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -24,12 +26,14 @@ namespace ENode.Domain.Impl
         /// <param name="eventSourcingService"></param>
         /// <param name="eventStore"></param>
         /// <param name="snapshotStore"></param>
-        public EventSourcingAggregateStorage(IAggregateRootFactory aggregateRootFactory, IEventSourcingService eventSourcingService, IEventStore eventStore, ISnapshotStore snapshotStore)
+        /// <param name="aggregateRootTypeProvider"></param>
+        public EventSourcingAggregateStorage(IAggregateRootFactory aggregateRootFactory, IEventSourcingService eventSourcingService, IEventStore eventStore, ISnapshotStore snapshotStore, IAggregateRootTypeProvider aggregateRootTypeProvider)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _eventSourcingService = eventSourcingService;
             _eventStore = eventStore;
             _snapshotStore = snapshotStore;
+            _aggregateRootTypeProvider = aggregateRootTypeProvider;
         }
 
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
@@ -48,7 +52,8 @@ namespace ENode.Domain.Impl
                 return aggregateRoot;
             }
 
-            var streams = _eventStore.Query(id, type, minStreamVersion, maxStreamVersion);
+            var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(type);
+            var streams = _eventStore.Query(id, aggregateRootName, minStreamVersion, maxStreamVersion);
             aggregateRoot = BuildAggregateRoot(type, streams);
 
             return aggregateRoot;
@@ -70,11 +75,11 @@ namespace ENode.Domain.Impl
 
             if (aggregateRootFromSnapshot.UniqueId != aggregateRootId)
             {
-                var message = string.Format("Aggregate root restored from snapshot not valid as the aggregate root id not matched. Snapshot aggregate root id:{0}, required aggregate root id:{1}", aggregateRootFromSnapshot.UniqueId, aggregateRootId);
-                throw new Exception(message);
+                throw new ENodeException("Aggregate root restored from snapshot not valid as the aggregate root id not matched. Snapshot aggregate root id:{0}, required aggregate root id:{1}", aggregateRootFromSnapshot.UniqueId, aggregateRootId);
             }
 
-            var eventsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootType, snapshot.Version + 1, long.MaxValue);
+            var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
+            var eventsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootName, snapshot.Version + 1, long.MaxValue);
             _eventSourcingService.ReplayEvents(aggregateRootFromSnapshot, eventsAfterSnapshot);
             aggregateRoot = aggregateRootFromSnapshot;
             return true;

@@ -49,53 +49,49 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Public Methods
 
-        /// <summary>Append the event stream to the event store.
+        /// <summary>Commit the event stream to the event store.
         /// </summary>
         /// <param name="stream"></param>
-        public void Append(EventStream stream)
+        public EventCommitStatus Commit(EventStream stream)
         {
-            if (stream == null)
-            {
-                return;
-            }
+            return EventCommitStatus.Success;
+            //var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(stream.AggregateRootName);
+            //var connection = _connectionFactory.CreateConnection(_connectionString);
+            //var eventTable = _eventTableProvider.GetTable(stream.AggregateRootId, aggregateRootType);
 
-            var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(stream.AggregateRootName);
-            var connection = _connectionFactory.CreateConnection(_connectionString);
-            var eventTable = _eventTableProvider.GetTable(stream.AggregateRootId, aggregateRootType);
-
-            try
-            {
-                connection.Open();
-                connection.Insert(BuildSqlEventStreamFrom(stream), eventTable);
-            }
-            catch (SqlException)
-            {
-                if (connection.State == ConnectionState.Open)
-                {
-                    var count = connection.GetCount(
-                        new
-                        {
-                            AggregateRootId = stream.AggregateRootId,
-                            Version = stream.Version
-                        }, eventTable);
-                    if (count > 0)
-                    {
-                        throw new ConcurrentException();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            finally
-            {
-                connection.Close();
-            }
+            //try
+            //{
+            //    connection.Open();
+            //    connection.Insert(BuildSqlEventStreamFrom(stream), eventTable);
+            //}
+            //catch (SqlException)
+            //{
+            //    if (connection.State == ConnectionState.Open)
+            //    {
+            //        var count = connection.GetCount(
+            //            new
+            //            {
+            //                AggregateRootId = stream.AggregateRootId,
+            //                Version = stream.Version
+            //            }, eventTable);
+            //        if (count > 0)
+            //        {
+            //            throw new ConcurrentException();
+            //        }
+            //        else
+            //        {
+            //            throw;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        throw;
+            //    }
+            //}
+            //finally
+            //{
+            //    connection.Close();
+            //}
         }
         /// <summary>Query event streams from event store.
         /// </summary>
@@ -104,11 +100,11 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="minStreamVersion"></param>
         /// <param name="maxStreamVersion"></param>
         /// <returns></returns>
-        public IEnumerable<EventStream> Query(object aggregateRootId, Type aggregateRootType, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventStream> Query(object aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute<IEnumerable<EventStream>>((connection) =>
             {
-                var eventTable = _eventTableProvider.GetTable(aggregateRootId, aggregateRootType);
+                var eventTable = _eventTableProvider.GetTable(aggregateRootId, aggregateRootName);
                 var sql = string.Format("select * from [{0}] where AggregateRootId = @AggregateRootId and Version >= @MinStreamVersion and Version <= @MaxStreamVersion order by Version asc", eventTable);
 
                 var sqlEventStreams = connection.Query<SqlEventStream>(sql,
@@ -120,21 +116,6 @@ namespace ENode.Eventing.Impl.SQL
                 });
 
                 return sqlEventStreams.Select(BuildEventStreamFrom).ToList();
-            });
-        }
-        /// <summary>Check whether an event stream is exist in the event store.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        /// <param name="aggregateRootType"></param>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public bool IsEventStreamExist(object aggregateRootId, Type aggregateRootType, Guid id)
-        {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute((connection) =>
-            {
-                var eventTable = _eventTableProvider.GetTable(aggregateRootId, aggregateRootType);
-                var count = connection.GetCount(new { Id = id }, eventTable);
-                return count > 0;
             });
         }
         /// <summary>Query all the event streams from the event store.
@@ -168,7 +149,6 @@ namespace ENode.Eventing.Impl.SQL
                     sqlEventStream.AggregateRootName,
                     sqlEventStream.Version,
                     sqlEventStream.Timestamp,
-                    sqlEventStream.HasProcessCompletedEvent,
                     _jsonSerializer.Deserialize<IEnumerable<IDomainEvent>>(sqlEventStream.Events));
         }
         private SqlEventStream BuildSqlEventStreamFrom(EventStream eventStream)
@@ -180,7 +160,6 @@ namespace ENode.Eventing.Impl.SQL
                 AggregateRootName = eventStream.AggregateRootName,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
-                HasProcessCompletedEvent = eventStream.HasProcessCompletedEvent,
                 Events = _jsonSerializer.Serialize(eventStream.Events)
             };
         }
@@ -192,7 +171,6 @@ namespace ENode.Eventing.Impl.SQL
             public string AggregateRootName { get; set; }
             public long Version { get; set; }
             public DateTime Timestamp { get; set; }
-            public bool HasProcessCompletedEvent { get; set; }
             public string Events { get; set; }
         }
 

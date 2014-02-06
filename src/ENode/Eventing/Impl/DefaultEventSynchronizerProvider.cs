@@ -25,7 +25,7 @@ namespace ENode.Eventing.Impl
                 {
                     if (!TypeUtils.IsComponent(synchronizerType))
                     {
-                        throw new Exception(string.Format("{0} should be marked as component.", synchronizerType.FullName));
+                        throw new ENodeException("Event synchronizer type [{0}] should be marked as component.", synchronizerType.FullName);
                     }
                     RegisterSynchronizer(synchronizerType);
                 }

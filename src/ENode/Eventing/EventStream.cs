@@ -21,14 +21,13 @@ namespace ENode.Eventing
         /// <param name="timestamp"></param>
         /// <param name="hasProcessCompletedEvent"></param>
         /// <param name="events"></param>
-        public EventStream(Guid commandId, object aggregateRootId, string aggregateRootName, long version, DateTime timestamp, bool hasProcessCompletedEvent, IEnumerable<IDomainEvent> events)
+        public EventStream(Guid commandId, object aggregateRootId, string aggregateRootName, long version, DateTime timestamp, IEnumerable<IDomainEvent> events)
         {
             CommandId = commandId;
             AggregateRootId = aggregateRootId;
             AggregateRootName = aggregateRootName;
             Version = version;
             Timestamp = timestamp;
-            HasProcessCompletedEvent = hasProcessCompletedEvent;
             Events = events ?? new List<IDomainEvent>();
         }
 
@@ -47,43 +46,17 @@ namespace ENode.Eventing
         /// <summary>The occurred time of the event stream.
         /// </summary>
         public DateTime Timestamp { get; private set; }
-        /// <summary>Represents whether the current event stream has at least one IProcessCompletedEvent.
-        /// </summary>
-        public bool HasProcessCompletedEvent { get; private set; }
         /// <summary>The domain events of the event stream.
         /// </summary>
         public IEnumerable<IDomainEvent> Events { get; private set; }
 
-        /// <summary>Check if a given type of domain event exist in the current event stream.
-        /// </summary>
-        /// <typeparam name="TEvent"></typeparam>
-        /// <returns></returns>
-        public bool HasEvent<TEvent>() where TEvent : class, IDomainEvent
-        {
-            return Events.Any(x => x.GetType() == typeof(TEvent));
-        }
-        /// <summary>Find a domain event with the given event type from the current event stream.
-        /// </summary>
-        /// <typeparam name="TEvent"></typeparam>
-        /// <returns></returns>
-        public TEvent FindEvent<TEvent>() where TEvent : class, IDomainEvent
-        {
-            return Events.SingleOrDefault(x => x.GetType() == typeof(TEvent)) as TEvent;
-        }
-        /// <summary>Get all the event type names, sperated by | character.
-        /// </summary>
-        /// <returns></returns>
-        public string GetEventNames()
-        {
-            return string.Join("|", Events.Select(x => x.GetType().Name));
-        }
         /// <summary>Overrides to return the whole event stream information.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandId={0},AggregateRootName={1},AggregateRootId={2},Version={3},Timestamp={4},HasProcessCompletedEvent={5},Events={6}]";
-            return string.Format(format, CommandId, AggregateRootName, AggregateRootId, Version, Timestamp, HasProcessCompletedEvent, GetEventNames());
+            var format = "[CommandId={0},AggregateRootName={1},AggregateRootId={2},Version={3},Timestamp={4},Events={5}]";
+            return string.Format(format, CommandId, AggregateRootName, AggregateRootId, Version, Timestamp, string.Join("|", Events.Select(x => x.GetType().Name)));
         }
     }
 }

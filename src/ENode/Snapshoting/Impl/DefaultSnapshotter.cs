@@ -46,7 +46,7 @@ namespace ENode.Snapshoting.Impl
             var payload = _binarySerializer.Serialize(aggregateRoot);
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRoot.GetType());
 
-            return new Snapshot(aggregateRootName, aggregateRoot.UniqueId, aggregateRoot.Version, payload, DateTime.UtcNow);
+            return new Snapshot(aggregateRootName, aggregateRoot.UniqueId, aggregateRoot.Version, payload, DateTime.Now);
         }
         /// <summary>Restore the aggregate root from the given snapshot.
         /// </summary>

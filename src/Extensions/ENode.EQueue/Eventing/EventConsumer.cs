@@ -100,7 +100,7 @@ namespace ENode.EQueue
                 events.Add(evnt);
             }
 
-            return new EventStream(data.CommandId, data.AggregateRootId, data.AggregateRootName, data.Version, data.Timestamp, data.HasProcessCompletedEvent, events);
+            return new EventStream(data.CommandId, data.AggregateRootId, data.AggregateRootName, data.Version, data.Timestamp, events);
         }
 
         class EventProcessContext : IEventProcessContext

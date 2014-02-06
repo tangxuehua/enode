@@ -4,7 +4,6 @@ CREATE TABLE [dbo].[Event](
     [Version] [bigint] NOT NULL,
     [AggregateRootName] [nvarchar](128) NOT NULL,
     [Timestamp] [datetime] NOT NULL,
-    [HasProcessCompletedEvent] [bit] NOT NULL,
     [Events] [nvarchar](max) NOT NULL,
  CONSTRAINT [PK_Event] PRIMARY KEY CLUSTERED
 (

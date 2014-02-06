@@ -27,7 +27,7 @@ namespace DistributeSample.CommandProducer
             {
                 commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note" + index)).ContinueWith(task =>
                 {
-                    if (task.Result.Status == CommandResultStatus.Success)
+                    if (task.Result.Status == CommandStatus.Success)
                     {
                         Console.WriteLine("Sent command{0}.", Interlocked.Increment(ref _count));
                     }

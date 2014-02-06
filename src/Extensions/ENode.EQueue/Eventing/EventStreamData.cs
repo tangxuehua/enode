@@ -12,7 +12,6 @@ namespace ENode.EQueue
         public string AggregateRootName { get; set; }
         public long Version { get; set; }
         public DateTime Timestamp { get; set; }
-        public bool HasProcessCompletedEvent { get; set; }
         public IList<ByteTypeData> Events { get; set; }
 
         public EventStreamData()

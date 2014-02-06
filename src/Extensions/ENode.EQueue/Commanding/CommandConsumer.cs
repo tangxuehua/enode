@@ -18,6 +18,7 @@ namespace ENode.EQueue
     public class CommandConsumer : IMessageHandler
     {
         private readonly Consumer _consumer;
+        private readonly CommandResultSender _commandResultSender;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
         private readonly ICommandExecutor _commandExecutor;
@@ -26,27 +27,27 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public CommandConsumer()
-            : this(new ConsumerSetting())
+        public CommandConsumer(CommandResultSender commandResultSender)
+            : this(new ConsumerSetting(), commandResultSender)
         {
         }
-        public CommandConsumer(string groupName)
-            : this(new ConsumerSetting(), groupName)
+        public CommandConsumer(string groupName, CommandResultSender commandResultSender)
+            : this(new ConsumerSetting(), groupName, commandResultSender)
         {
         }
-        public CommandConsumer(ConsumerSetting setting)
-            : this(setting, null)
+        public CommandConsumer(ConsumerSetting setting, CommandResultSender commandResultSender)
+            : this(setting, null, commandResultSender)
         {
         }
-        public CommandConsumer(ConsumerSetting setting, string groupName)
-            : this(setting, null, groupName)
+        public CommandConsumer(ConsumerSetting setting, string groupName, CommandResultSender commandResultSender)
+            : this(setting, null, groupName, commandResultSender)
         {
         }
-        public CommandConsumer(ConsumerSetting setting, string name, string groupName)
-            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName)
+        public CommandConsumer(ConsumerSetting setting, string name, string groupName, CommandResultSender commandResultSender)
+            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName, commandResultSender)
         {
         }
-        public CommandConsumer(string id, ConsumerSetting setting, string groupName)
+        public CommandConsumer(string id, ConsumerSetting setting, string groupName, CommandResultSender commandResultSender)
         {
             _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(CommandConsumer).Name + "Group" : groupName, this);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
@@ -54,6 +55,7 @@ namespace ENode.EQueue
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _messageContextDict = new ConcurrentDictionary<Guid, IMessageContext>();
+            _commandResultSender = commandResultSender;
         }
 
         public CommandConsumer Start()
@@ -74,19 +76,21 @@ namespace ENode.EQueue
 
         void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
         {
-            var payload = ByteTypeDataUtils.Decode(message.Body);
+            var commandMessage = _binarySerializer.Deserialize<CommandMessage>(message.Body);
+            var payload = ByteTypeDataUtils.Decode(commandMessage.CommandData);
             var type = _commandTypeCodeProvider.GetType(payload.TypeCode);
             var command = _binarySerializer.Deserialize(payload.Data, type) as ICommand;
 
             if (_messageContextDict.TryAdd(command.Id, context))
             {
-                _commandExecutor.Execute(command, new CommandExecuteContext(_repository, message, (executedCommand, queueMessage) =>
+                _commandExecutor.Execute(command, new CommandExecuteContext(_repository, message, commandMessage, (commandResult, queueMessage) =>
                 {
                     IMessageContext messageContext;
-                    if (_messageContextDict.TryRemove(executedCommand.Id, out messageContext))
+                    if (_messageContextDict.TryRemove(commandResult.CommandId, out messageContext))
                     {
                         messageContext.OnMessageHandled(queueMessage);
                     }
+                    _commandResultSender.Send(commandResult, commandMessage.CommandResultTopic);
                 }));
             }
         }
@@ -96,22 +100,24 @@ namespace ENode.EQueue
             private readonly ConcurrentDictionary<object, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
 
-            public Action<ICommand, QueueMessage> CommandHandledAction { get; private set; }
+            public Action<CommandResult, QueueMessage> CommandHandledAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
+            public CommandMessage CommandMessage { get; private set; }
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, Action<ICommand, QueueMessage> commandHandledAction)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, Action<CommandResult, QueueMessage> commandHandledAction)
             {
                 _trackingAggregateRoots = new ConcurrentDictionary<object, IAggregateRoot>();
                 _repository = repository;
                 QueueMessage = queueMessage;
+                CommandMessage = commandMessage;
                 CheckCommandWaiting = true;
                 CommandHandledAction = commandHandledAction;
             }
 
             public bool CheckCommandWaiting { get; set; }
-            public void OnCommandExecuted(ICommand command)
+            public void OnCommandExecuted(CommandResult commandResult)
             {
-                CommandHandledAction(command, QueueMessage);
+                CommandHandledAction(commandResult, QueueMessage);
             }
 
             /// <summary>Add an aggregate root to the context.
