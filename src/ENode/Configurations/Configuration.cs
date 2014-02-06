@@ -163,6 +163,15 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
             return this;
         }
+        public ENodeConfiguration UseSqlCommitLog(string connectionString)
+        {
+            return UseSqlCommitLog(connectionString, "CommitLog");
+        }
+        public ENodeConfiguration UseSqlCommitLog(string connectionString, string commitLogTable)
+        {
+            _configuration.SetDefault<ICommitLog, SqlCommitLog>(new SqlCommitLog(connectionString, commitLogTable));
+            return this;
+        }
         /// <summary>Use the default sql querydb connection factory.
         /// </summary>
         /// <param name="connectionString">The connection string of the SQL DB.</param>

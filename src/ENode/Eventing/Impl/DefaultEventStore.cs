@@ -13,6 +13,7 @@ namespace ENode.Eventing.Impl.InMemory
     /// </summary>
     public class DefaultEventStore : IEventStore
     {
+        private const char KeySeperator = '|';
         private readonly ConcurrentDictionary<Guid, long> _commandIndexDict = new ConcurrentDictionary<Guid, long>();
         private readonly ConcurrentDictionary<string, long> _versionIndexDict = new ConcurrentDictionary<string, long>();
         private readonly ConcurrentDictionary<string, long> _aggregateVersionDict = new ConcurrentDictionary<string, long>();
@@ -74,7 +75,7 @@ namespace ENode.Eventing.Impl.InMemory
                 }
             }
 
-            var key = string.Format("{0}-{1}", aggregateRootId, stream.Version);
+            var key = string.Format("{0}{2}{1}", aggregateRootId, stream.Version, KeySeperator);
             if (_versionIndexDict.TryAdd(key, commitSequence))
             {
                 if (!_versionIndexTempDict.TryAdd(commitSequence, key))
@@ -116,7 +117,7 @@ namespace ENode.Eventing.Impl.InMemory
                 var eventStreamList = new List<EventStream>();
                 for (var version = minVersion; version <= maxVersion; version++)
                 {
-                    var key = string.Format("{0}-{1}", aggregateRootId, version);
+                    var key = string.Format("{0}{2}{1}", aggregateRootId, version, KeySeperator);
                     long commitSequence;
                     if (!_versionIndexDict.TryGetValue(key, out commitSequence))
                     {
@@ -208,6 +209,10 @@ namespace ENode.Eventing.Impl.InMemory
                 {
                     entries = _commandIndexStore.Query((pageIndex++) * size, size);
                 }
+                else
+                {
+                    break;
+                }
             }
 
             _lastSavedCommandIndexSequence = maxCommitSequence;
@@ -233,6 +238,10 @@ namespace ENode.Eventing.Impl.InMemory
                 {
                     startCommitSequence = baseCommitSequence + (commitLogPageIndex++) * commitLogSize;
                     eventStreams = _commitLog.Query(startCommitSequence, commitLogSize);
+                }
+                else
+                {
+                    break;
                 }
             }
         }
@@ -260,6 +269,10 @@ namespace ENode.Eventing.Impl.InMemory
                 {
                     entries = _versionIndexStore.Query((pageIndex++) * size, size);
                 }
+                else
+                {
+                    break;
+                }
             }
 
             _lastSavedVersionIndexSequence = maxCommitSequence;
@@ -275,7 +288,7 @@ namespace ENode.Eventing.Impl.InMemory
                 var index = 0;
                 foreach (var eventStream in eventStreams)
                 {
-                    var key = string.Format("{0}-{1}", eventStream.AggregateRootId, eventStream.Version);
+                    var key = string.Format("{0}{2}{1}", eventStream.AggregateRootId, eventStream.Version, KeySeperator);
                     if (!_versionIndexDict.TryAdd(key, startCommitSequence + index))
                     {
                         throw new ENodeException("Duplicate versionIndex key:{0}", key);
@@ -287,13 +300,17 @@ namespace ENode.Eventing.Impl.InMemory
                     startCommitSequence = baseCommitSequence + (commitLogPageIndex++) * commitLogSize;
                     eventStreams = _commitLog.Query(startCommitSequence, commitLogSize);
                 }
+                else
+                {
+                    break;
+                }
             }
         }
         private void RecoverAggregateVersionDict()
         {
             foreach (var key in _versionIndexDict.Keys)
             {
-                var items = key.Split('-');
+                var items = key.Split(KeySeperator);
                 var aggregateRootId = items[0];
                 var version = long.Parse(items[1]);
                 var result = _aggregateVersionDict.GetOrAdd(aggregateRootId, version);

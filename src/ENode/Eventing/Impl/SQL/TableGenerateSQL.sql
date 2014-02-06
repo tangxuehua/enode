@@ -1,17 +1,13 @@
-CREATE TABLE [dbo].[Event](
-    [CommitSequence] IDENTITY[(1,1)] NOT NULL,
-    [CommandId] [uniqueidentifier] NOT NULL,
-    [AggregateRootId] [nvarchar](36) NOT NULL,
-    [Version] [bigint] NOT NULL,
-    [AggregateRootName] [nvarchar](128) NOT NULL,
-    [Timestamp] [datetime] NOT NULL,
-    [Events] [nvarchar](max) NOT NULL,
- CONSTRAINT [PK_Event] PRIMARY KEY CLUSTERED
-(
-    [CommitSequence] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-) ON [PRIMARY]
-GO
+CREATE TABLE [dbo].[CommitLog] (
+    [CommitSequence]    BIGINT           IDENTITY (1, 1) NOT NULL,
+    [CommandId]         UNIQUEIDENTIFIER NOT NULL,
+    [AggregateRootId]   NVARCHAR (36)    NOT NULL,
+    [Version]           BIGINT           NOT NULL,
+    [AggregateRootName] NVARCHAR (1024)  NOT NULL,
+    [Timestamp]         DATETIME         NOT NULL,
+    [Events]            VARBINARY (MAX)  NOT NULL,
+    CONSTRAINT [PK_CommitLog] PRIMARY KEY CLUSTERED ([CommitSequence] ASC)
+);
 
 CREATE TABLE [dbo].[EventPublishInfo](
     [AggregateRootId] [nvarchar](36) NOT NULL,

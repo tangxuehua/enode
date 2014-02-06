@@ -24,7 +24,6 @@ namespace ENode.Eventing.Impl.SQL
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="setting"></param>
         public SqlCommitLog(string connectionString, string commitLogTable)
         {
             _connectionString = connectionString;
@@ -79,7 +78,7 @@ namespace ENode.Eventing.Impl.SQL
         {
             return new EventStream(
                     sqlEventStream.CommandId,
-                    sqlEventStream.AggregateRootId,
+                    Guid.Parse(sqlEventStream.AggregateRootId),
                     sqlEventStream.AggregateRootName,
                     sqlEventStream.Version,
                     sqlEventStream.Timestamp,
@@ -90,7 +89,7 @@ namespace ENode.Eventing.Impl.SQL
             return new SqlEventStream
             {
                 CommandId = eventStream.CommandId,
-                AggregateRootId = eventStream.AggregateRootId,
+                AggregateRootId = eventStream.AggregateRootId.ToString(),
                 AggregateRootName = eventStream.AggregateRootName,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
@@ -100,9 +99,8 @@ namespace ENode.Eventing.Impl.SQL
 
         class SqlEventStream
         {
-            public long CommitSequence { get; set; }
             public Guid CommandId { get; set; }
-            public object AggregateRootId { get; set; }
+            public string AggregateRootId { get; set; }
             public string AggregateRootName { get; set; }
             public long Version { get; set; }
             public DateTime Timestamp { get; set; }
