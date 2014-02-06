@@ -1,4 +1,5 @@
 CREATE TABLE [dbo].[Event](
+    [CommitSequence] IDENTITY[(1,1)] NOT NULL,
     [CommandId] [uniqueidentifier] NOT NULL,
     [AggregateRootId] [nvarchar](36) NOT NULL,
     [Version] [bigint] NOT NULL,
@@ -7,8 +8,7 @@ CREATE TABLE [dbo].[Event](
     [Events] [nvarchar](max) NOT NULL,
  CONSTRAINT [PK_Event] PRIMARY KEY CLUSTERED
 (
-    [AggregateRootId] ASC,
-    [Version] ASC
+    [CommitSequence] ASC
 )WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO

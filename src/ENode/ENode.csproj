@@ -77,8 +77,9 @@
     <Compile Include="Eventing\Impl\ICommandIndexStore.cs" />
     <Compile Include="Eventing\Impl\ICommitLog.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryCommitLog.cs" />
-    <Compile Include="Eventing\Impl\InMemory\DefaultEventStore.cs" />
+    <Compile Include="Eventing\Impl\DefaultEventStore.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
+    <Compile Include="Eventing\Impl\SQL\SqlCommitLog.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlEventStoreSetting.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IPublishEventService.cs" />

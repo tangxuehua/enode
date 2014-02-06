@@ -5,7 +5,7 @@ using ENode.Commanding;
 using ENode.Domain;
 using ENode.Infrastructure;
 
-namespace ENode.Eventing.Impl
+namespace ENode.Eventing
 {
     /// <summary>The default implementation of ICommitService.
     /// </summary>
