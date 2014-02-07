@@ -6,11 +6,11 @@ namespace ENode.Domain
     /// </summary>
     public interface IAggregateStorage
     {
-        /// <summary>Get an aggregate from event store.
+        /// <summary>Get an aggregate from aggregate storage.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="id"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        IAggregateRoot Get(Type type, object id);
+        IAggregateRoot Get(Type aggregateRootType, string aggregateRootId);
     }
 }

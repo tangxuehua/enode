@@ -78,7 +78,7 @@ namespace ENode.Eventing.Impl.SQL
         {
             return new EventStream(
                     sqlEventStream.CommandId,
-                    Guid.Parse(sqlEventStream.AggregateRootId),
+                    sqlEventStream.AggregateRootId,
                     sqlEventStream.AggregateRootName,
                     sqlEventStream.Version,
                     sqlEventStream.Timestamp,

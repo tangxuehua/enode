@@ -152,7 +152,6 @@ namespace ENode.Commanding.Impl
         {
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
             aggregateRoot.ClearUncommittedEvents();
-            ValidateEvents(aggregateRoot, uncommittedEvents);
 
             var aggregateRootType = aggregateRoot.GetType();
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
@@ -165,24 +164,6 @@ namespace ENode.Commanding.Impl
                 aggregateRoot.Version + 1,
                 DateTime.Now,
                 uncommittedEvents);
-        }
-        private void ValidateEvents(IAggregateRoot aggregateRoot, IList<IDomainEvent> evnts)
-        {
-            var aggregateRootId = evnts[0].AggregateRootId;
-            for (var index = 1; index < evnts.Count; index++)
-            {
-                if (!object.Equals(evnts[index].AggregateRootId, aggregateRootId))
-                {
-                    throw new ENodeException("Wrong aggregate root id of domain event: {0}.", evnts[index].GetType().FullName);
-                }
-            }
-            if (aggregateRoot.Version > 0)
-            {
-                if (!object.Equals(aggregateRoot.UniqueId, aggregateRootId))
-                {
-                    throw new ENodeException("Mismatch aggregate root id. Expected:{0}, Actual:{1}", aggregateRoot.UniqueId, aggregateRootId);
-                }
-            }
         }
 
         #endregion

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
@@ -19,16 +20,16 @@ namespace ENode.Eventing
         /// <param name="aggregateRootName"></param>
         /// <param name="version"></param>
         /// <param name="timestamp"></param>
-        /// <param name="hasProcessCompletedEvent"></param>
         /// <param name="events"></param>
-        public EventStream(Guid commandId, object aggregateRootId, string aggregateRootName, long version, DateTime timestamp, IEnumerable<IDomainEvent> events)
+        public EventStream(Guid commandId, string aggregateRootId, string aggregateRootName, long version, DateTime timestamp, IEnumerable<IDomainEvent> events)
         {
             CommandId = commandId;
             AggregateRootId = aggregateRootId;
             AggregateRootName = aggregateRootName;
             Version = version;
             Timestamp = timestamp;
-            Events = events ?? new List<IDomainEvent>();
+            VerifyEvents(aggregateRootId, events);
+            Events = events;
         }
 
         /// <summary>The commandId which generate this event stream.
@@ -36,7 +37,7 @@ namespace ENode.Eventing
         public Guid CommandId { get; private set; }
         /// <summary>The aggregate root id.
         /// </summary>
-        public object AggregateRootId { get; private set; }
+        public string AggregateRootId { get; private set; }
         /// <summary>The aggregate root name.
         /// </summary>
         public string AggregateRootName { get; private set; }
@@ -57,6 +58,17 @@ namespace ENode.Eventing
         {
             var format = "[CommandId={0},AggregateRootName={1},AggregateRootId={2},Version={3},Timestamp={4},Events={5}]";
             return string.Format(format, CommandId, AggregateRootName, AggregateRootId, Version, Timestamp, string.Join("|", Events.Select(x => x.GetType().Name)));
+        }
+
+        private void VerifyEvents(string expectedAggregateRootId, IEnumerable<IDomainEvent> events)
+        {
+            foreach (var evnt in events)
+            {
+                if (evnt.AggregateRootId != expectedAggregateRootId)
+                {
+                    throw new ENodeException("Domain event aggregate root Id mismatch, current domain event aggregateRootId:{0}, expected aggregateRootId:{1}", evnt.AggregateRootId, expectedAggregateRootId);
+                }
+            }
         }
     }
 }

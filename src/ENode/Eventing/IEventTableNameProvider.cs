@@ -12,7 +12,7 @@ namespace ENode.Eventing
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootName"></param>
         /// <returns></returns>
-        string GetTable(object aggregateRootId, string aggregateRootName);
+        string GetTable(string aggregateRootId, string aggregateRootName);
         /// <summary>Get all the tables of the eventstore.
         /// </summary>
         /// <returns></returns>

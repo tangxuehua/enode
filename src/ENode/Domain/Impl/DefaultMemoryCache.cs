@@ -21,29 +21,27 @@ namespace ENode.Domain.Impl
 
         /// <summary>Get an aggregate from memory cache.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="type"></param>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootType"></param>
         /// <returns></returns>
-        public IAggregateRoot Get(object id, Type type)
+        public IAggregateRoot Get(object aggregateRootId, Type aggregateRootType)
         {
-            if (id == null) throw new ArgumentNullException("id");
+            if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
             byte[] value;
-            if (_cacheDict.TryGetValue(id.ToString(), out value))
+            if (_cacheDict.TryGetValue(aggregateRootId.ToString(), out value))
             {
-                return _binarySerializer.Deserialize(value, type) as IAggregateRoot;
+                return _binarySerializer.Deserialize(value, aggregateRootType) as IAggregateRoot;
             }
             return null;
         }
         /// <summary>Get a strong type aggregate from memory cache.
         /// </summary>
-        /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
+        /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public T Get<T>(object id) where T : class, IAggregateRoot
+        public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
         {
-            if (id == null) throw new ArgumentNullException("id");
-            byte[] value;
-            return _cacheDict.TryGetValue(id.ToString(), out value) ? _binarySerializer.Deserialize<T>(value) : null;
+            return Get(aggregateRootId, typeof(T)) as T;
         }
         /// <summary>Set an aggregate to memory cache.
         /// </summary>
@@ -55,7 +53,7 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRoot");
             }
-            _cacheDict[aggregateRoot.UniqueId.ToString()] = _binarySerializer.Serialize(aggregateRoot);
+            _cacheDict[aggregateRoot.UniqueId] = _binarySerializer.Serialize(aggregateRoot);
         }
     }
 }

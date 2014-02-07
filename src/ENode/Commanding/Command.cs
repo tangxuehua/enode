@@ -37,9 +37,9 @@ namespace ENode.Commanding
         public TAggregateRootId AggregateRootId { get; private set; }
         /// <summary>Represents the id of the aggregate root, this property is only used by framework.
         /// </summary>
-        object ICommand.AggregateRootId
+        string ICommand.AggregateRootId
         {
-            get { return this.AggregateRootId; }
+            get { return this.AggregateRootId.ToString(); }
         }
 
         /// <summary>Parameterized constructor.

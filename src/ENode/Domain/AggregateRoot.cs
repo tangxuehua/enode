@@ -46,11 +46,11 @@ namespace ENode.Domain
 
         /// <summary>The unique id of aggregate root.
         /// </summary>
-        object IAggregateRoot.UniqueId
+        string IAggregateRoot.UniqueId
         {
             get
             {
-                return _id;
+                return _id.ToString();
             }
         }
         /// <summary>The version of aggregate root.

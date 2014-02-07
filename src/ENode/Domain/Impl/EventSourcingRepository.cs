@@ -24,19 +24,19 @@ namespace ENode.Domain.Impl
         /// <param name="id"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T Get<T>(object id) where T : class, IAggregateRoot
+        public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
         {
-            return Get(typeof(T), id) as T;
+            return Get(typeof(T), aggregateRootId) as T;
         }
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
         /// <param name="type"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        public IAggregateRoot Get(Type type, object id)
+        public IAggregateRoot Get(Type aggregateRootType, object aggregateRootId)
         {
-            if (id == null) throw new ArgumentNullException("id");
-            return _memoryCache.Get(id, type) ?? _aggregateRootStorage.Get(type, id);
+            if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
+            return _memoryCache.Get(aggregateRootId, aggregateRootType) ?? _aggregateRootStorage.Get(aggregateRootType, aggregateRootId.ToString());
         }
     }
 }

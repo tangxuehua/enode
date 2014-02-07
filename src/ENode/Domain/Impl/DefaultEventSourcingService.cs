@@ -108,7 +108,7 @@ namespace ENode.Domain.Impl
         /// </summary>
         private void VerifyEvent(IAggregateRoot aggregateRoot, EventStream eventStream)
         {
-            if (eventStream.Version > 1 && !object.Equals(eventStream.AggregateRootId, aggregateRoot.UniqueId))
+            if (eventStream.Version > 1 && eventStream.AggregateRootId != aggregateRoot.UniqueId)
             {
                 var errorMessage = string.Format("Cannot apply event stream to aggregate root as the AggregateRootId not matched. EventStream aggregateRootId:{0}, current aggregateRootId:{1}",
                                         eventStream.AggregateRootId,

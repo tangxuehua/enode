@@ -106,10 +106,10 @@ namespace ENode.Eventing.Impl.InMemory
             }
         }
 
-        public IEnumerable<EventStream> Query(object aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
         {
             long currentVersion;
-            if (_aggregateVersionDict.TryGetValue(aggregateRootId.ToString(), out currentVersion))
+            if (_aggregateVersionDict.TryGetValue(aggregateRootId, out currentVersion))
             {
                 var minVersion = minStreamVersion > 1 ? minStreamVersion : 1;
                 var maxVersion = maxStreamVersion < currentVersion ? maxStreamVersion : currentVersion;

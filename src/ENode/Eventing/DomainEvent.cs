@@ -27,9 +27,9 @@ namespace ENode.Eventing
         public TAggregateRootId AggregateRootId { get; private set; }
         /// <summary>Represents the unique id of the aggregate root, this property is only used by framework.
         /// </summary>
-        object IDomainEvent.AggregateRootId
+        string IDomainEvent.AggregateRootId
         {
-            get { return AggregateRootId; }
+            get { return AggregateRootId.ToString(); }
         }
     }
 }

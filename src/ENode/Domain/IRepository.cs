@@ -9,14 +9,14 @@ namespace ENode.Domain
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="id"></param>
+        /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        T Get<T>(object id) where T : class, IAggregateRoot;
+        T Get<T>(object aggregateRootId) where T : class, IAggregateRoot;
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="id"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        IAggregateRoot Get(Type type, object id);
+        IAggregateRoot Get(Type aggregateRootType, object aggregateRootId);
     }
 }

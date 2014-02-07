@@ -13,7 +13,7 @@ namespace ENode.Commanding
         /// <summary>Try to send an available waiting command to the waiting command queue.
         /// </summary>
         /// <param name="aggregateRootId">The aggregate root id.</param>
-        void SendWaitingCommand(object aggregateRootId);
+        void SendWaitingCommand(string aggregateRootId);
         /// <summary>Start the waiting command service.
         /// </summary>
         void Start();

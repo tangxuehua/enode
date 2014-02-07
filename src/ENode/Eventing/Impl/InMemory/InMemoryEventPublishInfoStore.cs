@@ -11,28 +11,28 @@ namespace ENode.Eventing.Impl.InMemory
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        public void InsertFirstPublishedVersion(object aggregateRootId)
+        public void InsertFirstPublishedVersion(string aggregateRootId)
         {
-            _versionDict.TryAdd(aggregateRootId.ToString(), 1);
+            _versionDict.TryAdd(aggregateRootId, 1);
         }
 
         /// <summary>Update the published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
-        public void UpdatePublishedVersion(object aggregateRootId, long version)
+        public void UpdatePublishedVersion(string aggregateRootId, long version)
         {
-            _versionDict[aggregateRootId.ToString()] = version;
+            _versionDict[aggregateRootId] = version;
         }
 
         /// <summary>Get the current event published version for the specified aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public long GetEventPublishedVersion(object aggregateRootId)
+        public long GetEventPublishedVersion(string aggregateRootId)
         {
             long version;
-            return _versionDict.TryGetValue(aggregateRootId.ToString(), out version) ? version : 0L;
+            return _versionDict.TryGetValue(aggregateRootId, out version) ? version : 0L;
         }
     }
 }

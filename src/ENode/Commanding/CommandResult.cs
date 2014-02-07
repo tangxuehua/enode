@@ -15,7 +15,7 @@ namespace ENode.Commanding
         public Guid CommandId { get; private set; }
         /// <summary>The aggregate root created or modified by the command.
         /// </summary>
-        public object AggregateRootId { get; private set; }
+        public string AggregateRootId { get; private set; }
         /// <summary>Represents whether the command result in some domain events which make a business process completed.
         /// </summary>
         public bool IsProcessCompletedEventPublished { get; private set; }

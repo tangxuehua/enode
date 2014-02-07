@@ -36,25 +36,25 @@ namespace ENode.Domain.Impl
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
         }
 
-        /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
+        /// <summary>Get an aggregate from aggregate storage.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="id"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public IAggregateRoot Get(Type type, object id)
+        public IAggregateRoot Get(Type aggregateRootType, string aggregateRootId)
         {
-            if (id == null) throw new ArgumentNullException("id");
+            if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
 
             var aggregateRoot = default(IAggregateRoot);
 
-            if (TryGetFromSnapshot(id, type, out aggregateRoot))
+            if (TryGetFromSnapshot(aggregateRootId, aggregateRootType, out aggregateRoot))
             {
                 return aggregateRoot;
             }
 
-            var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(type);
-            var streams = _eventStore.Query(id, aggregateRootName, minStreamVersion, maxStreamVersion);
-            aggregateRoot = BuildAggregateRoot(type, streams);
+            var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
+            var streams = _eventStore.Query(aggregateRootId, aggregateRootName, minStreamVersion, maxStreamVersion);
+            aggregateRoot = BuildAggregateRoot(aggregateRootType, streams);
 
             return aggregateRoot;
         }
@@ -63,7 +63,7 @@ namespace ENode.Domain.Impl
 
         /// <summary>Try to get an aggregate root from snapshot store.
         /// </summary>
-        private bool TryGetFromSnapshot(object aggregateRootId, Type aggregateRootType, out IAggregateRoot aggregateRoot)
+        private bool TryGetFromSnapshot(string aggregateRootId, Type aggregateRootType, out IAggregateRoot aggregateRoot)
         {
             aggregateRoot = null;
 

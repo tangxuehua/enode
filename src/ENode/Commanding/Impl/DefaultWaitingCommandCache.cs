@@ -23,7 +23,7 @@ namespace ENode.Commanding.Impl
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="processingCommand"></param>
-        public bool AddWaitingCommand(object aggregateRootId, ProcessingCommand processingCommand)
+        public bool AddWaitingCommand(string aggregateRootId, ProcessingCommand processingCommand)
         {
             lock (this)
             {
@@ -51,7 +51,7 @@ namespace ENode.Commanding.Impl
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public ProcessingCommand FetchWaitingCommand(object aggregateRootId)
+        public ProcessingCommand FetchWaitingCommand(string aggregateRootId)
         {
             lock (this)
             {

@@ -7,16 +7,16 @@ namespace ENode.Domain
     {
         /// <summary>Get an aggregate from memory cache.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="type"></param>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootType"></param>
         /// <returns></returns>
-        IAggregateRoot Get(object id, Type type);
+        IAggregateRoot Get(object aggregateRootId, Type aggregateRootType);
         /// <summary>Get a strong type aggregate from memory cache.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="id"></param>
+        /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        T Get<T>(object id) where T : class, IAggregateRoot;
+        T Get<T>(object aggregateRootId) where T : class, IAggregateRoot;
         /// <summary>Set an aggregate to memory cache.
         /// </summary>
         /// <param name="aggregateRoot"></param>

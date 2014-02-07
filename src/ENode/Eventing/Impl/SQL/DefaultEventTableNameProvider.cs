@@ -26,7 +26,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootName"></param>
         /// <returns></returns>
-        public string GetTable(object aggregateRootId, string aggregateRootName)
+        public string GetTable(string aggregateRootId, string aggregateRootName)
         {
             return _tableName;
         }

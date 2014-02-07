@@ -18,7 +18,7 @@ namespace ENode.Eventing
         EventCommitStatus Commit(EventStream stream);
         /// <summary>Query event streams from event store.
         /// </summary>
-        IEnumerable<EventStream> Query(object aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion);
+        IEnumerable<EventStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion);
         /// <summary>Query all the event streams from the event store.
         /// </summary>
         /// <returns></returns>

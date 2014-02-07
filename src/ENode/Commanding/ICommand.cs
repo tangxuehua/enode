@@ -11,7 +11,7 @@ namespace ENode.Commanding
         Guid Id { get; }
         /// <summary>Represents the id of aggregate root which is created or updated by the command.
         /// </summary>
-        object AggregateRootId { get; }
+        string AggregateRootId { get; }
         /// <summary>How many times the command should retry if meets concurrent exception.
         /// </summary>
         int RetryCount { get; }

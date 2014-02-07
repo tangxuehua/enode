@@ -33,7 +33,7 @@
         /// <summary>Try to send an available waiting command to the waiting command queue.
         /// </summary>
         /// <param name="aggregateRootId">The aggregate root id.</param>
-        public void SendWaitingCommand(object aggregateRootId)
+        public void SendWaitingCommand(string aggregateRootId)
         {
             var processingCommand = _waitingCommandCache.FetchWaitingCommand(aggregateRootId);
             if (processingCommand != null)

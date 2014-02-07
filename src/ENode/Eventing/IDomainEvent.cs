@@ -11,6 +11,6 @@ namespace ENode.Eventing
         Guid Id { get; }
         /// <summary>Represents the unique id of the aggregate root which raised this domain event.
         /// </summary>
-        object AggregateRootId { get; }
+        string AggregateRootId { get; }
     }
 }
