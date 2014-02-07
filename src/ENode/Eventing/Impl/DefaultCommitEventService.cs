@@ -131,6 +131,7 @@ namespace ENode.Eventing
                         }
                         else if (currentContext.CommitStatus == EventCommitStatus.DuplicateCommit)
                         {
+                            //TODO, we should use the existing event stream here, not the current event stream.
                             SendWaitingCommand(eventStream);
                             SyncAfterEventPersisted(eventStream);
                             PublishEvents(currentContext);
