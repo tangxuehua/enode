@@ -64,7 +64,7 @@ namespace ENode.Eventing.Impl.InMemory
             {
                 if (!_aggregateVersionDict.TryAdd(aggregateRootId, stream.Version))
                 {
-                    throw new DuplicateAggregateException("Aggregate [name={0},id={1}] has already been created.", stream.AggregateRootName, stream.AggregateRootId);
+                    throw new DuplicateAggregateException("Duplicate aggregate[name={0},id={1}] creation.", stream.AggregateRootName, stream.AggregateRootId);
                 }
             }
             else
@@ -106,6 +106,15 @@ namespace ENode.Eventing.Impl.InMemory
             }
         }
 
+        public EventStream GetEventStream(Guid commandId)
+        {
+            long commitSequence;
+            if (_commandIndexDict.TryGetValue(commandId, out commitSequence))
+            {
+                return _commitLog.Get(commitSequence);
+            }
+            return null;
+        }
         public IEnumerable<EventStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
         {
             long currentVersion;

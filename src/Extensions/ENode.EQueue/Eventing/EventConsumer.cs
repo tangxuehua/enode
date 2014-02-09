@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 using ECommon.IoC;
 using ECommon.Serializing;
 using ECommon.Socketing;
@@ -15,6 +15,7 @@ namespace ENode.EQueue
     public class EventConsumer : IMessageHandler
     {
         private readonly Consumer _consumer;
+        private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventProcessor _eventProcessor;
@@ -26,38 +27,39 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public EventConsumer()
-            : this(_consumerSetting)
+        public EventConsumer(DomainEventHandledMessageSender domainEventHandledMessageSender)
+            : this(_consumerSetting, domainEventHandledMessageSender)
         {
         }
-        public EventConsumer(string groupName)
-            : this(_consumerSetting, groupName)
+        public EventConsumer(string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
+            : this(_consumerSetting, groupName, domainEventHandledMessageSender)
         {
         }
-        public EventConsumer(ConsumerSetting setting)
-            : this(setting, null)
+        public EventConsumer(ConsumerSetting setting, DomainEventHandledMessageSender domainEventHandledMessageSender)
+            : this(setting, null, domainEventHandledMessageSender)
         {
         }
-        public EventConsumer(ConsumerSetting setting, string groupName)
-            : this(setting, null, groupName)
+        public EventConsumer(ConsumerSetting setting, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
+            : this(setting, null, groupName, domainEventHandledMessageSender)
         {
         }
-        public EventConsumer(ConsumerSetting setting, string name, string groupName)
-            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(EventConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName)
+        public EventConsumer(ConsumerSetting setting, string name, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
+            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(EventConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName, domainEventHandledMessageSender)
         {
         }
-        public EventConsumer(string id, ConsumerSetting setting, string groupName)
+        public EventConsumer(string id, ConsumerSetting setting, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
         {
-            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(EventConsumer).Name + "Group" : groupName, this);
+            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(EventConsumer).Name + "Group" : groupName);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
             _messageContextDict = new ConcurrentDictionary<Guid, IMessageContext>();
+            _domainEventHandledMessageSender = domainEventHandledMessageSender;
         }
 
         public EventConsumer Start()
         {
-            _consumer.Start();
+            _consumer.Start(this);
             return this;
         }
         public EventConsumer Subscribe(string topic)
@@ -73,23 +75,45 @@ namespace ENode.EQueue
 
         void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
         {
-            var eventStreamData = _binarySerializer.Deserialize(message.Body, typeof(EventStreamData)) as EventStreamData;
-            var eventStream = ConvertToEventStream(eventStreamData);
+            var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(EventMessage)) as EventMessage;
+            var eventStream = ConvertToEventStream(eventMessage);
 
             if (_messageContextDict.TryAdd(eventStream.CommandId, context))
             {
-                _eventProcessor.Process(eventStream, new EventProcessContext(message, (processedEventStream, queueMessage) =>
+                _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, (currentEventStream, currentEventMessage, queueMessage) =>
                 {
                     IMessageContext messageContext;
-                    if (_messageContextDict.TryRemove(processedEventStream.CommandId, out messageContext))
+                    if (_messageContextDict.TryRemove(currentEventStream.CommandId, out messageContext))
                     {
                         messageContext.OnMessageHandled(queueMessage);
+                    }
+
+                    if (currentEventMessage.ContextItems != null && currentEventMessage.ContextItems.ContainsKey("DomainEventHandledMessageTopic"))
+                    {
+                        var domainEventHandledMessageTopic = currentEventMessage.ContextItems["DomainEventHandledMessageTopic"] as string;
+                        var processCompletedEvent = currentEventStream.Events.FirstOrDefault(x => x is IProcessCompletedEvent) as IProcessCompletedEvent;
+                        var processId = default(string);
+                        var isProcessCompletedEvent = false;
+
+                        if (processCompletedEvent != null)
+                        {
+                            isProcessCompletedEvent = true;
+                            processId = processCompletedEvent.ProcessId;
+                        }
+
+                        _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
+                        {
+                            CommandId = currentEventMessage.CommandId,
+                            AggregateRootId = currentEventMessage.AggregateRootId,
+                            IsProcessCompletedEvent = isProcessCompletedEvent,
+                            ProcessId = processId
+                        }, domainEventHandledMessageTopic);
                     }
                 }));
             }
         }
 
-        private EventStream ConvertToEventStream(EventStreamData data)
+        private EventStream ConvertToEventStream(EventMessage data)
         {
             var events = new List<IDomainEvent>();
 
@@ -105,18 +129,20 @@ namespace ENode.EQueue
 
         class EventProcessContext : IEventProcessContext
         {
-            public Action<EventStream, QueueMessage> EventProcessedAction { get; private set; }
+            public Action<EventStream, EventMessage, QueueMessage> EventProcessedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
+            public EventMessage EventMessage { get; private set; }
 
-            public EventProcessContext(QueueMessage queueMessage, Action<EventStream, QueueMessage> eventProcessedAction)
+            public EventProcessContext(QueueMessage queueMessage, EventMessage eventMessage, Action<EventStream, EventMessage, QueueMessage> eventProcessedAction)
             {
                 QueueMessage = queueMessage;
+                EventMessage = eventMessage;
                 EventProcessedAction = eventProcessedAction;
             }
 
             public void OnEventProcessed(EventStream eventStream)
             {
-                EventProcessedAction(eventStream, QueueMessage);
+                EventProcessedAction(eventStream, EventMessage, QueueMessage);
             }
         }
     }

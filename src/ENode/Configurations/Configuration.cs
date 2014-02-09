@@ -100,7 +100,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventTableNameProvider, AggregatePerEventTableNameProvider>();
-            _configuration.SetDefault<IEventPublisher, DefaultEventPublisher>(new DefaultEventPublisher());
             _configuration.SetDefault<ICommitEventService, DefaultCommitEventService>();
             _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
             _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();

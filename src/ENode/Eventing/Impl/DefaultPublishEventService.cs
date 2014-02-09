@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using ECommon.Logging;
 using ECommon.Retring;
 using ENode.Commanding;
@@ -19,29 +19,23 @@ namespace ENode.Eventing.Impl
             _logger = loggerFactory.Create(GetType().Name);
         }
 
-        public void PublishEvent(EventProcessingContext context)
+        public void PublishEvent(IDictionary<string, object> contextItems, EventStream eventStream)
         {
             var publishEvents = new Func<bool>(() =>
             {
                 try
                 {
-                    _eventPublisher.PublishEvent(context.EventStream);
+                    _eventPublisher.PublishEvent(contextItems, eventStream);
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(string.Format("Exception raised when publishing events:{0}", context.EventStream), ex);
+                    _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream), ex);
                     return false;
                 }
             });
 
-            _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, new ActionInfo("PublishEventsCallback", data =>
-            {
-                var currentContext = data as EventProcessingContext;
-                var hasProcessCompletedEvent = currentContext.EventStream.Events.Any(x => x is IProcessCompletedEvent);
-                currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(new CommandResult(currentContext.ProcessingCommand.Command, hasProcessCompletedEvent));
-                return true;
-            }, context, null));
+            _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, null);
         }
     }
 }

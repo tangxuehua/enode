@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ECommon.Logging;
 using ECommon.Retring;
 using ENode.Commanding;
@@ -113,7 +114,7 @@ namespace ENode.Eventing
                 case SynchronizeStatus.SynchronizerConcurrentException:
                     return false;
                 case SynchronizeStatus.Failed:
-                    context.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(new CommandResult(context.ProcessingCommand.Command, synchronizerResult.ErrorMessage));
+                    context.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(context.ProcessingCommand.Command, synchronizerResult.ErrorMessage);
                     return true;
                 default:
                 {
@@ -127,20 +128,30 @@ namespace ENode.Eventing
                             RefreshMemoryCache(currentContext);
                             SendWaitingCommand(eventStream);
                             SyncAfterEventPersisted(eventStream);
-                            PublishEvents(currentContext);
+                            PublishEvents(currentContext.ProcessingCommand.CommandExecuteContext.Items, eventStream);
                         }
                         else if (currentContext.CommitStatus == EventCommitStatus.DuplicateCommit)
                         {
-                            //TODO, we should use the existing event stream here, not the current event stream.
                             SendWaitingCommand(eventStream);
-                            SyncAfterEventPersisted(eventStream);
-                            PublishEvents(currentContext);
+                            var existingEventStream = GetEventStream(currentContext.EventStream.CommandId);
+                            if (existingEventStream != null)
+                            {
+                                SyncAfterEventPersisted(existingEventStream);
+                                PublishEvents(currentContext.ProcessingCommand.CommandExecuteContext.Items, existingEventStream);
+                            }
+                            else
+                            {
+                                _logger.ErrorFormat("Duplicate commit, but can't find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootName:{2}",
+                                    currentContext.EventStream.CommandId,
+                                    currentContext.EventStream.AggregateRootId,
+                                    currentContext.EventStream.AggregateRootName);
+                            }
                         }
                         else if (currentContext.Exception != null)
                         {
                             if (currentContext.Exception is DuplicateAggregateException)
                             {
-                                currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(new CommandResult(currentContext.ProcessingCommand.Command, currentContext.Exception));
+                                currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(currentContext.ProcessingCommand.Command, currentContext.Exception.Message);
                             }
                             else if (currentContext.Exception is ConcurrentException)
                             {
@@ -216,9 +227,9 @@ namespace ENode.Eventing
                 _logger.Error(string.Format("Exception raised when refreshing memory cache from eventstore, current eventStream:{0}", eventStream), ex);
             }
         }
-        private void PublishEvents(EventProcessingContext context)
+        private void PublishEvents(IDictionary<string, object> contextItems, EventStream eventStream)
         {
-            _publishEventService.PublishEvent(context);
+            _publishEventService.PublishEvent(contextItems, eventStream);
         }
         private SynchronizeResult SyncBeforeEventPersisting(EventStream eventStream)
         {
@@ -241,13 +252,13 @@ namespace ENode.Eventing
                             return result;
                         }
 
-                        var errorMessage = string.Format("Exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, events:{1}",
+                        var errorMessage = string.Format("Exception raised when calling synchronizer's OnBeforePersisting method. synchronizer:{0}, events:{1}, errorMessage:{2}",
                             synchronizer.GetInnerSynchronizer().GetType().Name,
-                            eventStream);
+                            eventStream,
+                            ex.Message);
                         _logger.Error(errorMessage, ex);
                         result.Status = SynchronizeStatus.Failed;
                         result.ErrorMessage = errorMessage;
-                        result.Exception = ex;
                         return result;
                     }
                 }
@@ -280,6 +291,10 @@ namespace ENode.Eventing
         {
             _retryCommandService.RetryCommand(context.ProcessingCommand);
         }
+        private EventStream GetEventStream(Guid commandId)
+        {
+            return _eventStore.GetEventStream(commandId);
+        }
 
         #endregion
 
@@ -287,7 +302,6 @@ namespace ENode.Eventing
         {
             public SynchronizeStatus Status { get; set; }
             public string ErrorMessage { get; set; }
-            public Exception Exception { get; set; }
         }
         enum SynchronizeStatus
         {

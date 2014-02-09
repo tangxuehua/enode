@@ -107,7 +107,7 @@ namespace ENode.Eventing.Impl
 
             try
             {
-                _actionExecutionService.TryAction("DispatchEventsToHandlers", dispatchEventsToHandlers, 50, new ActionInfo("DispatchEventsToHandlersCallback", obj =>
+                _actionExecutionService.TryAction("DispatchEventsToHandlers", dispatchEventsToHandlers, 5, new ActionInfo("DispatchEventsToHandlersCallback", obj =>
                 {
                     var currentContext = obj as EventProcessingContext;
                     UpdatePublishedVersion(currentContext.EventStream);
@@ -175,8 +175,6 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>An internal class to contains the context information when processing the committed event stream.
-        /// </summary>
         class EventProcessingContext
         {
             public EventStream EventStream { get; private set; }

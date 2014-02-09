@@ -26,7 +26,7 @@ namespace NoteSample
 
             Console.WriteLine(string.Empty);
 
-            commandService.Send(command1).ContinueWith(task =>
+            commandService.Execute(command1).ContinueWith(task =>
             {
                 if (task.Result.Status == CommandStatus.Success)
                 {

@@ -5,7 +5,7 @@ using EQueue.Utils;
 namespace ENode.EQueue
 {
     [Serializable]
-    public class EventStreamData
+    public class EventMessage
     {
         public Guid CommandId { get; set; }
         public string AggregateRootId { get; set; }
@@ -13,8 +13,9 @@ namespace ENode.EQueue
         public long Version { get; set; }
         public DateTime Timestamp { get; set; }
         public IList<ByteTypeData> Events { get; set; }
+        public IDictionary<string, object> ContextItems { get; set; }
 
-        public EventStreamData()
+        public EventMessage()
         {
             Events = new List<ByteTypeData>();
         }

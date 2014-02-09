@@ -54,11 +54,14 @@
   <ItemGroup>
     <Compile Include="Commanding\CommandConsumer.cs" />
     <Compile Include="Commanding\CommandMessage.cs" />
+    <Compile Include="Commanding\DomainEventHandledMessage.cs" />
+    <Compile Include="Commanding\FailedCommandMessage.cs" />
     <Compile Include="Commanding\CommandResultProcessor.cs" />
-    <Compile Include="Commanding\CommandResultSender.cs" />
+    <Compile Include="Commanding\FailedCommandMessageSender.cs" />
     <Compile Include="Eventing\EventConsumer.cs" />
     <Compile Include="Eventing\EventPublisher.cs" />
-    <Compile Include="Eventing\EventStreamData.cs" />
+    <Compile Include="Eventing\EventMessage.cs" />
+    <Compile Include="Eventing\DomainEventHandledMessageSender.cs" />
     <Compile Include="Eventing\IEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\IEventTopicProvider.cs" />
     <Compile Include="Commanding\CommandService.cs" />

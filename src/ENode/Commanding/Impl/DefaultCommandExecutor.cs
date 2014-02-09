@@ -74,7 +74,7 @@ namespace ENode.Commanding.Impl
         {
             if (processingCommand.CommandExecuteContext.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
             {
-                _logger.DebugFormat("Added a waiting command:[Type={0},Id={1},AggregateRootId={2}]", processingCommand.Command.GetType().Name, processingCommand.Command.Id, processingCommand.Command.AggregateRootId);
+                _logger.DebugFormat("Queued a waiting command:[commandType={0},commandI={1},aggregateRootId={2}]", processingCommand.Command.GetType().Name, processingCommand.Command.Id, processingCommand.Command.AggregateRootId);
                 return;
             }
 
@@ -85,7 +85,7 @@ namespace ENode.Commanding.Impl
             {
                 var errorMessage = string.Format("Command handler not found for [{0}].", command.GetType().FullName);
                 _logger.Error(errorMessage);
-                context.OnCommandExecuted(new CommandResult(command, errorMessage));
+                context.OnCommandExecuted(command, errorMessage);
                 return;
             }
 
@@ -97,9 +97,14 @@ namespace ENode.Commanding.Impl
             catch (Exception ex)
             {
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                var errorMessage = string.Format("Exception raised when [{0}] handling [{1}], commandId:{2}, aggregateRootId:{3}.", commandHandlerType.Name, command.GetType().Name, command.Id, command.AggregateRootId);
+                var errorMessage = string.Format("Exception raised when [{0}] handling [{1}], commandId:{2}, aggregateRootId:{3}, errorMessage:{4}.",
+                    commandHandlerType.Name,
+                    command.GetType().Name,
+                    command.Id,
+                    command.AggregateRootId,
+                    ex.Message);
                 _logger.Error(errorMessage, ex);
-                context.OnCommandExecuted(new CommandResult(command, errorMessage));
+                context.OnCommandExecuted(command, errorMessage);
             }
         }
         private bool TryToAddWaitingCommand(ProcessingCommand processingCommand)
@@ -117,8 +122,12 @@ namespace ENode.Commanding.Impl
             var dirtyAggregate = GetDirtyAggregate(context);
             if (dirtyAggregate == null)
             {
-                _logger.WarnFormat("No aggregate created or modified by [{0}], commandId:{1}, aggregateRootId:{2}.", command.GetType().Name, command.Id, command.AggregateRootId);
-                context.OnCommandExecuted(new CommandResult(command));
+                var errorMessage = string.Format("No aggregate created or modified by [{0}], commandId:{1}, aggregateRootId:{2}.",
+                    command.GetType().Name,
+                    command.Id,
+                    command.AggregateRootId);
+                _logger.ErrorFormat(errorMessage);
+                context.OnCommandExecuted(command, errorMessage);
                 return;
             }
             var eventStream = CreateEventStream(dirtyAggregate, command);
@@ -128,7 +137,7 @@ namespace ENode.Commanding.Impl
             }
             else
             {
-                _publishEventService.PublishEvent(new EventProcessingContext(dirtyAggregate, eventStream, processingCommand));
+                _publishEventService.PublishEvent(context.Items, eventStream);
             }
         }
         private IAggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)

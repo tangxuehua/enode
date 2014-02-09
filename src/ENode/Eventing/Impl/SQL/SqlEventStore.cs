@@ -194,5 +194,11 @@ namespace ENode.Eventing.Impl.SQL
         {
             throw new NotImplementedException();
         }
+
+
+        public EventStream GetEventStream(Guid commandId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

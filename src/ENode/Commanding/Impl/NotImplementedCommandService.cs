@@ -5,9 +5,19 @@ namespace ENode.Commanding.Impl
 {
     public class NotImplementedCommandService : ICommandService
     {
-        public Task<CommandResult> Send(ICommand command)
+        public void Send(ICommand command)
         {
-            throw new NotImplementedException("NotImplementedCommandService does not support sending command.");
+            throw new NotImplementedException();
+        }
+
+        public Task<CommandResult> Execute(ICommand command)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ProcessResult> StartProcess(IProcessCommand command)
+        {
+            throw new NotImplementedException();
         }
     }
 }

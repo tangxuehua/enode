@@ -44,24 +44,58 @@ namespace ENode.EQueue
             _producer.Shutdown();
             return this;
         }
-        public Task<CommandResult> Send(ICommand command)
+        public void Send(ICommand command)
         {
-            var raw = _binarySerializer.Serialize(command);
-            var topic = _commandTopicProvider.GetTopic(command);
-            var typeCode = _commandTypeCodeProvider.GetTypeCode(command);
-            var commandData = ByteTypeDataUtils.Encode(new ByteTypeData(typeCode, raw));
-            var messageData = _binarySerializer.Serialize(new CommandMessage { CommandData = commandData, CommandResultTopic = _commandResultProcessor.CommandResultTopic });
+            _producer.Send(BuildCommandMessage(command), command.AggregateRootId);
+        }
+        public Task<CommandResult> Execute(ICommand command)
+        {
+            var message = BuildCommandMessage(command);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
 
-            _commandResultProcessor.RegisterProcessingCommand(command, taskCompletionSource);
-            _producer.SendAsync(new Message(topic, messageData), command.AggregateRootId).ContinueWith(sendTask =>
+            _commandResultProcessor.RegisterCommand(command, taskCompletionSource);
+
+            _producer.SendAsync(message, command.AggregateRootId).ContinueWith(sendTask =>
             {
                 if (sendTask.Result.SendStatus == SendStatus.Failed)
                 {
                     _commandResultProcessor.NotifyCommandSendFailed(command);
                 }
             });
+
             return taskCompletionSource.Task;
+        }
+        public Task<ProcessResult> StartProcess(IProcessCommand command)
+        {
+            var message = BuildCommandMessage(command);
+            var taskCompletionSource = new TaskCompletionSource<ProcessResult>();
+
+            _commandResultProcessor.RegisterProcess(command, taskCompletionSource);
+
+            _producer.SendAsync(message, command.AggregateRootId).ContinueWith(sendTask =>
+            {
+                if (sendTask.Result.SendStatus == SendStatus.Failed)
+                {
+                    _commandResultProcessor.NotifyProcessCommandSendFailed(command);
+                }
+            });
+
+            return taskCompletionSource.Task;
+        }
+
+        private Message BuildCommandMessage(ICommand command)
+        {
+            var raw = _binarySerializer.Serialize(command);
+            var topic = _commandTopicProvider.GetTopic(command);
+            var typeCode = _commandTypeCodeProvider.GetTypeCode(command);
+            var commandData = ByteTypeDataUtils.Encode(new ByteTypeData(typeCode, raw));
+            var messageData = _binarySerializer.Serialize(new CommandMessage
+            {
+                CommandData = commandData,
+                FailedCommandMessageTopic = _commandResultProcessor.FailedCommandMessageTopic,
+                DomainEventHandledMessageTopic = _commandResultProcessor.DomainEventHandledMessageTopic
+            });
+            return new Message(topic, messageData);
         }
     }
 }

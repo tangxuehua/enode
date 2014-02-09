@@ -25,11 +25,11 @@ namespace DistributeSample.CommandProducer
 
             for (var index = 1; index <= 10; index++)
             {
-                commandService.Send(new CreateNoteCommand(Guid.NewGuid(), "Sample Note" + index)).ContinueWith(task =>
+                commandService.Execute(new CreateNoteCommand(Guid.NewGuid(), "Sample Note" + index)).ContinueWith(task =>
                 {
                     if (task.Result.Status == CommandStatus.Success)
                     {
-                        Console.WriteLine("Sent command{0}.", Interlocked.Increment(ref _count));
+                        Console.WriteLine("Executed command{0}.", Interlocked.Increment(ref _count));
                     }
                 });
             }

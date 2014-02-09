@@ -18,7 +18,7 @@ namespace ENode.EQueue
     public class CommandConsumer : IMessageHandler
     {
         private readonly Consumer _consumer;
-        private readonly CommandResultSender _commandResultSender;
+        private readonly FailedCommandMessageSender _failedCommandMessageSender;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
         private readonly ICommandExecutor _commandExecutor;
@@ -27,40 +27,40 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public CommandConsumer(CommandResultSender commandResultSender)
-            : this(new ConsumerSetting(), commandResultSender)
+        public CommandConsumer(FailedCommandMessageSender failedCommandMessageSender)
+            : this(new ConsumerSetting(), failedCommandMessageSender)
         {
         }
-        public CommandConsumer(string groupName, CommandResultSender commandResultSender)
-            : this(new ConsumerSetting(), groupName, commandResultSender)
+        public CommandConsumer(string groupName, FailedCommandMessageSender failedCommandMessageSender)
+            : this(new ConsumerSetting(), groupName, failedCommandMessageSender)
         {
         }
-        public CommandConsumer(ConsumerSetting setting, CommandResultSender commandResultSender)
-            : this(setting, null, commandResultSender)
+        public CommandConsumer(ConsumerSetting setting, FailedCommandMessageSender failedCommandMessageSender)
+            : this(setting, null, failedCommandMessageSender)
         {
         }
-        public CommandConsumer(ConsumerSetting setting, string groupName, CommandResultSender commandResultSender)
-            : this(setting, null, groupName, commandResultSender)
+        public CommandConsumer(ConsumerSetting setting, string groupName, FailedCommandMessageSender failedCommandMessageSender)
+            : this(setting, null, groupName, failedCommandMessageSender)
         {
         }
-        public CommandConsumer(ConsumerSetting setting, string name, string groupName, CommandResultSender commandResultSender)
-            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName, commandResultSender)
+        public CommandConsumer(ConsumerSetting setting, string name, string groupName, FailedCommandMessageSender failedCommandMessageSender)
+            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName, failedCommandMessageSender)
         {
         }
-        public CommandConsumer(string id, ConsumerSetting setting, string groupName, CommandResultSender commandResultSender)
+        public CommandConsumer(string id, ConsumerSetting setting, string groupName, FailedCommandMessageSender failedCommandMessageSender)
         {
-            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(CommandConsumer).Name + "Group" : groupName, this);
+            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(CommandConsumer).Name + "Group" : groupName);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _messageContextDict = new ConcurrentDictionary<Guid, IMessageContext>();
-            _commandResultSender = commandResultSender;
+            _failedCommandMessageSender = failedCommandMessageSender;
         }
 
         public CommandConsumer Start()
         {
-            _consumer.Start();
+            _consumer.Start(this);
             return this;
         }
         public CommandConsumer Subscribe(string topic)
@@ -83,14 +83,25 @@ namespace ENode.EQueue
 
             if (_messageContextDict.TryAdd(command.Id, context))
             {
-                _commandExecutor.Execute(command, new CommandExecuteContext(_repository, message, commandMessage, (commandResult, queueMessage) =>
+                var items = new Dictionary<string, object>();
+                items.Add("DomainEventHandledMessageTopic", commandMessage.DomainEventHandledMessageTopic);
+                _commandExecutor.Execute(command, new CommandExecuteContext(_repository, message, commandMessage, items, (currentCommand, errorMessage, currentCommandMessage, queueMessage) =>
                 {
                     IMessageContext messageContext;
-                    if (_messageContextDict.TryRemove(commandResult.CommandId, out messageContext))
+                    if (_messageContextDict.TryRemove(currentCommand.Id, out messageContext))
                     {
                         messageContext.OnMessageHandled(queueMessage);
                     }
-                    _commandResultSender.Send(commandResult, commandMessage.CommandResultTopic);
+                    if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        _failedCommandMessageSender.Send(new FailedCommandMessage
+                        {
+                            CommandId = currentCommand.Id,
+                            AggregateRootId = currentCommand.AggregateRootId,
+                            ProcessId = currentCommand is IProcessCommand ? ((IProcessCommand)currentCommand).ProcessId : null,
+                            ErrorMessage = errorMessage
+                        }, currentCommandMessage.FailedCommandMessageTopic);
+                    }
                 }));
             }
         }
@@ -100,24 +111,26 @@ namespace ENode.EQueue
             private readonly ConcurrentDictionary<object, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
 
-            public Action<CommandResult, QueueMessage> CommandHandledAction { get; private set; }
+            public Action<ICommand, string, CommandMessage, QueueMessage> CommandExecutedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
             public CommandMessage CommandMessage { get; private set; }
+            public IDictionary<string, object> Items { get; private set; }
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, Action<CommandResult, QueueMessage> commandHandledAction)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, object> items, Action<ICommand, string, CommandMessage, QueueMessage> commandExecutedAction)
             {
                 _trackingAggregateRoots = new ConcurrentDictionary<object, IAggregateRoot>();
                 _repository = repository;
                 QueueMessage = queueMessage;
                 CommandMessage = commandMessage;
+                Items = items;
                 CheckCommandWaiting = true;
-                CommandHandledAction = commandHandledAction;
+                CommandExecutedAction = commandExecutedAction;
             }
 
             public bool CheckCommandWaiting { get; set; }
-            public void OnCommandExecuted(CommandResult commandResult)
+            public void OnCommandExecuted(ICommand command, string errorMessage)
             {
-                CommandHandledAction(commandResult, QueueMessage);
+                CommandExecutedAction(command, errorMessage, CommandMessage, QueueMessage);
             }
 
             /// <summary>Add an aggregate root to the context.

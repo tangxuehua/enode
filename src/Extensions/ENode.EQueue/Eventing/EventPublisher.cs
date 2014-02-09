@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ECommon.IoC;
 using ECommon.Logging;
@@ -6,6 +8,7 @@ using ECommon.Serializing;
 using ECommon.Socketing;
 using ECommon.Utilities;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -45,28 +48,29 @@ namespace ENode.EQueue
             return this;
         }
 
-        public void PublishEvent(EventStream eventStream)
+        public void PublishEvent(IDictionary<string, object> contextItems, EventStream eventStream)
         {
-            var eventStreamData = ConvertToData(eventStream);
+            var eventMessage = ConvertToData(contextItems, eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream);
-            var data = _binarySerializer.Serialize(eventStreamData);
+            var data = _binarySerializer.Serialize(eventMessage);
             var message = new Message(topic, data);
             var result = _producer.Send(message, eventStream.AggregateRootId);
             if (result.SendStatus != SendStatus.Success)
             {
-                throw new Exception(string.Format("Publish event failed, eventStream:[{0}]", eventStream));
+                throw new ENodeException("Publish event failed, eventStream:[{0}]", eventStream);
             }
         }
 
-        private EventStreamData ConvertToData(EventStream eventStream)
+        private EventMessage ConvertToData(IDictionary<string, object> contextItems, EventStream eventStream)
         {
-            var data = new EventStreamData();
+            var data = new EventMessage();
 
             data.CommandId = eventStream.CommandId;
             data.AggregateRootId = eventStream.AggregateRootId;
             data.AggregateRootName = eventStream.AggregateRootName;
             data.Timestamp = eventStream.Timestamp;
             data.Version = eventStream.Version;
+            data.ContextItems = contextItems;
 
             foreach (var evnt in eventStream.Events)
             {

@@ -13,6 +13,7 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
     public static class ENodeExtensions
     {
         private static EventConsumer _eventConsumer;
+        private static DomainEventHandledMessageSender _domainEventHandledMessageSender;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
@@ -29,7 +30,8 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
                 MessageHandleMode = MessageHandleMode.Sequential
             };
 
-            _eventConsumer = new EventConsumer(eventConsumerSetting);
+            _domainEventHandledMessageSender = new DomainEventHandledMessageSender();
+            _eventConsumer = new EventConsumer(eventConsumerSetting, _domainEventHandledMessageSender);
 
             _eventConsumer.Subscribe("NoteEventTopic1");
             _eventConsumer.Subscribe("NoteEventTopic2");
@@ -39,7 +41,7 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
             _eventConsumer.Start();
-
+            _domainEventHandledMessageSender.Start();
             WaitAllConsumerLoadBalanceComplete();
 
             return enodeConfiguration;

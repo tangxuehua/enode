@@ -39,9 +39,10 @@
     <DocumentationFile>bin\Release\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
-    <Compile Include="Commanding\IStartProcessCommand.cs" />
+    <Compile Include="Commanding\IProcessCommand.cs" />
     <Compile Include="Commanding\Impl\ProcessingCommandProcessor.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
@@ -69,7 +70,6 @@
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
-    <Compile Include="Eventing\Impl\DefaultEventPublisher.cs" />
     <Compile Include="Eventing\Impl\DefaultPublishEventService.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryCommandIndexStore.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryVersionIndexStore.cs" />

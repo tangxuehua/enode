@@ -1,9 +1,9 @@
-﻿using ENode.Commanding;
+﻿using System.Collections.Generic;
 
 namespace ENode.Eventing
 {
     public interface IPublishEventService
     {
-        void PublishEvent(EventProcessingContext context);
+        void PublishEvent(IDictionary<string, object> contextItems, EventStream eventStream);
     }
 }
