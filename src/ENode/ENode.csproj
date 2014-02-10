@@ -39,6 +39,7 @@
     <DocumentationFile>bin\Release\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commanding\ProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
