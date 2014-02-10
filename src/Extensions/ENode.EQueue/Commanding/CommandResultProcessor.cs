@@ -111,39 +111,33 @@ namespace ENode.EQueue.Commanding
 
         private void ProcessFailedCommandMessage(FailedCommandMessage message)
         {
+            TaskCompletionSource<CommandResult> taskCompletionSource;
+            if (_commandTaskDict.TryGetValue(message.CommandId, out taskCompletionSource))
+            {
+                taskCompletionSource.TrySetResult(new CommandResult(message.CommandId, message.AggregateRootId, message.ErrorMessage));
+            }
             if (!string.IsNullOrEmpty(message.ProcessId))
             {
-                TaskCompletionSource<ProcessResult> taskCompletionSource;
-                if (_processTaskDict.TryGetValue(message.ProcessId, out taskCompletionSource))
+                TaskCompletionSource<ProcessResult> processTaskCompletionSource;
+                if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
                 {
-                    taskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ErrorMessage));
-                }
-            }
-            else
-            {
-                TaskCompletionSource<CommandResult> taskCompletionSource;
-                if (_commandTaskDict.TryGetValue(message.CommandId, out taskCompletionSource))
-                {
-                    taskCompletionSource.TrySetResult(new CommandResult(message.CommandId, message.AggregateRootId, message.ErrorMessage));
+                    processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ErrorMessage));
                 }
             }
         }
         private void ProcessDomainEventHandledMessage(DomainEventHandledMessage message)
         {
+            TaskCompletionSource<CommandResult> taskCompletionSource;
+            if (_commandTaskDict.TryGetValue(message.CommandId, out taskCompletionSource))
+            {
+                taskCompletionSource.TrySetResult(new CommandResult(message.CommandId, message.AggregateRootId));
+            }
             if (message.IsProcessCompletedEvent && !string.IsNullOrEmpty(message.ProcessId))
             {
-                TaskCompletionSource<ProcessResult> taskCompletionSource;
-                if (_processTaskDict.TryGetValue(message.ProcessId, out taskCompletionSource))
+                TaskCompletionSource<ProcessResult> processTaskCompletionSource;
+                if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
                 {
-                    taskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId));
-                }
-            }
-            else
-            {
-                TaskCompletionSource<CommandResult> taskCompletionSource;
-                if (_commandTaskDict.TryGetValue(message.CommandId, out taskCompletionSource))
-                {
-                    taskCompletionSource.TrySetResult(new CommandResult(message.CommandId, message.AggregateRootId));
+                    processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId));
                 }
             }
         }
