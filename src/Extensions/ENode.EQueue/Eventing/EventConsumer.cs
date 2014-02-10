@@ -80,36 +80,38 @@ namespace ENode.EQueue
 
             if (_messageContextDict.TryAdd(eventStream.CommandId, context))
             {
-                _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, (currentEventStream, currentEventMessage, queueMessage) =>
+                _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventHandledCallback));
+            }
+        }
+
+        private void EventHandledCallback(EventStream eventStream, EventProcessContext eventProcessContext)
+        {
+            IMessageContext messageContext;
+            if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
+            {
+                messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
+            }
+
+            if (eventProcessContext.EventMessage.ContextItems != null && eventProcessContext.EventMessage.ContextItems.ContainsKey("DomainEventHandledMessageTopic"))
+            {
+                var domainEventHandledMessageTopic = eventProcessContext.EventMessage.ContextItems["DomainEventHandledMessageTopic"] as string;
+                var processCompletedEvent = eventStream.Events.FirstOrDefault(x => x is IProcessCompletedEvent) as IProcessCompletedEvent;
+                var processId = default(string);
+                var isProcessCompletedEvent = false;
+
+                if (processCompletedEvent != null)
                 {
-                    IMessageContext messageContext;
-                    if (_messageContextDict.TryRemove(currentEventStream.CommandId, out messageContext))
-                    {
-                        messageContext.OnMessageHandled(queueMessage);
-                    }
+                    isProcessCompletedEvent = true;
+                    processId = processCompletedEvent.ProcessId;
+                }
 
-                    if (currentEventMessage.ContextItems != null && currentEventMessage.ContextItems.ContainsKey("DomainEventHandledMessageTopic"))
-                    {
-                        var domainEventHandledMessageTopic = currentEventMessage.ContextItems["DomainEventHandledMessageTopic"] as string;
-                        var processCompletedEvent = currentEventStream.Events.FirstOrDefault(x => x is IProcessCompletedEvent) as IProcessCompletedEvent;
-                        var processId = default(string);
-                        var isProcessCompletedEvent = false;
-
-                        if (processCompletedEvent != null)
-                        {
-                            isProcessCompletedEvent = true;
-                            processId = processCompletedEvent.ProcessId;
-                        }
-
-                        _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
-                        {
-                            CommandId = currentEventMessage.CommandId,
-                            AggregateRootId = currentEventMessage.AggregateRootId,
-                            IsProcessCompletedEvent = isProcessCompletedEvent,
-                            ProcessId = processId
-                        }, domainEventHandledMessageTopic);
-                    }
-                }));
+                _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
+                {
+                    CommandId = eventStream.CommandId,
+                    AggregateRootId = eventStream.AggregateRootId,
+                    IsProcessCompletedEvent = isProcessCompletedEvent,
+                    ProcessId = processId
+                }, domainEventHandledMessageTopic);
             }
         }
 
@@ -129,11 +131,11 @@ namespace ENode.EQueue
 
         class EventProcessContext : IEventProcessContext
         {
-            public Action<EventStream, EventMessage, QueueMessage> EventProcessedAction { get; private set; }
+            public Action<EventStream, EventProcessContext> EventProcessedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
             public EventMessage EventMessage { get; private set; }
 
-            public EventProcessContext(QueueMessage queueMessage, EventMessage eventMessage, Action<EventStream, EventMessage, QueueMessage> eventProcessedAction)
+            public EventProcessContext(QueueMessage queueMessage, EventMessage eventMessage, Action<EventStream, EventProcessContext> eventProcessedAction)
             {
                 QueueMessage = queueMessage;
                 EventMessage = eventMessage;
@@ -142,7 +144,7 @@ namespace ENode.EQueue
 
             public void OnEventProcessed(EventStream eventStream)
             {
-                EventProcessedAction(eventStream, EventMessage, QueueMessage);
+                EventProcessedAction(eventStream, this);
             }
         }
     }

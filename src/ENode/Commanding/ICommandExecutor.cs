@@ -6,8 +6,7 @@
     {
         /// <summary>Executes the given command.
         /// </summary>
-        /// <param name="command">The command to execute.</param>
-        /// <param name="context">The context when executing the command.</param>
-        void Execute(ICommand command, ICommandExecuteContext context);
+        /// <param name="processingCommand">The command to execute.</param>
+        void Execute(ProcessingCommand processingCommand);
     }
 }

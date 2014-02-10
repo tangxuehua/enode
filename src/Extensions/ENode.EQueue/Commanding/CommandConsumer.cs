@@ -85,24 +85,26 @@ namespace ENode.EQueue
             {
                 var items = new Dictionary<string, object>();
                 items.Add("DomainEventHandledMessageTopic", commandMessage.DomainEventHandledMessageTopic);
-                _commandExecutor.Execute(command, new CommandExecuteContext(_repository, message, commandMessage, items, (currentCommand, errorMessage, currentCommandMessage, queueMessage) =>
+                _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, commandMessage, items, CommandHandledCallback)));
+            }
+        }
+
+        private void CommandHandledCallback(ICommand command, string errorMessage, CommandExecuteContext commandExecuteContext)
+        {
+            IMessageContext messageContext;
+            if (_messageContextDict.TryRemove(command.Id, out messageContext))
+            {
+                messageContext.OnMessageHandled(commandExecuteContext.QueueMessage);
+            }
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                _failedCommandMessageSender.Send(new FailedCommandMessage
                 {
-                    IMessageContext messageContext;
-                    if (_messageContextDict.TryRemove(currentCommand.Id, out messageContext))
-                    {
-                        messageContext.OnMessageHandled(queueMessage);
-                    }
-                    if (!string.IsNullOrEmpty(errorMessage))
-                    {
-                        _failedCommandMessageSender.Send(new FailedCommandMessage
-                        {
-                            CommandId = currentCommand.Id,
-                            AggregateRootId = currentCommand.AggregateRootId,
-                            ProcessId = currentCommand is IProcessCommand ? ((IProcessCommand)currentCommand).ProcessId : null,
-                            ErrorMessage = errorMessage
-                        }, currentCommandMessage.FailedCommandMessageTopic);
-                    }
-                }));
+                    CommandId = command.Id,
+                    AggregateRootId = command.AggregateRootId,
+                    ProcessId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null,
+                    ErrorMessage = errorMessage
+                }, commandExecuteContext.CommandMessage.FailedCommandMessageTopic);
             }
         }
 
@@ -111,12 +113,12 @@ namespace ENode.EQueue
             private readonly ConcurrentDictionary<object, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
 
-            public Action<ICommand, string, CommandMessage, QueueMessage> CommandExecutedAction { get; private set; }
+            public Action<ICommand, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
             public CommandMessage CommandMessage { get; private set; }
             public IDictionary<string, object> Items { get; private set; }
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, object> items, Action<ICommand, string, CommandMessage, QueueMessage> commandExecutedAction)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, object> items, Action<ICommand, string, CommandExecuteContext> commandExecutedAction)
             {
                 _trackingAggregateRoots = new ConcurrentDictionary<object, IAggregateRoot>();
                 _repository = repository;
@@ -130,7 +132,7 @@ namespace ENode.EQueue
             public bool CheckCommandWaiting { get; set; }
             public void OnCommandExecuted(ICommand command, string errorMessage)
             {
-                CommandExecutedAction(command, errorMessage, CommandMessage, QueueMessage);
+                CommandExecutedAction(command, errorMessage, this);
             }
 
             /// <summary>Add an aggregate root to the context.

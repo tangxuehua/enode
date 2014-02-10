@@ -57,20 +57,7 @@ namespace ENode.Commanding.Impl
 
         #region Public Methods
 
-        /// <summary>Executes the given command.
-        /// </summary>
-        /// <param name="command">The command to execute.</param>
-        /// <param name="context">The context when executing the command.</param>
-        public void Execute(ICommand command, ICommandExecuteContext context)
-        {
-            HandleCommand(new ProcessingCommand(command, context));
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        private void HandleCommand(ProcessingCommand processingCommand)
+        public void Execute(ProcessingCommand processingCommand)
         {
             if (processingCommand.CommandExecuteContext.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
             {
@@ -107,6 +94,11 @@ namespace ENode.Commanding.Impl
                 context.OnCommandExecuted(command, errorMessage);
             }
         }
+
+        #endregion
+
+        #region Private Methods
+
         private bool TryToAddWaitingCommand(ProcessingCommand processingCommand)
         {
             if (processingCommand.Command is ICreatingAggregateCommand)

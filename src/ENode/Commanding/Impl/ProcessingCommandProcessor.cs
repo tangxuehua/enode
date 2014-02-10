@@ -17,11 +17,7 @@ namespace ENode.Commanding.Impl
         public ProcessingCommandProcessor()
         {
             _queue = new BlockingCollection<ProcessingCommand>(new ConcurrentQueue<ProcessingCommand>());
-            _worker = new Worker(() =>
-            {
-                var processingCommand = _queue.Take();
-                _commandExecutor.Execute(processingCommand.Command, processingCommand.CommandExecuteContext);
-            });
+            _worker = new Worker(() => _commandExecutor.Execute(_queue.Take()));
         }
 
         /// <summary>Set the command executor.
