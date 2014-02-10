@@ -26,13 +26,12 @@ namespace NoteSample
 
             Console.WriteLine(string.Empty);
 
-            commandService.Execute(command1).ContinueWith(task =>
-            {
-                if (task.Result.Status == CommandStatus.Success)
-                {
-                    commandService.Send(command2);
-                }
-            });
+            commandService.Execute(command1).Wait();
+            commandService.Execute(command2).Wait();
+
+            Console.WriteLine(string.Empty);
+
+            Console.WriteLine("Press Enter to exit...");
 
             Console.ReadLine();
         }
