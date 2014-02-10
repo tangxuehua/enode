@@ -7,18 +7,40 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class ProcessCommand<TAggregateRootId> : Command<TAggregateRootId>, IProcessCommand
     {
-        public abstract string ProcessId { get; }
+        private string _processId;
+
+        /// <summary>Represents the associated processId.
+        /// </summary>
+        string IProcessCommand.ProcessId
+        {
+            get { return _processId; }
+        }
 
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        protected ProcessCommand(TAggregateRootId aggregateRootId) : base(aggregateRootId) { }
+        protected ProcessCommand(TAggregateRootId aggregateRootId) : this(aggregateRootId, aggregateRootId) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        /// <param name="retryCount"></param>
-        protected ProcessCommand(TAggregateRootId aggregateRootId, int retryCount) : base(aggregateRootId, retryCount)
+        /// <param name="processId"></param>
+        protected ProcessCommand(TAggregateRootId aggregateRootId, object processId)
+            : this(aggregateRootId, processId, DefaultRetryCount)
         {
+        }
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="processId"></param>
+        /// <param name="retryCount"></param>
+        protected ProcessCommand(TAggregateRootId aggregateRootId, object processId, int retryCount)
+            : base(aggregateRootId, retryCount)
+        {
+            if (processId == null)
+            {
+                throw new ArgumentNullException("processId");
+            }
+            _processId = processId.ToString();
         }
 
         /// <summary>Returns the command type name.

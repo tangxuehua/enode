@@ -32,8 +32,8 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
                 RebalanceInterval = 1000
             };
 
-            var failedCommandMessageConsumer = new Consumer(consumerSetting, "CommandResultProcessor_FailedCommandMessageConsumer", "FailedCommandMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
-            var domainEventHandledMessageConsumer = new Consumer(consumerSetting, "CommandResultProcessor_DomainEventHandledMessageConsumer", "DomainEventHandledMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
+            var failedCommandMessageConsumer = new Consumer(consumerSetting, "FailedCommandMessageConsumer", "FailedCommandMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
+            var domainEventHandledMessageConsumer = new Consumer(consumerSetting, "DomainEventHandledMessageConsumer", "DomainEventHandledMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
             _commandResultProcessor = new CommandResultProcessor(failedCommandMessageConsumer, domainEventHandledMessageConsumer);
 
             _commandService = new CommandService(_commandResultProcessor);
