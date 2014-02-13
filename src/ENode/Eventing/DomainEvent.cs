@@ -7,6 +7,8 @@ namespace ENode.Eventing
     [Serializable]
     public abstract class DomainEvent<TAggregateRootId> : IDomainEvent
     {
+        private string aggregateRootId;
+
         /// <summary>Parameterized constructor.
         /// </summary>
         public DomainEvent(TAggregateRootId aggregateRootId)
@@ -29,7 +31,14 @@ namespace ENode.Eventing
         /// </summary>
         string IDomainEvent.AggregateRootId
         {
-            get { return AggregateRootId.ToString(); }
+            get
+            {
+                if (aggregateRootId == null)
+                {
+                    aggregateRootId = AggregateRootId.ToString();
+                }
+                return aggregateRootId;
+            }
         }
     }
 }

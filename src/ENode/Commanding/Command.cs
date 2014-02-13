@@ -8,6 +8,7 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class Command<TAggregateRootId> : ICommand
     {
+        private string aggregateRootId;
         private int _retryCount;
         public const int DefaultRetryCount = 5;
         public const int MaxRetryCount = 50;
@@ -39,9 +40,19 @@ namespace ENode.Commanding
         /// </summary>
         string ICommand.AggregateRootId
         {
-            get { return this.AggregateRootId.ToString(); }
+            get
+            {
+                if (aggregateRootId == null)
+                {
+                    aggregateRootId = AggregateRootId.ToString();
+                }
+                return aggregateRootId;
+            }
         }
 
+        /// <summary>Default constructor.
+        /// </summary>
+        protected Command() { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>

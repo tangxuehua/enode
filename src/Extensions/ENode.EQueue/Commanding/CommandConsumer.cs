@@ -83,7 +83,7 @@ namespace ENode.EQueue
 
             if (_messageContextDict.TryAdd(command.Id, context))
             {
-                var items = new Dictionary<string, object>();
+                var items = new Dictionary<string, string>();
                 items.Add("DomainEventHandledMessageTopic", commandMessage.DomainEventHandledMessageTopic);
                 _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, commandMessage, items, CommandHandledCallback)));
             }
@@ -116,9 +116,9 @@ namespace ENode.EQueue
             public Action<ICommand, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
             public CommandMessage CommandMessage { get; private set; }
-            public IDictionary<string, object> Items { get; private set; }
+            public IDictionary<string, string> Items { get; private set; }
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, object> items, Action<ICommand, string, CommandExecuteContext> commandExecutedAction)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, string> items, Action<ICommand, string, CommandExecuteContext> commandExecutedAction)
             {
                 _trackingAggregateRoots = new ConcurrentDictionary<object, IAggregateRoot>();
                 _repository = repository;

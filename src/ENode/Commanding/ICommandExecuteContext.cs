@@ -8,7 +8,7 @@ namespace ENode.Commanding
     {
         /// <summary>A dictionary contains some additional information of the current command execution context.
         /// </summary>
-        IDictionary<string, object> Items { get; }
+        IDictionary<string, string> Items { get; }
         /// <summary>Check whether need to apply the command waiting logic when the command is executing.
         /// </summary>
         bool CheckCommandWaiting { get; set; }

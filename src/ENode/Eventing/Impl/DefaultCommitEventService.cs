@@ -227,7 +227,7 @@ namespace ENode.Eventing
                 _logger.Error(string.Format("Exception raised when refreshing memory cache from eventstore, current eventStream:{0}", eventStream), ex);
             }
         }
-        private void PublishEvents(IDictionary<string, object> contextItems, EventStream eventStream)
+        private void PublishEvents(IDictionary<string, string> contextItems, EventStream eventStream)
         {
             _publishEventService.PublishEvent(contextItems, eventStream);
         }

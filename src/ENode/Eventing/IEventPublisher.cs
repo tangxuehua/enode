@@ -6,6 +6,6 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventPublisher
     {
-        void PublishEvent(IDictionary<string, object> contextItems, EventStream eventStream);
+        void PublishEvent(IDictionary<string, string> contextItems, EventStream eventStream);
     }
 }

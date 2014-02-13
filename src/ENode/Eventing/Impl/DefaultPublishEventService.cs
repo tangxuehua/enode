@@ -19,7 +19,7 @@ namespace ENode.Eventing.Impl
             _logger = loggerFactory.Create(GetType().Name);
         }
 
-        public void PublishEvent(IDictionary<string, object> contextItems, EventStream eventStream)
+        public void PublishEvent(IDictionary<string, string> contextItems, EventStream eventStream)
         {
             var publishEvents = new Func<bool>(() =>
             {

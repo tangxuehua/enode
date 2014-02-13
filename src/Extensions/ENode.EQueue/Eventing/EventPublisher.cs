@@ -48,7 +48,7 @@ namespace ENode.EQueue
             return this;
         }
 
-        public void PublishEvent(IDictionary<string, object> contextItems, EventStream eventStream)
+        public void PublishEvent(IDictionary<string, string> contextItems, EventStream eventStream)
         {
             var eventMessage = ConvertToData(contextItems, eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream);
@@ -61,7 +61,7 @@ namespace ENode.EQueue
             }
         }
 
-        private EventMessage ConvertToData(IDictionary<string, object> contextItems, EventStream eventStream)
+        private EventMessage ConvertToData(IDictionary<string, string> contextItems, EventStream eventStream)
         {
             var data = new EventMessage();
 

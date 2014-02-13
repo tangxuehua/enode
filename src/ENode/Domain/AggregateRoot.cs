@@ -14,6 +14,7 @@ namespace ENode.Domain
         private Queue<IDomainEvent> _uncommittedEvents;
         private long _version;
         private TAggregateRootId _id;
+        private string _uniqueId;
 
         /// <summary>The strong type unique id of aggregate root.
         /// </summary>
@@ -50,7 +51,11 @@ namespace ENode.Domain
         {
             get
             {
-                return _id.ToString();
+                if (_uniqueId == null)
+                {
+                    _uniqueId = _id.ToString();
+                }
+                return _uniqueId;
             }
         }
         /// <summary>The version of aggregate root.

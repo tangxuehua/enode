@@ -71,14 +71,15 @@ namespace ENode.Domain.Impl
                 }
             }
         }
+
+        public void InitializeAggregateRoot(IAggregateRoot aggregateRoot)
+        {
+            _initializeMethodDict[aggregateRoot.GetType()](aggregateRoot);
+        }
         public void ReplayEvents(IAggregateRoot aggregateRoot, IEnumerable<EventStream> eventStreams)
         {
             foreach (var eventStream in eventStreams)
             {
-                if (eventStream.Version == 1)
-                {
-                    InitializeAggregateRoot(aggregateRoot);
-                }
                 VerifyEvent(aggregateRoot, eventStream);
                 foreach (var evnt in eventStream.Events)
                 {
@@ -92,10 +93,6 @@ namespace ENode.Domain.Impl
             }
         }
 
-        /// <summary>Handle the domain event of the given aggregate root.
-        /// </summary>
-        /// <param name="aggregateRoot"></param>
-        /// <param name="evnt"></param>
         private void HandleEvent(IAggregateRoot aggregateRoot, IDomainEvent evnt)
         {
             var handler = _eventHandlerProvider.GetInternalEventHandler(aggregateRoot.GetType(), evnt.GetType());
@@ -104,8 +101,6 @@ namespace ENode.Domain.Impl
                 handler(aggregateRoot, evnt);
             }
         }
-        /// <summary>Verify whether the given event stream can be applied on the given aggregate root.
-        /// </summary>
         private void VerifyEvent(IAggregateRoot aggregateRoot, EventStream eventStream)
         {
             if (eventStream.Version > 1 && eventStream.AggregateRootId != aggregateRoot.UniqueId)
@@ -123,11 +118,6 @@ namespace ENode.Domain.Impl
                                         aggregateRoot.Version);
                 throw new ENodeException(errorMessage);
             }
-        }
-
-        private void InitializeAggregateRoot(IAggregateRoot aggregateRoot)
-        {
-            _initializeMethodDict[aggregateRoot.GetType()](aggregateRoot);
         }
         private void IncreaseAggregateVersion(IAggregateRoot aggregateRoot)
         {

@@ -10,13 +10,16 @@ namespace ENode.Domain.Impl
     {
         private readonly ConcurrentDictionary<string, byte[]> _cacheDict = new ConcurrentDictionary<string, byte[]>();
         private readonly IBinarySerializer _binarySerializer;
+        private readonly IEventSourcingService _eventSourcingService;
 
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="binarySerializer"></param>
-        public DefaultMemoryCache(IBinarySerializer binarySerializer)
+        /// <param name="eventSourcingService"></param>
+        public DefaultMemoryCache(IBinarySerializer binarySerializer, IEventSourcingService eventSourcingService)
         {
             _binarySerializer = binarySerializer;
+            _eventSourcingService = eventSourcingService;
         }
 
         /// <summary>Get an aggregate from memory cache.
@@ -30,7 +33,9 @@ namespace ENode.Domain.Impl
             byte[] value;
             if (_cacheDict.TryGetValue(aggregateRootId.ToString(), out value))
             {
-                return _binarySerializer.Deserialize(value, aggregateRootType) as IAggregateRoot;
+                var aggregateRoot = _binarySerializer.Deserialize(value, aggregateRootType) as IAggregateRoot;
+                _eventSourcingService.InitializeAggregateRoot(aggregateRoot);
+                return aggregateRoot;
             }
             return null;
         }

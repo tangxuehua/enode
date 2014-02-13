@@ -43,10 +43,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\ecommon.1.0.4\lib\net40\ECommon.dll</HintPath>
     </Reference>
-    <Reference Include="EQueue, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\equeue.1.0.3\lib\net40\EQueue.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -74,6 +70,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\equeue\src\EQueue\EQueue.csproj">
+      <Project>{ce352ffb-7034-4f71-8d93-78eced099125}</Project>
+      <Name>EQueue</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>

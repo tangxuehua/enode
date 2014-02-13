@@ -13,7 +13,7 @@ namespace ENode.EQueue
         public long Version { get; set; }
         public DateTime Timestamp { get; set; }
         public IList<ByteTypeData> Events { get; set; }
-        public IDictionary<string, object> ContextItems { get; set; }
+        public IDictionary<string, string> ContextItems { get; set; }
 
         public EventMessage()
         {

@@ -16,6 +16,9 @@ namespace ENode.Commanding
             get { return _processId; }
         }
 
+        /// <summary>Default constructor.
+        /// </summary>
+        protected ProcessCommand() { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
