@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
 using ECommon.Autofac;
 using ECommon.Configurations;
 using ECommon.IoC;
@@ -39,20 +37,7 @@ namespace NoteSample
             Console.WriteLine(string.Empty);
 
             commandService.Execute(command1).Wait();
-
-            var watch = Stopwatch.StartNew();
-            var total = 0;
-            for (var index = 0; index < 2000; index++)
-            {
-                commandService.Execute(new ChangeNoteTitleCommand(noteId, "Note Version2")).ContinueWith(x =>
-                {
-                    var local = Interlocked.Increment(ref total);
-                    if (local == 2000)
-                    {
-                        Console.WriteLine(watch.ElapsedMilliseconds);
-                    }
-                });
-            }
+            commandService.Execute(command2).Wait();
 
             Console.WriteLine(string.Empty);
 
@@ -110,10 +95,15 @@ namespace NoteSample
             model.Add(typeof(EventMessage), false).Add("CommandId", "AggregateRootId", "AggregateRootName", "Version", "Timestamp", "Events", "ContextItems").UseConstructor = false;
 
             //Config enode base classes.
-            model.Add(typeof(Command<Guid>), false).Add("Id", "RetryCount", "AggregateRootId").UseConstructor = false;
             model.Add(typeof(AggregateRoot<Guid>), false).Add("Id", "_version").UseConstructor = false;
+
+            model.Add(typeof(Command<Guid>), false).Add("Id", "RetryCount", "AggregateRootId").UseConstructor = false;
+            model.Add(typeof(ProcessCommand<Guid>), false).Add("_processId").UseConstructor = false;
+
             model.Add(typeof(DomainEvent<Guid>), false).Add("Id", "AggregateRootId").UseConstructor = false;
             model.Add(typeof(SourcingEvent<Guid>), false).UseConstructor = false;
+
+            model[typeof(Command<Guid>)].AddSubType(10, typeof(ProcessCommand<Guid>)).UseConstructor = false;
             model[typeof(DomainEvent<Guid>)].AddSubType(10, typeof(SourcingEvent<Guid>)).UseConstructor = false;
 
             //Config sample project classes.

@@ -56,7 +56,11 @@
     </Reference>
     <Reference Include="ECommon.ProtocolBuf, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.protocolbuf.1.0.2\lib\net40\ECommon.ProtocolBuf.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.protocolbuf.1.0.3\lib\net40\ECommon.ProtocolBuf.dll</HintPath>
+    </Reference>
+    <Reference Include="EQueue, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\equeue.1.0.3\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -102,10 +106,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\equeue\src\EQueue\EQueue.csproj">
-      <Project>{ce352ffb-7034-4f71-8d93-78eced099125}</Project>
-      <Name>EQueue</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>

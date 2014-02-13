@@ -14,7 +14,7 @@ namespace NoteSample.EventHandlers
         }
         public void Handle(NoteTitleChangedEvent evnt)
         {
-            //Console.WriteLine("Note updated, Title：{0}", evnt.Title);
+            Console.WriteLine("Note updated, Title：{0}", evnt.Title);
         }
     }
 }

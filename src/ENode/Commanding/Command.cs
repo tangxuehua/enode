@@ -50,9 +50,6 @@ namespace ENode.Commanding
             }
         }
 
-        /// <summary>Default constructor.
-        /// </summary>
-        protected Command() { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
