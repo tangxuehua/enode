@@ -13,7 +13,6 @@ namespace ENode.Domain.Impl
     public class DefaultEventSourcingService : IEventSourcingService, IAssemblyInitializer
     {
         private readonly IAggregateRootInternalHandlerProvider _eventHandlerProvider;
-        private readonly IDictionary<Type, Action<IAggregateRoot>> _initializeMethodDict = new Dictionary<Type, Action<IAggregateRoot>>();
         private readonly IDictionary<Type, Action<IAggregateRoot>> _increaseVersionMethodDict = new Dictionary<Type, Action<IAggregateRoot>>();
         private readonly BindingFlags _bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
         private readonly Type[] _parameterTypes = new Type[] { typeof(IAggregateRoot) };
@@ -31,20 +30,18 @@ namespace ENode.Domain.Impl
                 {
                     var found = false;
                     var currentType = aggregateRootType;
-                    MethodInfo initializeMethod = null;
                     MethodInfo increaseVersionMethod = null;
 
                     while (!found && currentType != typeof(object))
                     {
                         var entries = from method in currentType.GetMethods(_bindingFlags)
                         let parameters = method.GetParameters()
-                        where (method.Name == "Initialize" || method.Name == "IncreaseVersion") && parameters.Length == 0
+                        where (method.Name == "IncreaseVersion") && parameters.Length == 0
                         select method;
 
-                        initializeMethod = entries.SingleOrDefault(x => x.Name == "Initialize");
                         increaseVersionMethod = entries.SingleOrDefault(x => x.Name == "IncreaseVersion");
 
-                        if (initializeMethod == null || increaseVersionMethod == null)
+                        if (increaseVersionMethod == null)
                         {
                             currentType = aggregateRootType.BaseType;
                         }
@@ -56,31 +53,26 @@ namespace ENode.Domain.Impl
 
                     if (!found)
                     {
-                        if (initializeMethod == null)
-                        {
-                            throw new ENodeException("AggregateRoot must has a private parameterless method named 'Initialize'.");
-                        }
                         if (increaseVersionMethod == null)
                         {
                             throw new ENodeException("AggregateRoot must has a private parameterless method named 'IncreaseVersion'.");
                         }
                     }
 
-                    RegisterInitializeMethod(aggregateRootType, initializeMethod);
                     RegisterIncreaseVersionMethod(aggregateRootType, increaseVersionMethod);
                 }
             }
         }
 
-        public void InitializeAggregateRoot(IAggregateRoot aggregateRoot)
-        {
-            _initializeMethodDict[aggregateRoot.GetType()](aggregateRoot);
-        }
         public void ReplayEvents(IAggregateRoot aggregateRoot, IEnumerable<EventStream> eventStreams)
         {
             foreach (var eventStream in eventStreams)
             {
                 VerifyEvent(aggregateRoot, eventStream);
+                if (aggregateRoot.UniqueId == null && eventStream.Version == 1L)
+                {
+                    aggregateRoot.UniqueId = eventStream.AggregateRootId;
+                }
                 foreach (var evnt in eventStream.Events)
                 {
                     HandleEvent(aggregateRoot, evnt);
@@ -122,14 +114,6 @@ namespace ENode.Domain.Impl
         private void IncreaseAggregateVersion(IAggregateRoot aggregateRoot)
         {
             _increaseVersionMethodDict[aggregateRoot.GetType()](aggregateRoot);
-        }
-        private void RegisterInitializeMethod(Type aggregateRootType, MethodInfo initializeMethod)
-        {
-            if (_initializeMethodDict.ContainsKey(aggregateRootType))
-            {
-                throw new ENodeException("Found duplicated 'Initialize' method on aggregate:{0}", aggregateRootType.FullName);
-            }
-            _initializeMethodDict.Add(aggregateRootType, DelegateFactory.CreateDelegate<Action<IAggregateRoot>>(initializeMethod, _parameterTypes));
         }
         private void RegisterIncreaseVersionMethod(Type aggregateRootType, MethodInfo increaseVersionMethod)
         {

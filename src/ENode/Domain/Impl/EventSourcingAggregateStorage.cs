@@ -82,7 +82,6 @@ namespace ENode.Domain.Impl
             var eventsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootName, snapshot.Version + 1, long.MaxValue);
             _eventSourcingService.ReplayEvents(aggregateRootFromSnapshot, eventsAfterSnapshot);
             aggregateRoot = aggregateRootFromSnapshot;
-            _eventSourcingService.InitializeAggregateRoot(aggregateRoot);
             return true;
         }
         /// <summary>Rebuild the aggregate root using the event sourcing pattern.
@@ -93,7 +92,6 @@ namespace ENode.Domain.Impl
             if (streams == null || !eventStreams.Any()) return null;
 
             var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
-            _eventSourcingService.InitializeAggregateRoot(aggregateRoot);
             _eventSourcingService.ReplayEvents(aggregateRoot, eventStreams);
 
             return aggregateRoot;

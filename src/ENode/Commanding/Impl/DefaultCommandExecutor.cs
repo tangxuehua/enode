@@ -17,7 +17,6 @@ namespace ENode.Commanding.Impl
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly ICommitEventService _commitEventService;
-        private readonly IPublishEventService _publishEventService;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
 
@@ -31,7 +30,6 @@ namespace ENode.Commanding.Impl
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="commitEventService"></param>
-        /// <param name="publishEventService"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
@@ -39,7 +37,6 @@ namespace ENode.Commanding.Impl
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             ICommitEventService commitEventService,
-            IPublishEventService publishEventService,
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
@@ -47,7 +44,6 @@ namespace ENode.Commanding.Impl
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _commitEventService = commitEventService;
-            _publishEventService = publishEventService;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().Name);
             _commitEventService.SetCommandExecutor(this);
@@ -123,14 +119,7 @@ namespace ENode.Commanding.Impl
                 return;
             }
             var eventStream = CreateEventStream(dirtyAggregate, command);
-            if (eventStream.Events.Any(x => x is ISourcingEvent))
-            {
-                _commitEventService.CommitEvent(new EventProcessingContext(dirtyAggregate, eventStream, processingCommand));
-            }
-            else
-            {
-                _publishEventService.PublishEvent(context.Items, eventStream);
-            }
+            _commitEventService.CommitEvent(new EventProcessingContext(dirtyAggregate, eventStream, processingCommand));
         }
         private IAggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
         {
@@ -154,13 +143,11 @@ namespace ENode.Commanding.Impl
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
             aggregateRoot.ClearUncommittedEvents();
 
-            var aggregateRootType = aggregateRoot.GetType();
-            var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
-            var aggregateRootId = uncommittedEvents.First().AggregateRootId;
+            var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRoot.GetType());
 
             return new EventStream(
                 command.Id,
-                aggregateRootId,
+                aggregateRoot.UniqueId,
                 aggregateRootName,
                 aggregateRoot.Version + 1,
                 DateTime.Now,

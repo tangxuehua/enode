@@ -95,16 +95,14 @@ namespace NoteSample
             model.Add(typeof(EventMessage), false).Add("CommandId", "AggregateRootId", "AggregateRootName", "Version", "Timestamp", "Events", "ContextItems").UseConstructor = false;
 
             //Config enode base classes.
-            model.Add(typeof(AggregateRoot<Guid>), false).Add("Id", "_version").UseConstructor = false;
+            model.Add(typeof(AggregateRoot<Guid>), false).Add("_id", "_uniqueId", "_version").UseConstructor = false;
 
             model.Add(typeof(Command<Guid>), false).Add("Id", "RetryCount", "AggregateRootId").UseConstructor = false;
             model.Add(typeof(ProcessCommand<Guid>), false).Add("_processId").UseConstructor = false;
 
             model.Add(typeof(DomainEvent<Guid>), false).Add("Id", "AggregateRootId").UseConstructor = false;
-            model.Add(typeof(SourcingEvent<Guid>), false).UseConstructor = false;
 
             model[typeof(Command<Guid>)].AddSubType(10, typeof(ProcessCommand<Guid>)).UseConstructor = false;
-            model[typeof(DomainEvent<Guid>)].AddSubType(10, typeof(SourcingEvent<Guid>)).UseConstructor = false;
 
             //Config sample project classes.
             model.Add(typeof(Note), false).Add("Title", "CreatedTime", "UpdatedTime").UseConstructor = false;
@@ -120,8 +118,8 @@ namespace NoteSample
             model[typeof(Command<Guid>)].AddSubType(100, typeof(CreateNoteCommand)).UseConstructor = false;
             model[typeof(Command<Guid>)].AddSubType(101, typeof(ChangeNoteTitleCommand)).UseConstructor = false;
 
-            model[typeof(SourcingEvent<Guid>)].AddSubType(100, typeof(NoteCreatedEvent)).UseConstructor = false;
-            model[typeof(SourcingEvent<Guid>)].AddSubType(101, typeof(NoteTitleChangedEvent)).UseConstructor = false;
+            model[typeof(DomainEvent<Guid>)].AddSubType(100, typeof(NoteCreatedEvent)).UseConstructor = false;
+            model[typeof(DomainEvent<Guid>)].AddSubType(101, typeof(NoteTitleChangedEvent)).UseConstructor = false;
         }
     }
 }

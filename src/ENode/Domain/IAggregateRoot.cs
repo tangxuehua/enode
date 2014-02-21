@@ -8,7 +8,7 @@ namespace ENode.Domain
     /// </summary>
     public interface IAggregateRoot
     {
-        string UniqueId { get; }
+        string UniqueId { get; set; }
         long Version { get; }
         IEnumerable<IDomainEvent> GetUncommittedEvents();
         void ClearUncommittedEvents();

@@ -9,6 +9,7 @@ using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Domain;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -110,7 +111,7 @@ namespace ENode.EQueue
 
         class CommandExecuteContext : ICommandExecuteContext
         {
-            private readonly ConcurrentDictionary<object, IAggregateRoot> _trackingAggregateRoots;
+            private readonly ConcurrentDictionary<string, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
 
             public Action<ICommand, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
@@ -120,7 +121,7 @@ namespace ENode.EQueue
 
             public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, string> items, Action<ICommand, string, CommandExecuteContext> commandExecutedAction)
             {
-                _trackingAggregateRoots = new ConcurrentDictionary<object, IAggregateRoot>();
+                _trackingAggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
                 QueueMessage = queueMessage;
                 CommandMessage = commandMessage;
@@ -145,13 +146,10 @@ namespace ENode.EQueue
                 {
                     throw new ArgumentNullException("aggregateRoot");
                 }
-                var firstSourcingEvent = aggregateRoot.GetUncommittedEvents().FirstOrDefault(x => x is ISourcingEvent);
-                if (firstSourcingEvent == null)
+                if (!_trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot))
                 {
-                    throw new NotSupportedException(string.Format("Aggregate [{0}] has no sourcing event, cannot be added.", aggregateRoot.GetType()));
+                    throw new ENodeException("Aggregate root [id={0}] has already been added to the current command context.", aggregateRoot.UniqueId);
                 }
-
-                _trackingAggregateRoots.TryAdd(firstSourcingEvent.AggregateRootId, aggregateRoot);
             }
             /// <summary>Get the aggregate from the context.
             /// </summary>
@@ -162,23 +160,6 @@ namespace ENode.EQueue
             /// <exception cref="AggregateRootNotFoundException">Throwed when the aggregate root not found.</exception>
             public T Get<T>(object id) where T : class, IAggregateRoot
             {
-                var aggregateRoot = GetOrDefault<T>(id);
-
-                if (aggregateRoot == null)
-                {
-                    throw new AggregateRootNotFoundException(id, typeof(T));
-                }
-
-                return aggregateRoot;
-            }
-            /// <summary>Get the aggregate from the context, if the aggregate root not exist, returns null.
-            /// </summary>
-            /// <param name="id">The id of the aggregate root.</param>
-            /// <typeparam name="T">The type of the aggregate root.</typeparam>
-            /// <returns>If the aggregate root was found, then returns it; otherwise, returns null.</returns>
-            /// <exception cref="ArgumentNullException">Throwed when the id is null.</exception>
-            public T GetOrDefault<T>(object id) where T : class, IAggregateRoot
-            {
                 if (id == null)
                 {
                     throw new ArgumentNullException("id");
@@ -186,11 +167,11 @@ namespace ENode.EQueue
 
                 var aggregateRoot = _repository.Get<T>(id);
 
-                if (aggregateRoot != null)
+                if (aggregateRoot == null)
                 {
-                    _trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
+                    throw new AggregateRootNotFoundException(id, typeof(T));
                 }
-
+                _trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
                 return aggregateRoot;
             }
             /// <summary>Returns all the tracked aggregate roots of the current context.

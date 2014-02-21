@@ -7,7 +7,7 @@ namespace ENode.Commanding
     [Serializable]
     public class AggregateRootNotFoundException : Exception
     {
-        private const string ExceptionMessage = "Cannot find the aggregate root {0} of id {1}.";
+        private const string ExceptionMessage = "Aggregate root [type={0},id={1}] not exist.";
 
         /// <summary>Parameterized constructor.
         /// </summary>

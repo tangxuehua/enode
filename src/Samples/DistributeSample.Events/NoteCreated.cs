@@ -4,7 +4,7 @@ using ENode.Eventing;
 namespace DistributeSample.Events
 {
     [Serializable]
-    public class NoteCreatedEvent : SourcingEvent<Guid>
+    public class NoteCreatedEvent : DomainEvent<Guid>
     {
         public string Title { get; private set; }
         public DateTime CreatedTime { get; private set; }

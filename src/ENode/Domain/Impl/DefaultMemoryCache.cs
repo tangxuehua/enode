@@ -33,9 +33,7 @@ namespace ENode.Domain.Impl
             byte[] value;
             if (_cacheDict.TryGetValue(aggregateRootId.ToString(), out value))
             {
-                var aggregateRoot = _binarySerializer.Deserialize(value, aggregateRootType) as IAggregateRoot;
-                _eventSourcingService.InitializeAggregateRoot(aggregateRoot);
-                return aggregateRoot;
+                return _binarySerializer.Deserialize(value, aggregateRootType) as IAggregateRoot;
             }
             return null;
         }

@@ -11,7 +11,7 @@ namespace DistributeSample.CommandProcessor.Domain
         public DateTime CreatedTime { get; private set; }
         public DateTime UpdatedTime { get; private set; }
 
-        public Note(Guid id, string title)
+        public Note(Guid id, string title) : base(id)
         {
             var currentTime = DateTime.Now;
             RaiseEvent(new NoteCreatedEvent(id, title, currentTime, currentTime));

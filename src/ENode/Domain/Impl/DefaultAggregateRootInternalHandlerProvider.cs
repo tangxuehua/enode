@@ -30,7 +30,6 @@ namespace ENode.Domain.Impl
                                   where method.Name == "Handle"
                                       && parameters.Length == 1
                                       && typeof(IDomainEvent).IsAssignableFrom(parameters.Single().ParameterType)
-                                      && typeof(ISourcingEvent).IsAssignableFrom(parameters.Single().ParameterType)
                                   select new { Method = method, EventType = parameters.Single().ParameterType };
                     foreach (var entry in entries)
                     {

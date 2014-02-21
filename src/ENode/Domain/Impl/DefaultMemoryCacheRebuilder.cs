@@ -53,7 +53,6 @@ namespace ENode.Domain.Impl
                 var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(group.First().AggregateRootName);
                 var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
 
-                _eventSourcingService.InitializeAggregateRoot(aggregateRoot);
                 _eventSourcingService.ReplayEvents(aggregateRoot, group);
 
                 _memoryCache.Set(aggregateRoot);

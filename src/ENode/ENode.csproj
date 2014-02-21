@@ -84,12 +84,10 @@
     <Compile Include="Eventing\Impl\SQL\SqlEventStoreSetting.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IPublishEventService.cs" />
-    <Compile Include="Eventing\ISourcingEvent.cs" />
     <Compile Include="Eventing\IEventSynchronizer.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
     <Compile Include="Eventing\IEventProcessor.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
-    <Compile Include="Eventing\SourcingEvent.cs" />
     <Compile Include="Infrastructure\DuplicateAggregateException.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\ConcurrentException.cs" />
@@ -161,7 +159,7 @@
   <ItemGroup>
     <Reference Include="ECommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\ecommon.1.0.4\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ecommon.1.0.6\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

@@ -40,27 +40,27 @@
     </Reference>
     <Reference Include="ECommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.1.0.4\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.1.0.6\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Autofac, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.autofac.1.0.4\lib\net40\ECommon.Autofac.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.autofac.1.0.6\lib\net40\ECommon.Autofac.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.JsonNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.4\lib\net40\ECommon.JsonNet.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.6\lib\net40\ECommon.JsonNet.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Log4Net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.log4net.1.0.4\lib\net40\ECommon.Log4Net.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.log4net.1.0.6\lib\net40\ECommon.Log4Net.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.ProtocolBuf, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.protocolbuf.1.0.3\lib\net40\ECommon.ProtocolBuf.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.protocolbuf.1.0.6\lib\net40\ECommon.ProtocolBuf.dll</HintPath>
     </Reference>
     <Reference Include="EQueue, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\equeue.1.0.3\lib\net40\EQueue.dll</HintPath>
+      <HintPath>..\..\..\packages\equeue.1.0.4\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

@@ -11,10 +11,10 @@ namespace ENode.Domain
     [Serializable]
     public abstract class AggregateRoot<TAggregateRootId> : IAggregateRoot
     {
-        private Queue<IDomainEvent> _uncommittedEvents;
-        private long _version;
         private TAggregateRootId _id;
         private string _uniqueId;
+        private long _version;
+        private Queue<IDomainEvent> _uncommittedEvents;
 
         /// <summary>The strong type unique id of aggregate root.
         /// </summary>
@@ -32,9 +32,15 @@ namespace ENode.Domain
 
         /// <summary>Default constructor.
         /// </summary>
-        protected AggregateRoot()
+        protected AggregateRoot(TAggregateRootId id)
         {
-            Initialize();
+            if (id == null)
+            {
+                throw new ArgumentNullException("id");
+            }
+            _id = id;
+            _uniqueId = id.ToString();
+            _uncommittedEvents = new Queue<IDomainEvent>();
         }
 
         /// <summary>Raise a domain event. The domain event will be put into the local uncommitted event queue.
@@ -42,23 +48,39 @@ namespace ENode.Domain
         /// <param name="evnt"></param>
         protected void RaiseEvent(IDomainEvent evnt)
         {
+            if (_uncommittedEvents == null)
+            {
+                _uncommittedEvents = new Queue<IDomainEvent>();
+            }
             _uncommittedEvents.Enqueue(evnt);
         }
 
-        /// <summary>The unique id of aggregate root.
+        /// <summary>The unique id of aggregate root, only used by framework.
         /// </summary>
         string IAggregateRoot.UniqueId
         {
             get
             {
-                if (_uniqueId == null)
+                if (_uniqueId == null && _id != null)
                 {
                     _uniqueId = _id.ToString();
                 }
                 return _uniqueId;
             }
+            set
+            {
+                if (_uniqueId != null)
+                {
+                    throw new NotSupportedException("AggregateRoot uniqueId cannot be set twice.");
+                }
+                if (_version > 0)
+                {
+                    throw new NotSupportedException("Only the empty aggregateRoot can be set the UniqueId.");
+                }
+                _uniqueId = value;
+            }
         }
-        /// <summary>The version of aggregate root.
+        /// <summary>The version of aggregate root, only used by framework.
         /// </summary>
         long IAggregateRoot.Version
         {
@@ -67,29 +89,21 @@ namespace ENode.Domain
                 return _version;
             }
         }
-        /// <summary>Returns all the uncommitted domain events of the current aggregate root.
+        /// <summary>Returns all the uncommitted domain events of the current aggregate root, only used by framework.
         /// </summary>
         /// <returns></returns>
         IEnumerable<IDomainEvent> IAggregateRoot.GetUncommittedEvents()
         {
             return _uncommittedEvents;
         }
-        /// <summary>Clear all the uncommitted domain events of the current aggregate root.
+        /// <summary>Clear all the uncommitted domain events of the current aggregate root, only used by framework.
         /// </summary>
         void IAggregateRoot.ClearUncommittedEvents()
         {
             _uncommittedEvents.Clear();
         }
 
-        /// <summary>Initialize the aggregate root.
-        /// <remarks>This method must be provided as enode will call it when rebuilding the aggregate using event sourcing.
-        /// </remarks>
-        /// </summary>
-        protected virtual void Initialize()
-        {
-            _uncommittedEvents = new Queue<IDomainEvent>();
-        }
-        /// <summary>Increase the version of aggregate root.
+        /// <summary>Increase the version of aggregate root, only used by framework.
         /// <remarks>This method must be provided as enode will call it when rebuilding the aggregate using event sourcing.
         /// </remarks>
         /// </summary>
