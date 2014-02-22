@@ -154,6 +154,7 @@ namespace ENode.EQueue.Commanding
             void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
             {
                 _processor._failedCommandMessageLocalQueue.Add(_processor._binarySerializer.Deserialize(message.Body, typeof(FailedCommandMessage)) as FailedCommandMessage);
+                context.OnMessageHandled(message);
             }
         }
         class DomainEventHandledMessageHandler : IMessageHandler
@@ -168,6 +169,7 @@ namespace ENode.EQueue.Commanding
             void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
             {
                 _processor._domainEventHandledMessageLocalQueue.Add(_processor._binarySerializer.Deserialize(message.Body, typeof(DomainEventHandledMessage)) as DomainEventHandledMessage);
+                context.OnMessageHandled(message);
             }
         }
     }
