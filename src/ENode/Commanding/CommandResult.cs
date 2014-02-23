@@ -16,6 +16,9 @@ namespace ENode.Commanding
         /// <summary>The aggregate root created or modified by the command.
         /// </summary>
         public string AggregateRootId { get; private set; }
+        /// <summary>The code of exception if the command execution has any exception.
+        /// </summary>
+        public int ExceptionCode { get; private set; }
         /// <summary>The error message of the command result.
         /// </summary>
         public string ErrorMessage { get; private set; }
@@ -31,14 +34,12 @@ namespace ENode.Commanding
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public CommandResult(Guid commandId, string aggregateRootId, Exception exception) : this(commandId, aggregateRootId, exception.Message) { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        public CommandResult(Guid commandId, string aggregateRootId, string errorMessage)
+        public CommandResult(Guid commandId, string aggregateRootId, int exceptionCode, string errorMessage)
         {
             Status = CommandStatus.Failed;
             CommandId = commandId;
             AggregateRootId = aggregateRootId;
+            ExceptionCode = exceptionCode;
             ErrorMessage = errorMessage;
         }
     }

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+
 namespace ENode.Commanding
 {
     /// <summary>Represents a context environment for command executor executing command.
@@ -14,6 +14,6 @@ namespace ENode.Commanding
         bool CheckCommandWaiting { get; set; }
         /// <summary>Notify the given command execution is failed.
         /// </summary>
-        void OnCommandExecuted(ICommand command, string errorMessage);
+        void OnCommandExecuted(ICommand command, int exceptionCode, string errorMessage);
     }
 }

@@ -68,7 +68,7 @@ namespace ENode.Commanding.Impl
             {
                 var errorMessage = string.Format("Command handler not found for [{0}].", command.GetType().FullName);
                 _logger.Error(errorMessage);
-                context.OnCommandExecuted(command, errorMessage);
+                context.OnCommandExecuted(command, 0, errorMessage);
                 return;
             }
 
@@ -87,7 +87,13 @@ namespace ENode.Commanding.Impl
                     command.AggregateRootId,
                     ex.Message);
                 _logger.Error(errorMessage, ex);
-                context.OnCommandExecuted(command, errorMessage);
+
+                var exceptionCode = 0;
+                if (ex is DomainException)
+                {
+                    exceptionCode = (ex as DomainException).Code;
+                }
+                context.OnCommandExecuted(command, exceptionCode, ex.Message);
             }
         }
 
@@ -115,7 +121,7 @@ namespace ENode.Commanding.Impl
                     command.Id,
                     command.AggregateRootId);
                 _logger.ErrorFormat(errorMessage);
-                context.OnCommandExecuted(command, errorMessage);
+                context.OnCommandExecuted(command, 0, errorMessage);
                 return;
             }
             var eventStream = CreateEventStream(dirtyAggregate, command);

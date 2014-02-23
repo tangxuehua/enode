@@ -43,6 +43,30 @@ namespace ENode.Domain
             _uncommittedEvents = new Queue<IDomainEvent>();
         }
 
+        /// <summary>Act the current aggregate to the given type of role.
+        /// <remarks>
+        /// Note：the current aggregate must implement the role interface, otherwise this method will throw exception.
+        /// </remarks>
+        /// </summary>
+        /// <typeparam name="TRole">The role interface type.</typeparam>
+        /// <returns>Returns the role instance which is acted by the current aggregate.</returns>
+        public TRole ActAs<TRole>() where TRole : class
+        {
+            if (!typeof(TRole).IsInterface)
+            {
+                throw new ENodeException("'{0}' is not an interface type.", typeof(TRole).Name);
+            }
+
+            var role = this as TRole;
+
+            if (role == null)
+            {
+                throw new ENodeException("'{0}' can not act as role '{1}'.", this.GetType().FullName, typeof(TRole).Name);
+            }
+
+            return role;
+        }
+
         /// <summary>Raise a domain event. The domain event will be put into the local uncommitted event queue.
         /// </summary>
         /// <param name="evnt"></param>

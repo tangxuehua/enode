@@ -114,7 +114,7 @@ namespace ENode.Eventing
                 case SynchronizeStatus.SynchronizerConcurrentException:
                     return false;
                 case SynchronizeStatus.Failed:
-                    context.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(context.ProcessingCommand.Command, synchronizerResult.ErrorMessage);
+                    context.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(context.ProcessingCommand.Command, synchronizerResult.ExceptionCode, synchronizerResult.ErrorMessage);
                     return true;
                 default:
                 {
@@ -151,7 +151,7 @@ namespace ENode.Eventing
                         {
                             if (currentContext.Exception is DuplicateAggregateException)
                             {
-                                currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(currentContext.ProcessingCommand.Command, currentContext.Exception.Message);
+                                currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(currentContext.ProcessingCommand.Command, 0, currentContext.Exception.Message);
                             }
                             else if (currentContext.Exception is ConcurrentException)
                             {
@@ -258,7 +258,11 @@ namespace ENode.Eventing
                             ex.Message);
                         _logger.Error(errorMessage, ex);
                         result.Status = SynchronizeStatus.Failed;
-                        result.ErrorMessage = errorMessage;
+                        result.ErrorMessage = ex.Message;
+                        if (ex is DomainException)
+                        {
+                            result.ExceptionCode = (ex as DomainException).Code;
+                        }
                         return result;
                     }
                 }
@@ -301,6 +305,7 @@ namespace ENode.Eventing
         class SynchronizeResult
         {
             public SynchronizeStatus Status { get; set; }
+            public int ExceptionCode { get; set; }
             public string ErrorMessage { get; set; }
         }
         enum SynchronizeStatus

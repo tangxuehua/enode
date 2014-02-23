@@ -78,7 +78,7 @@ namespace ENode.EQueue.Commanding
             TaskCompletionSource<CommandResult> taskCompletionSource;
             if (_commandTaskDict.TryGetValue(command.Id, out taskCompletionSource))
             {
-                taskCompletionSource.TrySetResult(new CommandResult(command.Id, "Command send failed."));
+                taskCompletionSource.TrySetResult(new CommandResult(command.Id, command.AggregateRootId, 0, "Command send failed."));
             }
             return this;
         }
@@ -87,7 +87,7 @@ namespace ENode.EQueue.Commanding
             TaskCompletionSource<ProcessResult> taskCompletionSource;
             if (_processTaskDict.TryGetValue(command.ProcessId, out taskCompletionSource))
             {
-                taskCompletionSource.TrySetResult(new ProcessResult(command.ProcessId, "Start process command send failed."));
+                taskCompletionSource.TrySetResult(new ProcessResult(command.ProcessId, 0, "Start process command send failed."));
             }
             return this;
         }
@@ -114,14 +114,14 @@ namespace ENode.EQueue.Commanding
             TaskCompletionSource<CommandResult> taskCompletionSource;
             if (_commandTaskDict.TryGetValue(message.CommandId, out taskCompletionSource))
             {
-                taskCompletionSource.TrySetResult(new CommandResult(message.CommandId, message.AggregateRootId, message.ErrorMessage));
+                taskCompletionSource.TrySetResult(new CommandResult(message.CommandId, message.AggregateRootId, message.ExceptionCode, message.ErrorMessage));
             }
             if (!string.IsNullOrEmpty(message.ProcessId))
             {
                 TaskCompletionSource<ProcessResult> processTaskCompletionSource;
                 if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
                 {
-                    processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ErrorMessage));
+                    processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ExceptionCode, message.ErrorMessage));
                 }
             }
         }

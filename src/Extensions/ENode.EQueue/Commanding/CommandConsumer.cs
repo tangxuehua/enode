@@ -90,7 +90,7 @@ namespace ENode.EQueue
             }
         }
 
-        private void CommandHandledCallback(ICommand command, string errorMessage, CommandExecuteContext commandExecuteContext)
+        private void CommandHandledCallback(ICommand command, int exceptionCode, string errorMessage, CommandExecuteContext commandExecuteContext)
         {
             IMessageContext messageContext;
             if (_messageContextDict.TryRemove(command.Id, out messageContext))
@@ -104,6 +104,7 @@ namespace ENode.EQueue
                     CommandId = command.Id,
                     AggregateRootId = command.AggregateRootId,
                     ProcessId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null,
+                    ExceptionCode = exceptionCode,
                     ErrorMessage = errorMessage
                 }, commandExecuteContext.CommandMessage.FailedCommandMessageTopic);
             }
@@ -114,12 +115,12 @@ namespace ENode.EQueue
             private readonly ConcurrentDictionary<string, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
 
-            public Action<ICommand, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
+            public Action<ICommand, int, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
             public CommandMessage CommandMessage { get; private set; }
             public IDictionary<string, string> Items { get; private set; }
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, string> items, Action<ICommand, string, CommandExecuteContext> commandExecutedAction)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, string> items, Action<ICommand, int, string, CommandExecuteContext> commandExecutedAction)
             {
                 _trackingAggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
@@ -131,9 +132,9 @@ namespace ENode.EQueue
             }
 
             public bool CheckCommandWaiting { get; set; }
-            public void OnCommandExecuted(ICommand command, string errorMessage)
+            public void OnCommandExecuted(ICommand command, int exceptionCode, string errorMessage)
             {
-                CommandExecutedAction(command, errorMessage, this);
+                CommandExecutedAction(command, exceptionCode, errorMessage, this);
             }
 
             /// <summary>Add an aggregate root to the context.
