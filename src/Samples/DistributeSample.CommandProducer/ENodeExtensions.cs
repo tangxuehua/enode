@@ -32,15 +32,15 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
                 RebalanceInterval = 1000
             };
 
-            var failedCommandMessageConsumer = new Consumer(consumerSetting, "FailedCommandMessageConsumer", "FailedCommandMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
+            var commandExecutedMessageConsumer = new Consumer(consumerSetting, "CommandExecutedMessageConsumer", "CommandExecutedMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
             var domainEventHandledMessageConsumer = new Consumer(consumerSetting, "DomainEventHandledMessageConsumer", "DomainEventHandledMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
-            _commandResultProcessor = new CommandResultProcessor(failedCommandMessageConsumer, domainEventHandledMessageConsumer);
+            _commandResultProcessor = new CommandResultProcessor(commandExecutedMessageConsumer, domainEventHandledMessageConsumer);
 
             _commandService = new CommandService(_commandResultProcessor);
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
 
-            _commandResultProcessor.SetFailedCommandMessageTopic("FailedCommandMessageTopic");
+            _commandResultProcessor.SetExecutedCommandMessageTopic("ExecutedCommandMessageTopic");
             _commandResultProcessor.SetDomainEventHandledMessageTopic("DomainEventHandledMessageTopic");
 
             return enodeConfiguration;
@@ -61,9 +61,9 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
             var waitHandle = new ManualResetEvent(false);
             var taskId = scheduleService.ScheduleTask(() =>
             {
-                var failedCommandMessageConsumerAllocatedQueues = _commandResultProcessor.FailedCommandMessageConsumer.GetCurrentQueues();
+                var executedCommandMessageConsumerAllocatedQueues = _commandResultProcessor.CommandExecutedMessageConsumer.GetCurrentQueues();
                 var domainEventHandledMessageConsumerAllocatedQueues = _commandResultProcessor.DomainEventHandledMessageConsumer.GetCurrentQueues();
-                if (failedCommandMessageConsumerAllocatedQueues.Count() == 4 && domainEventHandledMessageConsumerAllocatedQueues.Count() == 4)
+                if (executedCommandMessageConsumerAllocatedQueues.Count() == 4 && domainEventHandledMessageConsumerAllocatedQueues.Count() == 4)
                 {
                     waitHandle.Set();
                 }

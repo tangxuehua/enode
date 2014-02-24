@@ -89,8 +89,8 @@ namespace NoteSample
             model.Add(typeof(SendMessageResponse), false).Add("MessageOffset", "MessageQueue", "QueueOffset").UseConstructor = false;
             model.Add(typeof(SendResult), false).Add("SendStatus", "ErrorMessage", "MessageQueue", "QueueOffset", "MessageOffset").UseConstructor = false;
 
-            model.Add(typeof(CommandMessage), false).Add("CommandData", "FailedCommandMessageTopic", "DomainEventHandledMessageTopic").UseConstructor = false;
-            model.Add(typeof(FailedCommandMessage), false).Add("CommandId", "AggregateRootId", "ProcessId", "ErrorMessage").UseConstructor = false;
+            model.Add(typeof(CommandMessage), false).Add("CommandData", "CommandExecutedMessageTopic", "DomainEventHandledMessageTopic").UseConstructor = false;
+            model.Add(typeof(CommandExecutedMessage), false).Add("CommandId", "AggregateRootId", "ProcessId", "CommandStatus", "ExceptionCode", "ErrorMessage").UseConstructor = false;
             model.Add(typeof(DomainEventHandledMessage), false).Add("CommandId", "AggregateRootId", "IsProcessCompletedEvent", "ProcessId").UseConstructor = false;
             model.Add(typeof(EventMessage), false).Add("CommandId", "AggregateRootId", "AggregateRootName", "Version", "Timestamp", "Events", "ContextItems").UseConstructor = false;
 

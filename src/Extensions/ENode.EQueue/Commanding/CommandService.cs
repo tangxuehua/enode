@@ -50,10 +50,14 @@ namespace ENode.EQueue
         }
         public Task<CommandResult> Execute(ICommand command)
         {
+            return Execute(command, CommandReturnType.DomainEventHandled);
+        }
+        public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
+        {
             var message = BuildCommandMessage(command);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
 
-            _commandResultProcessor.RegisterCommand(command, taskCompletionSource);
+            _commandResultProcessor.RegisterCommand(command, commandReturnType, taskCompletionSource);
 
             _producer.SendAsync(message, command.AggregateRootId).ContinueWith(sendTask =>
             {
@@ -92,7 +96,7 @@ namespace ENode.EQueue
             var messageData = _binarySerializer.Serialize(new CommandMessage
             {
                 CommandData = commandData,
-                FailedCommandMessageTopic = _commandResultProcessor.FailedCommandMessageTopic,
+                CommandExecutedMessageTopic = _commandResultProcessor.CommandExecutedMessageTopic,
                 DomainEventHandledMessageTopic = _commandResultProcessor.DomainEventHandledMessageTopic
             });
             return new Message(topic, messageData);

@@ -13,42 +13,42 @@ namespace ENode.EQueue.Commanding
 {
     public class CommandResultProcessor
     {
-        private readonly Consumer _failedCommandMessageConsumer;
+        private readonly Consumer _commandExecutedMessageConsumer;
         private readonly Consumer _domainEventHandledMessageConsumer;
-        private readonly ConcurrentDictionary<Guid, TaskCompletionSource<CommandResult>> _commandTaskDict;
+        private readonly ConcurrentDictionary<Guid, CommandTaskCompletionSource> _commandTaskDict;
         private readonly ConcurrentDictionary<string, TaskCompletionSource<ProcessResult>> _processTaskDict;
-        private readonly BlockingCollection<FailedCommandMessage> _failedCommandMessageLocalQueue;
+        private readonly BlockingCollection<CommandExecutedMessage> _commandExecutedMessageLocalQueue;
         private readonly BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
-        private readonly Worker _failedCommandMessageWorker;
+        private readonly Worker _commandExecutedMessageWorker;
         private readonly Worker _domainEventHandledMessageWorker;
         private readonly IBinarySerializer _binarySerializer;
 
-        public string FailedCommandMessageTopic { get; private set; }
+        public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
-        public Consumer FailedCommandMessageConsumer { get { return _failedCommandMessageConsumer; } }
+        public Consumer CommandExecutedMessageConsumer { get { return _commandExecutedMessageConsumer; } }
         public Consumer DomainEventHandledMessageConsumer { get { return _domainEventHandledMessageConsumer; } }
 
-        public CommandResultProcessor(Consumer failedCommandMessageConsumer, Consumer domainEventHandledMessageConsumer)
+        public CommandResultProcessor(Consumer commandExecutedMessageConsumer, Consumer domainEventHandledMessageConsumer)
         {
-            _failedCommandMessageConsumer = failedCommandMessageConsumer;
+            _commandExecutedMessageConsumer = commandExecutedMessageConsumer;
             _domainEventHandledMessageConsumer = domainEventHandledMessageConsumer;
-            _commandTaskDict = new ConcurrentDictionary<Guid, TaskCompletionSource<CommandResult>>();
+            _commandTaskDict = new ConcurrentDictionary<Guid, CommandTaskCompletionSource>();
             _processTaskDict = new ConcurrentDictionary<string, TaskCompletionSource<ProcessResult>>();
-            _failedCommandMessageLocalQueue = new BlockingCollection<FailedCommandMessage>(new ConcurrentQueue<FailedCommandMessage>());
+            _commandExecutedMessageLocalQueue = new BlockingCollection<CommandExecutedMessage>(new ConcurrentQueue<CommandExecutedMessage>());
             _domainEventHandledMessageLocalQueue = new BlockingCollection<DomainEventHandledMessage>(new ConcurrentQueue<DomainEventHandledMessage>());
-            _failedCommandMessageWorker = new Worker(() => ProcessFailedCommandMessage(_failedCommandMessageLocalQueue.Take()));
+            _commandExecutedMessageWorker = new Worker(() => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
             _domainEventHandledMessageWorker = new Worker(() => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
         }
 
-        public CommandResultProcessor SetFailedCommandMessageTopic(string topic)
+        public CommandResultProcessor SetExecutedCommandMessageTopic(string topic)
         {
-            if (FailedCommandMessageTopic != null)
+            if (CommandExecutedMessageTopic != null)
             {
-                throw new ENodeException("Failed command message topic can't be set twice.");
+                throw new ENodeException("Executed command message topic can't be set twice.");
             }
-            _failedCommandMessageConsumer.Subscribe(topic);
-            FailedCommandMessageTopic = topic;
+            _commandExecutedMessageConsumer.Subscribe(topic);
+            CommandExecutedMessageTopic = topic;
             return this;
         }
         public CommandResultProcessor SetDomainEventHandledMessageTopic(string topic)
@@ -62,9 +62,9 @@ namespace ENode.EQueue.Commanding
             return this;
         }
 
-        public CommandResultProcessor RegisterCommand(ICommand command, TaskCompletionSource<CommandResult> taskCompletionSource)
+        public CommandResultProcessor RegisterCommand(ICommand command, CommandReturnType commandReturnType, TaskCompletionSource<CommandResult> taskCompletionSource)
         {
-            _commandTaskDict.TryAdd(command.Id, taskCompletionSource);
+            _commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource });
             return this;
         }
         public CommandResultProcessor RegisterProcess(IProcessCommand command, TaskCompletionSource<ProcessResult> taskCompletionSource)
@@ -75,10 +75,10 @@ namespace ENode.EQueue.Commanding
 
         public CommandResultProcessor NotifyCommandSendFailed(ICommand command)
         {
-            TaskCompletionSource<CommandResult> taskCompletionSource;
-            if (_commandTaskDict.TryGetValue(command.Id, out taskCompletionSource))
+            CommandTaskCompletionSource commandTaskCompletionSource;
+            if (_commandTaskDict.TryGetValue(command.Id, out commandTaskCompletionSource))
             {
-                taskCompletionSource.TrySetResult(new CommandResult(command.Id, command.AggregateRootId, 0, "Command send failed."));
+                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, 0, "Command send failed."));
             }
             return this;
         }
@@ -94,43 +94,56 @@ namespace ENode.EQueue.Commanding
 
         public CommandResultProcessor Start()
         {
-            _failedCommandMessageConsumer.Start(new FailedCommandMessageHandler(this));
+            _commandExecutedMessageConsumer.Start(new CommandExecutedMessageHandler(this));
             _domainEventHandledMessageConsumer.Start(new DomainEventHandledMessageHandler(this));
-            _failedCommandMessageWorker.Start();
+            _commandExecutedMessageWorker.Start();
             _domainEventHandledMessageWorker.Start();
             return this;
         }
         public CommandResultProcessor Shutdown()
         {
-            _failedCommandMessageConsumer.Shutdown();
+            _commandExecutedMessageConsumer.Shutdown();
             _domainEventHandledMessageConsumer.Shutdown();
-            _failedCommandMessageWorker.Stop();
+            _commandExecutedMessageWorker.Stop();
             _domainEventHandledMessageWorker.Stop();
             return this;
         }
 
-        private void ProcessFailedCommandMessage(FailedCommandMessage message)
+        private void ProcessExecutedCommandMessage(CommandExecutedMessage message)
         {
-            TaskCompletionSource<CommandResult> taskCompletionSource;
-            if (_commandTaskDict.TryGetValue(message.CommandId, out taskCompletionSource))
+            CommandTaskCompletionSource commandTaskCompletionSource;
+            if (_commandTaskDict.TryGetValue(message.CommandId, out commandTaskCompletionSource))
             {
-                taskCompletionSource.TrySetResult(new CommandResult(message.CommandId, message.AggregateRootId, message.ExceptionCode, message.ErrorMessage));
+                if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.CommandExecuted)
+                {
+                    commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionCode, message.ErrorMessage));
+                }
+                if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.DomainEventHandled)
+                {
+                    if (message.CommandStatus == CommandStatus.Failed || message.CommandStatus == CommandStatus.NothingChanged)
+                    {
+                        commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionCode, message.ErrorMessage));
+                    }
+                }
             }
             if (!string.IsNullOrEmpty(message.ProcessId))
             {
-                TaskCompletionSource<ProcessResult> processTaskCompletionSource;
-                if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
+                if (message.CommandStatus == CommandStatus.Failed)
                 {
-                    processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ExceptionCode, message.ErrorMessage));
+                    TaskCompletionSource<ProcessResult> processTaskCompletionSource;
+                    if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
+                    {
+                        processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ExceptionCode, message.ErrorMessage));
+                    }
                 }
             }
         }
         private void ProcessDomainEventHandledMessage(DomainEventHandledMessage message)
         {
-            TaskCompletionSource<CommandResult> taskCompletionSource;
-            if (_commandTaskDict.TryGetValue(message.CommandId, out taskCompletionSource))
+            CommandTaskCompletionSource commandTaskCompletionSource;
+            if (_commandTaskDict.TryGetValue(message.CommandId, out commandTaskCompletionSource))
             {
-                taskCompletionSource.TrySetResult(new CommandResult(message.CommandId, message.AggregateRootId));
+                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, 0, null));
             }
             if (message.IsProcessCompletedEvent && !string.IsNullOrEmpty(message.ProcessId))
             {
@@ -142,18 +155,23 @@ namespace ENode.EQueue.Commanding
             }
         }
 
-        class FailedCommandMessageHandler : IMessageHandler
+        class CommandTaskCompletionSource
+        {
+            public TaskCompletionSource<CommandResult> TaskCompletionSource { get; set; }
+            public CommandReturnType CommandReturnType { get; set; }
+        }
+        class CommandExecutedMessageHandler : IMessageHandler
         {
             private CommandResultProcessor _processor;
 
-            public FailedCommandMessageHandler(CommandResultProcessor processor)
+            public CommandExecutedMessageHandler(CommandResultProcessor processor)
             {
                 _processor = processor;
             }
 
             void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
             {
-                _processor._failedCommandMessageLocalQueue.Add(_processor._binarySerializer.Deserialize(message.Body, typeof(FailedCommandMessage)) as FailedCommandMessage);
+                _processor._commandExecutedMessageLocalQueue.Add(_processor._binarySerializer.Deserialize(message.Body, typeof(CommandExecutedMessage)) as CommandExecutedMessage);
                 context.OnMessageHandled(message);
             }
         }

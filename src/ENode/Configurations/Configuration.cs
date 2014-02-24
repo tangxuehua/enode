@@ -103,7 +103,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommitEventService, DefaultCommitEventService>();
             _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
             _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
-            _configuration.SetDefault<IPublishEventService, DefaultPublishEventService>();
 
             _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
             _assemblyInitializerServiceTypes.Add(typeof(IEventSynchronizerProvider));

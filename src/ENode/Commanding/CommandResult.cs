@@ -25,18 +25,9 @@ namespace ENode.Commanding
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public CommandResult(Guid commandId, string aggregateRootId)
+        public CommandResult(CommandStatus commandStatus, Guid commandId, string aggregateRootId, int exceptionCode, string errorMessage)
         {
-            Status = CommandStatus.Success;
-            CommandId = commandId;
-            AggregateRootId = aggregateRootId;
-        }
-
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        public CommandResult(Guid commandId, string aggregateRootId, int exceptionCode, string errorMessage)
-        {
-            Status = CommandStatus.Failed;
+            Status = commandStatus;
             CommandId = commandId;
             AggregateRootId = aggregateRootId;
             ExceptionCode = exceptionCode;
@@ -48,6 +39,7 @@ namespace ENode.Commanding
     public enum CommandStatus
     {
         Success = 1,
+        NothingChanged = 2,
         Failed,
     }
 }

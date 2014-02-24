@@ -12,8 +12,8 @@ namespace ENode.Commanding
         /// <summary>Check whether need to apply the command waiting logic when the command is executing.
         /// </summary>
         bool CheckCommandWaiting { get; set; }
-        /// <summary>Notify the given command execution is completed.
+        /// <summary>Notify the given command is executed.
         /// </summary>
-        void OnCommandExecuted(ICommand command, int exceptionCode, string errorMessage);
+        void OnCommandExecuted(ICommand command, CommandStatus commandStatus, int exceptionCode, string errorMessage);
     }
 }

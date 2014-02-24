@@ -39,6 +39,7 @@
     <DocumentationFile>bin\Release\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\ProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
@@ -72,7 +73,6 @@
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
-    <Compile Include="Eventing\Impl\DefaultPublishEventService.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryCommandIndexStore.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryVersionIndexStore.cs" />
     <Compile Include="Eventing\Impl\IVersionIndexStore.cs" />
@@ -84,7 +84,6 @@
     <Compile Include="Eventing\Impl\SQL\SqlCommitLog.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlEventStoreSetting.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
-    <Compile Include="Eventing\IPublishEventService.cs" />
     <Compile Include="Eventing\IEventSynchronizer.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
     <Compile Include="Eventing\IEventProcessor.cs" />
@@ -155,7 +154,7 @@
     <Compile Include="Snapshoting\ISnapshotStore.cs" />
     <Compile Include="Infrastructure\Sql\IDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\Sql\DefaultDbConnectionFactory.cs" />
-    <Compile Include="Commanding\AggregateRootNotFoundException.cs" />
+    <Compile Include="Commanding\AggregateRootNotExistException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ECommon, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">

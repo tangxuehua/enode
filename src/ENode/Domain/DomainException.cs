@@ -15,7 +15,7 @@ namespace ENode.Domain
         /// </summary>
         /// <param name="code"></param>
         /// <param name="message"></param>
-        public DomainException(int code, string message) : base(string.Format("{0},ExceptionCode:{1}", message, code))
+        public DomainException(int code, string message) : base(message)
         {
             Code = code;
         }
@@ -24,7 +24,7 @@ namespace ENode.Domain
         /// <param name="code"></param>
         /// <param name="message"></param>
         /// <param name="args"></param>
-        public DomainException(int code, string message, params object[] args) : base(string.Format("{0},ExceptionCode:{1}", string.Format(message, args), code))
+        public DomainException(int code, string message, params object[] args) : base(string.Format(message, args))
         {
             Code = code;
         }

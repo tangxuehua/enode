@@ -15,6 +15,11 @@ namespace ENode.Commanding.Impl
             throw new NotImplementedException();
         }
 
+        public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ProcessResult> StartProcess(IProcessCommand command)
         {
             throw new NotImplementedException();

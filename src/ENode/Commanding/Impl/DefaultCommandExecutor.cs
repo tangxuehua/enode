@@ -68,7 +68,7 @@ namespace ENode.Commanding.Impl
             {
                 var errorMessage = string.Format("Command handler not found for [{0}].", command.GetType().FullName);
                 _logger.Error(errorMessage);
-                context.OnCommandExecuted(command, 0, errorMessage);
+                context.OnCommandExecuted(command, CommandStatus.Failed, 0, errorMessage);
                 return;
             }
 
@@ -77,23 +77,31 @@ namespace ENode.Commanding.Impl
                 commandHandler.Handle(context, command);
                 CommitChanges(processingCommand);
             }
+            catch (DomainException domainException)
+            {
+                var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
+                var errorMessage = string.Format("{0} raised when [{1}] handling [{2}], commandId:{3}, aggregateRootId:{4}, exceptionMessage:{5}.",
+                    domainException.GetType().Name,
+                    commandHandlerType.Name,
+                    command.GetType().Name,
+                    command.Id,
+                    command.AggregateRootId,
+                    domainException.Message);
+                _logger.Error(errorMessage, domainException);
+                context.OnCommandExecuted(command, CommandStatus.Failed, domainException.Code, domainException.Message);
+            }
             catch (Exception ex)
             {
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                var errorMessage = string.Format("Exception raised when [{0}] handling [{1}], commandId:{2}, aggregateRootId:{3}, errorMessage:{4}.",
+                var errorMessage = string.Format("{0} raised when [{1}] handling [{2}], commandId:{3}, aggregateRootId:{4}, exceptionMessage:{5}.",
+                    ex.GetType().Name,
                     commandHandlerType.Name,
                     command.GetType().Name,
                     command.Id,
                     command.AggregateRootId,
                     ex.Message);
                 _logger.Error(errorMessage, ex);
-
-                var exceptionCode = 0;
-                if (ex is DomainException)
-                {
-                    exceptionCode = (ex as DomainException).Code;
-                }
-                context.OnCommandExecuted(command, exceptionCode, ex.Message);
+                context.OnCommandExecuted(command, CommandStatus.Failed, 0, ex.Message);
             }
         }
 
@@ -116,12 +124,11 @@ namespace ENode.Commanding.Impl
             var dirtyAggregate = GetDirtyAggregate(context);
             if (dirtyAggregate == null)
             {
-                var errorMessage = string.Format("No aggregate created or modified by [{0}], commandId:{1}, aggregateRootId:{2}.",
+                _logger.DebugFormat("No aggregate created or modified by {0}[commandId={1},aggregateRootId={2}].",
                     command.GetType().Name,
                     command.Id,
                     command.AggregateRootId);
-                _logger.ErrorFormat(errorMessage);
-                context.OnCommandExecuted(command, 0, errorMessage);
+                context.OnCommandExecuted(command, CommandStatus.NothingChanged, 0, null);
                 return;
             }
             var eventStream = CreateEventStream(dirtyAggregate, command);
