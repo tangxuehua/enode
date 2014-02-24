@@ -4,7 +4,7 @@ using ENode.Eventing;
 
 namespace ENode.Domain
 {
-    /// <summary>Represents an aggregate root.
+    /// <summary>Represents an aggregate root interface.
     /// </summary>
     public interface IAggregateRoot
     {

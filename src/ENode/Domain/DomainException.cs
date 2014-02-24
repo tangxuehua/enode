@@ -4,6 +4,7 @@ namespace ENode.Domain
 {
     /// <summary>Represents a domain execption.
     /// </summary>
+    [Serializable]
     public class DomainException : Exception
     {
         /// <summary>The exception code.
