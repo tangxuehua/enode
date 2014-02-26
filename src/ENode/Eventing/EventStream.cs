@@ -28,7 +28,7 @@ namespace ENode.Eventing
             AggregateRootName = aggregateRootName;
             Version = version;
             Timestamp = timestamp;
-            VerifyEvents(aggregateRootId, events);
+            VerifyEvents(events);
             Events = events;
         }
 
@@ -60,13 +60,17 @@ namespace ENode.Eventing
             return string.Format(format, CommandId, AggregateRootName, AggregateRootId, Version, Timestamp, string.Join("|", Events.Select(x => x.GetType().Name)));
         }
 
-        private void VerifyEvents(string expectedAggregateRootId, IEnumerable<IDomainEvent> events)
+        private void VerifyEvents(IEnumerable<IDomainEvent> events)
         {
             foreach (var evnt in events)
             {
-                if (evnt.AggregateRootId != expectedAggregateRootId)
+                if (evnt.AggregateRootId != AggregateRootId)
                 {
-                    throw new ENodeException("Domain event aggregate root Id mismatch, current domain event aggregateRootId:{0}, expected aggregateRootId:{1}", evnt.AggregateRootId, expectedAggregateRootId);
+                    throw new ENodeException("Domain event aggregate root Id mismatch, current domain event aggregateRootId:{0}, expected aggregateRootId:{1}", evnt.AggregateRootId, AggregateRootId);
+                }
+                if (evnt.Version != Version)
+                {
+                    throw new ENodeException("Domain event version mismatch, current domain event version:{0}, expected version:{1}", evnt.Version, Version);
                 }
             }
         }

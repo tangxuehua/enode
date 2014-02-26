@@ -100,18 +100,18 @@ namespace NoteSample
             model.Add(typeof(Command<Guid>), false).Add("Id", "RetryCount", "AggregateRootId").UseConstructor = false;
             model.Add(typeof(ProcessCommand<Guid>), false).Add("_processId").UseConstructor = false;
 
-            model.Add(typeof(DomainEvent<Guid>), false).Add("Id", "AggregateRootId").UseConstructor = false;
+            model.Add(typeof(DomainEvent<Guid>), false).Add("Id", "AggregateRootId", "_version", "Timestamp").UseConstructor = false;
 
             model[typeof(Command<Guid>)].AddSubType(10, typeof(ProcessCommand<Guid>)).UseConstructor = false;
 
             //Config sample project classes.
-            model.Add(typeof(Note), false).Add("Title", "CreatedTime", "UpdatedTime").UseConstructor = false;
+            model.Add(typeof(Note), false).Add("Title").UseConstructor = false;
 
             model.Add(typeof(CreateNoteCommand), false).Add("Title").UseConstructor = false;
             model.Add(typeof(ChangeNoteTitleCommand), false).Add("Title").UseConstructor = false;
 
-            model.Add(typeof(NoteCreatedEvent), false).Add("Title", "CreatedTime", "UpdatedTime").UseConstructor = false;
-            model.Add(typeof(NoteTitleChangedEvent), false).Add("Title", "UpdatedTime").UseConstructor = false;
+            model.Add(typeof(NoteCreatedEvent), false).Add("Title").UseConstructor = false;
+            model.Add(typeof(NoteTitleChangedEvent), false).Add("Title").UseConstructor = false;
 
             model[typeof(AggregateRoot<Guid>)].AddSubType(100, typeof(Note)).UseConstructor = false;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using ENode.Eventing;
+using NoteSample.Domain;
 
 namespace NoteSample.DomainEvents
 {
@@ -7,14 +8,10 @@ namespace NoteSample.DomainEvents
     public class NoteCreatedEvent : DomainEvent<Guid>
     {
         public string Title { get; private set; }
-        public DateTime CreatedTime { get; private set; }
-        public DateTime UpdatedTime { get; private set; }
 
-        public NoteCreatedEvent(Guid noteId, string title, DateTime createdTime, DateTime updatedTime) : base(noteId)
+        public NoteCreatedEvent(Guid id, string title) : base(id)
         {
             Title = title;
-            CreatedTime = createdTime;
-            UpdatedTime = updatedTime;
         }
     }
 }

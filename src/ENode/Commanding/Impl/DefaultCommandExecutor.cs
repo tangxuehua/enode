@@ -158,6 +158,10 @@ namespace ENode.Commanding.Impl
 
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRoot.GetType());
 
+            foreach (var evnt in uncommittedEvents)
+            {
+                evnt.Version = aggregateRoot.Version + 1;
+            }
             return new EventStream(
                 command.Id,
                 aggregateRoot.UniqueId,
