@@ -31,8 +31,8 @@ namespace NoteSample
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
             var noteId = Guid.NewGuid();
-            var command1 = new CreateNoteCommand(noteId, "Note Version1");
-            var command2 = new ChangeNoteTitleCommand(noteId, "Note Version2");
+            var command1 = new CreateNoteCommand(noteId, "Sample Title1");
+            var command2 = new ChangeNoteTitleCommand(noteId, "Sample Title2");
 
             Console.WriteLine(string.Empty);
 

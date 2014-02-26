@@ -10,11 +10,11 @@ namespace NoteSample.EventHandlers
     {
         public void Handle(NoteCreatedEvent evnt)
         {
-            Console.WriteLine("Note created, Title：{0}", evnt.Title);
+            Console.WriteLine("Note Created, Title：{0}, Version: {1}", evnt.Title, evnt.Version);
         }
         public void Handle(NoteTitleChangedEvent evnt)
         {
-            Console.WriteLine("Note updated, Title：{0}", evnt.Title);
+            Console.WriteLine("Note Updated, Title：{0}, Version: {1}", evnt.Title, evnt.Version);
         }
     }
 }
