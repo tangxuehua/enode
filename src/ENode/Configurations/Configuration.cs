@@ -92,8 +92,6 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
-            _configuration.SetDefault<ICommandIndexStore, InMemoryCommandIndexStore>();
-            _configuration.SetDefault<IVersionIndexStore, InMemoryVersionIndexStore>();
             _configuration.SetDefault<ICommitLog, InMemoryCommitLog>();
             _configuration.SetDefault<IEventStore, DefaultEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();

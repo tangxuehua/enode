@@ -73,10 +73,6 @@
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
-    <Compile Include="Eventing\Impl\InMemory\InMemoryCommandIndexStore.cs" />
-    <Compile Include="Eventing\Impl\InMemory\InMemoryVersionIndexStore.cs" />
-    <Compile Include="Eventing\Impl\IVersionIndexStore.cs" />
-    <Compile Include="Eventing\Impl\ICommandIndexStore.cs" />
     <Compile Include="Eventing\Impl\ICommitLog.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryCommitLog.cs" />
     <Compile Include="Eventing\Impl\DefaultEventStore.cs" />
