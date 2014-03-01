@@ -99,9 +99,6 @@
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventPublishInfoStore.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlEventHandleInfoStore.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlEventPublishInfoStore.cs" />
-    <Compile Include="Eventing\Impl\SQL\AggregatePerEventTableNameProvider.cs" />
-    <Compile Include="Eventing\Impl\SQL\DefaultEventTableNameProvider.cs" />
-    <Compile Include="Eventing\IEventTableNameProvider.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlEventStore.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoStore.cs" />
     <Compile Include="Eventing\IEventPublishInfoStore.cs" />
