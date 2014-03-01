@@ -133,30 +133,6 @@ namespace ENode.Configurations
             return this;
         }
 
-        /// <summary>Use SQL DB as the storage of the whole framework.
-        /// </summary>
-        /// <param name="connectionString">The connection string of the DB.</param>
-        /// <returns></returns>
-        public ENodeConfiguration UseSql(string connectionString)
-        {
-            return UseSql(connectionString, "Event", null, "EventPublishInfo", "EventHandleInfo");
-        }
-        /// <summary>Use SQL DB as the storage of the whole framework.
-        /// </summary>
-        /// <param name="connectionString">The connection string of the DB.</param>
-        /// <param name="eventTable">The table used to store all the domain events.</param>
-        /// <param name="queueNameFormat">The format of the queue name.</param>
-        /// <param name="eventPublishInfoTable">The table used to store all the event publish information.</param>
-        /// <param name="eventHandleInfoTable">The table used to store all the event handle information.</param>
-        /// <returns></returns>
-        public ENodeConfiguration UseSql(string connectionString, string eventTable, string queueNameFormat, string eventPublishInfoTable, string eventHandleInfoTable)
-        {
-            //TODO
-            //_configuration.SetDefault<IEventStore, SqlEventStore>(new SqlEventStore(connectionString));
-            _configuration.SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
-            _configuration.SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
-            return this;
-        }
         public ENodeConfiguration UseSqlCommitLog(string connectionString)
         {
             return UseSqlCommitLog(connectionString, "CommitLog");
@@ -166,10 +142,24 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommitLog, SqlCommitLog>(new SqlCommitLog(connectionString, commitLogTable));
             return this;
         }
-        /// <summary>Use the default sql querydb connection factory.
-        /// </summary>
-        /// <param name="connectionString">The connection string of the SQL DB.</param>
-        /// <returns></returns>
+        public ENodeConfiguration UseSqlEventPublishInfoStore(string connectionString)
+        {
+            return UseSqlEventPublishInfoStore(connectionString, "EventPublishInfo");
+        }
+        public ENodeConfiguration UseSqlEventPublishInfoStore(string connectionString, string eventPublishInfoTable)
+        {
+            _configuration.SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
+            return this;
+        }
+        public ENodeConfiguration UseSqlEventHandleInfoStore(string connectionString)
+        {
+            return UseSqlEventHandleInfoStore(connectionString, "EventHandleInfo");
+        }
+        public ENodeConfiguration UseSqlEventHandleInfoStore(string connectionString, string eventHandleInfoTable)
+        {
+            _configuration.SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
+            return this;
+        }
         public ENodeConfiguration UseDefaultSqlQueryDbConnectionFactory(string connectionString)
         {
             _configuration.SetDefault<ISqlQueryDbConnectionFactory, DefaultSqlQueryDbConnectionFactory>(new DefaultSqlQueryDbConnectionFactory(connectionString));

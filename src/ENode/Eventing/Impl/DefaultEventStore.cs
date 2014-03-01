@@ -131,37 +131,35 @@ namespace ENode.Eventing.Impl.InMemory
 
         private void RecoverAggregateVersionInfoDict()
         {
-            var baseCommitSequence = 1;
-            var commitLogPageIndex = 0L;
-            var commitLogSize = 1000;
-            var startCommitSequence = baseCommitSequence + commitLogPageIndex * commitLogSize;
-            var eventStreams = _commitLog.Query(startCommitSequence, commitLogSize);
+            var firstRowNumber = 1;
+            var pageIndex = 0L;
+            var pageSize = 1000;
+            var start = firstRowNumber + pageIndex * pageSize;
+            var commitRecords = _commitLog.Query(start, pageSize);
 
-            while (eventStreams.Count() > 0)
+            while (commitRecords.Count() > 0)
             {
-                var index = 0;
-                foreach (var stream in eventStreams)
+                foreach (var commitRecord in commitRecords)
                 {
-                    var aggregateVersionInfo = aggregateCurrentVersionDict.GetOrAdd(stream.AggregateRootId, new AggregateVersionInfo());
-                    var commitSequence = startCommitSequence + index;
+                    var aggregateVersionInfo = aggregateCurrentVersionDict.GetOrAdd(commitRecord.AggregateRootId, new AggregateVersionInfo());
                     try
                     {
-                        aggregateVersionInfo.VersionDict.Add(stream.Version, commitSequence);
-                        aggregateVersionInfo.CommandDict.Add(stream.CommandId, commitSequence);
+                        aggregateVersionInfo.VersionDict.Add(commitRecord.Version, commitRecord.CommitSequence);
+                        aggregateVersionInfo.CommandDict.Add(commitRecord.CommandId, commitRecord.CommitSequence);
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(string.Format("Invalid EventStream found when recovering EventStore, EventStream:{0}", stream), ex);
-                        throw;
+                        var errorMessage = string.Format("Invalid commit record found when recovering EventStore, commitRecord:{0}", commitRecord);
+                        _logger.Error(errorMessage, ex);
+                        throw new ENodeException(errorMessage, ex);
                     }
 
-                    aggregateVersionInfo.CurrentVersion = stream.Version;
-                    index++;
+                    aggregateVersionInfo.CurrentVersion = commitRecord.Version;
                 }
-                if (eventStreams.Count() == commitLogSize)
+                if (commitRecords.Count() == pageSize)
                 {
-                    startCommitSequence = baseCommitSequence + (commitLogPageIndex++) * commitLogSize;
-                    eventStreams = _commitLog.Query(startCommitSequence, commitLogSize);
+                    start = firstRowNumber + (pageIndex++) * pageSize;
+                    commitRecords = _commitLog.Query(start, pageSize);
                 }
                 else
                 {

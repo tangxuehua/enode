@@ -14,11 +14,11 @@ namespace ENode.Eventing.Impl
         /// <param name="commitSequence"></param>
         /// <returns></returns>
         EventStream Get(long commitSequence);
-        /// <summary>Query event streams by start sequence and size.
+        /// <summary>Query event commit records by start sequence and size.
         /// </summary>
-        /// <param name="startSequence"></param>
+        /// <param name="start"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        IEnumerable<EventStream> Query(long startSequence, int size);
+        IEnumerable<CommitRecord> Query(long start, int size);
     }
 }

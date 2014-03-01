@@ -56,17 +56,17 @@ namespace ENode.Eventing.Impl.SQL
                 return null;
             });
         }
-        public IEnumerable<EventStream> Query(long startSequence, int size)
+        public IEnumerable<CommitRecord> Query(long startSequence, int size)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
-                var sqlEventStreams = connection.QueryByStartAndSize<SqlEventStream>(null, _commitLogTable, "*", "CommitSequence", startSequence, size);
-                var eventStreams = new List<EventStream>();
+                var sqlEventStreams = connection.QueryByStartAndSize<SqlCommitRecord>(null, _commitLogTable, "*", "CommitSequence", startSequence, size);
+                var commitRecords = new List<CommitRecord>();
                 foreach (var sqlEventStream in sqlEventStreams)
                 {
-                    eventStreams.Add(BuildEventStreamFrom(sqlEventStream));
+                    commitRecords.Add(BuildCommitRecordFrom(sqlEventStream));
                 }
-                return eventStreams;
+                return commitRecords;
             });
         }
 
@@ -74,6 +74,14 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Private Methods
 
+        private CommitRecord BuildCommitRecordFrom(SqlCommitRecord sqlCommitRecord)
+        {
+            return new CommitRecord(
+                    sqlCommitRecord.Version,
+                    sqlCommitRecord.CommandId,
+                    sqlCommitRecord.AggregateRootId,
+                    sqlCommitRecord.Version);
+        }
         private EventStream BuildEventStreamFrom(SqlEventStream sqlEventStream)
         {
             return new EventStream(
@@ -105,6 +113,13 @@ namespace ENode.Eventing.Impl.SQL
             public long Version { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }
+        }
+        class SqlCommitRecord
+        {
+            public long CommitSequence { get; set; }
+            public Guid CommandId { get; set; }
+            public string AggregateRootId { get; set; }
+            public long Version { get; set; }
         }
 
         #endregion

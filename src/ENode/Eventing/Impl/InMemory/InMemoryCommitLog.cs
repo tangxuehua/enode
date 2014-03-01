@@ -30,20 +30,20 @@ namespace ENode.Eventing.Impl.InMemory
             }
             return null;
         }
-        public IEnumerable<EventStream> Query(long startSequence, int size)
+        public IEnumerable<CommitRecord> Query(long startSequence, int size)
         {
-            var eventStreams = new List<EventStream>();
+            var commitRecords = new List<CommitRecord>();
             var currentSequnece = startSequence;
             var eventStream = Get(currentSequnece);
 
             while (eventStream != null)
             {
-                eventStreams.Add(eventStream);
-                if (eventStreams.Count == size) break;
+                commitRecords.Add(new CommitRecord(currentSequnece, eventStream.CommandId, eventStream.AggregateRootId, eventStream.Version));
+                if (commitRecords.Count == size) break;
                 eventStream = Get(currentSequnece++);
             }
 
-            return eventStreams;
+            return commitRecords;
         }
     }
 }
