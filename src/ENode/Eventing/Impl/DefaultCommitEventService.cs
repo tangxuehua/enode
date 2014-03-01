@@ -137,7 +137,7 @@ namespace ENode.Eventing
                         else if (currentContext.CommitStatus == EventCommitStatus.DuplicateCommit)
                         {
                             SendWaitingCommand(eventStream);
-                            var existingEventStream = GetEventStream(eventStream.CommandId);
+                            var existingEventStream = GetEventStream(eventStream.AggregateRootId, eventStream.CommandId);
                             if (existingEventStream != null)
                             {
                                 SyncAfterEventPersisted(existingEventStream);
@@ -333,9 +333,9 @@ namespace ENode.Eventing
         {
             _retryCommandService.RetryCommand(context.ProcessingCommand);
         }
-        private EventStream GetEventStream(Guid commandId)
+        private EventStream GetEventStream(string aggregateRootId, Guid commandId)
         {
-            return _eventStore.GetEventStream(commandId);
+            return _eventStore.GetEventStream(aggregateRootId, commandId);
         }
 
         #endregion

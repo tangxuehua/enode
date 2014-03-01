@@ -3,8 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using ECommon.Extensions;
-using ECommon.Scheduling;
+using ECommon.Logging;
 using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl.InMemory
@@ -13,29 +12,18 @@ namespace ENode.Eventing.Impl.InMemory
     /// </summary>
     public class DefaultEventStore : IEventStore
     {
-        private const char KeySeperator = '|';
-        private readonly ConcurrentDictionary<Guid, long> _commandIndexDict = new ConcurrentDictionary<Guid, long>();
-        private readonly ConcurrentDictionary<string, long> _versionIndexDict = new ConcurrentDictionary<string, long>();
-        private readonly ConcurrentDictionary<string, long> _aggregateVersionDict = new ConcurrentDictionary<string, long>();
-        private readonly IScheduleService _scheduleService;
+        private const int Editing = 1;
+        private const int UnEditing = 0;
+        private readonly ConcurrentDictionary<string, AggregateVersionInfo> aggregateCurrentVersionDict;
         private readonly ICommitLog _commitLog;
-        private readonly ICommandIndexStore _commandIndexStore;
-        private readonly IVersionIndexStore _versionIndexStore;
-        private readonly ConcurrentDictionary<long, Guid> _commandIndexTempDict = new ConcurrentDictionary<long, Guid>();
-        private readonly ConcurrentDictionary<long, string> _versionIndexTempDict = new ConcurrentDictionary<long, string>();
-        private long _lastSavedCommandIndexSequence;
-        private long _lastSavedVersionIndexSequence;
-        private IList<int> _taskIds = new List<int>();
+        private readonly ILogger _logger;
         private bool _started;
 
-        public DefaultEventStore(ICommitLog commitLog, ICommandIndexStore commandIndexStore, IVersionIndexStore versionIndexStore, IScheduleService scheduleService)
+        public DefaultEventStore(ICommitLog commitLog, ILoggerFactory loggerFactory)
         {
+            aggregateCurrentVersionDict = new ConcurrentDictionary<string, AggregateVersionInfo>();
             _commitLog = commitLog;
-            _commandIndexStore = commandIndexStore;
-            _versionIndexStore = versionIndexStore;
-            _scheduleService = scheduleService;
-            _lastSavedCommandIndexSequence = 0;
-            _lastSavedVersionIndexSequence = 0;
+            _logger = loggerFactory.Create(GetType().Name);
             _started = false;
         }
 
@@ -45,71 +33,63 @@ namespace ENode.Eventing.Impl.InMemory
             {
                 throw new ENodeException("EventStore has not been started, cannot allow committing event stream.");
             }
-            var commitSequence = _commitLog.Append(stream);
 
-            if (!_commandIndexDict.TryAdd(stream.CommandId, commitSequence))
+            var aggregateVersionInfo = aggregateCurrentVersionDict.GetOrAdd(stream.AggregateRootId, new AggregateVersionInfo());
+            var originalStatus = Interlocked.CompareExchange(ref aggregateVersionInfo.Status, Editing, UnEditing);
+
+            if (originalStatus == aggregateVersionInfo.Status)
             {
-                return EventCommitStatus.DuplicateCommit;
+                throw new ConcurrentException();
             }
-            else
+
+            try
             {
-                if (!_commandIndexTempDict.TryAdd(commitSequence, stream.CommandId))
+                if (aggregateVersionInfo.CommandDict.ContainsKey(stream.CommandId))
                 {
-                    throw new ENodeException("Add commandId to temp dict failed, commandId:{0},commitSequence:{1}", stream.CommandId, commitSequence);
+                    return EventCommitStatus.DuplicateCommit;
                 }
-            }
-
-            var aggregateRootId = stream.AggregateRootId.ToString();
-            if (stream.Version == 1)
-            {
-                if (!_aggregateVersionDict.TryAdd(aggregateRootId, stream.Version))
+                if (stream.Version == aggregateVersionInfo.CurrentVersion + 1)
+                {
+                    var commitSequence = _commitLog.Append(stream);
+                    aggregateVersionInfo.VersionDict.Add(stream.Version, commitSequence);
+                    aggregateVersionInfo.CommandDict.Add(stream.CommandId, commitSequence);
+                    aggregateVersionInfo.CurrentVersion = stream.Version;
+                    return EventCommitStatus.Success;
+                }
+                else if (stream.Version == 1)
                 {
                     throw new DuplicateAggregateException("Duplicate aggregate[name={0},id={1}] creation.", stream.AggregateRootName, stream.AggregateRootId);
                 }
-            }
-            else
-            {
-                if (!_aggregateVersionDict.TryUpdate(aggregateRootId, stream.Version, stream.Version - 1))
+                else
                 {
                     throw new ConcurrentException();
                 }
             }
-
-            var key = string.Format("{0}{2}{1}", aggregateRootId, stream.Version, KeySeperator);
-            if (_versionIndexDict.TryAdd(key, commitSequence))
+            finally
             {
-                if (!_versionIndexTempDict.TryAdd(commitSequence, key))
-                {
-                    throw new ENodeException("Add version index to temp dict failed, key:{0},commitSequence:{1}", key, commitSequence);
-                }
+                Interlocked.Exchange(ref aggregateVersionInfo.Status, UnEditing);
             }
-            else
-            {
-                throw new ENodeException("Add version index to dict failed, key:{0},commitSequence:{1}", key, commitSequence);
-            }
-
-            return EventCommitStatus.Success;
         }
 
         public void Start()
         {
-            Recover();
-            _taskIds.Add(_scheduleService.ScheduleTask(SaveCommandIndex, 5000, 5000));
-            _taskIds.Add(_scheduleService.ScheduleTask(SaveVersionIndex, 5000, 5000));
+            RecoverAggregateVersionInfoDict();
             _started = true;
         }
         public void Shutdown()
         {
-            foreach (var taskId in _taskIds)
-            {
-                _scheduleService.ShutdownTask(taskId);
-            }
         }
 
-        public EventStream GetEventStream(Guid commandId)
+        public EventStream GetEventStream(string aggregateRootId, Guid commandId)
         {
+            AggregateVersionInfo aggregateVersionInfo;
+            if (!aggregateCurrentVersionDict.TryGetValue(aggregateRootId, out aggregateVersionInfo))
+            {
+                return null;
+            }
+
             long commitSequence;
-            if (_commandIndexDict.TryGetValue(commandId, out commitSequence))
+            if (aggregateVersionInfo.CommandDict.TryGetValue(commandId, out commitSequence))
             {
                 return _commitLog.Get(commitSequence);
             }
@@ -117,31 +97,26 @@ namespace ENode.Eventing.Impl.InMemory
         }
         public IEnumerable<EventStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
         {
-            long currentVersion;
-            if (_aggregateVersionDict.TryGetValue(aggregateRootId, out currentVersion))
+            AggregateVersionInfo aggregateVersionInfo;
+            if (!aggregateCurrentVersionDict.TryGetValue(aggregateRootId, out aggregateVersionInfo))
             {
-                var minVersion = minStreamVersion > 1 ? minStreamVersion : 1;
-                var maxVersion = maxStreamVersion < currentVersion ? maxStreamVersion : currentVersion;
-
-                var eventStreamList = new List<EventStream>();
-                for (var version = minVersion; version <= maxVersion; version++)
-                {
-                    var key = string.Format("{0}{2}{1}", aggregateRootId, version, KeySeperator);
-                    long commitSequence;
-                    if (!_versionIndexDict.TryGetValue(key, out commitSequence))
-                    {
-                        throw new ENodeException("Event commit sequence cannot be found of aggregate [name={0},id={1},version:{2}].", aggregateRootName, aggregateRootId, version);
-                    }
-                    var eventStream = _commitLog.Get(commitSequence);
-                    if (eventStream == null)
-                    {
-                        throw new ENodeException("Event stream cannot be found from commit log, commit sequence:{0}, aggregate [name={1},id={2},version:{3}].", commitSequence, aggregateRootName, aggregateRootId, version);
-                    }
-                    eventStreamList.Add(eventStream);
-                }
-                return eventStreamList;
+                return new EventStream[0];
             }
-            return new EventStream[0];
+
+            var minVersion = minStreamVersion > 1 ? minStreamVersion : 1;
+            var maxVersion = maxStreamVersion < aggregateVersionInfo.CurrentVersion ? maxStreamVersion : aggregateVersionInfo.CurrentVersion;
+            var eventStreamList = new List<EventStream>();
+            for (var version = minVersion; version <= maxVersion; version++)
+            {
+                var commitSequence = aggregateVersionInfo.VersionDict[version];
+                var eventStream = _commitLog.Get(commitSequence);
+                if (eventStream == null)
+                {
+                    throw new ENodeException("Event stream cannot be found from commit log, commit sequence:{0}, aggregate [name={1},id={2},version={3}].", commitSequence, aggregateRootName, aggregateRootId, version);
+                }
+                eventStreamList.Add(eventStream);
+            }
+            return eventStreamList;
         }
         public IEnumerable<EventStream> QueryAll()
         {
@@ -154,79 +129,9 @@ namespace ENode.Eventing.Impl.InMemory
             return totalStreams;
         }
 
-        private void SaveCommandIndex()
+        private void RecoverAggregateVersionInfoDict()
         {
-            var maxSaveCount = 1000;
-            var nextSaveSequence = _lastSavedCommandIndexSequence + 1;
-            var savedCount = 0;
-            var savedSequence = _lastSavedCommandIndexSequence;
-            Guid commandId;
-            while (_commandIndexTempDict.TryGetValue(nextSaveSequence, out commandId) && savedCount < maxSaveCount)
-            {
-                _commandIndexStore.Append(commandId, nextSaveSequence);
-                _commandIndexTempDict.Remove(nextSaveSequence);
-                savedSequence = nextSaveSequence;
-                nextSaveSequence++;
-                savedCount++;
-            }
-            _lastSavedCommandIndexSequence = savedSequence;
-        }
-        private void SaveVersionIndex()
-        {
-            var maxSaveCount = 1000;
-            var nextSaveSequence = _lastSavedVersionIndexSequence + 1;
-            var savedCount = 0;
-            var savedSequence = _lastSavedVersionIndexSequence;
-            string key;
-            while (_versionIndexTempDict.TryGetValue(nextSaveSequence, out key) && savedCount < maxSaveCount)
-            {
-                _versionIndexStore.Append(key, nextSaveSequence);
-                _versionIndexTempDict.Remove(nextSaveSequence);
-                savedSequence = nextSaveSequence;
-                nextSaveSequence++;
-                savedCount++;
-            }
-            _lastSavedVersionIndexSequence = savedSequence;
-        }
-        private void Recover()
-        {
-            RecoverCommandIndexDict();
-            RecoverVersionIndexDict();
-            RecoverAggregateVersionDict();
-        }
-        private void RecoverCommandIndexDict()
-        {
-            var pageIndex = 0L;
-            var size = 1000;
-            var entries = _commandIndexStore.Query(pageIndex * size, size);
-            var maxCommitSequence = 0L;
-
-            while (entries.Count() > 0)
-            {
-                foreach (var entry in entries)
-                {
-                    if (!_commandIndexDict.TryAdd(entry.Key, entry.Value))
-                    {
-                        throw new ENodeException("Duplicate commandId:{0}", entry.Key);
-                    }
-                    if (entry.Value > maxCommitSequence)
-                    {
-                        maxCommitSequence = entry.Value;
-                    }
-                }
-                if (entries.Count() == size)
-                {
-                    entries = _commandIndexStore.Query((pageIndex++) * size, size);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            _lastSavedCommandIndexSequence = maxCommitSequence;
-
-            var baseCommitSequence = maxCommitSequence + 1;
+            var baseCommitSequence = 1;
             var commitLogPageIndex = 0L;
             var commitLogSize = 1000;
             var startCommitSequence = baseCommitSequence + commitLogPageIndex * commitLogSize;
@@ -235,12 +140,22 @@ namespace ENode.Eventing.Impl.InMemory
             while (eventStreams.Count() > 0)
             {
                 var index = 0;
-                foreach (var eventStream in eventStreams)
+                foreach (var stream in eventStreams)
                 {
-                    if (!_commandIndexDict.TryAdd(eventStream.CommandId, startCommitSequence + index))
+                    var aggregateVersionInfo = aggregateCurrentVersionDict.GetOrAdd(stream.AggregateRootId, new AggregateVersionInfo());
+                    var commitSequence = startCommitSequence + index;
+                    try
                     {
-                        throw new ENodeException("Duplicate commandId:{0}", eventStream.CommandId);
+                        aggregateVersionInfo.VersionDict.Add(stream.Version, commitSequence);
+                        aggregateVersionInfo.CommandDict.Add(stream.CommandId, commitSequence);
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(string.Format("Invalid EventStream found when recovering EventStore, EventStream:{0}", stream), ex);
+                        throw;
+                    }
+
+                    aggregateVersionInfo.CurrentVersion = stream.Version;
                     index++;
                 }
                 if (eventStreams.Count() == commitLogSize)
@@ -254,80 +169,13 @@ namespace ENode.Eventing.Impl.InMemory
                 }
             }
         }
-        private void RecoverVersionIndexDict()
-        {
-            var pageIndex = 0L;
-            var size = 1000;
-            var entries = _versionIndexStore.Query(pageIndex * size, size);
-            var maxCommitSequence = 0L;
+    }
 
-            while (entries.Count() > 0)
-            {
-                foreach (var entry in entries)
-                {
-                    if (!_versionIndexDict.TryAdd(entry.Key, entry.Value))
-                    {
-                        throw new ENodeException("Duplicate versionIndex key:{0}", entry.Key);
-                    }
-                    if (entry.Value > maxCommitSequence)
-                    {
-                        maxCommitSequence = entry.Value;
-                    }
-                }
-                if (entries.Count() == size)
-                {
-                    entries = _versionIndexStore.Query((pageIndex++) * size, size);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            _lastSavedVersionIndexSequence = maxCommitSequence;
-
-            var baseCommitSequence = maxCommitSequence + 1;
-            var commitLogPageIndex = 0L;
-            var commitLogSize = 1000;
-            var startCommitSequence = baseCommitSequence + commitLogPageIndex * commitLogSize;
-            var eventStreams = _commitLog.Query(startCommitSequence, commitLogSize);
-
-            while (eventStreams.Count() > 0)
-            {
-                var index = 0;
-                foreach (var eventStream in eventStreams)
-                {
-                    var key = string.Format("{0}{2}{1}", eventStream.AggregateRootId, eventStream.Version, KeySeperator);
-                    if (!_versionIndexDict.TryAdd(key, startCommitSequence + index))
-                    {
-                        throw new ENodeException("Duplicate versionIndex key:{0}", key);
-                    }
-                    index++;
-                }
-                if (eventStreams.Count() == commitLogSize)
-                {
-                    startCommitSequence = baseCommitSequence + (commitLogPageIndex++) * commitLogSize;
-                    eventStreams = _commitLog.Query(startCommitSequence, commitLogSize);
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-        private void RecoverAggregateVersionDict()
-        {
-            foreach (var key in _versionIndexDict.Keys)
-            {
-                var items = key.Split(KeySeperator);
-                var aggregateRootId = items[0];
-                var version = long.Parse(items[1]);
-                var result = _aggregateVersionDict.GetOrAdd(aggregateRootId, version);
-                if (version > result)
-                {
-                    _aggregateVersionDict[aggregateRootId] = version;
-                }
-            }
-        }
+    class AggregateVersionInfo
+    {
+        public int Status;
+        public long CurrentVersion;
+        public IDictionary<Guid, long> CommandDict = new Dictionary<Guid, long>();
+        public IDictionary<long, long> VersionDict = new Dictionary<long, long>();
     }
 }

@@ -196,7 +196,7 @@ namespace ENode.Eventing.Impl.SQL
         }
 
 
-        public EventStream GetEventStream(Guid commandId)
+        public EventStream GetEventStream(string aggregateRootId, Guid commandId)
         {
             throw new NotImplementedException();
         }

@@ -13,10 +13,10 @@ namespace ENode.Eventing
         /// <summary>Shutdown the event store.
         /// </summary>
         void Shutdown();
-        /// <summary>Get the event stream by commandId.
+        /// <summary>Get the event stream by aggregateRootId and commandId.
         /// </summary>
         /// <returns></returns>
-        EventStream GetEventStream(Guid commandId);
+        EventStream GetEventStream(string aggregateRootId, Guid commandId);
         /// <summary>Commit the event stream to the event store.
         /// </summary>
         EventCommitStatus Commit(EventStream stream);
