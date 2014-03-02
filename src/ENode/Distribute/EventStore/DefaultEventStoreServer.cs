@@ -20,7 +20,7 @@ namespace ENode.Distribute.EventStore
         public DefaultEventStoreServer(SocketSetting setting)
         {
             Setting = setting ?? new SocketSetting { Address = SocketUtils.GetLocalIPV4().ToString(), Port = 10000, Backlog = 10000 };
-            _remotingServer = new SocketRemotingServer(setting, new EventStoreClientSocketEventListener(this));
+            _remotingServer = new SocketRemotingServer("EventStoreRemotingServer", Setting, new EventStoreClientSocketEventListener(this));
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
         }
 
@@ -36,7 +36,7 @@ namespace ENode.Distribute.EventStore
         public void Start()
         {
             _remotingServer.Start();
-            _logger.InfoFormat("EventStore server started, [{0}:{1}]", Setting.Address, Setting.Port);
+            _logger.InfoFormat("EventStore server started, listening address:[{0}:{1}]", Setting.Address, Setting.Port);
         }
         public void Shutdown()
         {

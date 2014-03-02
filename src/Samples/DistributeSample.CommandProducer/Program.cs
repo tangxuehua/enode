@@ -51,9 +51,10 @@ namespace DistributeSample.CommandProducer
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
-                .InitializeENode(assemblies)
-                .StartEQueue()
-                .StartEnode();
+                .InitializeBusinessAssemblies(assemblies)
+                .StartEQueue();
+
+            Console.WriteLine("Command Producer started.");
         }
     }
 }

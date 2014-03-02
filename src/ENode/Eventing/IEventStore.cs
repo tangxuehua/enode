@@ -10,12 +10,9 @@ namespace ENode.Eventing
         /// <summary>Represents whether the event store available.
         /// </summary>
         bool IsAvailable { get; }
-        /// <summary>Start the event store.
+        /// <summary>Initialize the event store.
         /// </summary>
-        void Start();
-        /// <summary>Shutdown the event store.
-        /// </summary>
-        void Shutdown();
+        void Initialize();
         /// <summary>Get the event stream by aggregateRootId and commandId.
         /// </summary>
         /// <returns></returns>

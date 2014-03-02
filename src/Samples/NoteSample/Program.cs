@@ -49,9 +49,14 @@ namespace NoteSample
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
-                .InitializeENode(assemblies)
-                .StartEQueue()
-                .StartEnode();
+                .InitializeEventStore()
+                .InitializeBusinessAssemblies(assemblies)
+                .StartRetryCommandService()
+                .StartWaitingCommandService()
+                .StartEQueue();
+
+            Console.WriteLine(string.Empty);
+            Console.WriteLine("Enode Framework started.");
         }
     }
 }

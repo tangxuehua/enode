@@ -12,25 +12,24 @@ using ENode.Infrastructure;
 
 namespace ENode.Distribute.EventStore
 {
-    public class DistributeEventStore : IEventStore
+    public class RemotingEventStore : IEventStore, IEventStoreClient
     {
         private readonly byte[] EmptyData = new byte[0];
         private readonly SocketRemotingClient _remotingClient;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly ILogger _logger;
         private readonly List<int> _taskIds = new List<int>();
         private readonly IScheduleService _scheduleService;
+        private readonly ILogger _logger;
         private bool _isServerAvailable;
 
         public EventStoreClientSetting Setting { get; private set; }
-
         public bool IsAvailable
         {
             get { return _isServerAvailable; }
         }
 
-        public DistributeEventStore() : this(null) { }
-        public DistributeEventStore(EventStoreClientSetting setting)
+        public RemotingEventStore() : this(null) { }
+        public RemotingEventStore(EventStoreClientSetting setting)
         {
             Setting = setting ?? new EventStoreClientSetting();
             _remotingClient = new SocketRemotingClient(Setting.ServerAddress, Setting.ServerPort);
@@ -39,11 +38,12 @@ namespace ENode.Distribute.EventStore
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
         }
 
+        public void Initialize() { }
         public void Start()
         {
+            _remotingClient.Start();
             CheckEventStoreServerAvailable();
             AssertServerAvailable();
-            _remotingClient.Start();
             _taskIds.Add(_scheduleService.ScheduleTask(CheckEventStoreServerAvailable, Setting.CheckAvailableInterval, Setting.CheckAvailableInterval));
             _logger.InfoFormat("EventStore client started.");
         }
@@ -124,7 +124,7 @@ namespace ENode.Distribute.EventStore
             else
             {
                 _isServerAvailable = false;
-                _logger.ErrorFormat("Detect event store server available meet exception, remoting response code:{1}", remotingResponse.Code);
+                _logger.ErrorFormat("Detect event store server available meet exception, remoting response code:{0}, errorMessage:{1}", remotingResponse.Code, Encoding.UTF8.GetString(remotingResponse.Body));
             }
         }
         private void AssertServerAvailable()

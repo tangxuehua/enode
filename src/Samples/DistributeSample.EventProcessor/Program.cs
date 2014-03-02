@@ -31,9 +31,10 @@ namespace DistributeSample.EventProcessor
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
-                .InitializeENode(assemblies)
-                .StartEQueue()
-                .StartEnode();
+                .InitializeBusinessAssemblies(assemblies)
+                .StartEQueue();
+
+            Console.WriteLine("Event Processor started.");
         }
     }
 }

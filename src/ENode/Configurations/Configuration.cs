@@ -96,7 +96,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
             _configuration.SetDefault<ICommitLog, InMemoryCommitLog>();
             _configuration.SetDefault<IEventStore, DefaultEventStore>();
-            _configuration.SetDefault<IEventStoreServer, EmptyEventStoreServer>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
@@ -169,29 +168,40 @@ namespace ENode.Configurations
             return this;
         }
 
-        public ENodeConfiguration UseDistributeEventStore()
+        public ENodeConfiguration UseRemotingEventStore()
         {
-            return UseDistributeEventStore(null);
+            return UseRemotingEventStore(null);
         }
-        public ENodeConfiguration UseDistributeEventStore(EventStoreClientSetting setting)
+        public ENodeConfiguration UseRemotingEventStore(EventStoreClientSetting setting)
         {
-            _configuration.SetDefault<IEventStore, DistributeEventStore>(new DistributeEventStore(setting));
+            var eventStore = new RemotingEventStore(setting);
+            _configuration.SetDefault<IEventStore, RemotingEventStore>(eventStore);
+            _configuration.SetDefault<IEventStoreClient, RemotingEventStore>(eventStore);
             return this;
         }
+
         public ENodeConfiguration UseDefaultEventStoreServer()
         {
             return UseDefaultEventStoreServer(null);
         }
         public ENodeConfiguration UseDefaultEventStoreServer(SocketSetting setting)
         {
-            _configuration.SetDefault<IEventStoreServer, DefaultEventStoreServer>(new DefaultEventStoreServer(setting));
+            var server = new DefaultEventStoreServer(setting);
+            server.Initialize();
+            _configuration.SetDefault<IEventStoreServer, DefaultEventStoreServer>(server);
             return this;
         }
 
-        /// <summary>Initialize all the assembly initializers with the given assemblies.
+        public ENodeConfiguration InitializeEventStore()
+        {
+            ObjectContainer.Resolve<IEventStore>().Initialize();
+            return this;
+        }
+
+        /// <summary>Initialize all the assembly initializers with the given business assemblies.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration InitializeENode(params Assembly[] assemblies)
+        public ENodeConfiguration InitializeBusinessAssemblies(params Assembly[] assemblies)
         {
             ValidateSerializableTypes(assemblies);
             foreach (var assemblyInitializer in _assemblyInitializerServiceTypes.Select(ObjectContainer.Resolve).OfType<IAssemblyInitializer>())
@@ -200,17 +210,37 @@ namespace ENode.Configurations
             }
             return this;
         }
-        /// <summary>Start the enode framework.
+
+        /// <summary>Start the event store client.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration StartEnode()
+        public ENodeConfiguration StartEventStoreClient()
+        {
+            ObjectContainer.Resolve<IEventStoreClient>().Start();
+            return this;
+        }
+        /// <summary>Start the event store server.
+        /// </summary>
+        /// <returns></returns>
+        public ENodeConfiguration StartEventStoreServer()
         {
             ObjectContainer.Resolve<IEventStoreServer>().Start();
-            ObjectContainer.Resolve<IEventStore>().Start();
+            return this;
+        }
+        /// <summary>Start the retry command service.
+        /// </summary>
+        /// <returns></returns>
+        public ENodeConfiguration StartRetryCommandService()
+        {
             ObjectContainer.Resolve<IRetryCommandService>().Start();
+            return this;
+        }
+        /// <summary>Start the waiting command service.
+        /// </summary>
+        /// <returns></returns>
+        public ENodeConfiguration StartWaitingCommandService()
+        {
             ObjectContainer.Resolve<IWaitingCommandService>().Start();
-            ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name).Info("enode started...");
-
             return this;
         }
 

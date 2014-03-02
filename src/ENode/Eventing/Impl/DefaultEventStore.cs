@@ -76,13 +76,10 @@ namespace ENode.Eventing.Impl.InMemory
             }
         }
 
-        public void Start()
+        public void Initialize()
         {
             RecoverAggregateVersionInfoDict();
             _isAvailable = true;
-        }
-        public void Shutdown()
-        {
         }
 
         public EventStream GetEventStream(string aggregateRootId, Guid commandId)
