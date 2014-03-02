@@ -13,19 +13,19 @@ namespace ENode.Eventing
         /// <summary>Initialize the event store.
         /// </summary>
         void Initialize();
-        /// <summary>Get the event stream by aggregateRootId and commandId.
+        /// <summary>Get the event byte stream by aggregateRootId and commandId.
         /// </summary>
         /// <returns></returns>
-        EventStream GetEventStream(string aggregateRootId, Guid commandId);
-        /// <summary>Commit the event stream to the event store.
+        EventByteStream GetEventStream(string aggregateRootId, Guid commandId);
+        /// <summary>Commit the event byte stream to the event store.
         /// </summary>
-        EventCommitStatus Commit(EventStream stream);
-        /// <summary>Query event streams from event store.
+        EventCommitStatus Commit(EventByteStream stream);
+        /// <summary>Query event byte streams from event store.
         /// </summary>
-        IEnumerable<EventStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion);
-        /// <summary>Query all the event streams from the event store.
+        IEnumerable<EventByteStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion);
+        /// <summary>Query all the event byte streams from the event store.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<EventStream> QueryAll();
+        IEnumerable<EventByteStream> QueryAll();
     }
 }

@@ -77,7 +77,7 @@
     <Compile Include="ENodeExtensions.cs" />
     <Compile Include="EQueueIntegrations\CommandTypeCodeManager.cs" />
     <Compile Include="EQueueIntegrations\EventTopicManager.cs" />
-    <Compile Include="EQueueIntegrations\EventTypeCodeManager.cs" />
+    <Compile Include="EventTypeCodeManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

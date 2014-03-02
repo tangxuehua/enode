@@ -73,12 +73,14 @@
     <Compile Include="CommandHandlers\CreateNoteCommandHandler.cs" />
     <Compile Include="Commands\ChangeNoteTitleCommand.cs" />
     <Compile Include="Commands\CreateNoteCommand.cs" />
+    <Compile Include="DomainEvents\NoteCreated.cs" />
+    <Compile Include="DomainEvents\NoteTitleChanged.cs" />
     <Compile Include="Domain\Note.cs" />
     <Compile Include="ENodeExtensions.cs" />
     <Compile Include="EQueueIntegrations\CommandTopicManager.cs" />
     <Compile Include="EQueueIntegrations\CommandTypeCodeManager.cs" />
     <Compile Include="EQueueIntegrations\EventTopicManager.cs" />
-    <Compile Include="EQueueIntegrations\EventTypeCodeManager.cs" />
+    <Compile Include="EventTypeCodeManager.cs" />
     <Compile Include="EventHandlers\NoteEventHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -98,10 +100,6 @@
     <ProjectReference Include="..\..\Extensions\ENode.EQueue\ENode.EQueue.csproj">
       <Project>{8b5368e5-8518-4684-90eb-048dcbf76e9a}</Project>
       <Name>ENode.EQueue</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\DistributeEventStoreSample.Events\DistributeEventStoreSample.Events.csproj">
-      <Project>{50d1e5ae-e3c6-4e6d-bdcd-bb40a674a550}</Project>
-      <Name>DistributeEventStoreSample.Events</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

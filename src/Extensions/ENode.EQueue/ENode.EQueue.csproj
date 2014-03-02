@@ -63,7 +63,6 @@
     <Compile Include="Eventing\EventPublisher.cs" />
     <Compile Include="Eventing\EventMessage.cs" />
     <Compile Include="Eventing\DomainEventHandledMessageSender.cs" />
-    <Compile Include="Eventing\IEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\IEventTopicProvider.cs" />
     <Compile Include="Commanding\CommandService.cs" />
     <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />

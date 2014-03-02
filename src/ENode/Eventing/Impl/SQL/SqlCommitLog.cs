@@ -36,7 +36,7 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Public Methods
 
-        public long Append(EventStream stream)
+        public long Append(EventByteStream stream)
         {
             var sqlEventStream = BuildSqlEventStreamFrom(stream);
             return _connectionFactory.CreateConnection(_connectionString).TryExecute<long>(connection =>
@@ -44,9 +44,9 @@ namespace ENode.Eventing.Impl.SQL
                 return connection.Insert(sqlEventStream, _commitLogTable);
             });
         }
-        public EventStream Get(long commitSequence)
+        public EventByteStream Get(long commitSequence)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute<EventStream>(connection =>
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute<EventByteStream>(connection =>
             {
                 var sqlEventStream = connection.QuerySingleOrDefault<SqlEventStream>(new { CommitSequence = commitSequence }, _commitLogTable);
                 if (sqlEventStream != null)
@@ -82,17 +82,17 @@ namespace ENode.Eventing.Impl.SQL
                     sqlCommitRecord.AggregateRootId,
                     sqlCommitRecord.Version);
         }
-        private EventStream BuildEventStreamFrom(SqlEventStream sqlEventStream)
+        private EventByteStream BuildEventStreamFrom(SqlEventStream sqlEventStream)
         {
-            return new EventStream(
+            return new EventByteStream(
                     sqlEventStream.CommandId,
                     sqlEventStream.AggregateRootId,
                     sqlEventStream.AggregateRootName,
                     sqlEventStream.Version,
                     sqlEventStream.Timestamp,
-                    _binarySerializer.Deserialize<IEnumerable<IDomainEvent>>(sqlEventStream.Events));
+                    _binarySerializer.Deserialize<IEnumerable<EventEntry>>(sqlEventStream.Events));
         }
-        private SqlEventStream BuildSqlEventStreamFrom(EventStream eventStream)
+        private SqlEventStream BuildSqlEventStreamFrom(EventByteStream eventStream)
         {
             return new SqlEventStream
             {

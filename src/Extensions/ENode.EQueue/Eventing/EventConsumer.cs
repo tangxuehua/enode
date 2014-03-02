@@ -121,8 +121,8 @@ namespace ENode.EQueue
 
             foreach (var typeData in data.Events)
             {
-                var eventType = _eventTypeCodeProvider.GetType(typeData.TypeCode);
-                var evnt = _binarySerializer.Deserialize(typeData.Data, eventType) as IDomainEvent;
+                var eventType = _eventTypeCodeProvider.GetType(typeData.EventTypeCode);
+                var evnt = _binarySerializer.Deserialize(typeData.EventData, eventType) as IDomainEvent;
                 events.Add(evnt);
             }
 

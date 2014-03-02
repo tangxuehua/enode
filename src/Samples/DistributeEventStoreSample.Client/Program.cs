@@ -49,6 +49,7 @@ namespace DistributeEventStoreSample.Client
                 .RegisterENodeComponents()
                 .UseRemotingEventStore()
                 .RegisterBusinessComponents(assemblies)
+                .SetEventTypeCodeProvider()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartRetryCommandService()

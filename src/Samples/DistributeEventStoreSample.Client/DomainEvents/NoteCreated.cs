@@ -1,7 +1,7 @@
 ﻿using System;
 using ENode.Eventing;
 
-namespace DistributeEventStoreSample.Events
+namespace DistributeEventStoreSample.Client.DomainEvents
 {
     [Serializable]
     public class NoteCreatedEvent : DomainEvent<Guid>

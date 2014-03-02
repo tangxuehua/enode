@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DistributeEventStoreSample.Events;
-using ENode.EQueue;
 using ENode.Eventing;
+using NoteSample.DomainEvents;
 
-namespace DistributeEventStoreSample.Client.EQueueIntegrations
+namespace NoteSample
 {
     public class EventTypeCodeManager : IEventTypeCodeProvider
     {

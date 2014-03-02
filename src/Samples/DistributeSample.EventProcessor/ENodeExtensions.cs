@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using ECommon.IoC;
 using ECommon.Scheduling;
 using ENode.Configurations;
 using ENode.EQueue;
+using ENode.Eventing;
 using EQueue.Clients.Consumers;
 using EQueue.Configurations;
 
@@ -15,12 +15,16 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
         private static EventConsumer _eventConsumer;
         private static DomainEventHandledMessageSender _domainEventHandledMessageSender;
 
+        public static ENodeConfiguration SetEventTypeCodeProvider(this ENodeConfiguration enodeConfiguration)
+        {
+            enodeConfiguration.GetCommonConfiguration().SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
+            return enodeConfiguration;
+        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
 
             configuration.RegisterEQueueComponents();
-            configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
 
             var eventConsumerSetting = new ConsumerSetting
             {

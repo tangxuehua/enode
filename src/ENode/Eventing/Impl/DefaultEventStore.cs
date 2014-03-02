@@ -32,7 +32,7 @@ namespace ENode.Eventing.Impl.InMemory
             _isAvailable = false;
         }
 
-        public EventCommitStatus Commit(EventStream stream)
+        public EventCommitStatus Commit(EventByteStream stream)
         {
             if (!_isAvailable)
             {
@@ -82,7 +82,7 @@ namespace ENode.Eventing.Impl.InMemory
             _isAvailable = true;
         }
 
-        public EventStream GetEventStream(string aggregateRootId, Guid commandId)
+        public EventByteStream GetEventStream(string aggregateRootId, Guid commandId)
         {
             if (!_isAvailable)
             {
@@ -101,7 +101,7 @@ namespace ENode.Eventing.Impl.InMemory
             }
             return null;
         }
-        public IEnumerable<EventStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventByteStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
         {
             if (!_isAvailable)
             {
@@ -110,27 +110,27 @@ namespace ENode.Eventing.Impl.InMemory
             AggregateVersionInfo aggregateVersionInfo;
             if (!_aggregateCurrentVersionDict.TryGetValue(aggregateRootId, out aggregateVersionInfo))
             {
-                return new EventStream[0];
+                return new EventByteStream[0];
             }
 
             var minVersion = minStreamVersion > 1 ? minStreamVersion : 1;
             var maxVersion = maxStreamVersion < aggregateVersionInfo.CurrentVersion ? maxStreamVersion : aggregateVersionInfo.CurrentVersion;
-            var eventStreamList = new List<EventStream>();
+            var eventByteStreamList = new List<EventByteStream>();
             for (var version = minVersion; version <= maxVersion; version++)
             {
                 var commitSequence = aggregateVersionInfo.VersionDict[version];
-                var eventStream = _commitLog.Get(commitSequence);
-                if (eventStream == null)
+                var eventByteStream = _commitLog.Get(commitSequence);
+                if (eventByteStream == null)
                 {
-                    throw new ENodeException("Event stream cannot be found from commit log, commit sequence:{0}, aggregate [name={1},id={2},version={3}].", commitSequence, aggregateRootName, aggregateRootId, version);
+                    throw new ENodeException("Event byte stream cannot be found from commit log, commit sequence:{0}, aggregate [name={1},id={2},version={3}].", commitSequence, aggregateRootName, aggregateRootId, version);
                 }
-                eventStreamList.Add(eventStream);
+                eventByteStreamList.Add(eventByteStream);
             }
-            return eventStreamList;
+            return eventByteStreamList;
         }
-        public IEnumerable<EventStream> QueryAll()
+        public IEnumerable<EventByteStream> QueryAll()
         {
-            var totalStreams = new List<EventStream>();
+            var totalStreams = new List<EventByteStream>();
             //TODO
             //foreach (var streams in _aggregateEventsDict.Values)
             //{

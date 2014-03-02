@@ -83,10 +83,6 @@
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DistributeEventStoreSample.Events\DistributeEventStoreSample.Events.csproj">
-      <Project>{50d1e5ae-e3c6-4e6d-bdcd-bb40a674a550}</Project>
-      <Name>DistributeEventStoreSample.Events</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

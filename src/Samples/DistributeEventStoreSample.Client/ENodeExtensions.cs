@@ -25,6 +25,11 @@ namespace DistributeEventStoreSample.Client.EQueueIntegrations
         private static DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private static CommandResultProcessor _commandResultProcessor;
 
+        public static ENodeConfiguration SetEventTypeCodeProvider(this ENodeConfiguration enodeConfiguration)
+        {
+            enodeConfiguration.GetCommonConfiguration().SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
+            return enodeConfiguration;
+        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
@@ -33,7 +38,6 @@ namespace DistributeEventStoreSample.Client.EQueueIntegrations
             configuration.SetDefault<ICommandTopicProvider, CommandTopicManager>();
             configuration.SetDefault<IEventTopicProvider, EventTopicManager>();
             configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeManager>();
-            configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
 
             var consumerSetting = new ConsumerSetting
             {

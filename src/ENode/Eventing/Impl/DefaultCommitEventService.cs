@@ -17,6 +17,7 @@ namespace ENode.Eventing
         private readonly IWaitingCommandService _waitingCommandService;
         private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
         private readonly IAggregateRootFactory _aggregateRootFactory;
+        private readonly IEventStreamConvertService _eventStreamConvertService;
         private readonly IEventSourcingService _eventSourcingService;
         private readonly IMemoryCache _memoryCache;
         private readonly IAggregateStorage _aggregateStorage;
@@ -36,6 +37,7 @@ namespace ENode.Eventing
         /// <param name="waitingCommandService"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="aggregateRootFactory"></param>
+        /// <param name="eventStreamConvertService"></param>
         /// <param name="eventSourcingService"></param>
         /// <param name="memoryCache"></param>
         /// <param name="aggregateStorage"></param>
@@ -49,6 +51,7 @@ namespace ENode.Eventing
             IWaitingCommandService waitingCommandService,
             IAggregateRootTypeProvider aggregateRootTypeProvider,
             IAggregateRootFactory aggregateRootFactory,
+            IEventStreamConvertService eventStreamConvertService,
             IEventSourcingService eventSourcingService,
             IMemoryCache memoryCache,
             IAggregateStorage aggregateStorage,
@@ -62,6 +65,7 @@ namespace ENode.Eventing
             _waitingCommandService = waitingCommandService;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _aggregateRootFactory = aggregateRootFactory;
+            _eventStreamConvertService = eventStreamConvertService;
             _eventSourcingService = eventSourcingService;
             _memoryCache = memoryCache;
             _aggregateStorage = aggregateStorage;
@@ -181,7 +185,7 @@ namespace ENode.Eventing
             {
                 try
                 {
-                    context.CommitStatus = _eventStore.Commit(context.EventStream);
+                    context.CommitStatus = _eventStore.Commit(_eventStreamConvertService.ConvertTo(context.EventStream));
                     return true;
                 }
                 catch (Exception ex)
@@ -335,7 +339,7 @@ namespace ENode.Eventing
         }
         private EventStream GetEventStream(string aggregateRootId, Guid commandId)
         {
-            return _eventStore.GetEventStream(aggregateRootId, commandId);
+            return _eventStreamConvertService.ConvertFrom(_eventStore.GetEventStream(aggregateRootId, commandId));
         }
 
         #endregion

@@ -40,8 +40,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributeEventStoreSample.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributeEventStoreSample.Server", "src\Samples\DistributeEventStoreSample.Server\DistributeEventStoreSample.Server.csproj", "{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributeEventStoreSample.Events", "src\Samples\DistributeEventStoreSample.Events\DistributeEventStoreSample.Events.csproj", "{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,16 +160,6 @@ Global
 		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Release|x86.ActiveCfg = Release|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Release|Any CPU.Build.0 = Release|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -189,7 +177,6 @@ Global
 		{8B5368E5-8518-4684-90EB-048DCBF76E9A} = {C0DE6060-8F08-4822-A75E-3C9F227F8F56}
 		{A658BAD7-6A2D-4A22-8890-350FB5ABC603} = {FBE92895-72DE-456D-ABBA-ACD4FB707DFC}
 		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F} = {FBE92895-72DE-456D-ABBA-ACD4FB707DFC}
-		{50D1E5AE-E3C6-4E6D-BDCD-BB40A674A550} = {FBE92895-72DE-456D-ABBA-ACD4FB707DFC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.2\lib\NET35

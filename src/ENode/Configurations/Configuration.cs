@@ -92,6 +92,8 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
 
+            _configuration.SetDefault<IEventTypeCodeProvider, NotImplementedEventTypeCodeProvider>();
+            _configuration.SetDefault<IEventStreamConvertService, DefaultEventStreamConvertService>();
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
             _configuration.SetDefault<ICommitLog, InMemoryCommitLog>();

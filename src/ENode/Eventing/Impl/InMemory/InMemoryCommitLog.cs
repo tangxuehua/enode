@@ -10,9 +10,9 @@ namespace ENode.Eventing.Impl.InMemory
     public class InMemoryCommitLog : ICommitLog
     {
         private long _sequence;
-        private readonly ConcurrentDictionary<long, EventStream> _commitLogDict = new ConcurrentDictionary<long, EventStream>();
+        private readonly ConcurrentDictionary<long, EventByteStream> _commitLogDict = new ConcurrentDictionary<long, EventByteStream>();
 
-        public long Append(EventStream stream)
+        public long Append(EventByteStream stream)
         {
             var nextSequence = Interlocked.Increment(ref _sequence);
             if (!_commitLogDict.TryAdd(nextSequence, stream))
@@ -21,9 +21,9 @@ namespace ENode.Eventing.Impl.InMemory
             }
             return nextSequence;
         }
-        public EventStream Get(long commitSequence)
+        public EventByteStream Get(long commitSequence)
         {
-            EventStream eventStream;
+            EventByteStream eventStream;
             if (_commitLogDict.TryGetValue(commitSequence, out eventStream))
             {
                 return eventStream;

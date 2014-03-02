@@ -48,6 +48,7 @@ namespace NoteSample
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
+                .SetEventTypeCodeProvider()
                 .UseEQueue()
                 .InitializeEventStore()
                 .InitializeBusinessAssemblies(assemblies)

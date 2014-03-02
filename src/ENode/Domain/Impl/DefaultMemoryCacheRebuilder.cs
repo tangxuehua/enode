@@ -45,18 +45,19 @@ namespace ENode.Domain.Impl
         /// </summary>
         public void RebuildMemoryCache()
         {
-            var groups = _eventStore.QueryAll().GroupBy(x => x.AggregateRootId);
-            foreach (var group in groups)
-            {
-                if (!group.Any()) continue;
+            //TODO
+            //var groups = _eventStore.QueryAll().GroupBy(x => x.AggregateRootId);
+            //foreach (var group in groups)
+            //{
+            //    if (!group.Any()) continue;
 
-                var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(group.First().AggregateRootName);
-                var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
+            //    var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(group.First().AggregateRootName);
+            //    var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
 
-                _eventSourcingService.ReplayEvents(aggregateRoot, group);
+            //    _eventSourcingService.ReplayEvents(aggregateRoot, group);
 
-                _memoryCache.Set(aggregateRoot);
-            }
+            //    _memoryCache.Set(aggregateRoot);
+            //}
         }
     }
 }

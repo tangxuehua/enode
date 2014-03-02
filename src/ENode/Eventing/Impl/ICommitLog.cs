@@ -8,12 +8,12 @@ namespace ENode.Eventing.Impl
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
-        long Append(EventStream stream);
+        long Append(EventByteStream stream);
         /// <summary>Get the event stream by the commit sequence.
         /// </summary>
         /// <param name="commitSequence"></param>
         /// <returns></returns>
-        EventStream Get(long commitSequence);
+        EventByteStream Get(long commitSequence);
         /// <summary>Query event commit records by start sequence and size.
         /// </summary>
         /// <param name="start"></param>

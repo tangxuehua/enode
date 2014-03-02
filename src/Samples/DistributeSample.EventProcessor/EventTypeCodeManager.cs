@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ECommon.IoC;
-using ENode.EQueue;
+using DistributeSample.Events;
 using ENode.Eventing;
-using NoteSample.DomainEvents;
 
-namespace NoteSample.EQueueIntegrations
+namespace DistributeSample.EventProcessor
 {
     public class EventTypeCodeManager : IEventTypeCodeProvider
     {
@@ -15,7 +13,6 @@ namespace NoteSample.EQueueIntegrations
         public EventTypeCodeManager()
         {
             _typeCodeDict.Add(100, typeof(NoteCreatedEvent));
-            _typeCodeDict.Add(101, typeof(NoteTitleChangedEvent));
         }
 
         public int GetTypeCode(IDomainEvent domainEvent)

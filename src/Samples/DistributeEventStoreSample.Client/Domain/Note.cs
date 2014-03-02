@@ -1,6 +1,6 @@
 ﻿using System;
+using DistributeEventStoreSample.Client.DomainEvents;
 using ENode.Domain;
-using DistributeEventStoreSample.Events;
 
 namespace DistributeEventStoreSample.Client.Domain
 {

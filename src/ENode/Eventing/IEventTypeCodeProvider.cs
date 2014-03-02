@@ -1,7 +1,6 @@
 ﻿using System;
-using ENode.Eventing;
 
-namespace ENode.EQueue
+namespace ENode.Eventing
 {
     public interface IEventTypeCodeProvider
     {

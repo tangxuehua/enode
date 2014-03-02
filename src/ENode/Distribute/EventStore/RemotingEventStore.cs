@@ -57,7 +57,7 @@ namespace ENode.Distribute.EventStore
             _logger.InfoFormat("EventStore client shutdown.");
         }
 
-        public EventStream GetEventStream(string aggregateRootId, Guid commandId)
+        public EventByteStream GetEventStream(string aggregateRootId, Guid commandId)
         {
             AssertServerAvailable();
             var data = _binarySerializer.Serialize(new GetEventStreamRequest(aggregateRootId, commandId));
@@ -65,7 +65,7 @@ namespace ENode.Distribute.EventStore
             var remotingResponse = _remotingClient.InvokeSync(remotingRequest, 10000);
             if (remotingResponse.Code == (int)ResponseCode.Success)
             {
-                return _binarySerializer.Deserialize<EventStream>(remotingResponse.Body);
+                return _binarySerializer.Deserialize<EventByteStream>(remotingResponse.Body);
             }
             else
             {
@@ -73,7 +73,7 @@ namespace ENode.Distribute.EventStore
                 throw new ENodeException(string.Format("Get event stream from remoting event store server failed. errorMessage:{0}", errorMessage));
             }
         }
-        public EventCommitStatus Commit(EventStream stream)
+        public EventCommitStatus Commit(EventByteStream stream)
         {
             AssertServerAvailable();
             var data = _binarySerializer.Serialize(stream);
@@ -89,7 +89,7 @@ namespace ENode.Distribute.EventStore
                 throw new ENodeException(string.Format("Commit event stream to remoting event store server failed. errorMessage:{0}", errorMessage));
             }
         }
-        public IEnumerable<EventStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventByteStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
         {
             AssertServerAvailable();
             var data = _binarySerializer.Serialize(new QueryAggregateEventStreamsRequest(aggregateRootId, aggregateRootName, minStreamVersion, maxStreamVersion));
@@ -97,7 +97,7 @@ namespace ENode.Distribute.EventStore
             var remotingResponse = _remotingClient.InvokeSync(remotingRequest, 10000);
             if (remotingResponse.Code == (int)ResponseCode.Success)
             {
-                return _binarySerializer.Deserialize<IEnumerable<EventStream>>(remotingResponse.Body);
+                return _binarySerializer.Deserialize<IEnumerable<EventByteStream>>(remotingResponse.Body);
             }
             else
             {
@@ -105,11 +105,11 @@ namespace ENode.Distribute.EventStore
                 throw new ENodeException(string.Format("Query aggregate event streams from remoting event store server failed. errorMessage:{0}", errorMessage));
             }
         }
-        public IEnumerable<EventStream> QueryAll()
+        public IEnumerable<EventByteStream> QueryAll()
         {
             AssertServerAvailable();
             //TODO
-            return new List<EventStream>();
+            return new List<EventByteStream>();
         }
 
         private void CheckEventStoreServerAvailable()

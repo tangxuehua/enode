@@ -22,7 +22,7 @@ namespace ENode.Distribute.EventStore.RequestHandlers
         {
             try
             {
-                var eventStream = _binarySerializer.Deserialize<EventStream>(request.Body);
+                var eventStream = _binarySerializer.Deserialize<EventByteStream>(request.Body);
                 var commitStatus = _eventStore.Commit(eventStream);
                 var data = BitConverter.GetBytes((int)commitStatus);
                 return new RemotingResponse((int)ResponseCode.Success, request.Sequence, data);

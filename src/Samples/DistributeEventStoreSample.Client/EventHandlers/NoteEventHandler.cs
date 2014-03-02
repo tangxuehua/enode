@@ -1,5 +1,5 @@
 ﻿using System;
-using DistributeEventStoreSample.Events;
+using DistributeEventStoreSample.Client.DomainEvents;
 using ECommon.IoC;
 using ENode.Eventing;
 

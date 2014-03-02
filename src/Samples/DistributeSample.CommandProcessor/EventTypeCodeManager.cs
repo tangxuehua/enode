@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using DistributeSample.Events;
-using ENode.EQueue;
 using ENode.Eventing;
 
-namespace DistributeSample.EventProcessor.EQueueIntegrations
+namespace DistributeSample.CommandProcessor
 {
     public class EventTypeCodeManager : IEventTypeCodeProvider
     {

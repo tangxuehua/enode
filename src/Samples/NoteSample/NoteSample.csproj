@@ -81,7 +81,7 @@
     <Compile Include="Commands\CreateNoteCommand.cs" />
     <Compile Include="Domain\Note.cs" />
     <Compile Include="ENodeExtensions.cs" />
-    <Compile Include="EQueueIntegrations\EventTypeCodeManager.cs" />
+    <Compile Include="EventTypeCodeManager.cs" />
     <Compile Include="EQueueIntegrations\EventTopicManager.cs" />
     <Compile Include="EQueueIntegrations\CommandTypeCodeManager.cs" />
     <Compile Include="EQueueIntegrations\CommandTopicManager.cs" />

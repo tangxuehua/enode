@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+﻿using System.Collections.Generic;
 using ECommon.IoC;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -11,7 +8,6 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
-using EQueue.Utils;
 
 namespace ENode.EQueue
 {
@@ -76,7 +72,7 @@ namespace ENode.EQueue
             {
                 var typeCode = _eventTypeCodeProvider.GetTypeCode(evnt);
                 var eventData = _binarySerializer.Serialize(evnt);
-                data.Events.Add(new ByteTypeData(typeCode, eventData));
+                data.Events.Add(new EventEntry(typeCode, eventData));
             }
 
             return data;
