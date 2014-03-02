@@ -14,27 +14,32 @@ namespace ENode.Eventing.Impl.InMemory
     {
         private const int Editing = 1;
         private const int UnEditing = 0;
-        private readonly ConcurrentDictionary<string, AggregateVersionInfo> aggregateCurrentVersionDict;
+        private readonly ConcurrentDictionary<string, AggregateVersionInfo> _aggregateCurrentVersionDict;
         private readonly ICommitLog _commitLog;
         private readonly ILogger _logger;
-        private bool _started;
+        private bool _isAvailable;
+
+        public bool IsAvailable
+        {
+            get { return _isAvailable; }
+        }
 
         public DefaultEventStore(ICommitLog commitLog, ILoggerFactory loggerFactory)
         {
-            aggregateCurrentVersionDict = new ConcurrentDictionary<string, AggregateVersionInfo>();
+            _aggregateCurrentVersionDict = new ConcurrentDictionary<string, AggregateVersionInfo>();
             _commitLog = commitLog;
             _logger = loggerFactory.Create(GetType().Name);
-            _started = false;
+            _isAvailable = false;
         }
 
         public EventCommitStatus Commit(EventStream stream)
         {
-            if (!_started)
+            if (!_isAvailable)
             {
-                throw new ENodeException("EventStore has not been started, cannot allow committing event stream.");
+                throw new ENodeException("EventStore is not available.");
             }
 
-            var aggregateVersionInfo = aggregateCurrentVersionDict.GetOrAdd(stream.AggregateRootId, new AggregateVersionInfo());
+            var aggregateVersionInfo = _aggregateCurrentVersionDict.GetOrAdd(stream.AggregateRootId, new AggregateVersionInfo());
             var originalStatus = Interlocked.CompareExchange(ref aggregateVersionInfo.Status, Editing, UnEditing);
 
             if (originalStatus == aggregateVersionInfo.Status)
@@ -74,7 +79,7 @@ namespace ENode.Eventing.Impl.InMemory
         public void Start()
         {
             RecoverAggregateVersionInfoDict();
-            _started = true;
+            _isAvailable = true;
         }
         public void Shutdown()
         {
@@ -82,8 +87,12 @@ namespace ENode.Eventing.Impl.InMemory
 
         public EventStream GetEventStream(string aggregateRootId, Guid commandId)
         {
+            if (!_isAvailable)
+            {
+                throw new ENodeException("EventStore is not available.");
+            }
             AggregateVersionInfo aggregateVersionInfo;
-            if (!aggregateCurrentVersionDict.TryGetValue(aggregateRootId, out aggregateVersionInfo))
+            if (!_aggregateCurrentVersionDict.TryGetValue(aggregateRootId, out aggregateVersionInfo))
             {
                 return null;
             }
@@ -97,8 +106,12 @@ namespace ENode.Eventing.Impl.InMemory
         }
         public IEnumerable<EventStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
         {
+            if (!_isAvailable)
+            {
+                throw new ENodeException("EventStore is not available.");
+            }
             AggregateVersionInfo aggregateVersionInfo;
-            if (!aggregateCurrentVersionDict.TryGetValue(aggregateRootId, out aggregateVersionInfo))
+            if (!_aggregateCurrentVersionDict.TryGetValue(aggregateRootId, out aggregateVersionInfo))
             {
                 return new EventStream[0];
             }
@@ -141,7 +154,7 @@ namespace ENode.Eventing.Impl.InMemory
             {
                 foreach (var commitRecord in commitRecords)
                 {
-                    var aggregateVersionInfo = aggregateCurrentVersionDict.GetOrAdd(commitRecord.AggregateRootId, new AggregateVersionInfo());
+                    var aggregateVersionInfo = _aggregateCurrentVersionDict.GetOrAdd(commitRecord.AggregateRootId, new AggregateVersionInfo());
                     try
                     {
                         aggregateVersionInfo.VersionDict.Add(commitRecord.Version, commitRecord.CommitSequence);

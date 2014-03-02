@@ -7,6 +7,9 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventStore
     {
+        /// <summary>Represents whether the event store available.
+        /// </summary>
+        bool IsAvailable { get; }
         /// <summary>Start the event store.
         /// </summary>
         void Start();
