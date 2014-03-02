@@ -59,7 +59,7 @@
     <Compile Include="Commanding\IWaitingCommandCache.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Distribute\EventStore\DefaultEventStoreServer.cs" />
-    <Compile Include="Distribute\EventStore\EventStoreClient.cs" />
+    <Compile Include="Distribute\EventStore\DistributeEventStore.cs" />
     <Compile Include="Distribute\EventStore\EventStoreClientSetting.cs" />
     <Compile Include="Distribute\EventStore\Protocols\QueryAggregateEventStreamsRequest.cs" />
     <Compile Include="Distribute\EventStore\Protocols\GetEventStreamRequest.cs" />
@@ -86,6 +86,7 @@
     <Compile Include="Eventing\ICommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
+    <Compile Include="Eventing\Impl\EmptyEventStoreServer.cs" />
     <Compile Include="Eventing\Impl\ICommitLog.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryCommitLog.cs" />
     <Compile Include="Eventing\Impl\DefaultEventStore.cs" />

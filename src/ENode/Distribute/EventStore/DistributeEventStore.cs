@@ -12,7 +12,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Distribute.EventStore
 {
-    public class EventStoreClient : IEventStore
+    public class DistributeEventStore : IEventStore
     {
         private readonly byte[] EmptyData = new byte[0];
         private readonly SocketRemotingClient _remotingClient;
@@ -29,8 +29,8 @@ namespace ENode.Distribute.EventStore
             get { return _isServerAvailable; }
         }
 
-        public EventStoreClient() : this(null) { }
-        public EventStoreClient(EventStoreClientSetting setting)
+        public DistributeEventStore() : this(null) { }
+        public DistributeEventStore(EventStoreClientSetting setting)
         {
             Setting = setting ?? new EventStoreClientSetting();
             _remotingClient = new SocketRemotingClient(Setting.ServerAddress, Setting.ServerPort);
