@@ -8,16 +8,16 @@ namespace ENode.Eventing
     [Serializable]
     public class EventByteStream
     {
-        public Guid CommandId { get; private set; }
+        public string CommitId { get; private set; }
         public string AggregateRootId { get; private set; }
         public string AggregateRootName { get; private set; }
-        public long Version { get; private set; }
+        public int Version { get; private set; }
         public DateTime Timestamp { get; private set; }
         public IEnumerable<EventEntry> Events { get; private set; }
 
-        public EventByteStream(Guid commandId, string aggregateRootId, string aggregateRootName, long version, DateTime timestamp, IEnumerable<EventEntry> events)
+        public EventByteStream(string commitId, string aggregateRootId, string aggregateRootName, int version, DateTime timestamp, IEnumerable<EventEntry> events)
         {
-            CommandId = commandId;
+            CommitId = commitId;
             AggregateRootId = aggregateRootId;
             AggregateRootName = aggregateRootName;
             Version = version;

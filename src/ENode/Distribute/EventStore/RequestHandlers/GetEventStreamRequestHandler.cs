@@ -23,7 +23,7 @@ namespace ENode.Distribute.EventStore.RequestHandlers
             try
             {
                 var businessRequest = _binarySerializer.Deserialize<GetEventStreamRequest>(request.Body);
-                var eventStream = _eventStore.GetEventStream(businessRequest.AggregateRootId, businessRequest.CommandId);
+                var eventStream = _eventStore.GetEventStream(businessRequest.AggregateRootId, businessRequest.CommitId);
                 var responseData = _binarySerializer.Serialize(eventStream);
                 return new RemotingResponse((int)ResponseCode.Success, request.Sequence, responseData);
             }

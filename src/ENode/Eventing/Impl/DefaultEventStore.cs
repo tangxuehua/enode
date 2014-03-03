@@ -49,7 +49,7 @@ namespace ENode.Eventing.Impl.InMemory
 
             try
             {
-                if (aggregateVersionInfo.CommandDict.ContainsKey(stream.CommandId))
+                if (aggregateVersionInfo.CommitDict.ContainsKey(stream.CommitId))
                 {
                     return EventCommitStatus.DuplicateCommit;
                 }
@@ -57,7 +57,7 @@ namespace ENode.Eventing.Impl.InMemory
                 {
                     var commitSequence = _commitLog.Append(stream);
                     aggregateVersionInfo.VersionDict.Add(stream.Version, commitSequence);
-                    aggregateVersionInfo.CommandDict.Add(stream.CommandId, commitSequence);
+                    aggregateVersionInfo.CommitDict.Add(stream.CommitId, commitSequence);
                     aggregateVersionInfo.CurrentVersion = stream.Version;
                     return EventCommitStatus.Success;
                 }
@@ -82,7 +82,7 @@ namespace ENode.Eventing.Impl.InMemory
             _isAvailable = true;
         }
 
-        public EventByteStream GetEventStream(string aggregateRootId, Guid commandId)
+        public EventByteStream GetEventStream(string aggregateRootId, string commitId)
         {
             if (!_isAvailable)
             {
@@ -95,13 +95,13 @@ namespace ENode.Eventing.Impl.InMemory
             }
 
             long commitSequence;
-            if (aggregateVersionInfo.CommandDict.TryGetValue(commandId, out commitSequence))
+            if (aggregateVersionInfo.CommitDict.TryGetValue(commitId, out commitSequence))
             {
                 return _commitLog.Get(commitSequence);
             }
             return null;
         }
-        public IEnumerable<EventByteStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventByteStream> Query(string aggregateRootId, string aggregateRootName, int minStreamVersion, int maxStreamVersion)
         {
             if (!_isAvailable)
             {
@@ -155,7 +155,7 @@ namespace ENode.Eventing.Impl.InMemory
                     try
                     {
                         aggregateVersionInfo.VersionDict.Add(commitRecord.Version, commitRecord.CommitSequence);
-                        aggregateVersionInfo.CommandDict.Add(commitRecord.CommandId, commitRecord.CommitSequence);
+                        aggregateVersionInfo.CommitDict.Add(commitRecord.CommitId, commitRecord.CommitSequence);
                     }
                     catch (Exception ex)
                     {
@@ -183,7 +183,7 @@ namespace ENode.Eventing.Impl.InMemory
     {
         public int Status;
         public long CurrentVersion;
-        public IDictionary<Guid, long> CommandDict = new Dictionary<Guid, long>();
-        public IDictionary<long, long> VersionDict = new Dictionary<long, long>();
+        public IDictionary<string, long> CommitDict = new Dictionary<string, long>();
+        public IDictionary<int, long> VersionDict = new Dictionary<int, long>();
     }
 }

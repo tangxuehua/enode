@@ -19,7 +19,7 @@ namespace ENode.EQueue
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventProcessor _eventProcessor;
-        private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
+        private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
         private readonly static ConsumerSetting _consumerSetting = new ConsumerSetting
         {
             MessageHandleMode = MessageHandleMode.Sequential
@@ -53,7 +53,7 @@ namespace ENode.EQueue
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
-            _messageContextDict = new ConcurrentDictionary<Guid, IMessageContext>();
+            _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _domainEventHandledMessageSender = domainEventHandledMessageSender;
         }
 
@@ -78,7 +78,7 @@ namespace ENode.EQueue
             var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(EventMessage)) as EventMessage;
             var eventStream = ConvertToEventStream(eventMessage);
 
-            if (_messageContextDict.TryAdd(eventStream.CommandId, context))
+            if (_messageContextDict.TryAdd(eventStream.CommitId, context))
             {
                 _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventHandledCallback));
             }
@@ -87,7 +87,7 @@ namespace ENode.EQueue
         private void EventHandledCallback(EventStream eventStream, EventProcessContext eventProcessContext)
         {
             IMessageContext messageContext;
-            if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
+            if (_messageContextDict.TryRemove(eventStream.CommitId, out messageContext))
             {
                 messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
             }
@@ -107,7 +107,7 @@ namespace ENode.EQueue
 
                 _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
                 {
-                    CommandId = eventStream.CommandId,
+                    CommandId = eventStream.CommitId,
                     AggregateRootId = eventStream.AggregateRootId,
                     IsProcessCompletedEvent = isProcessCompletedEvent,
                     ProcessId = processId
@@ -126,7 +126,7 @@ namespace ENode.EQueue
                 events.Add(evnt);
             }
 
-            return new EventStream(data.CommandId, data.AggregateRootId, data.AggregateRootName, data.Version, data.Timestamp, events);
+            return new EventStream(data.CommitId, data.AggregateRootId, data.AggregateRootName, data.Version, data.Timestamp, events);
         }
 
         class EventProcessContext : IEventProcessContext

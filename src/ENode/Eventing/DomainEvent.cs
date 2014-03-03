@@ -1,4 +1,5 @@
 ﻿using System;
+using ECommon.Utilities;
 using ENode.Infrastructure;
 
 namespace ENode.Eventing
@@ -9,7 +10,7 @@ namespace ENode.Eventing
     public abstract class DomainEvent<TAggregateRootId> : IDomainEvent
     {
         private string _aggregateRootId;
-        private long? _version;
+        private int? _version;
 
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -19,7 +20,7 @@ namespace ENode.Eventing
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            Id = Guid.NewGuid();
+            Id = ObjectId.GenerateNewStringId();
             AggregateRootId = aggregateRootId;
             _aggregateRootId = aggregateRootId.ToString();
             Timestamp = DateTime.Now;
@@ -30,10 +31,11 @@ namespace ENode.Eventing
         public TAggregateRootId AggregateRootId { get; private set; }
         /// <summary>Represents the unique id of the domain event.
         /// </summary>
-        public Guid Id { get; private set; }
+        public string Id { get; private set; }
         /// <summary>Represents the version of the domain event, This property only should be set by framework.
         /// </summary>
-        public long Version {
+        public int Version
+        {
             get
             {
                 return _version == null ? -1 : _version.Value;

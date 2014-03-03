@@ -44,11 +44,11 @@ namespace ENode.Eventing.Impl.SQL
                 return connection.Insert(sqlEventStream, _commitLogTable);
             });
         }
-        public EventByteStream Get(long commitSequence)
+        public EventByteStream Get(long sequence)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute<EventByteStream>(connection =>
             {
-                var sqlEventStream = connection.QuerySingleOrDefault<SqlEventStream>(new { CommitSequence = commitSequence }, _commitLogTable);
+                var sqlEventStream = connection.QuerySingleOrDefault<SqlEventStream>(new { CommitSequence = sequence }, _commitLogTable);
                 if (sqlEventStream != null)
                 {
                     return BuildEventStreamFrom(sqlEventStream);
@@ -56,11 +56,11 @@ namespace ENode.Eventing.Impl.SQL
                 return null;
             });
         }
-        public IEnumerable<CommitRecord> Query(long startSequence, int size)
+        public IEnumerable<CommitRecord> Query(long startSequence, int count)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
-                var sqlEventStreams = connection.QueryByStartAndSize<SqlCommitRecord>(null, _commitLogTable, "*", "CommitSequence", startSequence, size);
+                var sqlEventStreams = connection.QueryByStartAndSize<SqlCommitRecord>(null, _commitLogTable, "*", "Sequence", startSequence, count);
                 var commitRecords = new List<CommitRecord>();
                 foreach (var sqlEventStream in sqlEventStreams)
                 {
@@ -78,14 +78,14 @@ namespace ENode.Eventing.Impl.SQL
         {
             return new CommitRecord(
                     sqlCommitRecord.Version,
-                    sqlCommitRecord.CommandId,
+                    sqlCommitRecord.CommitId,
                     sqlCommitRecord.AggregateRootId,
                     sqlCommitRecord.Version);
         }
         private EventByteStream BuildEventStreamFrom(SqlEventStream sqlEventStream)
         {
             return new EventByteStream(
-                    sqlEventStream.CommandId,
+                    sqlEventStream.CommitId,
                     sqlEventStream.AggregateRootId,
                     sqlEventStream.AggregateRootName,
                     sqlEventStream.Version,
@@ -96,7 +96,7 @@ namespace ENode.Eventing.Impl.SQL
         {
             return new SqlEventStream
             {
-                CommandId = eventStream.CommandId,
+                CommitId = eventStream.CommitId,
                 AggregateRootId = eventStream.AggregateRootId.ToString(),
                 AggregateRootName = eventStream.AggregateRootName,
                 Version = eventStream.Version,
@@ -107,19 +107,19 @@ namespace ENode.Eventing.Impl.SQL
 
         class SqlEventStream
         {
-            public Guid CommandId { get; set; }
+            public string CommitId { get; set; }
             public string AggregateRootId { get; set; }
             public string AggregateRootName { get; set; }
-            public long Version { get; set; }
+            public int Version { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }
         }
         class SqlCommitRecord
         {
-            public long CommitSequence { get; set; }
-            public Guid CommandId { get; set; }
+            public long Sequence { get; set; }
+            public string CommitId { get; set; }
             public string AggregateRootId { get; set; }
-            public long Version { get; set; }
+            public int Version { get; set; }
         }
 
         #endregion

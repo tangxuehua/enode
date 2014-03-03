@@ -21,16 +21,16 @@ namespace ENode.Eventing.Impl.InMemory
             }
             return nextSequence;
         }
-        public EventByteStream Get(long commitSequence)
+        public EventByteStream Get(long sequence)
         {
             EventByteStream eventStream;
-            if (_commitLogDict.TryGetValue(commitSequence, out eventStream))
+            if (_commitLogDict.TryGetValue(sequence, out eventStream))
             {
                 return eventStream;
             }
             return null;
         }
-        public IEnumerable<CommitRecord> Query(long startSequence, int size)
+        public IEnumerable<CommitRecord> Query(long startSequence, int count)
         {
             var commitRecords = new List<CommitRecord>();
             var currentSequnece = startSequence;
@@ -38,8 +38,8 @@ namespace ENode.Eventing.Impl.InMemory
 
             while (eventStream != null)
             {
-                commitRecords.Add(new CommitRecord(currentSequnece, eventStream.CommandId, eventStream.AggregateRootId, eventStream.Version));
-                if (commitRecords.Count == size) break;
+                commitRecords.Add(new CommitRecord(currentSequnece, eventStream.CommitId, eventStream.AggregateRootId, eventStream.Version));
+                if (commitRecords.Count == count) break;
                 eventStream = Get(currentSequnece++);
             }
 

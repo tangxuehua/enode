@@ -141,7 +141,7 @@ namespace ENode.Eventing
                         else if (currentContext.CommitStatus == EventCommitStatus.DuplicateCommit)
                         {
                             SendWaitingCommand(eventStream);
-                            var existingEventStream = GetEventStream(eventStream.AggregateRootId, eventStream.CommandId);
+                            var existingEventStream = GetEventStream(eventStream.AggregateRootId, eventStream.CommitId);
                             if (existingEventStream != null)
                             {
                                 SyncAfterEventPersisted(existingEventStream);
@@ -150,7 +150,7 @@ namespace ENode.Eventing
                             else
                             {
                                 _logger.ErrorFormat("Duplicate commit, but can't find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootName:{2}",
-                                    eventStream.CommandId,
+                                    eventStream.CommitId,
                                     eventStream.AggregateRootId,
                                     eventStream.AggregateRootName);
                             }
@@ -337,9 +337,9 @@ namespace ENode.Eventing
         {
             _retryCommandService.RetryCommand(context.ProcessingCommand);
         }
-        private EventStream GetEventStream(string aggregateRootId, Guid commandId)
+        private EventStream GetEventStream(string aggregateRootId, string commitId)
         {
-            return _eventStreamConvertService.ConvertFrom(_eventStore.GetEventStream(aggregateRootId, commandId));
+            return _eventStreamConvertService.ConvertFrom(_eventStore.GetEventStream(aggregateRootId, commitId));
         }
 
         #endregion

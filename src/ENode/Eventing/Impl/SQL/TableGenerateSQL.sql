@@ -1,12 +1,12 @@
 CREATE TABLE [dbo].[CommitLog] (
-    [CommitSequence]    BIGINT           IDENTITY (1, 1) NOT NULL,
-    [CommandId]         UNIQUEIDENTIFIER NOT NULL,
+    [Sequence]          BIGINT           NOT NULL,
+    [CommitId]          NVARCHAR (36)    NOT NULL,
     [AggregateRootId]   NVARCHAR (36)    NOT NULL,
-    [Version]           BIGINT           NOT NULL,
-    [AggregateRootName] NVARCHAR (1024)  NOT NULL,
+    [Version]           INT              NOT NULL,
+    [AggregateRootName] NVARCHAR (512)   NOT NULL,
     [Timestamp]         DATETIME         NOT NULL,
     [Events]            VARBINARY (MAX)  NOT NULL,
-    CONSTRAINT [PK_CommitLog] PRIMARY KEY CLUSTERED ([CommitSequence] ASC)
+    CONSTRAINT [PK_CommitLog] PRIMARY KEY CLUSTERED ([Sequence] ASC)
 );
 
 CREATE TABLE [dbo].[EventPublishInfo](

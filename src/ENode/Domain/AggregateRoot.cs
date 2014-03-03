@@ -13,7 +13,7 @@ namespace ENode.Domain
     {
         private TAggregateRootId _id;
         private string _uniqueId;
-        private long _version;
+        private int _version;
         private Queue<IDomainEvent> _uncommittedEvents;
 
         /// <summary>The strong type unique id of aggregate root.
@@ -106,7 +106,7 @@ namespace ENode.Domain
         }
         /// <summary>The version of aggregate root, only used by framework.
         /// </summary>
-        long IAggregateRoot.Version
+        int IAggregateRoot.Version
         {
             get
             {

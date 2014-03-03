@@ -27,7 +27,7 @@ namespace ENode.Eventing.Impl
                 eventEntryList.Add(new EventEntry(typeCode, eventData));
             }
 
-            return new EventByteStream(source.CommandId, source.AggregateRootId, source.AggregateRootName, source.Version, source.Timestamp, eventEntryList);
+            return new EventByteStream(source.CommitId, source.AggregateRootId, source.AggregateRootName, source.Version, source.Timestamp, eventEntryList);
         }
         public EventStream ConvertFrom(EventByteStream source)
         {
@@ -42,7 +42,7 @@ namespace ENode.Eventing.Impl
                 eventList.Add(domainEvent);
             }
 
-            return new EventStream(source.CommandId, source.AggregateRootId, source.AggregateRootName, source.Version, source.Timestamp, eventList);
+            return new EventStream(source.CommitId, source.AggregateRootId, source.AggregateRootName, source.Version, source.Timestamp, eventList);
         }
     }
 }

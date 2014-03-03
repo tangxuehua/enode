@@ -24,7 +24,7 @@ namespace ENode.EQueue
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
         private readonly ICommandExecutor _commandExecutor;
         private readonly IRepository _repository;
-        private readonly ConcurrentDictionary<Guid, IMessageContext> _messageContextDict;
+        private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
 
         public Consumer Consumer { get { return _consumer; } }
 
@@ -55,7 +55,7 @@ namespace ENode.EQueue
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
-            _messageContextDict = new ConcurrentDictionary<Guid, IMessageContext>();
+            _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _commandExecutedMessageSender = commandExecutedMessageSender;
         }
 

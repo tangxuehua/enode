@@ -6,7 +6,7 @@ namespace ENode.Eventing.Impl.InMemory
     /// </summary>
     public class InMemoryEventPublishInfoStore : IEventPublishInfoStore
     {
-        private readonly ConcurrentDictionary<string, long> _versionDict = new ConcurrentDictionary<string, long>();
+        private readonly ConcurrentDictionary<string, int> _versionDict = new ConcurrentDictionary<string, int>();
 
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
@@ -20,7 +20,7 @@ namespace ENode.Eventing.Impl.InMemory
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
-        public void UpdatePublishedVersion(string aggregateRootId, long version)
+        public void UpdatePublishedVersion(string aggregateRootId, int version)
         {
             _versionDict[aggregateRootId] = version;
         }
@@ -31,7 +31,7 @@ namespace ENode.Eventing.Impl.InMemory
         /// <returns></returns>
         public long GetEventPublishedVersion(string aggregateRootId)
         {
-            long version;
+            int version;
             return _versionDict.TryGetValue(aggregateRootId, out version) ? version : 0L;
         }
     }

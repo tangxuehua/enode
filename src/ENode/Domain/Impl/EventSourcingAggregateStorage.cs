@@ -12,8 +12,8 @@ namespace ENode.Domain.Impl
     /// </summary>
     public class EventSourcingAggregateStorage : IAggregateStorage
     {
-        private const long minStreamVersion = 1;
-        private const long maxStreamVersion = long.MaxValue;
+        private const int minStreamVersion = 1;
+        private const int maxStreamVersion = int.MaxValue;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IEventStreamConvertService _eventStreamConvertService;
         private readonly IEventSourcingService _eventSourcingService;
@@ -88,7 +88,7 @@ namespace ENode.Domain.Impl
             }
 
             var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRootType);
-            var eventsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootName, snapshot.Version + 1, long.MaxValue);
+            var eventsAfterSnapshot = _eventStore.Query(aggregateRootId, aggregateRootName, snapshot.Version + 1, int.MaxValue);
             _eventSourcingService.ReplayEvents(aggregateRootFromSnapshot, eventsAfterSnapshot.Select(x => _eventStreamConvertService.ConvertFrom(x)));
             aggregateRoot = aggregateRootFromSnapshot;
             return true;

@@ -12,7 +12,7 @@ namespace ENode.Commanding
         public CommandStatus Status { get; private set; }
         /// <summary>The unique identifier of the command.
         /// </summary>
-        public Guid CommandId { get; private set; }
+        public string CommandId { get; private set; }
         /// <summary>The aggregate root created or modified by the command.
         /// </summary>
         public string AggregateRootId { get; private set; }
@@ -25,7 +25,7 @@ namespace ENode.Commanding
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public CommandResult(CommandStatus commandStatus, Guid commandId, string aggregateRootId, int exceptionCode, string errorMessage)
+        public CommandResult(CommandStatus commandStatus, string commandId, string aggregateRootId, int exceptionCode, string errorMessage)
         {
             Status = commandStatus;
             CommandId = commandId;

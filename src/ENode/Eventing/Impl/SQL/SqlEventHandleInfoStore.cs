@@ -47,7 +47,7 @@ namespace ENode.Eventing.Impl.SQL
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>
-        public void AddEventHandleInfo(Guid eventId, string eventHandlerTypeName)
+        public void AddEventHandleInfo(string eventId, string eventHandlerTypeName)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
@@ -64,7 +64,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>
         /// <returns></returns>
-        public bool IsEventHandleInfoExist(Guid eventId, string eventHandlerTypeName)
+        public bool IsEventHandleInfoExist(string eventId, string eventHandlerTypeName)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetCount(new { EventHandlerTypeName = eventHandlerTypeName, EventId = eventId }, _tableName) > 0);
         }

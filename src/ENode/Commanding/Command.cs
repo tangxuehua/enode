@@ -1,4 +1,5 @@
 ﻿using System;
+using ECommon.Utilities;
 using ENode.Infrastructure;
 
 namespace ENode.Commanding
@@ -15,7 +16,7 @@ namespace ENode.Commanding
 
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
-        public Guid Id { get; private set; }
+        public string Id { get; private set; }
         /// <summary>Get or set the count which the command should be retry. The retry count must small than the MaxRetryCount;
         /// </summary>
         public int RetryCount
@@ -64,7 +65,7 @@ namespace ENode.Commanding
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            Id = Guid.NewGuid();
+            Id = ObjectId.GenerateNewStringId();
             AggregateRootId = aggregateRootId;
             RetryCount = retryCount;
         }

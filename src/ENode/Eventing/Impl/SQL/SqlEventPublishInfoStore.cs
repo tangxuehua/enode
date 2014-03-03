@@ -61,7 +61,7 @@ namespace ENode.Eventing.Impl.SQL
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
-        public void UpdatePublishedVersion(string aggregateRootId, long version)
+        public void UpdatePublishedVersion(string aggregateRootId, int version)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {

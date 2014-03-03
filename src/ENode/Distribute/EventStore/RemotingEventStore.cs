@@ -57,10 +57,10 @@ namespace ENode.Distribute.EventStore
             _logger.InfoFormat("EventStore client shutdown.");
         }
 
-        public EventByteStream GetEventStream(string aggregateRootId, Guid commandId)
+        public EventByteStream GetEventStream(string aggregateRootId, string commitId)
         {
             AssertServerAvailable();
-            var data = _binarySerializer.Serialize(new GetEventStreamRequest(aggregateRootId, commandId));
+            var data = _binarySerializer.Serialize(new GetEventStreamRequest(aggregateRootId, commitId));
             var remotingRequest = new RemotingRequest((int)RequestCode.GetEventStream, data);
             var remotingResponse = _remotingClient.InvokeSync(remotingRequest, 10000);
             if (remotingResponse.Code == (int)ResponseCode.Success)
@@ -89,7 +89,7 @@ namespace ENode.Distribute.EventStore
                 throw new ENodeException(string.Format("Commit event stream to remoting event store server failed. errorMessage:{0}", errorMessage));
             }
         }
-        public IEnumerable<EventByteStream> Query(string aggregateRootId, string aggregateRootName, long minStreamVersion, long maxStreamVersion)
+        public IEnumerable<EventByteStream> Query(string aggregateRootId, string aggregateRootName, int minStreamVersion, int maxStreamVersion)
         {
             AssertServerAvailable();
             var data = _binarySerializer.Serialize(new QueryAggregateEventStreamsRequest(aggregateRootId, aggregateRootName, minStreamVersion, maxStreamVersion));

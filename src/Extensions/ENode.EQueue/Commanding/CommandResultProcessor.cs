@@ -15,7 +15,7 @@ namespace ENode.EQueue.Commanding
     {
         private readonly Consumer _commandExecutedMessageConsumer;
         private readonly Consumer _domainEventHandledMessageConsumer;
-        private readonly ConcurrentDictionary<Guid, CommandTaskCompletionSource> _commandTaskDict;
+        private readonly ConcurrentDictionary<string, CommandTaskCompletionSource> _commandTaskDict;
         private readonly ConcurrentDictionary<string, TaskCompletionSource<ProcessResult>> _processTaskDict;
         private readonly BlockingCollection<CommandExecutedMessage> _commandExecutedMessageLocalQueue;
         private readonly BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
@@ -32,7 +32,7 @@ namespace ENode.EQueue.Commanding
         {
             _commandExecutedMessageConsumer = commandExecutedMessageConsumer;
             _domainEventHandledMessageConsumer = domainEventHandledMessageConsumer;
-            _commandTaskDict = new ConcurrentDictionary<Guid, CommandTaskCompletionSource>();
+            _commandTaskDict = new ConcurrentDictionary<string, CommandTaskCompletionSource>();
             _processTaskDict = new ConcurrentDictionary<string, TaskCompletionSource<ProcessResult>>();
             _commandExecutedMessageLocalQueue = new BlockingCollection<CommandExecutedMessage>(new ConcurrentQueue<CommandExecutedMessage>());
             _domainEventHandledMessageLocalQueue = new BlockingCollection<DomainEventHandledMessage>(new ConcurrentQueue<DomainEventHandledMessage>());

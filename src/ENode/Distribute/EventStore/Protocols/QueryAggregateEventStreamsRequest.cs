@@ -7,10 +7,10 @@ namespace ENode.Distribute.EventStore.Protocols
     {
         public string AggregateRootId { get; private set; }
         public string AggregateRootName { get; private set; }
-        public long MinVersion { get; private set; }
-        public long MaxVersion { get; private set; }
+        public int MinVersion { get; private set; }
+        public int MaxVersion { get; private set; }
 
-        public QueryAggregateEventStreamsRequest(string aggregateRootId, string aggregateRootName, long minVersion, long maxVersion)
+        public QueryAggregateEventStreamsRequest(string aggregateRootId, string aggregateRootName, int minVersion, int maxVersion)
         {
             AggregateRootId = aggregateRootId;
             AggregateRootName = aggregateRootName;

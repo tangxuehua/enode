@@ -15,7 +15,7 @@ namespace ENode.EQueue
     {
         /// <summary>The unique identifier of the command.
         /// </summary>
-        public Guid CommandId { get; set; }
+        public string CommandId { get; set; }
         /// <summary>The aggregate root created or modified by the command.
         /// </summary>
         public string AggregateRootId { get; set; }

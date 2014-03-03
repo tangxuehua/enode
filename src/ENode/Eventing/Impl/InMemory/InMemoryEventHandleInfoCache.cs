@@ -8,13 +8,13 @@ namespace ENode.Eventing.Impl.InMemory
     /// </summary>
     public class InMemoryEventHandleInfoCache : IEventHandleInfoCache
     {
-        private readonly ConcurrentDictionary<Guid, IList<string>> _handleInfoDict = new ConcurrentDictionary<Guid, IList<string>>();
+        private readonly ConcurrentDictionary<string, IList<string>> _handleInfoDict = new ConcurrentDictionary<string, IList<string>>();
 
         /// <summary>Insert an event handle info to the cache.
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>
-        public void AddEventHandleInfo(Guid eventId, string eventHandlerTypeName)
+        public void AddEventHandleInfo(string eventId, string eventHandlerTypeName)
         {
             IList<string> handlerTypeNameList;
             if (!_handleInfoDict.TryGetValue(eventId, out handlerTypeNameList))
@@ -28,7 +28,7 @@ namespace ENode.Eventing.Impl.InMemory
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeName"></param>
         /// <returns></returns>
-        public bool IsEventHandleInfoExist(Guid eventId, string eventHandlerTypeName)
+        public bool IsEventHandleInfoExist(string eventId, string eventHandlerTypeName)
         {
             IList<string> handlerTypeNameList;
             return _handleInfoDict.TryGetValue(eventId, out handlerTypeNameList) && handlerTypeNameList.Contains(eventHandlerTypeName);
@@ -36,7 +36,7 @@ namespace ENode.Eventing.Impl.InMemory
         /// <summary>Remove all the event handle information from the cache by the given eventId.
         /// </summary>
         /// <param name="eventId"></param>
-        public void RemoveEventHandleInfo(Guid eventId)
+        public void RemoveEventHandleInfo(string eventId)
         {
             IList<string> handlerTypeNameList;
             _handleInfoDict.TryRemove(eventId, out handlerTypeNameList);

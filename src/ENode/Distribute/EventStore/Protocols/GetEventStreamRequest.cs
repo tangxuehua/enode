@@ -6,17 +6,17 @@ namespace ENode.Distribute.EventStore.Protocols
     public class GetEventStreamRequest
     {
         public string AggregateRootId { get; private set; }
-        public Guid CommandId { get; private set; }
+        public string CommitId { get; private set; }
 
-        public GetEventStreamRequest(string aggregateRootId, Guid commandId)
+        public GetEventStreamRequest(string aggregateRootId, string commitId)
         {
             AggregateRootId = aggregateRootId;
-            CommandId = commandId;
+            CommitId = commitId;
         }
 
         public override string ToString()
         {
-            return string.Format("[AggregateRootId:{0}, CommandId:{1}]", AggregateRootId, CommandId);
+            return string.Format("[AggregateRootId:{0}, CommitId:{1}]", AggregateRootId, CommitId);
         }
     }
 }
