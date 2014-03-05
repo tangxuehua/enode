@@ -1,6 +1,6 @@
 ﻿namespace ENode.Eventing
 {
-    public enum EventCommitStatus
+    public enum EventAppendResult
     {
         Success = 1,
         DuplicateCommit = 2

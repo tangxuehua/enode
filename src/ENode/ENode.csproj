@@ -58,19 +58,6 @@
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
     <Compile Include="Commanding\IWaitingCommandCache.cs" />
     <Compile Include="Configurations\Configuration.cs" />
-    <Compile Include="Distribute\EventStore\DefaultEventStoreServer.cs" />
-    <Compile Include="Distribute\EventStore\RemotingEventStore.cs" />
-    <Compile Include="Distribute\EventStore\EventStoreClientSetting.cs" />
-    <Compile Include="Distribute\EventStore\IEventStoreClient.cs" />
-    <Compile Include="Distribute\EventStore\Protocols\QueryAggregateEventStreamsRequest.cs" />
-    <Compile Include="Distribute\EventStore\Protocols\GetEventStreamRequest.cs" />
-    <Compile Include="Distribute\EventStore\IEventStoreServer.cs" />
-    <Compile Include="Distribute\EventStore\Protocols\ResponseCode.cs" />
-    <Compile Include="Distribute\EventStore\Protocols\RequestCode.cs" />
-    <Compile Include="Distribute\EventStore\RequestHandlers\DetectAliveRequestHandler.cs" />
-    <Compile Include="Distribute\EventStore\RequestHandlers\QueryAggregateEventStreamsRequestHandler.cs" />
-    <Compile Include="Distribute\EventStore\RequestHandlers\GetEventStreamRequestHandler.cs" />
-    <Compile Include="Distribute\EventStore\RequestHandlers\StoreEventRequestHandler.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\DomainException.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
@@ -81,7 +68,7 @@
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Eventing\IEventStreamConvertService.cs" />
-    <Compile Include="Eventing\EventCommitStatus.cs" />
+    <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventProcessingContext.cs" />
     <Compile Include="Eventing\CommitRecord.cs" />
     <Compile Include="Eventing\Impl\DefaultEventStreamConvertService.cs" />
@@ -90,18 +77,16 @@
     <Compile Include="Eventing\IEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
-    <Compile Include="Eventing\Impl\ICommitLog.cs" />
-    <Compile Include="Eventing\Impl\InMemory\InMemoryCommitLog.cs" />
-    <Compile Include="Eventing\Impl\DefaultEventStore.cs" />
+    <Compile Include="Eventing\Impl\InMemory\InMemoryEventStore.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
-    <Compile Include="Eventing\Impl\SQL\SqlCommitLog.cs" />
+    <Compile Include="Eventing\Impl\SQL\SqlServerEventStore.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IEventSynchronizer.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
     <Compile Include="Eventing\IEventProcessor.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
-    <Compile Include="Eventing\EventByteStream.cs" />
+    <Compile Include="Eventing\EventCommitRecord.cs" />
     <Compile Include="Infrastructure\DuplicateAggregateException.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\ConcurrentException.cs" />
@@ -115,8 +100,8 @@
     <Compile Include="Eventing\Impl\EventHandlerWrapper.cs" />
     <Compile Include="Eventing\DomainEvent.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventPublishInfoStore.cs" />
-    <Compile Include="Eventing\Impl\SQL\SqlEventHandleInfoStore.cs" />
-    <Compile Include="Eventing\Impl\SQL\SqlEventPublishInfoStore.cs" />
+    <Compile Include="Eventing\Impl\SQL\SqlServerEventHandleInfoStore.cs" />
+    <Compile Include="Eventing\Impl\SQL\SqlServerEventPublishInfoStore.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoStore.cs" />
     <Compile Include="Eventing\IEventPublishInfoStore.cs" />
     <Compile Include="Eventing\IEventHandleInfoStore.cs" />
@@ -178,7 +163,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Eventing\Impl\SQL\TableGenerateSQL.sql" />
+    <Content Include="Eventing\Impl\SQL\SqlServerTableGenerateSQL.sql" />
     <Content Include="SqlScripts\TableGenerateSQL.sql" />
   </ItemGroup>
   <ItemGroup>

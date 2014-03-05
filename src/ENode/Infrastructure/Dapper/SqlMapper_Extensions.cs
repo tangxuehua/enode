@@ -377,8 +377,8 @@ namespace ENode.Infrastructure.Dapper
         {
             var obj = condition as object;
             var properties = GetProperties(obj);
-            var whereFields = string.Join(" and ", properties.Select(p => p + " = @" + p));
-            var sql = string.Format("select * from [{0}] where {1}", table, whereFields);
+            var whereFields = string.Join(" AND ", properties.Select(p => p + " = @" + p));
+            var sql = string.Format("SELECT * FROM [{0}] WHERE {1}", table, whereFields);
             return sql;
         }
         private static List<string> GetProperties(object o)

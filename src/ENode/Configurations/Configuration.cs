@@ -8,7 +8,6 @@ using ECommon.Logging;
 using ECommon.Remoting;
 using ENode.Commanding;
 using ENode.Commanding.Impl;
-using ENode.Distribute.EventStore;
 using ENode.Domain;
 using ENode.Domain.Impl;
 using ENode.Eventing;
@@ -96,8 +95,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventStreamConvertService, DefaultEventStreamConvertService>();
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
-            _configuration.SetDefault<ICommitLog, InMemoryCommitLog>();
-            _configuration.SetDefault<IEventStore, DefaultEventStore>();
+            _configuration.SetDefault<IEventStore, InMemoryEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
@@ -137,66 +135,36 @@ namespace ENode.Configurations
             return this;
         }
 
-        public ENodeConfiguration UseSqlCommitLog(string connectionString)
+        public ENodeConfiguration UseSqlServerEventStore(string connectionString)
         {
-            return UseSqlCommitLog(connectionString, "CommitLog");
+            return UseSqlServerEventStore(connectionString, "Events", "IX_Events_CommitIndex", "IX_Events_VersonIndex");
         }
-        public ENodeConfiguration UseSqlCommitLog(string connectionString, string commitLogTable)
+        public ENodeConfiguration UseSqlServerEventStore(string connectionString, string eventTable, string commitIndexName, string versionIndexName)
         {
-            _configuration.SetDefault<ICommitLog, SqlCommitLog>(new SqlCommitLog(connectionString, commitLogTable));
+            _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(connectionString, eventTable, commitIndexName, versionIndexName));
             return this;
         }
-        public ENodeConfiguration UseSqlEventPublishInfoStore(string connectionString)
+        public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString)
         {
-            return UseSqlEventPublishInfoStore(connectionString, "EventPublishInfo");
+            return UseSqlServerEventPublishInfoStore(connectionString, "EventPublishInfo");
         }
-        public ENodeConfiguration UseSqlEventPublishInfoStore(string connectionString, string eventPublishInfoTable)
+        public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString, string eventPublishInfoTable)
         {
-            _configuration.SetDefault<IEventPublishInfoStore, SqlEventPublishInfoStore>(new SqlEventPublishInfoStore(connectionString, eventPublishInfoTable));
+            _configuration.SetDefault<IEventPublishInfoStore, SqlServerEventPublishInfoStore>(new SqlServerEventPublishInfoStore(connectionString, eventPublishInfoTable));
             return this;
         }
-        public ENodeConfiguration UseSqlEventHandleInfoStore(string connectionString)
+        public ENodeConfiguration UseSqlServerEventHandleInfoStore(string connectionString)
         {
-            return UseSqlEventHandleInfoStore(connectionString, "EventHandleInfo");
+            return UseSqlServerEventHandleInfoStore(connectionString, "EventHandleInfo");
         }
-        public ENodeConfiguration UseSqlEventHandleInfoStore(string connectionString, string eventHandleInfoTable)
+        public ENodeConfiguration UseSqlServerEventHandleInfoStore(string connectionString, string eventHandleInfoTable)
         {
-            _configuration.SetDefault<IEventHandleInfoStore, SqlEventHandleInfoStore>(new SqlEventHandleInfoStore(connectionString, eventHandleInfoTable));
+            _configuration.SetDefault<IEventHandleInfoStore, SqlServerEventHandleInfoStore>(new SqlServerEventHandleInfoStore(connectionString, eventHandleInfoTable));
             return this;
         }
         public ENodeConfiguration UseDefaultSqlQueryDbConnectionFactory(string connectionString)
         {
             _configuration.SetDefault<ISqlQueryDbConnectionFactory, DefaultSqlQueryDbConnectionFactory>(new DefaultSqlQueryDbConnectionFactory(connectionString));
-            return this;
-        }
-
-        public ENodeConfiguration UseRemotingEventStore()
-        {
-            return UseRemotingEventStore(null);
-        }
-        public ENodeConfiguration UseRemotingEventStore(EventStoreClientSetting setting)
-        {
-            var eventStore = new RemotingEventStore(setting);
-            _configuration.SetDefault<IEventStore, RemotingEventStore>(eventStore);
-            _configuration.SetDefault<IEventStoreClient, RemotingEventStore>(eventStore);
-            return this;
-        }
-
-        public ENodeConfiguration UseDefaultEventStoreServer()
-        {
-            return UseDefaultEventStoreServer(null);
-        }
-        public ENodeConfiguration UseDefaultEventStoreServer(SocketSetting setting)
-        {
-            var server = new DefaultEventStoreServer(setting);
-            server.Initialize();
-            _configuration.SetDefault<IEventStoreServer, DefaultEventStoreServer>(server);
-            return this;
-        }
-
-        public ENodeConfiguration InitializeEventStore()
-        {
-            ObjectContainer.Resolve<IEventStore>().Initialize();
             return this;
         }
 
@@ -213,22 +181,6 @@ namespace ENode.Configurations
             return this;
         }
 
-        /// <summary>Start the event store client.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration StartEventStoreClient()
-        {
-            ObjectContainer.Resolve<IEventStoreClient>().Start();
-            return this;
-        }
-        /// <summary>Start the event store server.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration StartEventStoreServer()
-        {
-            ObjectContainer.Resolve<IEventStoreServer>().Start();
-            return this;
-        }
         /// <summary>Start the retry command service.
         /// </summary>
         /// <returns></returns>

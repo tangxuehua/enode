@@ -34,12 +34,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.EQueue", "src\Extensions\ENode.EQueue\ENode.EQueue.csproj", "{8B5368E5-8518-4684-90EB-048DCBF76E9A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DistributeEventStoreSample", "DistributeEventStoreSample", "{FBE92895-72DE-456D-ABBA-ACD4FB707DFC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributeEventStoreSample.Client", "src\Samples\DistributeEventStoreSample.Client\DistributeEventStoreSample.Client.csproj", "{A658BAD7-6A2D-4A22-8890-350FB5ABC603}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributeEventStoreSample.Server", "src\Samples\DistributeEventStoreSample.Server\DistributeEventStoreSample.Server.csproj", "{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -140,26 +134,6 @@ Global
 		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{8B5368E5-8518-4684-90EB-048DCBF76E9A}.Release|x86.ActiveCfg = Release|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603}.Release|x86.ActiveCfg = Release|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -167,7 +141,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{0F069E27-C089-4EF1-B466-84C78EBA83AD} = {8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}
 		{B46666A1-9210-4DBB-94C7-8D0BF1184174} = {8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}
-		{FBE92895-72DE-456D-ABBA-ACD4FB707DFC} = {8F171DA3-04BC-4A17-A2F2-4C2F5972FDB8}
 		{37CD22D9-EDFD-41AD-88C2-04E8493E03D7} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{92CA776A-F4D0-40C5-B089-6D9299F36E38} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{909A442C-A134-444E-BDDB-5C4B7F333BC4} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
@@ -175,8 +148,6 @@ Global
 		{F03DFFC7-1017-4EC1-AB90-300EB2CD52DD} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{70916DF5-FADC-4517-9185-3ECFE1D43109} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{8B5368E5-8518-4684-90EB-048DCBF76E9A} = {C0DE6060-8F08-4822-A75E-3C9F227F8F56}
-		{A658BAD7-6A2D-4A22-8890-350FB5ABC603} = {FBE92895-72DE-456D-ABBA-ACD4FB707DFC}
-		{BC7C6E76-B482-4D68-8B6B-667C3A65D47F} = {FBE92895-72DE-456D-ABBA-ACD4FB707DFC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.2\lib\NET35

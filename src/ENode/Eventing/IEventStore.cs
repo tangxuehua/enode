@@ -1,31 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace ENode.Eventing
 {
-    /// <summary>Represents a event store to store event streams of aggregate.
+    /// <summary>Represents a event store to store event commit records of aggregate.
     /// </summary>
     public interface IEventStore
     {
-        /// <summary>Represents whether the event store available.
+        /// <summary>Append the given event commit record to the event store.
         /// </summary>
-        bool IsAvailable { get; }
-        /// <summary>Initialize the event store.
-        /// </summary>
-        void Initialize();
-        /// <summary>Get the event byte stream by aggregateRootId and commitId.
+        EventAppendResult Append(EventCommitRecord record);
+        /// <summary>Find a single event commit record by aggregateRootId and commitId.
         /// </summary>
         /// <returns></returns>
-        EventByteStream GetEventStream(string aggregateRootId, string commitId);
-        /// <summary>Commit the event byte stream to the event store.
+        EventCommitRecord Find(string aggregateRootId, string commitId);
+        /// <summary>Query a range of event commit records of a single aggregate from event store.
         /// </summary>
-        EventCommitStatus Commit(EventByteStream stream);
-        /// <summary>Query event byte streams from event store.
-        /// </summary>
-        IEnumerable<EventByteStream> Query(string aggregateRootId, string aggregateRootName, int minStreamVersion, int maxStreamVersion);
-        /// <summary>Query all the event byte streams from the event store.
+        IEnumerable<EventCommitRecord> QueryAggregateEvents(string aggregateRootId, string aggregateRootName, int minVersion, int maxVersion);
+        /// <summary>Query a range of event commit records from event store by page.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<EventByteStream> QueryAll();
+        IEnumerable<EventCommitRecord> QueryByPage(int pageIndex, int pageSize);
     }
 }

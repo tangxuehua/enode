@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 namespace ENode.Eventing
 {
-    /// <summary>The event stream contains the binary serialized domain events.
+    /// <summary>The event commit record represents a single commit of domain events of one aggregate.
     /// </summary>
     [Serializable]
-    public class EventByteStream
+    public class EventCommitRecord
     {
         public string CommitId { get; private set; }
         public string AggregateRootId { get; private set; }
@@ -15,7 +15,7 @@ namespace ENode.Eventing
         public DateTime Timestamp { get; private set; }
         public IEnumerable<EventEntry> Events { get; private set; }
 
-        public EventByteStream(string commitId, string aggregateRootId, string aggregateRootName, int version, DateTime timestamp, IEnumerable<EventEntry> events)
+        public EventCommitRecord(string commitId, string aggregateRootId, string aggregateRootName, int version, DateTime timestamp, IEnumerable<EventEntry> events)
         {
             CommitId = commitId;
             AggregateRootId = aggregateRootId;

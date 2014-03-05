@@ -32,7 +32,6 @@ namespace DistributeSample.CommandProcessor
                 .RegisterBusinessComponents(assemblies)
                 .SetEventTypeCodeProvider()
                 .UseEQueue()
-                .InitializeEventStore()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartRetryCommandService()
                 .StartWaitingCommandService()

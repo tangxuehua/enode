@@ -131,14 +131,14 @@ namespace ENode.Eventing
                         var currentContext = obj as EventProcessingContext;
                         var eventStream = currentContext.EventStream;
 
-                        if (currentContext.CommitStatus == EventCommitStatus.Success)
+                        if (currentContext.AppendResult == EventAppendResult.Success)
                         {
                             RefreshMemoryCache(currentContext);
                             SendWaitingCommand(eventStream);
                             SyncAfterEventPersisted(eventStream);
                             PublishEvents(currentContext.ProcessingCommand.CommandExecuteContext.Items, currentContext.ProcessingCommand, eventStream);
                         }
-                        else if (currentContext.CommitStatus == EventCommitStatus.DuplicateCommit)
+                        else if (currentContext.AppendResult == EventAppendResult.DuplicateCommit)
                         {
                             SendWaitingCommand(eventStream);
                             var existingEventStream = GetEventStream(eventStream.AggregateRootId, eventStream.CommitId);
@@ -185,7 +185,7 @@ namespace ENode.Eventing
             {
                 try
                 {
-                    context.CommitStatus = _eventStore.Commit(_eventStreamConvertService.ConvertTo(context.EventStream));
+                    context.AppendResult = _eventStore.Append(_eventStreamConvertService.ConvertTo(context.EventStream));
                     return true;
                 }
                 catch (Exception ex)
@@ -339,7 +339,7 @@ namespace ENode.Eventing
         }
         private EventStream GetEventStream(string aggregateRootId, string commitId)
         {
-            return _eventStreamConvertService.ConvertFrom(_eventStore.GetEventStream(aggregateRootId, commitId));
+            return _eventStreamConvertService.ConvertFrom(_eventStore.Find(aggregateRootId, commitId));
         }
 
         #endregion

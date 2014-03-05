@@ -2,7 +2,7 @@
 {
     public interface IEventStreamConvertService
     {
-        EventByteStream ConvertTo(EventStream source);
-        EventStream ConvertFrom(EventByteStream source);
+        EventCommitRecord ConvertTo(EventStream source);
+        EventStream ConvertFrom(EventCommitRecord source);
     }
 }

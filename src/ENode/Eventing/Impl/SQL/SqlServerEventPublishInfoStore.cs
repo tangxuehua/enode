@@ -1,14 +1,13 @@
 ﻿using System;
 using ECommon.IoC;
-using ENode.Infrastructure;
 using ENode.Infrastructure.Dapper;
 using ENode.Infrastructure.Sql;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>The SQL implementation of IEventPublishInfoStore.
+    /// <summary>The Microsoft SqlServer based implementation of IEventPublishInfoStore.
     /// </summary>
-    public class SqlEventPublishInfoStore : IEventPublishInfoStore
+    public class SqlServerEventPublishInfoStore : IEventPublishInfoStore
     {
         #region Private Variables
 
@@ -25,7 +24,7 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="connectionString"></param>
         /// <param name="tableName"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public SqlEventPublishInfoStore(string connectionString, string tableName)
+        public SqlServerEventPublishInfoStore(string connectionString, string tableName)
         {
             if (string.IsNullOrEmpty(connectionString))
             {

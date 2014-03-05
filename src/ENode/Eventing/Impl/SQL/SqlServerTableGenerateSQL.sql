@@ -1,13 +1,18 @@
-CREATE TABLE [dbo].[CommitLog] (
-    [Sequence]          BIGINT           NOT NULL,
-    [CommitId]          NVARCHAR (36)    NOT NULL,
-    [AggregateRootId]   NVARCHAR (36)    NOT NULL,
-    [Version]           INT              NOT NULL,
-    [AggregateRootName] NVARCHAR (512)   NOT NULL,
-    [Timestamp]         DATETIME         NOT NULL,
-    [Events]            VARBINARY (MAX)  NOT NULL,
-    CONSTRAINT [PK_CommitLog] PRIMARY KEY CLUSTERED ([Sequence] ASC)
+CREATE TABLE [dbo].[Events] (
+    [Sequence]          BIGINT          NOT NULL IDENTITY (1, 1),
+    [AggregateRootName] NVARCHAR (512)  NOT NULL,
+    [AggregateRootId]   NVARCHAR (36)   NOT NULL,
+    [Version]           INT             NOT NULL,
+    [CommitId]          NVARCHAR (36)   NOT NULL,
+    [Timestamp]         DATETIME        NOT NULL,
+    [Events]            VARBINARY (MAX) NOT NULL,
+    CONSTRAINT [PK_Events] PRIMARY KEY CLUSTERED ([Sequence] ASC)
 );
+GO
+CREATE UNIQUE INDEX [IX_Events_VersonIndex] ON [dbo].[Events] ([AggregateRootId], [Version])
+GO
+CREATE UNIQUE INDEX [IX_Events_CommitIndex] ON [dbo].[Events] ([CommitId])
+GO
 
 CREATE TABLE [dbo].[EventPublishInfo](
     [AggregateRootId] [nvarchar](36) NOT NULL,

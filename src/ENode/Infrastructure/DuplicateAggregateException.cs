@@ -2,27 +2,16 @@
 
 namespace ENode.Infrastructure
 {
-    /// <summary>Represents a duplicate aggregate exception.
+    /// <summary>Represents a duplicate aggregate creation exception.
     /// </summary>
     [Serializable]
     public class DuplicateAggregateException : ENodeException
     {
-        /// <summary>Default constructor.
-        /// </summary>
-        public DuplicateAggregateException() : base() { }
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="message"></param>
-        public DuplicateAggregateException(string message) : base(message) { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="innerException"></param>
-        public DuplicateAggregateException(string message, Exception innerException) : base(message, innerException) { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="args"></param>
-        public DuplicateAggregateException(string message, params object[] args) : base(message, args) { }
+        /// <param name="aggregateRootName"></param>
+        /// <param name="aggregateRootId"></param>
+        public DuplicateAggregateException(string aggregateRootName, string aggregateRootId)
+            : base(string.Format("Duplicate aggregate[name={0},id={1}] creation.", aggregateRootName, aggregateRootId)) { }
     }
 }

@@ -10,7 +10,7 @@ namespace ENode.Eventing
         public EventStream EventStream { get; private set; }
         public ProcessingCommand ProcessingCommand { get; private set; }
         public ENodeException Exception { get; set; }
-        public EventCommitStatus CommitStatus { get; set; }
+        public EventAppendResult AppendResult { get; set; }
 
         public EventProcessingContext(IAggregateRoot aggregateRoot, EventStream eventStream, ProcessingCommand processingCommand)
         {
