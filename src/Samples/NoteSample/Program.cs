@@ -39,7 +39,6 @@ namespace NoteSample
 
         static void InitializeENodeFramework()
         {
-            var connectionString = "Data Source=(local);Initial Catalog=EventStore;Integrated Security=True;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100";
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             Configuration
                 .Create()
@@ -49,7 +48,6 @@ namespace NoteSample
                 .UseJsonNet()
                 .CreateENode()
                 .RegisterENodeComponents()
-                .UseSqlServerEventStore(connectionString)
                 .RegisterBusinessComponents(assemblies)
                 .SetProviders()
                 .UseEQueue()
