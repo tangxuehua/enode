@@ -70,7 +70,6 @@
     <Compile Include="Eventing\IEventStreamConvertService.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventProcessingContext.cs" />
-    <Compile Include="Eventing\CommitRecord.cs" />
     <Compile Include="Eventing\Impl\DefaultEventStreamConvertService.cs" />
     <Compile Include="Eventing\IEventProcessContext.cs" />
     <Compile Include="Eventing\ICommitEventService.cs" />
