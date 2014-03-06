@@ -15,7 +15,7 @@ namespace ENode.Commanding.Impl
 
         private readonly IWaitingCommandCache _waitingCommandCache;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
-        private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
+        private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeProvider;
         private readonly ICommitEventService _commitEventService;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
@@ -35,7 +35,7 @@ namespace ENode.Commanding.Impl
         public DefaultCommandExecutor(
             IWaitingCommandCache waitingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
-            IAggregateRootTypeProvider aggregateRootTypeProvider,
+            IAggregateRootTypeCodeProvider aggregateRootTypeProvider,
             ICommitEventService commitEventService,
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
@@ -156,7 +156,7 @@ namespace ENode.Commanding.Impl
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
             aggregateRoot.ClearUncommittedEvents();
 
-            var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRoot.GetType());
+            var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
 
             foreach (var evnt in uncommittedEvents)
             {
@@ -165,7 +165,7 @@ namespace ENode.Commanding.Impl
             return new EventStream(
                 command.Id,
                 aggregateRoot.UniqueId,
-                aggregateRootName,
+                aggregateRootTypeCode,
                 aggregateRoot.Version + 1,
                 DateTime.Now,
                 uncommittedEvents);

@@ -5,11 +5,11 @@ using NoteSample.DomainEvents;
 namespace NoteSample.Domain
 {
     [Serializable]
-    public class Note : AggregateRoot<Guid>
+    public class Note : AggregateRoot<string>
     {
         public string Title { get; private set; }
 
-        public Note(Guid id, string title) : base(id)
+        public Note(string id, string title) : base(id)
         {
             RaiseEvent(new NoteCreatedEvent(Id, title));
         }

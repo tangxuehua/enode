@@ -15,7 +15,7 @@ namespace ENode.Eventing
         EventCommitRecord Find(string aggregateRootId, string commitId);
         /// <summary>Query a range of event commit records of a single aggregate from event store.
         /// </summary>
-        IEnumerable<EventCommitRecord> QueryAggregateEvents(string aggregateRootId, string aggregateRootName, int minVersion, int maxVersion);
+        IEnumerable<EventCommitRecord> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion);
         /// <summary>Query a range of event commit records from event store by page.
         /// </summary>
         /// <returns></returns>

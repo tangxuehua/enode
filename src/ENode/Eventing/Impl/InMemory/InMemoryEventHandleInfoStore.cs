@@ -12,19 +12,19 @@ namespace ENode.Eventing.Impl.InMemory
         /// <summary>Insert an event handle info.
         /// </summary>
         /// <param name="eventId"></param>
-        /// <param name="eventHandlerTypeName"></param>
-        public void AddEventHandleInfo(string eventId, string eventHandlerTypeName)
+        /// <param name="eventHandlerTypeCode"></param>
+        public void AddEventHandleInfo(string eventId, int eventHandlerTypeCode)
         {
-            _versionDict.TryAdd(eventId + eventHandlerTypeName, 0);
+            _versionDict.TryAdd(eventId + eventHandlerTypeCode.ToString(), 0);
         }
         /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
         /// <param name="eventId"></param>
-        /// <param name="eventHandlerTypeName"></param>
+        /// <param name="eventHandlerTypeCode"></param>
         /// <returns></returns>
-        public bool IsEventHandleInfoExist(string eventId, string eventHandlerTypeName)
+        public bool IsEventHandleInfoExist(string eventId, int eventHandlerTypeCode)
         {
-            return _versionDict.ContainsKey(eventId + eventHandlerTypeName);
+            return _versionDict.ContainsKey(eventId + eventHandlerTypeCode.ToString());
         }
     }
 }

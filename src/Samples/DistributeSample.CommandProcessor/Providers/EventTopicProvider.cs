@@ -2,9 +2,9 @@
 using ENode.EQueue;
 using ENode.Eventing;
 
-namespace DistributeSample.CommandProcessor.EQueueIntegrations
+namespace DistributeSample.CommandProcessor.Providers
 {
-    public class EventTopicManager : IEventTopicProvider
+    public class EventTopicProvider : IEventTopicProvider
     {
         static int _index;
         public string GetTopic(EventStream eventStream)

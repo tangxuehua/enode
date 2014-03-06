@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading;
+using DistributeSample.EventProcessor.Providers;
 using ECommon.IoC;
 using ECommon.Scheduling;
 using ENode.Configurations;
@@ -15,9 +16,10 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
         private static EventConsumer _eventConsumer;
         private static DomainEventHandledMessageSender _domainEventHandledMessageSender;
 
-        public static ENodeConfiguration SetEventTypeCodeProvider(this ENodeConfiguration enodeConfiguration)
+        public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
         {
-            enodeConfiguration.GetCommonConfiguration().SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
+            enodeConfiguration.GetCommonConfiguration().SetDefault<IEventTypeCodeProvider, EventTypeCodeProvider>();
+            enodeConfiguration.GetCommonConfiguration().SetDefault<IEventHandlerTypeCodeProvider, EventHandlerTypeCodeProvider>();
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)

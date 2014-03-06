@@ -1,10 +1,9 @@
-﻿using ECommon.IoC;
-using ENode.EQueue;
+﻿using ENode.EQueue;
 using ENode.Eventing;
 
-namespace NoteSample.EQueueIntegrations
+namespace NoteSample.Providers
 {
-    public class EventTopicManager : IEventTopicProvider
+    public class EventTopicProvider : IEventTopicProvider
     {
         public string GetTopic(EventStream eventStream)
         {

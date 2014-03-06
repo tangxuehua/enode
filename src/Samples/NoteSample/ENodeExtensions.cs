@@ -5,12 +5,14 @@ using ECommon.Scheduling;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
+using ENode.Domain;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
 using EQueue.Broker;
 using EQueue.Clients.Consumers;
 using EQueue.Configurations;
+using NoteSample.Providers;
 
 namespace NoteSample.EQueueIntegrations
 {
@@ -25,9 +27,15 @@ namespace NoteSample.EQueueIntegrations
         private static DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private static CommandResultProcessor _commandResultProcessor;
 
-        public static ENodeConfiguration SetEventTypeCodeProvider(this ENodeConfiguration enodeConfiguration)
+        public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
         {
-            enodeConfiguration.GetCommonConfiguration().SetDefault<IEventTypeCodeProvider, EventTypeCodeManager>();
+            var configuration = enodeConfiguration.GetCommonConfiguration();
+            configuration.SetDefault<ICommandTopicProvider, CommandTopicProvider>();
+            configuration.SetDefault<IEventTopicProvider, EventTopicProvider>();
+            configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
+            configuration.SetDefault<IAggregateRootTypeCodeProvider, AggregateRootTypeCodeProvider>();
+            configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeProvider>();
+            configuration.SetDefault<IEventHandlerTypeCodeProvider, EventHandlerTypeCodeProvider>();
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
@@ -35,9 +43,6 @@ namespace NoteSample.EQueueIntegrations
             var configuration = enodeConfiguration.GetCommonConfiguration();
 
             configuration.RegisterEQueueComponents();
-            configuration.SetDefault<ICommandTopicProvider, CommandTopicManager>();
-            configuration.SetDefault<IEventTopicProvider, EventTopicManager>();
-            configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeManager>();
 
             var consumerSetting = new ConsumerSetting
             {

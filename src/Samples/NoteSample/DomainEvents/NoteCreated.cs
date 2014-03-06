@@ -5,11 +5,11 @@ using NoteSample.Domain;
 namespace NoteSample.DomainEvents
 {
     [Serializable]
-    public class NoteCreatedEvent : DomainEvent<Guid>
+    public class NoteCreatedEvent : DomainEvent<string>
     {
         public string Title { get; private set; }
 
-        public NoteCreatedEvent(Guid id, string title) : base(id)
+        public NoteCreatedEvent(string id, string title) : base(id)
         {
             Title = title;
         }

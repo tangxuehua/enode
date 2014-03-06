@@ -91,7 +91,7 @@ namespace ENode.EQueue
         {
             var raw = _binarySerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
-            var typeCode = _commandTypeCodeProvider.GetTypeCode(command);
+            var typeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
             var commandData = ByteTypeDataUtils.Encode(new ByteTypeData(typeCode, raw));
             var messageData = _binarySerializer.Serialize(new CommandMessage
             {

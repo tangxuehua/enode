@@ -22,12 +22,12 @@ namespace ENode.Eventing.Impl
 
             foreach (var evnt in source.Events)
             {
-                var typeCode = _eventTypeCodeProvider.GetTypeCode(evnt);
+                var typeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
                 var eventData = _binarySerializer.Serialize(evnt);
                 eventEntryList.Add(new EventEntry(typeCode, eventData));
             }
 
-            return new EventCommitRecord(source.CommitId, source.AggregateRootId, source.AggregateRootName, source.Version, source.Timestamp, eventEntryList);
+            return new EventCommitRecord(source.CommitId, source.AggregateRootId, source.AggregateRootTypeCode, source.Version, source.Timestamp, eventEntryList);
         }
         public EventStream ConvertFrom(EventCommitRecord source)
         {
@@ -42,7 +42,7 @@ namespace ENode.Eventing.Impl
                 eventList.Add(domainEvent);
             }
 
-            return new EventStream(source.CommitId, source.AggregateRootId, source.AggregateRootName, source.Version, source.Timestamp, eventList);
+            return new EventStream(source.CommitId, source.AggregateRootId, source.AggregateRootTypeCode, source.Version, source.Timestamp, eventList);
         }
     }
 }

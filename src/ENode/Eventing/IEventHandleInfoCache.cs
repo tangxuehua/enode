@@ -9,14 +9,14 @@ namespace ENode.Eventing
         /// <summary>Add an event handle info to the cache.
         /// </summary>
         /// <param name="eventId"></param>
-        /// <param name="eventHandlerTypeName"></param>
-        void AddEventHandleInfo(string eventId, string eventHandlerTypeName);
+        /// <param name="eventHandlerTypeCode"></param>
+        void AddEventHandleInfo(string eventId, int eventHandlerTypeCode);
         /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
         /// <param name="eventId"></param>
-        /// <param name="eventHandlerTypeName"></param>
+        /// <param name="eventHandlerTypeCode"></param>
         /// <returns></returns>
-        bool IsEventHandleInfoExist(string eventId, string eventHandlerTypeName);
+        bool IsEventHandleInfoExist(string eventId, int eventHandlerTypeCode);
         /// <summary>Remove all the event handle information from the cache by the given eventId.
         /// </summary>
         /// <param name="eventId"></param>

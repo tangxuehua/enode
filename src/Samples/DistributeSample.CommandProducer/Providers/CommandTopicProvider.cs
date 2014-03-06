@@ -2,9 +2,9 @@
 using ENode.Commanding;
 using ENode.EQueue;
 
-namespace DistributeSample.CommandProducer.EQueueIntegrations
+namespace DistributeSample.CommandProducer.Providers
 {
-    public class CommandTopicManager : ICommandTopicProvider
+    public class CommandTopicProvider : ICommandTopicProvider
     {
         static int _index;
         public string GetTopic(ICommand command)

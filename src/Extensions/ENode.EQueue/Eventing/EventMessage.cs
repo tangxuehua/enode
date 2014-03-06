@@ -10,7 +10,7 @@ namespace ENode.EQueue
     {
         public string CommitId { get; set; }
         public string AggregateRootId { get; set; }
-        public string AggregateRootName { get; set; }
+        public int AggregateRootTypeCode { get; set; }
         public int Version { get; set; }
         public DateTime Timestamp { get; set; }
         public IList<EventEntry> Events { get; set; }

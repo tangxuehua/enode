@@ -45,12 +45,12 @@ namespace ENode.Eventing.Impl.SQL
         /// <summary>Insert an event handle info.
         /// </summary>
         /// <param name="eventId"></param>
-        /// <param name="eventHandlerTypeName"></param>
-        public void AddEventHandleInfo(string eventId, string eventHandlerTypeName)
+        /// <param name="eventHandlerTypeCode"></param>
+        public void AddEventHandleInfo(string eventId, int eventHandlerTypeCode)
         {
             _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
-                var key = new { EventHandlerTypeName = eventHandlerTypeName, EventId = eventId };
+                var key = new { EventHandlerTypeCode = eventHandlerTypeCode, EventId = eventId };
                 var count = connection.GetCount(key, _tableName);
                 if (count == 0)
                 {
@@ -61,11 +61,11 @@ namespace ENode.Eventing.Impl.SQL
         /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
         /// <param name="eventId"></param>
-        /// <param name="eventHandlerTypeName"></param>
+        /// <param name="eventHandlerTypeCode"></param>
         /// <returns></returns>
-        public bool IsEventHandleInfoExist(string eventId, string eventHandlerTypeName)
+        public bool IsEventHandleInfoExist(string eventId, int eventHandlerTypeCode)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetCount(new { EventHandlerTypeName = eventHandlerTypeName, EventId = eventId }, _tableName) > 0);
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetCount(new { EventHandlerTypeCode = eventHandlerTypeCode, EventId = eventId }, _tableName) > 0);
         }
     }
 }

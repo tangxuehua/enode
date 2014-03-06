@@ -64,7 +64,7 @@ namespace ENode.Eventing.Impl.SQL
                         {
                             if (commitRecord.Version == 1)
                             {
-                                throw new DuplicateAggregateException(commitRecord.AggregateRootName, commitRecord.AggregateRootId);
+                                throw new DuplicateAggregateException(commitRecord.AggregateRootTypeCode, commitRecord.AggregateRootId);
                             }
                             throw new ConcurrentException();
                         }
@@ -85,7 +85,7 @@ namespace ENode.Eventing.Impl.SQL
                 return null;
             });
         }
-        public IEnumerable<EventCommitRecord> QueryAggregateEvents(string aggregateRootId, string aggregateRootName, int minVersion, int maxVersion)
+        public IEnumerable<EventCommitRecord> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
             return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
@@ -128,7 +128,7 @@ namespace ENode.Eventing.Impl.SQL
             return new EventCommitRecord(
                     commitRecord.CommitId,
                     commitRecord.AggregateRootId,
-                    commitRecord.AggregateRootName,
+                    commitRecord.AggregateRootTypeCode,
                     commitRecord.Version,
                     commitRecord.Timestamp,
                     _binarySerializer.Deserialize<IEnumerable<EventEntry>>(commitRecord.Events));
@@ -139,7 +139,7 @@ namespace ENode.Eventing.Impl.SQL
             {
                 CommitId = eventStream.CommitId,
                 AggregateRootId = eventStream.AggregateRootId,
-                AggregateRootName = eventStream.AggregateRootName,
+                AggregateRootTypeCode = eventStream.AggregateRootTypeCode,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
                 Events = _binarySerializer.Serialize(eventStream.Events)
@@ -152,7 +152,7 @@ namespace ENode.Eventing.Impl.SQL
         {
             public string CommitId { get; set; }
             public string AggregateRootId { get; set; }
-            public string AggregateRootName { get; set; }
+            public int AggregateRootTypeCode { get; set; }
             public int Version { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }

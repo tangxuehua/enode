@@ -4,11 +4,11 @@ using ENode.Commanding;
 namespace NoteSample.Commands
 {
     [Serializable]
-    public class ChangeNoteTitleCommand : Command<Guid>
+    public class ChangeNoteTitleCommand : Command<string>
     {
         public string Title { get; private set; }
 
-        public ChangeNoteTitleCommand(Guid noteId, string title) : base(noteId)
+        public ChangeNoteTitleCommand(string noteId, string title) : base(noteId)
         {
             Title = title;
         }

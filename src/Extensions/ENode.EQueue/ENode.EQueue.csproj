@@ -65,7 +65,6 @@
     <Compile Include="Eventing\DomainEventHandledMessageSender.cs" />
     <Compile Include="Eventing\IEventTopicProvider.cs" />
     <Compile Include="Commanding\CommandService.cs" />
-    <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\ICommandTopicProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

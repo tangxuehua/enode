@@ -12,6 +12,7 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private const int WorkerCount = 4;
+        private readonly IEventHandlerTypeCodeProvider _eventHandlerTypeCodeProvider;
         private readonly IEventHandlerProvider _eventHandlerProvider;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IEventHandleInfoStore _eventHandleInfoStore;
@@ -27,6 +28,7 @@ namespace ENode.Eventing.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="eventHandlerTypeCodeProvider"></param>
         /// <param name="eventHandlerProvider"></param>
         /// <param name="eventPublishInfoStore"></param>
         /// <param name="eventHandleInfoStore"></param>
@@ -34,6 +36,7 @@ namespace ENode.Eventing.Impl
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultEventProcessor(
+            IEventHandlerTypeCodeProvider eventHandlerTypeCodeProvider,
             IEventHandlerProvider eventHandlerProvider,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
@@ -41,6 +44,7 @@ namespace ENode.Eventing.Impl
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
+            _eventHandlerTypeCodeProvider = eventHandlerTypeCodeProvider;
             _eventHandlerProvider = eventHandlerProvider;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventHandleInfoStore = eventHandleInfoStore;
@@ -146,13 +150,13 @@ namespace ENode.Eventing.Impl
         {
             try
             {
-                var eventHandlerTypeName = handler.GetInnerEventHandler().GetType().FullName;
-                if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName)) return true;
-                if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeName)) return true;
+                var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(handler.GetInnerEventHandler().GetType());
+                if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
+                if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
                 handler.Handle(evnt);
-                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeName);
-                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeName);
+                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode);
+                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode);
                 return true;
             }
             catch (Exception ex)

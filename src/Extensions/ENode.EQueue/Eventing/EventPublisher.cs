@@ -63,14 +63,14 @@ namespace ENode.EQueue
 
             data.CommitId = eventStream.CommitId;
             data.AggregateRootId = eventStream.AggregateRootId;
-            data.AggregateRootName = eventStream.AggregateRootName;
+            data.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
             data.Timestamp = eventStream.Timestamp;
             data.Version = eventStream.Version;
             data.ContextItems = contextItems;
 
             foreach (var evnt in eventStream.Events)
             {
-                var typeCode = _eventTypeCodeProvider.GetTypeCode(evnt);
+                var typeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
                 var eventData = _binarySerializer.Serialize(evnt);
                 data.Events.Add(new EventEntry(typeCode, eventData));
             }

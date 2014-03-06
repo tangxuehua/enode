@@ -8,9 +8,9 @@ namespace ENode.Eventing
     {
         /// <summary>Add an event handle info.
         /// </summary>
-        void AddEventHandleInfo(string eventId, string eventHandlerTypeName);
+        void AddEventHandleInfo(string eventId, int eventHandlerTypeCode);
         /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
-        bool IsEventHandleInfoExist(string eventId, string eventHandlerTypeName);
+        bool IsEventHandleInfoExist(string eventId, int eventHandlerTypeCode);
     }
 }

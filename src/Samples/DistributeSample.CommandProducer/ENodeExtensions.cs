@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading;
+using DistributeSample.CommandProducer.Providers;
 using ECommon.IoC;
 using ECommon.Scheduling;
 using ECommon.Utilities;
@@ -17,13 +18,18 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
         private static CommandService _commandService;
         private static CommandResultProcessor _commandResultProcessor;
 
+        public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
+        {
+            var configuration = enodeConfiguration.GetCommonConfiguration();
+            configuration.SetDefault<ICommandTopicProvider, CommandTopicProvider>();
+            configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
+            return enodeConfiguration;
+        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
 
             configuration.RegisterEQueueComponents();
-            configuration.SetDefault<ICommandTopicProvider, CommandTopicManager>();
-            configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeManager>();
 
             var consumerSetting = new ConsumerSetting
             {

@@ -4,8 +4,6 @@ using System.Linq;
 using System.Reflection;
 using ECommon.Configurations;
 using ECommon.IoC;
-using ECommon.Logging;
-using ECommon.Remoting;
 using ENode.Commanding;
 using ENode.Commanding.Impl;
 using ENode.Domain;
@@ -71,8 +69,14 @@ namespace ENode.Configurations
         {
             _configuration.SetDefault<IDbConnectionFactory, DefaultDbConnectionFactory>();
 
-            _configuration.SetDefault<IAggregateRootTypeProvider, DefaultAggregateRootTypeProvider>();
+            _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
+            _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
+            _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
+            _configuration.SetDefault<IAggregateRootTypeCodeProvider, NotImplementedAggregateRootTypeCodeProvider>();
+            _configuration.SetDefault<IEventTypeCodeProvider, NotImplementedEventTypeCodeProvider>();
+            _configuration.SetDefault<IEventHandlerTypeCodeProvider, NotImplementedEventHandlerTypeCodeProvider>();
+
             _configuration.SetDefault<IEventSourcingService, DefaultEventSourcingService>();
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
@@ -84,17 +88,13 @@ namespace ENode.Configurations
             _configuration.SetDefault<ISnapshotPolicy, NoSnapshotPolicy>();
             _configuration.SetDefault<ISnapshotStore, EmptySnapshotStore>();
 
-            _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
             _configuration.SetDefault<IWaitingCommandCache, DefaultWaitingCommandCache>();
             _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
             _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
-
-            _configuration.SetDefault<IEventTypeCodeProvider, NotImplementedEventTypeCodeProvider>();
             _configuration.SetDefault<IEventStreamConvertService, DefaultEventStreamConvertService>();
-            _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
-            _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
+
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
@@ -103,12 +103,11 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
             _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
 
-            _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
+            _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IEventSynchronizerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IEventHandlerProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootTypeProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
 
             return this;
         }

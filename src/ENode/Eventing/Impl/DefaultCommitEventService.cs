@@ -15,7 +15,7 @@ namespace ENode.Eventing
         #region Private Variables
 
         private readonly IWaitingCommandService _waitingCommandService;
-        private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
+        private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeCodeProvider;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IEventStreamConvertService _eventStreamConvertService;
         private readonly IEventSourcingService _eventSourcingService;
@@ -35,7 +35,7 @@ namespace ENode.Eventing
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="waitingCommandService"></param>
-        /// <param name="aggregateRootTypeProvider"></param>
+        /// <param name="aggregateRootTypeCodeProvider"></param>
         /// <param name="aggregateRootFactory"></param>
         /// <param name="eventStreamConvertService"></param>
         /// <param name="eventSourcingService"></param>
@@ -49,7 +49,7 @@ namespace ENode.Eventing
         /// <param name="loggerFactory"></param>
         public DefaultCommitEventService(
             IWaitingCommandService waitingCommandService,
-            IAggregateRootTypeProvider aggregateRootTypeProvider,
+            IAggregateRootTypeCodeProvider aggregateRootTypeCodeProvider,
             IAggregateRootFactory aggregateRootFactory,
             IEventStreamConvertService eventStreamConvertService,
             IEventSourcingService eventSourcingService,
@@ -63,7 +63,7 @@ namespace ENode.Eventing
             ILoggerFactory loggerFactory)
         {
             _waitingCommandService = waitingCommandService;
-            _aggregateRootTypeProvider = aggregateRootTypeProvider;
+            _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
             _aggregateRootFactory = aggregateRootFactory;
             _eventStreamConvertService = eventStreamConvertService;
             _eventSourcingService = eventSourcingService;
@@ -149,10 +149,10 @@ namespace ENode.Eventing
                             }
                             else
                             {
-                                _logger.ErrorFormat("Duplicate commit, but can't find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootName:{2}",
+                                _logger.ErrorFormat("Duplicate commit, but can't find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}",
                                     eventStream.CommitId,
                                     eventStream.AggregateRootId,
-                                    eventStream.AggregateRootName);
+                                    eventStream.AggregateRootTypeCode);
                             }
                         }
                         else if (currentContext.Exception != null)
@@ -222,10 +222,10 @@ namespace ENode.Eventing
         {
             try
             {
-                var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(eventStream.AggregateRootName);
+                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(eventStream.AggregateRootTypeCode);
                 if (aggregateRootType == null)
                 {
-                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root name [{0}].", eventStream.AggregateRootName);
+                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root type code [{0}].", eventStream.AggregateRootTypeCode);
                     return;
                 }
                 var aggregateRoot = _aggregateStorage.Get(aggregateRootType, eventStream.AggregateRootId);

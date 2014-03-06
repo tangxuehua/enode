@@ -75,9 +75,10 @@
     <Compile Include="CommandHandlers\CreateNoteCommandHandler.cs" />
     <Compile Include="Domain\Note.cs" />
     <Compile Include="ENodeExtensions.cs" />
-    <Compile Include="EQueueIntegrations\CommandTypeCodeManager.cs" />
-    <Compile Include="EQueueIntegrations\EventTopicManager.cs" />
-    <Compile Include="EventTypeCodeManager.cs" />
+    <Compile Include="Providers\AggregateRootTypeCodeProvider.cs" />
+    <Compile Include="Providers\CommandTypeCodeProvider.cs" />
+    <Compile Include="Providers\EventTopicProvider.cs" />
+    <Compile Include="Providers\EventTypeCodeProvider.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -106,6 +107,7 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

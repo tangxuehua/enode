@@ -9,9 +9,9 @@ namespace ENode.Infrastructure
     {
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="aggregateRootName"></param>
+        /// <param name="aggregateRootTypeCode"></param>
         /// <param name="aggregateRootId"></param>
-        public DuplicateAggregateException(string aggregateRootName, string aggregateRootId)
-            : base(string.Format("Duplicate aggregate[name={0},id={1}] creation.", aggregateRootName, aggregateRootId)) { }
+        public DuplicateAggregateException(int aggregateRootTypeCode, string aggregateRootId)
+            : base(string.Format("Duplicate aggregate[typeCode={0},id={1}] creation.", aggregateRootTypeCode, aggregateRootId)) { }
     }
 }

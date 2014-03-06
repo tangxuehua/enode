@@ -52,7 +52,7 @@ namespace ENode.Eventing.Impl.SQL
                 var count = connection.GetCount(new { AggregateRootId = aggregateRootId }, _tableName);
                 if (count == 0)
                 {
-                    connection.Insert(new { AggregateRootId = aggregateRootId, PublishedEventStreamVersion = 1 }, _tableName);
+                    connection.Insert(new { AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
                 }
             });
         }
@@ -65,7 +65,7 @@ namespace ENode.Eventing.Impl.SQL
             _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
             {
                 connection.Update(
-                    new { PublishedEventStreamVersion = version },
+                    new { PublishedVersion = version },
                     new { AggregateRootId = aggregateRootId },
                     _tableName);
             });
@@ -74,9 +74,9 @@ namespace ENode.Eventing.Impl.SQL
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public long GetEventPublishedVersion(string aggregateRootId)
+        public int GetEventPublishedVersion(string aggregateRootId)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetValue<long>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedEventStreamVersion"));
+            return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetValue<int>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion"));
         }
     }
 }

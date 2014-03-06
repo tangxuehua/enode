@@ -12,6 +12,6 @@
         void UpdatePublishedVersion(string aggregateRootId, int version);
         /// <summary>Get the current event published version for the specified aggregate.
         /// </summary>
-        long GetEventPublishedVersion(string aggregateRootId);
+        int GetEventPublishedVersion(string aggregateRootId);
     }
 }

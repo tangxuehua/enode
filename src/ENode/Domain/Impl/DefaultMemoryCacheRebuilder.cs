@@ -10,7 +10,7 @@ namespace ENode.Domain.Impl
         #region Private Variables
 
         private readonly IAggregateRootFactory _aggregateRootFactory;
-        private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
+        private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeProvider;
         private readonly IEventSourcingService _eventSourcingService;
         private readonly IEventStore _eventStore;
         private readonly IMemoryCache _memoryCache;
@@ -27,7 +27,7 @@ namespace ENode.Domain.Impl
         /// <param name="memoryCache"></param>
         public DefaultMemoryCacheRebuilder(
             IAggregateRootFactory aggregateRootFactory,
-            IAggregateRootTypeProvider aggregateRootTypeProvider,
+            IAggregateRootTypeCodeProvider aggregateRootTypeProvider,
             IEventSourcingService eventSourcingService,
             IEventStore eventStore,
             IMemoryCache memoryCache)

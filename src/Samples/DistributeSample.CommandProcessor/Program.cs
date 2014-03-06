@@ -30,7 +30,7 @@ namespace DistributeSample.CommandProcessor
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .SetEventTypeCodeProvider()
+                .SetProviders()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartRetryCommandService()

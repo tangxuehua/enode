@@ -11,7 +11,7 @@ namespace ENode.Snapshoting.Impl
         #region Private Variables
 
         private readonly IAggregateRootFactory _aggregateRootFactory;
-        private readonly IAggregateRootTypeProvider _aggregateRootTypeProvider;
+        private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeCodeProvider;
         private readonly IBinarySerializer _binarySerializer;
 
         #endregion
@@ -21,12 +21,12 @@ namespace ENode.Snapshoting.Impl
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootFactory"></param>
-        /// <param name="aggregateRootTypeProvider"></param>
+        /// <param name="aggregateRootTypeCodeProvider"></param>
         /// <param name="binarySerializer"></param>
-        public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, IAggregateRootTypeProvider aggregateRootTypeProvider, IBinarySerializer binarySerializer)
+        public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, IAggregateRootTypeCodeProvider aggregateRootTypeCodeProvider, IBinarySerializer binarySerializer)
         {
             _aggregateRootFactory = aggregateRootFactory;
-            _aggregateRootTypeProvider = aggregateRootTypeProvider;
+            _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
             _binarySerializer = binarySerializer;
         }
 
@@ -44,9 +44,9 @@ namespace ENode.Snapshoting.Impl
             }
 
             var payload = _binarySerializer.Serialize(aggregateRoot);
-            var aggregateRootName = _aggregateRootTypeProvider.GetAggregateRootTypeName(aggregateRoot.GetType());
+            var aggregateRootTypeCode = _aggregateRootTypeCodeProvider.GetTypeCode(aggregateRoot.GetType());
 
-            return new Snapshot(aggregateRootName, aggregateRoot.UniqueId, aggregateRoot.Version, payload, DateTime.Now);
+            return new Snapshot(aggregateRootTypeCode, aggregateRoot.UniqueId, aggregateRoot.Version, payload, DateTime.Now);
         }
         /// <summary>Restore the aggregate root from the given snapshot.
         /// </summary>
@@ -59,7 +59,7 @@ namespace ENode.Snapshoting.Impl
                 throw new ArgumentNullException("snapshot"); ;
             }
 
-            var aggregateRootType = _aggregateRootTypeProvider.GetAggregateRootType(snapshot.AggregateRootName);
+            var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(snapshot.AggregateRootTypeCode);
             return _binarySerializer.Deserialize(snapshot.Payload, aggregateRootType) as IAggregateRoot;
         }
     }

@@ -88,10 +88,12 @@ namespace ENode.Domain.Impl
         private void HandleEvent(IAggregateRoot aggregateRoot, IDomainEvent evnt)
         {
             var handler = _eventHandlerProvider.GetInternalEventHandler(aggregateRoot.GetType(), evnt.GetType());
-            if (handler != null)
+            if (handler == null)
             {
-                handler(aggregateRoot, evnt);
+                throw new ENodeException("Could not find event handler for [{0}] of [{1}]", evnt.GetType().FullName, aggregateRoot.GetType().FullName);
             }
+
+            handler(aggregateRoot, evnt);
         }
         private void VerifyEvent(IAggregateRoot aggregateRoot, EventStream eventStream)
         {

@@ -51,7 +51,7 @@ namespace ENode.Eventing.Impl.InMemory
                 }
                 else if (commitRecord.Version == 1)
                 {
-                    throw new DuplicateAggregateException(commitRecord.AggregateRootName, commitRecord.AggregateRootId);
+                    throw new DuplicateAggregateException(commitRecord.AggregateRootTypeCode, commitRecord.AggregateRootId);
                 }
                 else
                 {
@@ -74,7 +74,7 @@ namespace ENode.Eventing.Impl.InMemory
             EventCommitRecord commitRecord;
             return aggregateInfo.CommitDict.TryGetValue(commitId, out commitRecord) ? commitRecord : null;
         }
-        public IEnumerable<EventCommitRecord> QueryAggregateEvents(string aggregateRootId, string aggregateRootName, int minVersion, int maxVersion)
+        public IEnumerable<EventCommitRecord> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
             var commitRecords = new List<EventCommitRecord>();
 

@@ -29,10 +29,10 @@ namespace ENode.Eventing.Impl.InMemory
         /// </summary>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        public long GetEventPublishedVersion(string aggregateRootId)
+        public int GetEventPublishedVersion(string aggregateRootId)
         {
             int version;
-            return _versionDict.TryGetValue(aggregateRootId, out version) ? version : 0L;
+            return _versionDict.TryGetValue(aggregateRootId, out version) ? version : 0;
         }
     }
 }

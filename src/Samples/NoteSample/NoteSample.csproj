@@ -81,10 +81,12 @@
     <Compile Include="Commands\CreateNoteCommand.cs" />
     <Compile Include="Domain\Note.cs" />
     <Compile Include="ENodeExtensions.cs" />
-    <Compile Include="EventTypeCodeManager.cs" />
-    <Compile Include="EQueueIntegrations\EventTopicManager.cs" />
-    <Compile Include="EQueueIntegrations\CommandTypeCodeManager.cs" />
-    <Compile Include="EQueueIntegrations\CommandTopicManager.cs" />
+    <Compile Include="Providers\EventHandlerTypeCodeProvider.cs" />
+    <Compile Include="Providers\AggregateRootTypeCodeProvider.cs" />
+    <Compile Include="Providers\EventTypeCodeProvider.cs" />
+    <Compile Include="Providers\EventTopicProvider.cs" />
+    <Compile Include="Providers\CommandTypeCodeProvider.cs" />
+    <Compile Include="Providers\CommandTopicProvider.cs" />
     <Compile Include="EventHandlers\NoteEventHandler.cs" />
     <Compile Include="DomainEvents\NoteCreated.cs" />
     <Compile Include="DomainEvents\NoteTitleChanged.cs" />
