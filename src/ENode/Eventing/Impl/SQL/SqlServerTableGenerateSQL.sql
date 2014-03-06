@@ -11,7 +11,7 @@ CREATE TABLE [dbo].[Events] (
 GO
 CREATE UNIQUE INDEX [IX_Events_VersonIndex] ON [dbo].[Events] ([AggregateRootId], [Version])
 GO
-CREATE UNIQUE INDEX [IX_Events_CommitIndex] ON [dbo].[Events] ([CommitId])
+CREATE UNIQUE INDEX [IX_Events_CommitIndex] ON [dbo].[Events] ([AggregateRootId], [CommitId])
 GO
 
 CREATE TABLE [dbo].[EventPublishInfo](
