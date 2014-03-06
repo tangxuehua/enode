@@ -10,16 +10,13 @@ namespace ENode.Domain.Impl
     {
         private readonly ConcurrentDictionary<string, byte[]> _cacheDict = new ConcurrentDictionary<string, byte[]>();
         private readonly IBinarySerializer _binarySerializer;
-        private readonly IEventSourcingService _eventSourcingService;
 
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="binarySerializer"></param>
-        /// <param name="eventSourcingService"></param>
-        public DefaultMemoryCache(IBinarySerializer binarySerializer, IEventSourcingService eventSourcingService)
+        public DefaultMemoryCache(IBinarySerializer binarySerializer)
         {
             _binarySerializer = binarySerializer;
-            _eventSourcingService = eventSourcingService;
         }
 
         /// <summary>Get an aggregate from memory cache.
