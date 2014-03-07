@@ -82,7 +82,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
             _configuration.SetDefault<IAggregateStorage, EventSourcingAggregateStorage>();
             _configuration.SetDefault<IRepository, EventSourcingRepository>();
-            _configuration.SetDefault<IMemoryCacheRebuilder, DefaultMemoryCacheRebuilder>();
 
             _configuration.SetDefault<ISnapshotter, DefaultSnapshotter>();
             _configuration.SetDefault<ISnapshotPolicy, NoSnapshotPolicy>();

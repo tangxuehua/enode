@@ -63,9 +63,7 @@
     <Compile Include="Domain\DomainException.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
     <Compile Include="Domain\IEventSourcingService.cs" />
-    <Compile Include="Domain\IMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\Impl\DefaultEventSourcingService.cs" />
-    <Compile Include="Domain\Impl\DefaultMemoryCacheRebuilder.cs" />
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Domain\Impl\NotImplementedAggregateRootTypeCodeProvider.cs" />
