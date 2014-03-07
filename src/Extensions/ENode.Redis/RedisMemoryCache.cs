@@ -63,7 +63,7 @@ namespace ENode.Redis
             {
                 throw new ArgumentNullException("aggregateRoot");
             }
-            _redisClient.Set(aggregateRoot.UniqueId.ToString(), _binarySerializer.Serialize(aggregateRoot));
+            _redisClient.Set(aggregateRoot.UniqueId, _binarySerializer.Serialize(aggregateRoot));
         }
     }
 }
