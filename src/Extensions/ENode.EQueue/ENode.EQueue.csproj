@@ -43,9 +43,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\ecommon.1.0.7\lib\net40\ECommon.dll</HintPath>
     </Reference>
-    <Reference Include="EQueue, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\equeue.1.0.5\lib\net40\EQueue.dll</HintPath>
+    <Reference Include="EQueue">
+      <HintPath>..\..\..\packages\equeue.1.0.6\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
