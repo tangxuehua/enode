@@ -60,8 +60,8 @@ namespace NoteSample.EQueueIntegrations
 
             _broker = new BrokerController().Initialize();
 
-            var commandExecutedMessageConsumer = new Consumer(consumerSetting, "CommandExecutedMessageConsumer", "CommandExecutedMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
-            var domainEventHandledMessageConsumer = new Consumer(consumerSetting, "DomainEventHandledMessageConsumer", "DomainEventHandledMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
+            var commandExecutedMessageConsumer = new Consumer("CommandExecutedMessageConsumer", "CommandExecutedMessageConsumerGroup", consumerSetting);
+            var domainEventHandledMessageConsumer = new Consumer("DomainEventHandledMessageConsumer", "DomainEventHandledMessageConsumerGroup", consumerSetting);
             _commandResultProcessor = new CommandResultProcessor(commandExecutedMessageConsumer, domainEventHandledMessageConsumer);
 
             _commandService = new CommandService(_commandResultProcessor);

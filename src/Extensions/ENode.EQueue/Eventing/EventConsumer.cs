@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ECommon.IoC;
 using ECommon.Serializing;
-using ECommon.Socketing;
-using ECommon.Utilities;
 using ENode.Eventing;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
@@ -31,25 +29,17 @@ namespace ENode.EQueue
             : this(_consumerSetting, domainEventHandledMessageSender)
         {
         }
-        public EventConsumer(string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
-            : this(_consumerSetting, groupName, domainEventHandledMessageSender)
-        {
-        }
         public EventConsumer(ConsumerSetting setting, DomainEventHandledMessageSender domainEventHandledMessageSender)
-            : this(setting, null, domainEventHandledMessageSender)
+            : this("EventConsumer", "EventConsumerGroup", setting, domainEventHandledMessageSender)
         {
         }
-        public EventConsumer(ConsumerSetting setting, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
-            : this(setting, null, groupName, domainEventHandledMessageSender)
+        public EventConsumer(string id, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
+            : this(id, groupName, _consumerSetting, domainEventHandledMessageSender)
         {
         }
-        public EventConsumer(ConsumerSetting setting, string name, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
-            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(EventConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName, domainEventHandledMessageSender)
+        public EventConsumer(string id, string groupName, ConsumerSetting setting, DomainEventHandledMessageSender domainEventHandledMessageSender)
         {
-        }
-        public EventConsumer(string id, ConsumerSetting setting, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
-        {
-            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(EventConsumer).Name + "Group" : groupName);
+            _consumer = new Consumer(id, string.IsNullOrEmpty(groupName) ? typeof(EventConsumer).Name + "Group" : groupName, setting);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();

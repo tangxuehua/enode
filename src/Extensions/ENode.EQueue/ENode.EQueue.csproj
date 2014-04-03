@@ -44,7 +44,7 @@
       <HintPath>..\..\..\packages\ecommon.1.0.7\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="EQueue">
-      <HintPath>..\..\..\packages\equeue.1.0.6\lib\net40\EQueue.dll</HintPath>
+      <HintPath>..\..\..\packages\equeue.1.0.7\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

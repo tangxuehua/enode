@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using ECommon.IoC;
 using ECommon.Serializing;
-using ECommon.Socketing;
-using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Domain;
-using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
@@ -29,28 +25,20 @@ namespace ENode.EQueue
         public Consumer Consumer { get { return _consumer; } }
 
         public CommandConsumer(CommandExecutedMessageSender commandExecutedMessageSender)
-            : this(new ConsumerSetting(), commandExecutedMessageSender)
-        {
-        }
-        public CommandConsumer(string groupName, CommandExecutedMessageSender commandExecutedMessageSender)
-            : this(new ConsumerSetting(), groupName, commandExecutedMessageSender)
+            : this(null, commandExecutedMessageSender)
         {
         }
         public CommandConsumer(ConsumerSetting setting, CommandExecutedMessageSender commandExecutedMessageSender)
-            : this(setting, null, commandExecutedMessageSender)
+            : this("CommandConsumer", "CommandConsumerGroup", setting, commandExecutedMessageSender)
         {
         }
-        public CommandConsumer(ConsumerSetting setting, string groupName, CommandExecutedMessageSender commandExecutedMessageSender)
-            : this(setting, null, groupName, commandExecutedMessageSender)
+        public CommandConsumer(string id, string groupName, CommandExecutedMessageSender commandExecutedMessageSender)
+            : this(id, groupName, new ConsumerSetting(), commandExecutedMessageSender)
         {
         }
-        public CommandConsumer(ConsumerSetting setting, string name, string groupName, CommandExecutedMessageSender commandExecutedMessageSender)
-            : this(string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandConsumer).Name : name, ObjectId.GenerateNewId()), setting, groupName, commandExecutedMessageSender)
+        public CommandConsumer(string id, string groupName, ConsumerSetting setting, CommandExecutedMessageSender commandExecutedMessageSender)
         {
-        }
-        public CommandConsumer(string id, ConsumerSetting setting, string groupName, CommandExecutedMessageSender commandExecutedMessageSender)
-        {
-            _consumer = new Consumer(id, setting, string.IsNullOrEmpty(groupName) ? typeof(CommandConsumer).Name + "Group" : groupName);
+            _consumer = new Consumer(id, string.IsNullOrEmpty(groupName) ? typeof(CommandConsumer).Name + "Group" : groupName, setting);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();

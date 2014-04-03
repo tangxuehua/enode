@@ -1,7 +1,5 @@
 ﻿using ECommon.IoC;
 using ECommon.Serializing;
-using ECommon.Socketing;
-using ECommon.Utilities;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
 
@@ -14,12 +12,11 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public CommandExecutedMessageSender() : this(new ProducerSetting()) { }
-        public CommandExecutedMessageSender(ProducerSetting setting) : this(null, setting) { }
-        public CommandExecutedMessageSender(string name, ProducerSetting setting) : this(setting, string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(CommandExecutedMessageSender).Name : name, ObjectId.GenerateNewId())) { }
-        public CommandExecutedMessageSender(ProducerSetting setting, string id)
+        public CommandExecutedMessageSender() : this("CommandExecutedMessageSender") { }
+        public CommandExecutedMessageSender(string id) : this(id, new ProducerSetting()) { }
+        public CommandExecutedMessageSender(string id, ProducerSetting setting)
         {
-            _producer = new Producer(setting, id);
+            _producer = new Producer(id, setting);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
         }
 

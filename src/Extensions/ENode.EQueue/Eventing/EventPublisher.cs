@@ -2,8 +2,6 @@
 using ECommon.IoC;
 using ECommon.Logging;
 using ECommon.Serializing;
-using ECommon.Socketing;
-using ECommon.Utilities;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
@@ -21,12 +19,11 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public EventPublisher() : this(new ProducerSetting()) { }
-        public EventPublisher(ProducerSetting setting) : this(null, setting) { }
-        public EventPublisher(string name, ProducerSetting setting) : this(setting, string.Format("{0}@{1}@{2}", SocketUtils.GetLocalIPV4(), string.IsNullOrEmpty(name) ? typeof(EventPublisher).Name : name, ObjectId.GenerateNewId())) { }
-        public EventPublisher(ProducerSetting setting, string id)
+        public EventPublisher() : this("EventPublisher") { }
+        public EventPublisher(string id) : this(id, new ProducerSetting()) { }
+        public EventPublisher(string id, ProducerSetting setting)
         {
-            _producer = new Producer(setting, id);
+            _producer = new Producer(id, setting);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<IEventTopicProvider>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();

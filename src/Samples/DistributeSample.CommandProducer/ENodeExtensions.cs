@@ -38,8 +38,8 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
                 RebalanceInterval = 1000
             };
 
-            var commandExecutedMessageConsumer = new Consumer(consumerSetting, "CommandExecutedMessageConsumer", "CommandExecutedMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
-            var domainEventHandledMessageConsumer = new Consumer(consumerSetting, "DomainEventHandledMessageConsumer", "DomainEventHandledMessageConsumerGroup_" + ObjectId.GenerateNewId().ToString());
+            var commandExecutedMessageConsumer = new Consumer("commandExecutedMessageConsumer", "commandExecutedMessageConsumerGroup", consumerSetting);
+            var domainEventHandledMessageConsumer = new Consumer("domainEventHandledMessageConsumer", "domainEventHandledMessageConsumerGroup", consumerSetting);
             _commandResultProcessor = new CommandResultProcessor(commandExecutedMessageConsumer, domainEventHandledMessageConsumer);
 
             _commandService = new CommandService(_commandResultProcessor);
