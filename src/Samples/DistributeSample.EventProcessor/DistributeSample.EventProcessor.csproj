@@ -38,24 +38,20 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\packages\Autofac.3.3.0\lib\net40\Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.1.0.7\lib\net40\ECommon.dll</HintPath>
+    <Reference Include="ECommon">
+      <HintPath>..\..\..\packages\ecommon.1.0.8\lib\net40\ECommon.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.Autofac, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.autofac.1.0.7\lib\net40\ECommon.Autofac.dll</HintPath>
+    <Reference Include="ECommon.Autofac">
+      <HintPath>..\..\..\packages\ecommon.autofac.1.0.8\lib\net40\ECommon.Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.JsonNet, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.7\lib\net40\ECommon.JsonNet.dll</HintPath>
+    <Reference Include="ECommon.JsonNet">
+      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.8\lib\net40\ECommon.JsonNet.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.Log4Net, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.log4net.1.0.7\lib\net40\ECommon.Log4Net.dll</HintPath>
+    <Reference Include="ECommon.Log4Net">
+      <HintPath>..\..\..\packages\ecommon.log4net.1.0.8\lib\net40\ECommon.Log4Net.dll</HintPath>
     </Reference>
     <Reference Include="EQueue">
-      <HintPath>..\..\..\packages\equeue.1.0.8\lib\net40\EQueue.dll</HintPath>
+      <HintPath>..\..\..\packages\equeue.1.0.9\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

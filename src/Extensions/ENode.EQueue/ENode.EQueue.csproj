@@ -41,11 +41,11 @@
   <ItemGroup>
     <Reference Include="ECommon, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.1.0.7\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.1.0.8\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="EQueue, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\equeue.1.0.8\lib\net40\EQueue.dll</HintPath>
+      <HintPath>..\..\..\packages\equeue.1.0.9\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
