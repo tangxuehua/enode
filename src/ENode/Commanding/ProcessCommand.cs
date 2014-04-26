@@ -7,40 +7,36 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class ProcessCommand<TAggregateRootId> : Command<TAggregateRootId>, IProcessCommand
     {
-        private string _processId;
-
-        /// <summary>Represents the associated processId.
+        /// <summary>Represents the process id.
         /// </summary>
-        string IProcessCommand.ProcessId
-        {
-            get { return _processId; }
-        }
+        public string ProcessId { get; private set; }
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="aggregateRootId"></param>
-        protected ProcessCommand(TAggregateRootId aggregateRootId) : this(aggregateRootId, aggregateRootId) { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
         /// <param name="processId"></param>
-        protected ProcessCommand(TAggregateRootId aggregateRootId, object processId)
-            : this(aggregateRootId, processId, DefaultRetryCount)
-        {
-        }
+        protected ProcessCommand(object processId) : this(processId, DefaultRetryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="aggregateRootId"></param>
         /// <param name="processId"></param>
         /// <param name="retryCount"></param>
-        protected ProcessCommand(TAggregateRootId aggregateRootId, object processId, int retryCount)
-            : base(aggregateRootId, retryCount)
+        protected ProcessCommand(object processId, int retryCount) : this(processId, default(TAggregateRootId), retryCount) { }
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="processId"></param>
+        /// <param name="aggregateRootId"></param>
+        protected ProcessCommand(object processId, TAggregateRootId aggregateRootId) : this(processId, aggregateRootId, DefaultRetryCount) { }
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="processId"></param>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="retryCount"></param>
+        protected ProcessCommand(object processId, TAggregateRootId aggregateRootId, int retryCount) : base(aggregateRootId, retryCount)
         {
             if (processId == null)
             {
                 throw new ArgumentNullException("processId");
             }
-            _processId = processId.ToString();
+            ProcessId = processId.ToString();
         }
 
         /// <summary>Returns the command type name.

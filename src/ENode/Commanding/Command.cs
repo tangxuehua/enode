@@ -9,7 +9,8 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class Command<TAggregateRootId> : ICommand
     {
-        private string aggregateRootId;
+        private TAggregateRootId _aggregateRootId;
+        private string _aggregateRootStringId;
         private int _retryCount;
         public const int DefaultRetryCount = 5;
         public const int MaxRetryCount = 50;
@@ -36,21 +37,42 @@ namespace ENode.Commanding
         }
         /// <summary>Represents the id of aggregate root which is created or updated by the command.
         /// </summary>
-        public TAggregateRootId AggregateRootId { get; private set; }
+        public TAggregateRootId AggregateRootId
+        {
+            get
+            {
+                return _aggregateRootId;
+            }
+            set
+            {
+                if (!(this is ICreatingAggregateCommand))
+                {
+                    throw new ENodeException("{0} is not a CreatingAggregateCommand, and cannot be set AggregateRootId, commandId:{1}.", GetType().Name, Id);
+                }
+                _aggregateRootId = value;
+            }
+        }
         /// <summary>Represents the id of the aggregate root, this property is only used by framework.
         /// </summary>
         string ICommand.AggregateRootId
         {
             get
             {
-                if (aggregateRootId == null)
+                if (_aggregateRootStringId == null && _aggregateRootId != null)
                 {
-                    aggregateRootId = AggregateRootId.ToString();
+                    _aggregateRootStringId = _aggregateRootId.ToString();
                 }
-                return aggregateRootId;
+                return _aggregateRootStringId;
             }
         }
 
+        /// <summary>Default constructor.
+        /// </summary>
+        protected Command() : this(DefaultRetryCount) { }
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="retryCount"></param>
+        protected Command(int retryCount) : this(default(TAggregateRootId), retryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
@@ -61,12 +83,12 @@ namespace ENode.Commanding
         /// <param name="retryCount"></param>
         protected Command(TAggregateRootId aggregateRootId, int retryCount)
         {
-            if (aggregateRootId == null)
-            {
-                throw new ArgumentNullException("aggregateRootId");
-            }
             Id = ObjectId.GenerateNewStringId();
-            AggregateRootId = aggregateRootId;
+            _aggregateRootId = aggregateRootId;
+            if (aggregateRootId != null)
+            {
+                _aggregateRootStringId = _aggregateRootId.ToString();
+            }
             RetryCount = retryCount;
         }
 

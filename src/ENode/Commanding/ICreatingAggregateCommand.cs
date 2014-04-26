@@ -1,6 +1,6 @@
 ﻿namespace ENode.Commanding
 {
-    /// <summary>Represents whether a command is used to create a new aggregate.
+    /// <summary>Represents a command which will create a new aggregate root.
     /// </summary>
     public interface ICreatingAggregateCommand
     {

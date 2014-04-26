@@ -4,6 +4,7 @@ using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.EQueue.Commanding;
+using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -16,6 +17,7 @@ namespace ENode.EQueue
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTopicProvider _commandTopicProvider;
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
+        private readonly ICommandRouteKeyProvider _commandRouteKeyProvider;
         private readonly CommandResultProcessor _commandResultProcessor;
         private readonly Producer _producer;
 
@@ -28,6 +30,7 @@ namespace ENode.EQueue
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ICommandTopicProvider>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
+            _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRouteKeyProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
         }
 
@@ -43,7 +46,8 @@ namespace ENode.EQueue
         }
         public void Send(ICommand command)
         {
-            _producer.Send(BuildCommandMessage(command), command.AggregateRootId);
+            VerifyCommand(command);
+            _producer.Send(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command));
         }
         public Task<CommandResult> Execute(ICommand command)
         {
@@ -51,12 +55,13 @@ namespace ENode.EQueue
         }
         public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
         {
+            VerifyCommand(command);
             var message = BuildCommandMessage(command);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
 
             _commandResultProcessor.RegisterCommand(command, commandReturnType, taskCompletionSource);
 
-            _producer.SendAsync(message, command.AggregateRootId).ContinueWith(sendTask =>
+            _producer.SendAsync(message, _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
             {
                 if (sendTask.Result.SendStatus == SendStatus.Failed)
                 {
@@ -68,12 +73,13 @@ namespace ENode.EQueue
         }
         public Task<ProcessResult> StartProcess(IProcessCommand command)
         {
+            VerifyCommand(command);
             var message = BuildCommandMessage(command);
             var taskCompletionSource = new TaskCompletionSource<ProcessResult>();
 
             _commandResultProcessor.RegisterProcess(command, taskCompletionSource);
 
-            _producer.SendAsync(message, command.AggregateRootId).ContinueWith(sendTask =>
+            _producer.SendAsync(message, _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
             {
                 if (sendTask.Result.SendStatus == SendStatus.Failed)
                 {
@@ -84,6 +90,14 @@ namespace ENode.EQueue
             return taskCompletionSource.Task;
         }
 
+        private void VerifyCommand(ICommand command)
+        {
+            if (!(command is ICreatingAggregateCommand) && string.IsNullOrEmpty(command.AggregateRootId))
+            {
+                var format = "AggregateRootId cannot be null or empty if the command is not a CreatingAggregateCommand, commandType:{0}, commandId:{1}.";
+                throw new ENodeException(format, command.GetType().FullName, command.Id);
+            }
+        }
         private Message BuildCommandMessage(ICommand command)
         {
             var raw = _binarySerializer.Serialize(command);

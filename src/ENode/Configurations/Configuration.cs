@@ -91,6 +91,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
             _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
+            _configuration.SetDefault<ICommandRouteKeyProvider, DefaultCommandRouteKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
             _configuration.SetDefault<IEventStreamConvertService, DefaultEventStreamConvertService>();
 

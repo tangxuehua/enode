@@ -40,7 +40,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commanding\CommandReturnType.cs" />
+    <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\ProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
