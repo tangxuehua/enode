@@ -87,7 +87,7 @@ namespace ENode.Commanding
             _aggregateRootId = aggregateRootId;
             if (aggregateRootId != null)
             {
-                _aggregateRootStringId = _aggregateRootId.ToString();
+                _aggregateRootStringId = aggregateRootId.ToString();
             }
             RetryCount = retryCount;
         }

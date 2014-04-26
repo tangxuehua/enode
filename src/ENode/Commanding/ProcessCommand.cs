@@ -14,10 +14,6 @@ namespace ENode.Commanding
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processId"></param>
-        protected ProcessCommand(object processId) : this(processId, DefaultRetryCount) { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="processId"></param>
         /// <param name="retryCount"></param>
         protected ProcessCommand(object processId, int retryCount) : this(processId, default(TAggregateRootId), retryCount) { }
         /// <summary>Parameterized constructor.
