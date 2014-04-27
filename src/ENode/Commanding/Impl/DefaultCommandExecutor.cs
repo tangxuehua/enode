@@ -57,52 +57,45 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Command;
             var context = processingCommand.CommandExecuteContext;
+            var commandHandler = default(ICommandHandler);
 
-            if (!(command is ICreatingAggregateCommand) && string.IsNullOrEmpty(command.AggregateRootId))
+            try
             {
-                var errorMessage = string.Format("AggregateRootId cannot be null if the command is not a CreatingAggregateCommand, commandType:{0}, commandId:{1}.", command.GetType().FullName, command.Id);
-                _logger.Error(errorMessage);
-                context.OnCommandExecuted(command, CommandStatus.Failed, 0, errorMessage);
-                return;
+                if (!(command is ICreatingAggregateCommand) && string.IsNullOrEmpty(command.AggregateRootId))
+                {
+                    throw new CommandAggregateRootIdMissingException(command);
+                }
+
+                commandHandler = _commandHandlerProvider.GetCommandHandler(command);
+                if (commandHandler == null)
+                {
+                    throw new CommandHandlerNotFoundException(command);
+                }
             }
-
-            if (context.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
+            catch (Exception ex)
             {
-                _logger.DebugFormat("Queued a waiting command, commandType:{0}, commandId:{1}, aggregateRootId:{2}.", processingCommand.Command.GetType().Name, processingCommand.Command.Id, processingCommand.Command.AggregateRootId);
-                return;
-            }
-
-            var commandHandler = _commandHandlerProvider.GetCommandHandler(command);
-            if (commandHandler == null)
-            {
-                var errorMessage = string.Format("Command handler not found, commandType:{0}, commandId:{1}.", command.GetType().FullName);
-                _logger.Error(errorMessage);
-                context.OnCommandExecuted(command, CommandStatus.Failed, 0, errorMessage);
+                _logger.Error(ex.Message);
+                context.OnCommandExecuted(command, CommandStatus.Failed, ex.GetType().Name, ex.Message);
                 return;
             }
 
             try
             {
+                if (context.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
+                {
+                    _logger.DebugFormat("Queued a waiting command, commandType:{0}, commandId:{1}, aggregateRootId:{2}.",
+                        command.GetType().Name,
+                        command.Id,
+                        command.AggregateRootId);
+                    return;
+                }
                 commandHandler.Handle(context, command);
                 CommitChanges(processingCommand);
-            }
-            catch (DomainException domainException)
-            {
-                var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                var errorMessage = string.Format("{0} raised when [{1}] handling [{2}], commandId:{3}, aggregateRootId:{4}, exceptionMessage:{5}",
-                    domainException.GetType().Name,
-                    commandHandlerType.Name,
-                    command.GetType().Name,
-                    command.Id,
-                    command.AggregateRootId,
-                    domainException.Message);
-                _logger.Error(errorMessage, domainException);
-                context.OnCommandExecuted(command, CommandStatus.Failed, domainException.Code, domainException.Message);
             }
             catch (Exception ex)
             {
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                var errorMessage = string.Format("{0} raised when [{1}] handling [{2}], commandId:{3}, aggregateRootId:{4}, exceptionMessage:{5}",
+                var errorMessage = string.Format("{0} raised when {1} handling {2}, commandId:{3}, aggregateRootId:{4}, exceptionMessage:{5}",
                     ex.GetType().Name,
                     commandHandlerType.Name,
                     command.GetType().Name,
@@ -110,7 +103,7 @@ namespace ENode.Commanding.Impl
                     command.AggregateRootId,
                     ex.Message);
                 _logger.Error(errorMessage, ex);
-                context.OnCommandExecuted(command, CommandStatus.Failed, 0, ex.Message);
+                context.OnCommandExecuted(command, CommandStatus.Failed, ex.GetType().Name, ex.Message);
             }
         }
 
@@ -137,7 +130,7 @@ namespace ENode.Commanding.Impl
                     command.GetType().Name,
                     command.Id,
                     command.AggregateRootId);
-                context.OnCommandExecuted(command, CommandStatus.NothingChanged, 0, null);
+                context.OnCommandExecuted(command, CommandStatus.NothingChanged, null, null);
                 return;
             }
             var eventStream = CreateEventStream(dirtyAggregate, command);

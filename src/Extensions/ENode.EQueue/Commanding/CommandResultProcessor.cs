@@ -77,7 +77,7 @@ namespace ENode.EQueue.Commanding
             CommandTaskCompletionSource commandTaskCompletionSource;
             if (_commandTaskDict.TryGetValue(command.Id, out commandTaskCompletionSource))
             {
-                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, 0, "Command send failed."));
+                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "CommandSendFailed", "Failed to send the command."));
             }
             return this;
         }
@@ -86,7 +86,7 @@ namespace ENode.EQueue.Commanding
             TaskCompletionSource<ProcessResult> taskCompletionSource;
             if (_processTaskDict.TryGetValue(command.ProcessId, out taskCompletionSource))
             {
-                taskCompletionSource.TrySetResult(new ProcessResult(command.ProcessId, 0, "Start process command send failed."));
+                taskCompletionSource.TrySetResult(new ProcessResult(command.ProcessId, "ProcessCommandSendFailed", "Failed to send the process command."));
             }
             return this;
         }
@@ -115,13 +115,13 @@ namespace ENode.EQueue.Commanding
             {
                 if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.CommandExecuted)
                 {
-                    commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionCode, message.ErrorMessage));
+                    commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage));
                 }
                 if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.DomainEventHandled)
                 {
                     if (message.CommandStatus == CommandStatus.Failed || message.CommandStatus == CommandStatus.NothingChanged)
                     {
-                        commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionCode, message.ErrorMessage));
+                        commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage));
                     }
                 }
             }
@@ -132,7 +132,7 @@ namespace ENode.EQueue.Commanding
                     TaskCompletionSource<ProcessResult> processTaskCompletionSource;
                     if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
                     {
-                        processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ExceptionCode, message.ErrorMessage));
+                        processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ExceptionTypeName, message.ErrorMessage));
                     }
                 }
             }
@@ -142,7 +142,7 @@ namespace ENode.EQueue.Commanding
             CommandTaskCompletionSource commandTaskCompletionSource;
             if (_commandTaskDict.TryGetValue(message.CommandId, out commandTaskCompletionSource))
             {
-                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, 0, null));
+                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, null, null));
             }
             if (message.IsProcessCompletedEvent && !string.IsNullOrEmpty(message.ProcessId))
             {

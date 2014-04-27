@@ -13,22 +13,22 @@ namespace ENode.EQueue
     [Serializable]
     public class CommandExecutedMessage
     {
-        /// <summary>The unique identifier of the command.
+        /// <summary>Represents the unique identifier of the command.
         /// </summary>
         public string CommandId { get; set; }
-        /// <summary>The aggregate root created or modified by the command.
+        /// <summary>Represents the aggregate root id associated with the command.
         /// </summary>
         public string AggregateRootId { get; set; }
-        /// <summary>The associated processId of the command.
+        /// <summary>Represents the process id if the command is associated with a saga process.
         /// </summary>
         public string ProcessId { get; set; }
-        /// <summary>The status of the command execution.
+        /// <summary>Represents the result status of the command.
         /// </summary>
         public CommandStatus CommandStatus { get; set; }
-        /// <summary>The code of the exception type if the command execution has any exception.
+        /// <summary>Represents the exception type name if the command has any exception.
         /// </summary>
-        public int ExceptionCode { get; set; }
-        /// <summary>The error message if the command execution status is failed.
+        public string ExceptionTypeName { get; set; }
+        /// <summary>Represents the error message if the command status is failed.
         /// </summary>
         public string ErrorMessage { get; set; }
     }

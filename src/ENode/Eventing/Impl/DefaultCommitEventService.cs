@@ -121,7 +121,7 @@ namespace ENode.Eventing
                     context.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(
                         context.ProcessingCommand.Command,
                         CommandStatus.Failed,
-                        synchronizerResult.ExceptionCode,
+                        synchronizerResult.ExceptionTypeName,
                         synchronizerResult.ErrorMessage);
                     return true;
                 default:
@@ -162,7 +162,7 @@ namespace ENode.Eventing
                                 currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(
                                     currentContext.ProcessingCommand.Command,
                                     CommandStatus.Failed,
-                                    0,
+                                    currentContext.Exception.GetType().Name,
                                     currentContext.Exception.Message);
                             }
                             else if (currentContext.Exception is ConcurrentException)
@@ -258,7 +258,7 @@ namespace ENode.Eventing
             var publishEventsCallback = new Func<object, bool>(obj =>
             {
                 var currentProcessingCommand = obj as ProcessingCommand;
-                currentProcessingCommand.CommandExecuteContext.OnCommandExecuted(currentProcessingCommand.Command, CommandStatus.Success, 0, null);
+                currentProcessingCommand.CommandExecuteContext.OnCommandExecuted(currentProcessingCommand.Command, CommandStatus.Success, null, null);
                 return true;
             });
 
@@ -282,19 +282,6 @@ namespace ENode.Eventing
                         result.Status = SynchronizeStatus.SynchronizerConcurrentException;
                         return result;
                     }
-                    catch (DomainException domainException)
-                    {
-                        var errorMessage = string.Format("{0} raised when calling synchronizer's OnBeforePersisting method. synchronizer:{1}, events:{2}, errorMessage:{3}",
-                            domainException.GetType().Name,
-                            synchronizer.GetInnerSynchronizer().GetType().Name,
-                            eventStream,
-                            domainException.Message);
-                        _logger.Error(errorMessage, domainException);
-                        result.Status = SynchronizeStatus.Failed;
-                        result.ExceptionCode = domainException.Code;
-                        result.ErrorMessage = domainException.Message;
-                        return result;
-                    }
                     catch (Exception ex)
                     {
                         var errorMessage = string.Format("{0} raised when calling synchronizer's OnBeforePersisting method. synchronizer:{1}, events:{2}, errorMessage:{3}",
@@ -304,6 +291,7 @@ namespace ENode.Eventing
                             ex.Message);
                         _logger.Error(errorMessage, ex);
                         result.Status = SynchronizeStatus.Failed;
+                        result.ExceptionTypeName = ex.GetType().Name;
                         result.ErrorMessage = ex.Message;
                         return result;
                     }
@@ -347,7 +335,7 @@ namespace ENode.Eventing
         class SynchronizeResult
         {
             public SynchronizeStatus Status { get; set; }
-            public int ExceptionCode { get; set; }
+            public string ExceptionTypeName { get; set; }
             public string ErrorMessage { get; set; }
         }
         enum SynchronizeStatus

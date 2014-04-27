@@ -7,39 +7,39 @@ namespace ENode.Commanding
     [Serializable]
     public class CommandResult
     {
-        /// <summary>The status of the command.
+        /// <summary>Represents the result status of the command.
         /// </summary>
         public CommandStatus Status { get; private set; }
-        /// <summary>The unique identifier of the command.
+        /// <summary>Represents the unique identifier of the command.
         /// </summary>
         public string CommandId { get; private set; }
-        /// <summary>The aggregate root created or modified by the command.
+        /// <summary>Represents the aggregate root id associated with the command.
         /// </summary>
         public string AggregateRootId { get; private set; }
-        /// <summary>The code of exception if the command execution has any exception.
+        /// <summary>Represents the exception type name if the command has any exception.
         /// </summary>
-        public int ExceptionCode { get; private set; }
-        /// <summary>The error message of the command result.
+        public string ExceptionTypeName { get; private set; }
+        /// <summary>Represents the error message if the command is failed.
         /// </summary>
         public string ErrorMessage { get; private set; }
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public CommandResult(CommandStatus commandStatus, string commandId, string aggregateRootId, int exceptionCode, string errorMessage)
+        public CommandResult(CommandStatus status, string commandId, string aggregateRootId, string exceptionTypeName, string errorMessage)
         {
-            Status = commandStatus;
+            Status = status;
             CommandId = commandId;
             AggregateRootId = aggregateRootId;
-            ExceptionCode = exceptionCode;
+            ExceptionTypeName = exceptionTypeName;
             ErrorMessage = errorMessage;
         }
     }
-    /// <summary>Represents the command processing status.
+    /// <summary>Represents the command result status enum.
     /// </summary>
     public enum CommandStatus
     {
         Success = 1,
         NothingChanged = 2,
-        Failed,
+        Failed = 3,
     }
 }
