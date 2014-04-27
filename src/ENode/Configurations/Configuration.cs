@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ECommon.Configurations;
-using ECommon.IoC;
+using ECommon.Components;
 using ENode.Commanding;
 using ENode.Commanding.Impl;
 using ENode.Domain;
@@ -13,7 +13,6 @@ using ENode.Eventing.Impl;
 using ENode.Eventing.Impl.InMemory;
 using ENode.Eventing.Impl.SQL;
 using ENode.Infrastructure;
-using ENode.Infrastructure.Sql;
 using ENode.Snapshoting;
 using ENode.Snapshoting.Impl;
 
@@ -67,8 +66,6 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
-            _configuration.SetDefault<IDbConnectionFactory, DefaultDbConnectionFactory>();
-
             _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
@@ -133,37 +130,60 @@ namespace ENode.Configurations
             }
             return this;
         }
-
+        /// <summary>Use the SqlServerEventStore as the IEventStore.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventStore(string connectionString)
         {
-            return UseSqlServerEventStore(connectionString, "Events", "IX_Events_CommitIndex", "IX_Events_VersonIndex");
+            return UseSqlServerEventStore(connectionString, "Event", "IX_Event_CommitIndex", "IX_Event_VersionIndex");
         }
+        /// <summary>Use the SqlServerEventStore as the IEventStore.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="eventTable"></param>
+        /// <param name="commitIndexName"></param>
+        /// <param name="versionIndexName"></param>
+        /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventStore(string connectionString, string eventTable, string commitIndexName, string versionIndexName)
         {
             _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(connectionString, eventTable, commitIndexName, versionIndexName));
             return this;
         }
+        /// <summary>Use the SqlServerEventPublishInfoStore as the IEventPublishInfoStore.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString)
         {
             return UseSqlServerEventPublishInfoStore(connectionString, "EventPublishInfo");
         }
+        /// <summary>Use the SqlServerEventPublishInfoStore as the IEventPublishInfoStore.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="eventPublishInfoTable"></param>
+        /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString, string eventPublishInfoTable)
         {
             _configuration.SetDefault<IEventPublishInfoStore, SqlServerEventPublishInfoStore>(new SqlServerEventPublishInfoStore(connectionString, eventPublishInfoTable));
             return this;
         }
+        /// <summary>Use the SqlServerEventHandleInfoStore as the IEventHandleInfoStore.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventHandleInfoStore(string connectionString)
         {
             return UseSqlServerEventHandleInfoStore(connectionString, "EventHandleInfo");
         }
+        /// <summary>Use the SqlServerEventHandleInfoStore as the IEventHandleInfoStore.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="eventHandleInfoTable"></param>
+        /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventHandleInfoStore(string connectionString, string eventHandleInfoTable)
         {
             _configuration.SetDefault<IEventHandleInfoStore, SqlServerEventHandleInfoStore>(new SqlServerEventHandleInfoStore(connectionString, eventHandleInfoTable));
-            return this;
-        }
-        public ENodeConfiguration UseDefaultSqlQueryDbConnectionFactory(string connectionString)
-        {
-            _configuration.SetDefault<ISqlQueryDbConnectionFactory, DefaultSqlQueryDbConnectionFactory>(new DefaultSqlQueryDbConnectionFactory(connectionString));
             return this;
         }
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using DistributeSample.CommandProcessor.Domain;
 using DistributeSample.Commands;
-using ECommon.IoC;
+using ECommon.Components;
 using ENode.Commanding;
 
 namespace DistributeSample.CommandProcessor.CommandHandlers

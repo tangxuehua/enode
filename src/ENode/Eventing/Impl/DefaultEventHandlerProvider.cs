@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using ECommon.IoC;
+using ECommon.Components;
 using ENode.Domain;
 using ENode.Infrastructure;
 

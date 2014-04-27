@@ -1,7 +1,6 @@
 ﻿using System;
-using ECommon.IoC;
-using ENode.Infrastructure.Dapper;
-using ENode.Infrastructure.Sql;
+using System.Data.SqlClient;
+using ECommon.Dapper;
 
 namespace ENode.Eventing.Impl.SQL
 {
@@ -13,7 +12,6 @@ namespace ENode.Eventing.Impl.SQL
 
         private readonly string _connectionString;
         private readonly string _tableName;
-        private readonly IDbConnectionFactory _connectionFactory;
 
         #endregion
 
@@ -37,7 +35,6 @@ namespace ENode.Eventing.Impl.SQL
 
             _connectionString = connectionString;
             _tableName = tableName;
-            _connectionFactory = ObjectContainer.Resolve<IDbConnectionFactory>();
         }
 
         #endregion
@@ -48,15 +45,11 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="eventHandlerTypeCode"></param>
         public void AddEventHandleInfo(string eventId, int eventHandlerTypeCode)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
+            using (var connection = GetConnection())
             {
-                var key = new { EventHandlerTypeCode = eventHandlerTypeCode, EventId = eventId };
-                var count = connection.GetCount(key, _tableName);
-                if (count == 0)
-                {
-                    connection.Insert(key, _tableName);
-                }
-            });
+                connection.Open();
+                connection.Insert(new { EventHandlerTypeCode = eventHandlerTypeCode, EventId = eventId }, _tableName);
+            }
         }
         /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
@@ -65,7 +58,16 @@ namespace ENode.Eventing.Impl.SQL
         /// <returns></returns>
         public bool IsEventHandleInfoExist(string eventId, int eventHandlerTypeCode)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetCount(new { EventHandlerTypeCode = eventHandlerTypeCode, EventId = eventId }, _tableName) > 0);
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                return connection.GetCount(new { EventHandlerTypeCode = eventHandlerTypeCode, EventId = eventId }, _tableName) > 0;
+            }
+        }
+
+        private SqlConnection GetConnection()
+        {
+            return new SqlConnection(_connectionString);
         }
     }
 }

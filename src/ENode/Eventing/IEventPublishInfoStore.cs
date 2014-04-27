@@ -6,7 +6,7 @@
     {
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
-        void InsertFirstPublishedVersion(string aggregateRootId);
+        void InsertPublishedVersion(string aggregateRootId);
         /// <summary>Update the published event version of aggregate.
         /// </summary>
         void UpdatePublishedVersion(string aggregateRootId, int version);

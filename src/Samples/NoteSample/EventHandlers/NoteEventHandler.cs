@@ -1,5 +1,5 @@
 ﻿using System;
-using ECommon.IoC;
+using ECommon.Components;
 using ENode.Eventing;
 using NoteSample.DomainEvents;
 

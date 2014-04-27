@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using DistributeSample.EventProcessor.Providers;
-using ECommon.IoC;
+using ECommon.Components;
 using ECommon.Scheduling;
 using ENode.Configurations;
 using ENode.EQueue;

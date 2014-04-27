@@ -114,19 +114,13 @@
     <Compile Include="Eventing\Impl\DefaultEventSynchronizerProvider.cs" />
     <Compile Include="Eventing\Impl\EventSynchronizerWrapper.cs" />
     <Compile Include="Infrastructure\AbstractTypeCodeProvider.cs" />
-    <Compile Include="Infrastructure\Sql\DefaultSqlQueryDbConnectionFactory.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
-    <Compile Include="Infrastructure\Sql\ISqlQueryDbConnectionFactory.cs" />
     <Compile Include="Commanding\IRetryCommandService.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />
     <Compile Include="Domain\Impl\EventSourcingRepository.cs" />
     <Compile Include="Domain\IRepository.cs" />
     <Compile Include="Commanding\Impl\CommandHandlerWrapper.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandHandlerProvider.cs" />
-    <Compile Include="Infrastructure\Dapper\SqlMapper_Extensions.cs" />
-    <Compile Include="Infrastructure\Dapper\SqlMapper.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Infrastructure\TypeUtils.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -152,14 +146,12 @@
     <Compile Include="Snapshoting\Impl\DefaultSnapshotter.cs" />
     <Compile Include="Snapshoting\ISnapshotter.cs" />
     <Compile Include="Snapshoting\ISnapshotStore.cs" />
-    <Compile Include="Infrastructure\Sql\IDbConnectionFactory.cs" />
-    <Compile Include="Infrastructure\Sql\DefaultDbConnectionFactory.cs" />
     <Compile Include="Commanding\AggregateRootNotExistException.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="ECommon, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ECommon, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\ecommon.1.0.8\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ecommon.1.0.9\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

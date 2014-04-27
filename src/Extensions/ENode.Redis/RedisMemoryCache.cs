@@ -1,5 +1,5 @@
 ﻿using System;
-using ECommon.IoC;
+using ECommon.Components;
 using ECommon.Serializing;
 using ENode.Domain;
 using ServiceStack.Redis;

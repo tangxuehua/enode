@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Threading;
 using DistributeSample.CommandProcessor.Providers;
-using ECommon.IoC;
+using ECommon.Components;
 using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Configurations;

@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
-using ECommon.IoC;
+using ECommon.Components;
 using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl

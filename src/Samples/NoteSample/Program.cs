@@ -2,7 +2,7 @@
 using System.Reflection;
 using ECommon.Autofac;
 using ECommon.Configurations;
-using ECommon.IoC;
+using ECommon.Components;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
 using ECommon.Utilities;

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using ECommon.IoC;
+using ECommon.Components;
 using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Domain;

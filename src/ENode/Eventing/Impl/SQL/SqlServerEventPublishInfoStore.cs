@@ -1,7 +1,7 @@
 ﻿using System;
-using ECommon.IoC;
-using ENode.Infrastructure.Dapper;
-using ENode.Infrastructure.Sql;
+using System.Data.SqlClient;
+using System.Linq;
+using ECommon.Dapper;
 
 namespace ENode.Eventing.Impl.SQL
 {
@@ -13,7 +13,6 @@ namespace ENode.Eventing.Impl.SQL
 
         private readonly string _connectionString;
         private readonly string _tableName;
-        private readonly IDbConnectionFactory _connectionFactory;
 
         #endregion
 
@@ -37,7 +36,6 @@ namespace ENode.Eventing.Impl.SQL
 
             _connectionString = connectionString;
             _tableName = tableName;
-            _connectionFactory = ObjectContainer.Resolve<IDbConnectionFactory>();
         }
 
         #endregion
@@ -45,16 +43,13 @@ namespace ENode.Eventing.Impl.SQL
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        public void InsertFirstPublishedVersion(string aggregateRootId)
+        public void InsertPublishedVersion(string aggregateRootId)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
+            using (var connection = GetConnection())
             {
-                var count = connection.GetCount(new { AggregateRootId = aggregateRootId }, _tableName);
-                if (count == 0)
-                {
-                    connection.Insert(new { AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
-                }
-            });
+                connection.Open();
+                connection.Insert(new { AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
+            }
         }
         /// <summary>Update the published event version of aggregate.
         /// </summary>
@@ -62,13 +57,11 @@ namespace ENode.Eventing.Impl.SQL
         /// <param name="version"></param>
         public void UpdatePublishedVersion(string aggregateRootId, int version)
         {
-            _connectionFactory.CreateConnection(_connectionString).TryExecute(connection =>
+            using (var connection = GetConnection())
             {
-                connection.Update(
-                    new { PublishedVersion = version },
-                    new { AggregateRootId = aggregateRootId },
-                    _tableName);
-            });
+                connection.Open();
+                connection.Update(new { PublishedVersion = version }, new { AggregateRootId = aggregateRootId }, _tableName);
+            }
         }
         /// <summary>Get the current event published version for the specified aggregate.
         /// </summary>
@@ -76,7 +69,16 @@ namespace ENode.Eventing.Impl.SQL
         /// <returns></returns>
         public int GetEventPublishedVersion(string aggregateRootId)
         {
-            return _connectionFactory.CreateConnection(_connectionString).TryExecute(connection => connection.GetValue<int>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion"));
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                return connection.QueryList<int>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion").SingleOrDefault();
+            }
+        }
+
+        private SqlConnection GetConnection()
+        {
+            return new SqlConnection(_connectionString);
         }
     }
 }

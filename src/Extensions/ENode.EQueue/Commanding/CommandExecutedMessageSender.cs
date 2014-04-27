@@ -1,4 +1,4 @@
-﻿using ECommon.IoC;
+﻿using ECommon.Components;
 using ECommon.Serializing;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;

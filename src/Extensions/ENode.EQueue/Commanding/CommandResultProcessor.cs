@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using ECommon.IoC;
+using ECommon.Components;
 using ECommon.Scheduling;
 using ECommon.Serializing;
 using ENode.Commanding;

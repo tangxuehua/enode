@@ -1,6 +1,6 @@
 ﻿using System;
 using DistributeSample.Events;
-using ECommon.IoC;
+using ECommon.Components;
 using ENode.Eventing;
 
 namespace DistributeSample.EventProcessor.EventHandlers

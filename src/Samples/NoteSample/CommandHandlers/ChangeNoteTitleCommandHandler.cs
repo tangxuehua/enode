@@ -1,4 +1,4 @@
-﻿using ECommon.IoC;
+﻿using ECommon.Components;
 using ENode.Commanding;
 using NoteSample.Commands;
 using NoteSample.Domain;

@@ -169,7 +169,7 @@ namespace ENode.Eventing.Impl
         {
             if (stream.Version == 1)
             {
-                _eventPublishInfoStore.InsertFirstPublishedVersion(stream.AggregateRootId);
+                _eventPublishInfoStore.InsertPublishedVersion(stream.AggregateRootId);
             }
             else
             {

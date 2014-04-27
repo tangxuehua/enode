@@ -11,7 +11,7 @@ namespace ENode.Eventing.Impl.InMemory
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
         /// <param name="aggregateRootId"></param>
-        public void InsertFirstPublishedVersion(string aggregateRootId)
+        public void InsertPublishedVersion(string aggregateRootId)
         {
             _versionDict.TryAdd(aggregateRootId, 1);
         }
