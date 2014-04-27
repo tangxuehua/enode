@@ -169,7 +169,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Eventing\Impl\SQL\SqlServerTableGenerateSQL.sql" />
-    <Content Include="SqlScripts\TableGenerateSQL.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
