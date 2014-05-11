@@ -96,16 +96,16 @@ namespace ENode.Eventing.Impl
                         return DispatchEventsToHandlers(eventStream);
                     default:
                         var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(eventStream.AggregateRootId);
-                        if (lastPublishedVersion + 1 == eventStream.Version)
+                        if (lastPublishedVersion == eventStream.Version - 1)
                         {
                             return DispatchEventsToHandlers(eventStream);
                         }
-                        var canPublish = lastPublishedVersion + 1 > eventStream.Version;
-                        if (!canPublish)
+                        if (lastPublishedVersion < eventStream.Version - 1)
                         {
                             _logger.DebugFormat("wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
+                            return false;
                         }
-                        return canPublish;
+                        return true;
                 }
             });
 
