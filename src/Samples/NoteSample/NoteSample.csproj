@@ -35,24 +35,22 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autofac">
-      <HintPath>..\..\..\packages\Autofac.3.3.1\lib\net40\Autofac.dll</HintPath>
+      <HintPath>..\..\..\packages\Autofac.3.4.0\lib\net40\Autofac.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ecommon.1.0.9\lib\net40\ECommon.dll</HintPath>
+    <Reference Include="ECommon">
+      <HintPath>..\..\..\packages\ECommon.1.2.2\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Autofac">
-      <HintPath>..\..\..\packages\ecommon.autofac.1.1.0\lib\net40\ECommon.Autofac.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.Autofac.1.2.2\lib\net40\ECommon.Autofac.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.JsonNet">
-      <HintPath>..\..\..\packages\ecommon.jsonnet.1.0.9\lib\net40\ECommon.JsonNet.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.JsonNet.1.2.2\lib\net40\ECommon.JsonNet.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Log4Net">
-      <HintPath>..\..\..\packages\ecommon.log4net.1.0.9\lib\net40\ECommon.Log4Net.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.Log4Net.1.2.2\lib\net40\ECommon.Log4Net.dll</HintPath>
     </Reference>
-    <Reference Include="EQueue, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\equeue.1.1.0\lib\net40\EQueue.dll</HintPath>
+    <Reference Include="EQueue">
+      <HintPath>..\..\..\packages\EQueue.1.1.3\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
