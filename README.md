@@ -1,7 +1,11 @@
 enode
 =====
+A framework to help us developing ddd+cqrs+event sourcing+in memory based applications.
 
-An open-source framework which provide the ability to develop ddd+cqrs+event sourcing+in memory style applications.
+samples
+=====
+Saga sample:  https://github.com/tangxuehua/BankTransferSample
+A simple forum sample:  https://github.com/tangxuehua/forum
 
 architecture
 =====
