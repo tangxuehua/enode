@@ -33,8 +33,9 @@
     <DocumentationFile>D:\nugetpublish\ENode.Redis.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ECommon">
-      <HintPath>..\..\..\packages\ECommon.1.2.2\lib\net40\ECommon.dll</HintPath>
+    <Reference Include="ECommon, Version=1.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\ECommon.1.2.4\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="ServiceStack.Common">
       <HintPath>..\..\..\packages\ServiceStack.Common.4.0.12\lib\net40\ServiceStack.Common.dll</HintPath>
