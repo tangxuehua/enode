@@ -8,6 +8,10 @@ Developing rules:
 - Unit of Work pattern is not need again, replaced with saga
 - Domain event is the only way to implement aggregate interaction
 
+Blog
+--------------
+http://www.cnblogs.com/netfocus/category/496012.html
+
 Saga sample
 --------------
 https://github.com/tangxuehua/BankTransferSample
