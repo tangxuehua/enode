@@ -1,11 +1,20 @@
-enode
-=====
-A framework to help us developing ddd+cqrs+event sourcing+in memory based applications.
+A framework aims to help us developing ddd, cqrs, eda, and event sourcing style applications.
 
-samples
+Rules:
 =====
-Saga sample:  https://github.com/tangxuehua/BankTransferSample
-A simple forum sample:  https://github.com/tangxuehua/forum
+- 1. One command only effect one aggregate;
+- 2. Strong consistency for one aggregate;
+- 3. Eventual consistency for multiple aggregates;
+- 4. Unit of Work pattern is not need again, replaced with saga;
+- 5. Domain event is the only way to implement aggregate interaction;
+
+Saga sample
+=====
+https://github.com/tangxuehua/BankTransferSample
+
+A simple forum sample
+=====
+https://github.com/tangxuehua/forum
 
 architecture
 =====
