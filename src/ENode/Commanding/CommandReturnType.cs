@@ -15,6 +15,6 @@
         /// 2. the command execution makes nothing changes of domain;
         /// 3. the command execution success, and the domain event is handled.
         /// </summary>
-        DomainEventHandled
+        EventHandled
     }
 }

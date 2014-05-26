@@ -75,7 +75,7 @@ namespace ENode.Commanding.Impl
             catch (Exception ex)
             {
                 _logger.Error(ex.Message);
-                context.OnCommandExecuted(command, CommandStatus.Failed, ex.GetType().Name, ex.Message);
+                context.OnCommandExecuted(command, CommandStatus.Failed, null, ex.GetType().Name, ex.Message);
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace ENode.Commanding.Impl
                     command.AggregateRootId,
                     ex.Message);
                 _logger.Error(errorMessage, ex);
-                context.OnCommandExecuted(command, CommandStatus.Failed, ex.GetType().Name, ex.Message);
+                context.OnCommandExecuted(command, CommandStatus.Failed, null, ex.GetType().Name, ex.Message);
             }
         }
 
@@ -130,7 +130,7 @@ namespace ENode.Commanding.Impl
                     command.GetType().Name,
                     command.Id,
                     command.AggregateRootId);
-                context.OnCommandExecuted(command, CommandStatus.NothingChanged, null, null);
+                context.OnCommandExecuted(command, CommandStatus.NothingChanged, null, null, null);
                 return;
             }
             var eventStream = CreateEventStream(dirtyAggregate, command);

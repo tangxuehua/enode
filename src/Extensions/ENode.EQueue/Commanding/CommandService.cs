@@ -51,7 +51,7 @@ namespace ENode.EQueue
         }
         public Task<CommandResult> Execute(ICommand command)
         {
-            return Execute(command, CommandReturnType.DomainEventHandled);
+            return Execute(command, CommandReturnType.EventHandled);
         }
         public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
         {

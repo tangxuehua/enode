@@ -121,6 +121,7 @@ namespace ENode.Eventing
                     context.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(
                         context.ProcessingCommand.Command,
                         CommandStatus.Failed,
+                        null,
                         synchronizerResult.ExceptionTypeName,
                         synchronizerResult.ErrorMessage);
                     return true;
@@ -136,7 +137,7 @@ namespace ENode.Eventing
                             RefreshMemoryCache(currentContext);
                             SendWaitingCommand(eventStream);
                             SyncAfterEventPersisted(eventStream);
-                            PublishEvents(currentContext.ProcessingCommand.CommandExecuteContext.Items, currentContext.ProcessingCommand, eventStream);
+                            PublishEvents(currentContext, eventStream);
                         }
                         else if (currentContext.AppendResult == EventAppendResult.DuplicateCommit)
                         {
@@ -145,7 +146,7 @@ namespace ENode.Eventing
                             if (existingEventStream != null)
                             {
                                 SyncAfterEventPersisted(existingEventStream);
-                                PublishEvents(currentContext.ProcessingCommand.CommandExecuteContext.Items, currentContext.ProcessingCommand, existingEventStream);
+                                PublishEvents(currentContext, existingEventStream);
                             }
                             else
                             {
@@ -162,6 +163,7 @@ namespace ENode.Eventing
                                 currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(
                                     currentContext.ProcessingCommand.Command,
                                     CommandStatus.Failed,
+                                    null,
                                     currentContext.Exception.GetType().Name,
                                     currentContext.Exception.Message);
                             }
@@ -239,13 +241,13 @@ namespace ENode.Eventing
                 _logger.Error(string.Format("Exception raised when refreshing memory cache from eventstore, current eventStream:{0}", eventStream), ex);
             }
         }
-        private void PublishEvents(IDictionary<string, string> contextItems, ProcessingCommand processingCommand, EventStream eventStream)
+        private void PublishEvents(EventProcessingContext eventProcessingContext, EventStream eventStream)
         {
             var publishEvents = new Func<bool>(() =>
             {
                 try
                 {
-                    _eventPublisher.PublishEvent(contextItems, eventStream);
+                    _eventPublisher.PublishEvent(eventProcessingContext.ProcessingCommand.CommandExecuteContext.Items, eventStream);
                     return true;
                 }
                 catch (Exception ex)
@@ -257,12 +259,17 @@ namespace ENode.Eventing
 
             var publishEventsCallback = new Func<object, bool>(obj =>
             {
-                var currentProcessingCommand = obj as ProcessingCommand;
-                currentProcessingCommand.CommandExecuteContext.OnCommandExecuted(currentProcessingCommand.Command, CommandStatus.Success, null, null);
+                var currentContext = obj as EventProcessingContext;
+                currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(
+                    currentContext.ProcessingCommand.Command,
+                    CommandStatus.Success,
+                    currentContext.AggregateRoot.UniqueId,
+                    null,
+                    null);
                 return true;
             });
 
-            _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, new ActionInfo("PublishEventsCallback", publishEventsCallback, processingCommand, null));
+            _actionExecutionService.TryAction("PublishEvents", publishEvents, 3, new ActionInfo("PublishEventsCallback", publishEventsCallback, eventProcessingContext, null));
         }
         private SynchronizeResult SyncBeforeEventPersisting(EventStream eventStream)
         {

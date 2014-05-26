@@ -43,14 +43,6 @@ namespace ENode.Commanding
             {
                 return _aggregateRootId;
             }
-            set
-            {
-                if (!(this is ICreatingAggregateCommand))
-                {
-                    throw new ENodeException("{0} is not a CreatingAggregateCommand, and cannot be set AggregateRootId, commandId:{1}.", GetType().Name, Id);
-                }
-                _aggregateRootId = value;
-            }
         }
         /// <summary>Represents the id of the aggregate root, this property is only used by framework.
         /// </summary>

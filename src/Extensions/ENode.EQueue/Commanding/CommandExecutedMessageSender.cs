@@ -32,7 +32,7 @@ namespace ENode.EQueue
         }
         public void Send(CommandExecutedMessage message, string topic)
         {
-            _producer.SendAsync(new Message(topic, _binarySerializer.Serialize(message)), message.AggregateRootId);
+            _producer.SendAsync(new Message(topic, _binarySerializer.Serialize(message)), message.CommandId);
         }
     }
 }
