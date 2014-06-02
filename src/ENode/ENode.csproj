@@ -40,6 +40,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commanding\CommandHandlerNotFoundException.cs" />
+    <Compile Include="Commanding\CommandSendResult.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
@@ -149,9 +150,9 @@
     <Compile Include="Commanding\AggregateRootNotExistException.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="ECommon, Version=1.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ECommon, Version=1.2.5.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\ECommon.1.2.4\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ecommon.1.2.5\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

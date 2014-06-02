@@ -49,6 +49,21 @@ namespace ENode.EQueue
             VerifyCommand(command);
             _producer.Send(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command));
         }
+        public Task<CommandSendResult> SendAsync(ICommand command)
+        {
+            VerifyCommand(command);
+            var taskCompletionSource = new TaskCompletionSource<CommandSendResult>();
+
+            _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
+            {
+                taskCompletionSource.TrySetResult(
+                    new CommandSendResult(
+                        sendTask.Result.SendStatus == SendStatus.Success ? CommandSendStatus.Success : CommandSendStatus.Failed,
+                        sendTask.Result.ErrorMessage));
+            });
+
+            return taskCompletionSource.Task;
+        }
         public Task<CommandResult> Execute(ICommand command)
         {
             return Execute(command, CommandReturnType.EventHandled);
@@ -56,12 +71,11 @@ namespace ENode.EQueue
         public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
         {
             VerifyCommand(command);
-            var message = BuildCommandMessage(command);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
 
             _commandResultProcessor.RegisterCommand(command, commandReturnType, taskCompletionSource);
 
-            _producer.SendAsync(message, _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
+            _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
             {
                 if (sendTask.Result.SendStatus == SendStatus.Failed)
                 {
@@ -74,12 +88,11 @@ namespace ENode.EQueue
         public Task<ProcessResult> StartProcess(IProcessCommand command)
         {
             VerifyCommand(command);
-            var message = BuildCommandMessage(command);
             var taskCompletionSource = new TaskCompletionSource<ProcessResult>();
 
             _commandResultProcessor.RegisterProcess(command, taskCompletionSource);
 
-            _producer.SendAsync(message, _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
+            _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
             {
                 if (sendTask.Result.SendStatus == SendStatus.Failed)
                 {

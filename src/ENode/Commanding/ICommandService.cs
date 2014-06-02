@@ -6,10 +6,15 @@ namespace ENode.Commanding
     /// </summary>
     public interface ICommandService
     {
-        /// <summary>Send the given command to a specific queue to execute later.
+        /// <summary>Send a command synchronously.
         /// </summary>
-        /// <param name="command">The command to execute.</param>
+        /// <param name="command">The command to send.</param>
         void Send(ICommand command);
+        /// <summary>Send a command asynchronously.
+        /// </summary>
+        /// <param name="command">The command to send.</param>
+        /// <returns>A task which contains the send result of the command.</returns>
+        Task<CommandSendResult> SendAsync(ICommand command);
         /// <summary>Execute a command asynchronously with the default command return type.
         /// </summary>
         /// <param name="command">The command to execute.</param>
