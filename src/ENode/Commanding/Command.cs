@@ -17,7 +17,7 @@ namespace ENode.Commanding
 
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
-        public string Id { get; private set; }
+        public string Id { get; set; }
         /// <summary>Get or set the count which the command should be retry. The retry count must small than the MaxRetryCount;
         /// </summary>
         public int RetryCount
@@ -60,22 +60,26 @@ namespace ENode.Commanding
 
         /// <summary>Default constructor.
         /// </summary>
-        protected Command() : this(DefaultRetryCount) { }
+        /// <param name="commandId"></param>
+        protected Command(string commandId) : this(commandId, DefaultRetryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="commandId"></param>
         /// <param name="retryCount"></param>
-        protected Command(int retryCount) : this(default(TAggregateRootId), retryCount) { }
+        protected Command(string commandId, int retryCount) : this(commandId, default(TAggregateRootId), retryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
-        protected Command(TAggregateRootId aggregateRootId) : this(aggregateRootId, DefaultRetryCount) { }
+        protected Command(string commandId, TAggregateRootId aggregateRootId) : this(commandId, aggregateRootId, DefaultRetryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="retryCount"></param>
-        protected Command(TAggregateRootId aggregateRootId, int retryCount)
+        protected Command(string commandId, TAggregateRootId aggregateRootId, int retryCount)
         {
-            Id = ObjectId.GenerateNewStringId();
+            Id = commandId;
             _aggregateRootId = aggregateRootId;
             if (aggregateRootId != null)
             {

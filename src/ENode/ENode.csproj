@@ -47,6 +47,7 @@
     <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\CommandAggregateRootIdMissingException.cs" />
+    <Compile Include="Commanding\Impl\NotImplementedCommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\ProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
@@ -73,10 +74,12 @@
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Domain\Impl\NotImplementedAggregateRootTypeCodeProvider.cs" />
+    <Compile Include="Eventing\IEventContext.cs" />
     <Compile Include="Eventing\IEventStreamConvertService.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventProcessingContext.cs" />
     <Compile Include="Eventing\IEventHandlerTypeCodeProvider.cs" />
+    <Compile Include="Eventing\Impl\EventContext.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventHandlerTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\ITypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\DefaultEventStreamConvertService.cs" />

@@ -105,9 +105,13 @@ namespace ENode.EQueue
 
         private void VerifyCommand(ICommand command)
         {
+            if (string.IsNullOrEmpty(command.Id))
+            {
+                throw new ENodeException("Command id can not be null or empty.");
+            }
             if (!(command is ICreatingAggregateCommand) && string.IsNullOrEmpty(command.AggregateRootId))
             {
-                var format = "AggregateRootId cannot be null or empty if the command is not a CreatingAggregateCommand, commandType:{0}, commandId:{1}.";
+                var format = "AggregateRootId cannot be null or empty if the command is not a ICreatingAggregateCommand, commandType:{0}, commandId:{1}.";
                 throw new ENodeException(format, command.GetType().FullName, command.Id);
             }
         }

@@ -8,7 +8,7 @@ namespace ENode.Commanding
     {
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
-        string Id { get; }
+        string Id { get; set; }
         /// <summary>Represents the id of aggregate root which is created or updated by the command.
         /// </summary>
         string AggregateRootId { get; }

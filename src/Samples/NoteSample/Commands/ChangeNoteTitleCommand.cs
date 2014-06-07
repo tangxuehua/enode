@@ -1,4 +1,5 @@
 ﻿using System;
+using ECommon.Utilities;
 using ENode.Commanding;
 
 namespace NoteSample.Commands
@@ -8,7 +9,7 @@ namespace NoteSample.Commands
     {
         public string Title { get; private set; }
 
-        public ChangeNoteTitleCommand(string noteId, string title) : base(noteId)
+        public ChangeNoteTitleCommand(string noteId, string title) : base(ObjectId.GenerateNewStringId(), noteId)
         {
             Title = title;
         }

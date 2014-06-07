@@ -6,8 +6,9 @@
     {
         /// <summary>Handle the given event.
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="evnt"></param>
-        void Handle(object evnt);
+        void Handle(IEventContext context, object evnt);
         /// <summary>Get the inner event handler.
         /// </summary>
         /// <returns></returns>
@@ -18,9 +19,10 @@
     /// <typeparam name="TEvent"></typeparam>
     public interface IEventHandler<in TEvent> where TEvent : class, IDomainEvent
     {
-        /// <summary>Handle the given event.
+        /// <summary>Handle the given domain event.
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="evnt"></param>
-        void Handle(TEvent evnt);
+        void Handle(IEventContext context, TEvent evnt);
     }
 }

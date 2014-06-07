@@ -70,6 +70,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
             _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
+            _configuration.SetDefault<ICommandTypeCodeProvider, NotImplementedCommandTypeCodeProvider>();
             _configuration.SetDefault<IAggregateRootTypeCodeProvider, NotImplementedAggregateRootTypeCodeProvider>();
             _configuration.SetDefault<IEventTypeCodeProvider, NotImplementedEventTypeCodeProvider>();
             _configuration.SetDefault<IEventHandlerTypeCodeProvider, NotImplementedEventHandlerTypeCodeProvider>();

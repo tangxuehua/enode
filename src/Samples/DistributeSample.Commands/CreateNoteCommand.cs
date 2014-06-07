@@ -1,4 +1,5 @@
 ﻿using System;
+using ECommon.Utilities;
 using ENode.Commanding;
 
 namespace DistributeSample.Commands
@@ -8,7 +9,7 @@ namespace DistributeSample.Commands
     {
         public string Title { get; private set; }
 
-        public CreateNoteCommand(string noteId, string title) : base(noteId)
+        public CreateNoteCommand(string noteId, string title) : base(ObjectId.GenerateNewStringId(), noteId)
         {
             Title = title;
         }

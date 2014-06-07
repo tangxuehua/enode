@@ -17,10 +17,11 @@
 
         /// <summary>Handle the given event.
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="evnt"></param>
-        public void Handle(object evnt)
+        public void Handle(IEventContext context, object evnt)
         {
-            _eventHandler.Handle(evnt as T);
+            _eventHandler.Handle(context, evnt as T);
         }
 
         /// <summary>Get the inner event handler.

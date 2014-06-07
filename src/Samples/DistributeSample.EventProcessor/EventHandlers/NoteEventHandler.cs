@@ -8,7 +8,7 @@ namespace DistributeSample.EventProcessor.EventHandlers
     [Component]
     public class NoteEventHandler : IEventHandler<NoteCreatedEvent>
     {
-        public void Handle(NoteCreatedEvent evnt)
+        public void Handle(IEventContext context, NoteCreatedEvent evnt)
         {
             Console.WriteLine("Note created, Title：{0}", evnt.Title);
         }

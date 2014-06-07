@@ -15,18 +15,18 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="processId"></param>
         /// <param name="retryCount"></param>
-        protected ProcessCommand(object processId, int retryCount) : this(processId, default(TAggregateRootId), retryCount) { }
+        protected ProcessCommand(string commandId, object processId, int retryCount) : this(commandId, processId, default(TAggregateRootId), retryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processId"></param>
         /// <param name="aggregateRootId"></param>
-        protected ProcessCommand(object processId, TAggregateRootId aggregateRootId) : this(processId, aggregateRootId, DefaultRetryCount) { }
+        protected ProcessCommand(string commandId, object processId, TAggregateRootId aggregateRootId) : this(commandId, processId, aggregateRootId, DefaultRetryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="retryCount"></param>
-        protected ProcessCommand(object processId, TAggregateRootId aggregateRootId, int retryCount) : base(aggregateRootId, retryCount)
+        protected ProcessCommand(string commandId, object processId, TAggregateRootId aggregateRootId, int retryCount) : base(commandId, aggregateRootId, retryCount)
         {
             if (processId == null)
             {

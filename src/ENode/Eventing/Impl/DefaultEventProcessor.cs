@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using ECommon.Logging;
 using ECommon.Retring;
 using ECommon.Scheduling;
+using ENode.Commanding;
 
 namespace ENode.Eventing.Impl
 {
@@ -13,7 +15,9 @@ namespace ENode.Eventing.Impl
 
         private const int WorkerCount = 4;
         private readonly IEventHandlerTypeCodeProvider _eventHandlerTypeCodeProvider;
+        private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
         private readonly IEventHandlerProvider _eventHandlerProvider;
+        private readonly ICommandService _commandService;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IEventHandleInfoStore _eventHandleInfoStore;
         private readonly IEventHandleInfoCache _eventHandleInfoCache;
@@ -37,7 +41,9 @@ namespace ENode.Eventing.Impl
         /// <param name="loggerFactory"></param>
         public DefaultEventProcessor(
             IEventHandlerTypeCodeProvider eventHandlerTypeCodeProvider,
+            ICommandTypeCodeProvider commandTypeCodeProvider,
             IEventHandlerProvider eventHandlerProvider,
+            ICommandService commandService,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
             IEventHandleInfoCache eventHandleInfoCache,
@@ -45,7 +51,9 @@ namespace ENode.Eventing.Impl
             ILoggerFactory loggerFactory)
         {
             _eventHandlerTypeCodeProvider = eventHandlerTypeCodeProvider;
+            _commandTypeCodeProvider = commandTypeCodeProvider;
             _eventHandlerProvider = eventHandlerProvider;
+            _commandService = commandService;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventHandleInfoStore = eventHandleInfoStore;
             _eventHandleInfoCache = eventHandleInfoCache;
@@ -154,7 +162,17 @@ namespace ENode.Eventing.Impl
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
-                handler.Handle(evnt);
+                var context = new EventContext();
+                handler.Handle(context, evnt);
+                var commands = context.GetCommands();
+                if (commands.Any())
+                {
+                    foreach (var command in commands)
+                    {
+                        command.Id = BuildCommandId(command, evnt, eventHandlerTypeCode);
+                        _commandService.Send(command);
+                    }
+                }
                 _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode);
                 _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode);
                 return true;
@@ -175,6 +193,11 @@ namespace ENode.Eventing.Impl
             {
                 _eventPublishInfoStore.UpdatePublishedVersion(stream.AggregateRootId, stream.Version);
             }
+        }
+        private string BuildCommandId(ICommand command, IDomainEvent evnt, int eventHandlerTypeCode)
+        {
+            var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
+            return string.Format("{0}_{1}_{2}", evnt.Id, eventHandlerTypeCode, commandTypeCode);
         }
 
         #endregion
