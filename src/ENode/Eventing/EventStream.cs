@@ -18,6 +18,7 @@ namespace ENode.Eventing
         /// <param name="commitId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootTypeCode"></param>
+        /// <param name="processId"></param>
         /// <param name="version"></param>
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
@@ -66,6 +67,10 @@ namespace ENode.Eventing
 
         private void VerifyEvents(IEnumerable<IDomainEvent> events)
         {
+            if (events.Count() == 0)
+            {
+                throw new ENodeException("Events cannot be empty.");
+            }
             foreach (var evnt in events)
             {
                 if (evnt.AggregateRootId != AggregateRootId)
@@ -75,6 +80,10 @@ namespace ENode.Eventing
                 if (evnt.Version != Version)
                 {
                     throw new ENodeException("Domain event version mismatch, current domain event version:{0}, expected version:{1}", evnt.Version, Version);
+                }
+                if (evnt.Timestamp != Timestamp)
+                {
+                    throw new ENodeException("Domain event timestamp mismatch, current domain event timestamp:{0}, expected timestamp:{1}", evnt.Timestamp, Timestamp);
                 }
             }
         }

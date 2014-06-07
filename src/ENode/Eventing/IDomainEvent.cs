@@ -17,6 +17,6 @@ namespace ENode.Eventing
         int Version { get; set; }
         /// <summary>Represents the time of when this domain event raised.
         /// </summary>
-        DateTime Timestamp { get; }
+        DateTime Timestamp { get; set; }
     }
 }

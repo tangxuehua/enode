@@ -65,6 +65,7 @@
     <Compile Include="Commanding\IWaitingCommandCache.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
+    <Compile Include="Domain\DomainException.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
     <Compile Include="Domain\IEventSourcingService.cs" />
     <Compile Include="Domain\Impl\DefaultEventSourcingService.cs" />

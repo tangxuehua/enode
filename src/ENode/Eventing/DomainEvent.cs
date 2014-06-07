@@ -11,6 +11,7 @@ namespace ENode.Eventing
     {
         private string _aggregateRootId;
         private int? _version;
+        private DateTime? _timestamp;
 
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -23,7 +24,6 @@ namespace ENode.Eventing
             Id = ObjectId.GenerateNewStringId();
             AggregateRootId = aggregateRootId;
             _aggregateRootId = aggregateRootId.ToString();
-            Timestamp = DateTime.Now;
         }
 
         /// <summary>Represents the source aggregateRootId of the domain event.
@@ -51,7 +51,21 @@ namespace ENode.Eventing
         }
         /// <summary>Represents the time of when this domain event raised.
         /// </summary>
-        public DateTime Timestamp { get; private set; }
+        public DateTime Timestamp
+        {
+            get
+            {
+                return _timestamp == null ? DateTime.Now : _timestamp.Value;
+            }
+            set
+            {
+                if (_timestamp != null)
+                {
+                    throw new ENodeException("The timestamp of domain event cannot be set twice.");
+                }
+                _timestamp = value;
+            }
+        }
 
         /// <summary>Represents the unique id of the aggregate root, this property is only used by framework.
         /// </summary>
