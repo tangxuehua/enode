@@ -9,7 +9,7 @@ namespace NoteSample.Commands
     {
         public string Title { get; private set; }
 
-        public ChangeNoteTitleCommand(string noteId, string title) : base(ObjectId.GenerateNewStringId(), noteId)
+        public ChangeNoteTitleCommand(string noteId, string title) : base(noteId)
         {
             Title = title;
         }

@@ -60,32 +60,35 @@ namespace ENode.Commanding
 
         /// <summary>Default constructor.
         /// </summary>
-        /// <param name="commandId"></param>
-        protected Command(string commandId) : this(commandId, DefaultRetryCount) { }
+        protected Command() : this(DefaultRetryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="commandId"></param>
         /// <param name="retryCount"></param>
-        protected Command(string commandId, int retryCount) : this(commandId, default(TAggregateRootId), retryCount) { }
+        protected Command(int retryCount) : this(default(TAggregateRootId), retryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
-        protected Command(string commandId, TAggregateRootId aggregateRootId) : this(commandId, aggregateRootId, DefaultRetryCount) { }
+        protected Command(TAggregateRootId aggregateRootId) : this(aggregateRootId, DefaultRetryCount) { }
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="retryCount"></param>
-        protected Command(string commandId, TAggregateRootId aggregateRootId, int retryCount)
+        protected Command(TAggregateRootId aggregateRootId, int retryCount)
         {
-            Id = commandId;
+            Id = ObjectId.GenerateNewStringId();
             _aggregateRootId = aggregateRootId;
             if (aggregateRootId != null)
             {
                 _aggregateRootStringId = aggregateRootId.ToString();
             }
             RetryCount = retryCount;
+        }
+        /// <summary>Returns the aggregate root id as the key by default.
+        /// </summary>
+        /// <returns></returns>
+        public virtual object GetKey()
+        {
+            return _aggregateRootId;
         }
 
         /// <summary>Returns the command type name.

@@ -3,7 +3,7 @@ CREATE TABLE [dbo].[Event] (
     [AggregateRootTypeCode]   INT  NOT NULL,
     [AggregateRootId]         NVARCHAR (36)   NOT NULL,
     [Version]                 INT             NOT NULL,
-    [CommitId]                NVARCHAR (36)   NOT NULL,
+    [CommitId]                NVARCHAR (64)   NOT NULL,
     [ProcessId]               NVARCHAR (36)   NOT NULL,
     [Timestamp]               DATETIME        NOT NULL,
     [Events]                  VARBINARY (MAX) NOT NULL,

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using ECommon.Components;
+using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Domain;
@@ -20,6 +21,7 @@ namespace ENode.EQueue
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
         private readonly ICommandExecutor _commandExecutor;
         private readonly IRepository _repository;
+        private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
 
         public Consumer Consumer { get { return _consumer; } }
@@ -43,6 +45,7 @@ namespace ENode.EQueue
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _commandExecutedMessageSender = commandExecutedMessageSender;
         }
@@ -75,6 +78,10 @@ namespace ENode.EQueue
                 var items = new Dictionary<string, string>();
                 items.Add("DomainEventHandledMessageTopic", commandMessage.DomainEventHandledMessageTopic);
                 _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, commandMessage, items, CommandExecutedCallback)));
+            }
+            else
+            {
+                _logger.ErrorFormat("Duplicated command message. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
             }
         }
 
