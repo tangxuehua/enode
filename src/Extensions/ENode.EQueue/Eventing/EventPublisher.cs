@@ -62,6 +62,7 @@ namespace ENode.EQueue
             data.AggregateRootId = eventStream.AggregateRootId;
             data.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
             data.Timestamp = eventStream.Timestamp;
+            data.ProcessId = eventStream.ProcessId;
             data.Version = eventStream.Version;
             data.ContextItems = contextItems;
 

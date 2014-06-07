@@ -11,6 +11,7 @@ namespace ENode.EQueue
         public string CommitId { get; set; }
         public string AggregateRootId { get; set; }
         public int AggregateRootTypeCode { get; set; }
+        public string ProcessId { get; set; }
         public int Version { get; set; }
         public DateTime Timestamp { get; set; }
         public IList<EventEntry> Events { get; set; }

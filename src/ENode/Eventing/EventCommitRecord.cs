@@ -11,15 +11,17 @@ namespace ENode.Eventing
         public string CommitId { get; private set; }
         public string AggregateRootId { get; private set; }
         public int AggregateRootTypeCode { get; private set; }
+        public string ProcessId { get; private set; }
         public int Version { get; private set; }
         public DateTime Timestamp { get; private set; }
         public IEnumerable<EventEntry> Events { get; private set; }
 
-        public EventCommitRecord(string commitId, string aggregateRootId, int aggregateRootTypeCode, int version, DateTime timestamp, IEnumerable<EventEntry> events)
+        public EventCommitRecord(string commitId, string aggregateRootId, int aggregateRootTypeCode, string processId, int version, DateTime timestamp, IEnumerable<EventEntry> events)
         {
             CommitId = commitId;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeCode = aggregateRootTypeCode;
+            ProcessId = processId;
             Version = version;
             Timestamp = timestamp;
             Events = events;

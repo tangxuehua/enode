@@ -168,6 +168,7 @@ namespace ENode.Commanding.Impl
                 command.Id,
                 aggregateRoot.UniqueId,
                 aggregateRootTypeCode,
+                command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null,
                 aggregateRoot.Version + 1,
                 DateTime.Now,
                 uncommittedEvents);

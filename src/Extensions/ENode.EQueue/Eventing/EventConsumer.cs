@@ -116,7 +116,7 @@ namespace ENode.EQueue
                 events.Add(evnt);
             }
 
-            return new EventStream(data.CommitId, data.AggregateRootId, data.AggregateRootTypeCode, data.Version, data.Timestamp, events);
+            return new EventStream(data.CommitId, data.AggregateRootId, data.AggregateRootTypeCode, data.ProcessId, data.Version, data.Timestamp, events);
         }
 
         class EventProcessContext : IEventProcessContext

@@ -136,6 +136,7 @@ namespace ENode.Eventing.Impl.SQL
                     commitRecord.CommitId,
                     commitRecord.AggregateRootId,
                     commitRecord.AggregateRootTypeCode,
+                    commitRecord.ProcessId,
                     commitRecord.Version,
                     commitRecord.Timestamp,
                     _binarySerializer.Deserialize<IEnumerable<EventEntry>>(commitRecord.Events));
@@ -147,6 +148,7 @@ namespace ENode.Eventing.Impl.SQL
                 CommitId = eventStream.CommitId,
                 AggregateRootId = eventStream.AggregateRootId,
                 AggregateRootTypeCode = eventStream.AggregateRootTypeCode,
+                ProcessId = eventStream.ProcessId,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
                 Events = _binarySerializer.Serialize(eventStream.Events)
@@ -160,6 +162,7 @@ namespace ENode.Eventing.Impl.SQL
             public string CommitId { get; set; }
             public string AggregateRootId { get; set; }
             public int AggregateRootTypeCode { get; set; }
+            public string ProcessId { get; set; }
             public int Version { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }

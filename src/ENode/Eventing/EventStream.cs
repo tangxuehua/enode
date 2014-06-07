@@ -21,11 +21,12 @@ namespace ENode.Eventing
         /// <param name="version"></param>
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
-        public EventStream(string commitId, string aggregateRootId, int aggregateRootTypeCode, int version, DateTime timestamp, IEnumerable<IDomainEvent> events)
+        public EventStream(string commitId, string aggregateRootId, int aggregateRootTypeCode, string processId, int version, DateTime timestamp, IEnumerable<IDomainEvent> events)
         {
             CommitId = commitId;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeCode = aggregateRootTypeCode;
+            ProcessId = processId;
             Version = version;
             Timestamp = timestamp;
             VerifyEvents(events);
@@ -35,15 +36,18 @@ namespace ENode.Eventing
         /// <summary>The commandId which generate this event stream.
         /// </summary>
         public string CommitId { get; private set; }
-        /// <summary>The aggregate root id.
-        /// </summary>
-        public string AggregateRootId { get; private set; }
         /// <summary>The aggregate root type code.
         /// </summary>
         public int AggregateRootTypeCode { get; private set; }
+        /// <summary>The aggregate root id.
+        /// </summary>
+        public string AggregateRootId { get; private set; }
         /// <summary>The version of the event stream.
         /// </summary>
         public int Version { get; private set; }
+        /// <summary>The process id which the current event associated.
+        /// </summary>
+        public string ProcessId { get; private set; }
         /// <summary>The occurred time of the event stream.
         /// </summary>
         public DateTime Timestamp { get; private set; }
@@ -56,8 +60,8 @@ namespace ENode.Eventing
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommitId={0},AggregateRootTypeCode={1},AggregateRootId={2},Version={3},Timestamp={4},Events={5}]";
-            return string.Format(format, CommitId, AggregateRootTypeCode, AggregateRootId, Version, Timestamp, string.Join("|", Events.Select(x => x.GetType().Name)));
+            var format = "[CommitId={0},AggregateRootTypeCode={1},AggregateRootId={2},Version={3},ProcessId={4},Timestamp={5},Events={6}]";
+            return string.Format(format, CommitId, AggregateRootTypeCode, AggregateRootId, Version, ProcessId, Timestamp, string.Join("|", Events.Select(x => x.GetType().Name)));
         }
 
         private void VerifyEvents(IEnumerable<IDomainEvent> events)
