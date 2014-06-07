@@ -128,6 +128,7 @@ namespace ENode.EQueue
             /// </summary>
             /// <param name="aggregateRoot">The aggregate root to add.</param>
             /// <exception cref="ArgumentNullException">Throwed when the aggregate root is null.</exception>
+            /// <exception cref="AggregateRootAlreadyExistException">Throwed when the aggregate root already exist in command context.</exception>
             public void Add(IAggregateRoot aggregateRoot)
             {
                 if (aggregateRoot == null)
@@ -136,7 +137,7 @@ namespace ENode.EQueue
                 }
                 if (!_trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot))
                 {
-                    throw new ENodeException("Aggregate root [id={0}] has already been added to the current command context.", aggregateRoot.UniqueId);
+                    throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
             }
             /// <summary>Get the aggregate from the context.
@@ -153,14 +154,22 @@ namespace ENode.EQueue
                     throw new ArgumentNullException("id");
                 }
 
-                var aggregateRoot = _repository.Get<T>(id);
+                IAggregateRoot aggregateRoot = null;
+                if (_trackingAggregateRoots.TryGetValue(id.ToString(), out aggregateRoot))
+                {
+                    return aggregateRoot as T;
+                }
+
+                aggregateRoot = _repository.Get<T>(id);
 
                 if (aggregateRoot == null)
                 {
                     throw new AggregateRootNotExistException(id, typeof(T));
                 }
+
                 _trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
-                return aggregateRoot;
+
+                return aggregateRoot as T;
             }
             /// <summary>Returns all the tracked aggregate roots of the current context.
             /// </summary>

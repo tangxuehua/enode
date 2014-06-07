@@ -39,6 +39,7 @@
     <DocumentationFile>D:\nugetpublish\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
     <Compile Include="Commanding\CommandHandlerNotFoundException.cs" />
     <Compile Include="Commanding\CommandSendResult.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />

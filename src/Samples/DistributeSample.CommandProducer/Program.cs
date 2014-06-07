@@ -26,7 +26,7 @@ namespace DistributeSample.CommandProducer
 
             for (var index = 1; index <= 10; index++)
             {
-                commandService.Execute(new CreateNoteCommand(ObjectId.GenerateNewStringId(), "Sample Note" + index)).ContinueWith(task =>
+                commandService.Execute(new CreateNoteCommand(ObjectId.GenerateNewStringId(), "Sample Note" + index), CommandReturnType.CommandExecuted).ContinueWith(task =>
                 {
                     if (task.Result.Status == CommandStatus.Success)
                     {

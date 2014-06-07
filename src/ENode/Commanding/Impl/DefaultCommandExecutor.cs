@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using ECommon.Logging;
-using ECommon.Retring;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -17,7 +15,6 @@ namespace ENode.Commanding.Impl
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeProvider;
         private readonly ICommitEventService _commitEventService;
-        private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
 
         #endregion
@@ -30,21 +27,18 @@ namespace ENode.Commanding.Impl
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="commitEventService"></param>
-        /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
             IWaitingCommandCache waitingCommandCache,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeCodeProvider aggregateRootTypeProvider,
             ICommitEventService commitEventService,
-            IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
             _waitingCommandCache = waitingCommandCache;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _commitEventService = commitEventService;
-            _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().Name);
             _commitEventService.SetCommandExecutor(this);
         }
@@ -59,6 +53,7 @@ namespace ENode.Commanding.Impl
             var context = processingCommand.CommandExecuteContext;
             var commandHandler = default(ICommandHandler);
 
+            //Validate command and get command handler.
             try
             {
                 if (!(command is ICreatingAggregateCommand) && string.IsNullOrEmpty(command.AggregateRootId))
@@ -79,23 +74,33 @@ namespace ENode.Commanding.Impl
                 return;
             }
 
+            //Try to add command to waiting queue if necessary. If the command is added into the waiting queue, it will be executed later.
+            if (context.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
+            {
+                _logger.DebugFormat("Queued a waiting command, commandType:{0}, commandId:{1}, aggregateRootId:{2}.",
+                    command.GetType().Name,
+                    command.Id,
+                    command.AggregateRootId);
+                return;
+            }
+
+            //Handle the command.
             try
             {
-                if (context.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
-                {
-                    _logger.DebugFormat("Queued a waiting command, commandType:{0}, commandId:{1}, aggregateRootId:{2}.",
-                        command.GetType().Name,
-                        command.Id,
-                        command.AggregateRootId);
-                    return;
-                }
                 commandHandler.Handle(context, command);
-                CommitChanges(processingCommand);
             }
             catch (Exception ex)
             {
+                //If throws enode exception, we throws it directly as in this case we should retry the command again.
+                if (ex is ENodeException)
+                {
+                    throw;
+                }
+
+                //All other exceptions mean the domain occurs exception,
+                //in this case we should not retry the command and return the exception error back to user.
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                var errorMessage = string.Format("{0} raised when {1} handling {2}, commandId:{3}, aggregateRootId:{4}, exceptionMessage:{5}",
+                var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}, exceptionMessage:{5}",
                     ex.GetType().Name,
                     commandHandlerType.Name,
                     command.GetType().Name,
@@ -105,6 +110,9 @@ namespace ENode.Commanding.Impl
                 _logger.Error(errorMessage, ex);
                 context.OnCommandExecuted(command, CommandStatus.Failed, null, ex.GetType().Name, ex.Message);
             }
+
+            //Commit the changes.
+            CommitChanges(processingCommand);
         }
 
         #endregion
@@ -123,37 +131,34 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Command;
             var context = processingCommand.CommandExecuteContext;
-            var dirtyAggregate = GetDirtyAggregate(context);
-            if (dirtyAggregate == null)
-            {
-                _logger.DebugFormat("No aggregate created or modified by {0}, commandId:{1},aggregateRootId:{2}.",
-                    command.GetType().Name,
-                    command.Id,
-                    command.AggregateRootId);
-                context.OnCommandExecuted(command, CommandStatus.NothingChanged, null, null, null);
-                return;
-            }
-            var eventStream = CreateEventStream(dirtyAggregate, command);
-            _commitEventService.CommitEvent(new EventProcessingContext(dirtyAggregate, eventStream, processingCommand));
-        }
-        private IAggregateRoot GetDirtyAggregate(ITrackingContext trackingContext)
-        {
-            var trackedAggregateRoots = trackingContext.GetTrackedAggregateRoots();
+            var trackedAggregateRoots = context.GetTrackedAggregateRoots();
             var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Any()).ToList();
             var dirtyAggregateRootCount = dirtyAggregateRoots.Count();
 
             if (dirtyAggregateRootCount == 0)
             {
-                return null;
+                _logger.DebugFormat("No aggregate created or modified by command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
+                context.OnCommandExecuted(command, CommandStatus.NothingChanged, null, null, null);
+                return;
             }
-            if (dirtyAggregateRootCount > 1)
+            else if (dirtyAggregateRootCount > 1)
             {
-                throw new ENodeException("Detected more than one dirty aggregates [{0}].", dirtyAggregateRootCount);
+                var dirtyAggregateTypes = string.Join("|", dirtyAggregateRoots.Select(x => x.GetType().Name));
+                var errorMessage = string.Format("Detected more than one aggregate created or modified by command. commandType:{0}, commandId:{1}, dirty aggregate types:{2}",
+                    command.GetType().Name,
+                    command.Id,
+                    dirtyAggregateTypes);
+                _logger.ErrorFormat(errorMessage);
+                context.OnCommandExecuted(command, CommandStatus.Failed, null, null, errorMessage);
+                return;
             }
 
-            return dirtyAggregateRoots.Single();
+            var dirtyAggregate = dirtyAggregateRoots.Single();
+            var eventStream = BuildEventStream(dirtyAggregate, command);
+
+            _commitEventService.CommitEvent(new EventProcessingContext(dirtyAggregate, eventStream, processingCommand));
         }
-        private EventStream CreateEventStream(IAggregateRoot aggregateRoot, ICommand command)
+        private EventStream BuildEventStream(IAggregateRoot aggregateRoot, ICommand command)
         {
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
             aggregateRoot.ClearUncommittedEvents();

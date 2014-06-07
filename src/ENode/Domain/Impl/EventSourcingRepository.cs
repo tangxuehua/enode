@@ -1,4 +1,5 @@
 ﻿using System;
+using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
@@ -21,7 +22,7 @@ namespace ENode.Domain.Impl
 
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="aggregateRootId"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
@@ -30,13 +31,29 @@ namespace ENode.Domain.Impl
         }
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="id"></param>
+        /// <param name="aggregateRootType"></param>
+        /// <param name="aggregateRootId"></param>
         /// <returns></returns>
         public IAggregateRoot Get(Type aggregateRootType, object aggregateRootId)
         {
-            if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
-            return _memoryCache.Get(aggregateRootId, aggregateRootType) ?? _aggregateRootStorage.Get(aggregateRootType, aggregateRootId.ToString());
+            if (aggregateRootType == null)
+            {
+                throw new ENodeException("aggregateRootType cannot be null.");
+            }
+            if (aggregateRootId == null)
+            {
+                throw new ENodeException("aggregateRootId cannot be null.");
+            }
+            try
+            {
+                return _memoryCache.Get(aggregateRootId, aggregateRootType) ?? _aggregateRootStorage.Get(aggregateRootType, aggregateRootId.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new ENodeException(
+                    string.Format("Get aggregate from repoisotry has exception, aggregateRootType:{0}, aggregateRootId:{1}", aggregateRootType, aggregateRootId),
+                    ex);
+            }
         }
     }
 }

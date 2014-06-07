@@ -1,6 +1,6 @@
 ﻿namespace ENode.Commanding
 {
-    /// <summary>Represents a command retry service.
+    /// <summary>Represents a command retry service when the command execution has concurrent exception.
     /// </summary>
     public interface IRetryCommandService
     {
