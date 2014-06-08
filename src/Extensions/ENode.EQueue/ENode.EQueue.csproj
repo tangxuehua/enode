@@ -39,13 +39,13 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ECommon, Version=1.2.5.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ECommon, Version=1.2.6.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ECommon.1.2.5\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.1.2.6\lib\net40\ECommon.dll</HintPath>
     </Reference>
-    <Reference Include="EQueue, Version=1.1.6.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="EQueue, Version=1.1.7.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\equeue.1.1.6\lib\net40\EQueue.dll</HintPath>
+      <HintPath>..\..\..\packages\equeue.1.1.7\lib\net40\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
