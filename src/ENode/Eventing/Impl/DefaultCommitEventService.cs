@@ -74,7 +74,7 @@ namespace ENode.Eventing.Impl
             _eventPublisher = eventPublisher;
             _actionExecutionService = actionExecutionService;
             _eventSynchronizerProvider = eventSynchronizerProvider;
-            _logger = loggerFactory.Create(GetType().Name);
+            _logger = loggerFactory.Create(GetType().FullName);
         }
 
         #endregion
@@ -188,6 +188,7 @@ namespace ENode.Eventing.Impl
                 try
                 {
                     context.AppendResult = _eventStore.Append(_eventStreamConvertService.ConvertTo(context.EventStream));
+                    _logger.DebugFormat("Persist event stream success. {0}", context.EventStream);
                     return true;
                 }
                 catch (Exception ex)
@@ -214,6 +215,7 @@ namespace ENode.Eventing.Impl
             {
                 _eventSourcingService.ReplayEvents(context.AggregateRoot, new EventStream[] { context.EventStream });
                 _memoryCache.Set(context.AggregateRoot);
+                _logger.DebugFormat("Refreshed memory cache, aggregateRootType:{0}, aggregateRootId:{1}, aggregateRootVersion:{2}", context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
             }
             catch (Exception ex)
             {
@@ -248,6 +250,7 @@ namespace ENode.Eventing.Impl
                 try
                 {
                     _eventPublisher.PublishEvent(eventProcessingContext.ProcessingCommand.CommandExecuteContext.Items, eventStream);
+                    _logger.DebugFormat("Publish event stream success. {0}", eventStream);
                     return true;
                 }
                 catch (Exception ex)

@@ -39,7 +39,7 @@ namespace ENode.Commanding.Impl
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _commitEventService = commitEventService;
-            _logger = loggerFactory.Create(GetType().Name);
+            _logger = loggerFactory.Create(GetType().FullName);
             _commitEventService.SetCommandExecutor(this);
         }
 
@@ -88,6 +88,11 @@ namespace ENode.Commanding.Impl
             try
             {
                 commandHandler.Handle(context, command);
+                _logger.DebugFormat("Handle command success. commandHandlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                    commandHandler.GetInnerCommandHandler().GetType().Name,
+                    command.GetType().Name,
+                    command.Id,
+                    command.AggregateRootId);
             }
             catch (Exception ex)
             {

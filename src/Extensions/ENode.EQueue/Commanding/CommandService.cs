@@ -31,7 +31,7 @@ namespace ENode.EQueue
             _commandTopicProvider = ObjectContainer.Resolve<ICommandTopicProvider>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRouteKeyProvider>();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         public CommandService Start()

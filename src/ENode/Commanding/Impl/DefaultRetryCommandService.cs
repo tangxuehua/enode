@@ -15,7 +15,7 @@ namespace ENode.Commanding.Impl
         public DefaultRetryCommandService(ILoggerFactory loggerFactory)
         {
             _processor = new ProcessingCommandProcessor();
-            _logger = loggerFactory.Create(GetType().Name);
+            _logger = loggerFactory.Create(GetType().FullName);
         }
 
         /// <summary>Set the command executor.

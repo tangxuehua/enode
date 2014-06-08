@@ -27,7 +27,7 @@ namespace ENode.EQueue
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<IEventTopicProvider>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().Name);
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         public EventPublisher Start()

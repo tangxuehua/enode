@@ -22,7 +22,7 @@ namespace ENode.Eventing.Impl.InMemory
         {
             _aggregateInfoDict = new ConcurrentDictionary<string, AggregateInfo>();
             _eventDict = new ConcurrentDictionary<long, EventCommitRecord>();
-            _logger = loggerFactory.Create(GetType().Name);
+            _logger = loggerFactory.Create(GetType().FullName);
         }
 
         public EventAppendResult Append(EventCommitRecord commitRecord)

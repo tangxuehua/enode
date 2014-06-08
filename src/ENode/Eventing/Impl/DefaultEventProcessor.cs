@@ -59,7 +59,7 @@ namespace ENode.Eventing.Impl
             _eventHandleInfoStore = eventHandleInfoStore;
             _eventHandleInfoCache = eventHandleInfoCache;
             _actionExecutionService = actionExecutionService;
-            _logger = loggerFactory.Create(GetType().Name);
+            _logger = loggerFactory.Create(GetType().FullName);
             _queueList = new List<BlockingCollection<EventProcessingContext>>();
             for (var index = 0; index < WorkerCount; index++)
             {
@@ -111,7 +111,7 @@ namespace ENode.Eventing.Impl
                         }
                         if (lastPublishedVersion < eventStream.Version - 1)
                         {
-                            _logger.DebugFormat("wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
+                            _logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
                             return false;
                         }
                         return true;
@@ -159,7 +159,8 @@ namespace ENode.Eventing.Impl
         {
             try
             {
-                var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(handler.GetInnerEventHandler().GetType());
+                var eventHandlerType = handler.GetInnerEventHandler().GetType();
+                var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(eventHandlerType);
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
@@ -172,8 +173,22 @@ namespace ENode.Eventing.Impl
                     {
                         command.Id = BuildCommandId(command, evnt, eventHandlerTypeCode);
                         _commandService.Send(command);
+                        _logger.DebugFormat("Send command from event context success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}, commandType:{5}, commandId:{6}",
+                            eventHandlerType.Name,
+                            evnt.GetType().Name,
+                            evnt.Id,
+                            evnt.Version,
+                            evnt.AggregateRootId,
+                            command.GetType().Name,
+                            command.Id);
                     }
                 }
+                _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
+                    eventHandlerType.Name,
+                    evnt.GetType().Name,
+                    evnt.Id,
+                    evnt.Version,
+                    evnt.AggregateRootId);
                 _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode);
                 _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode);
                 return true;
