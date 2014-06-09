@@ -4,7 +4,7 @@ CREATE TABLE [dbo].[Event] (
     [AggregateRootId]         NVARCHAR (36)   NOT NULL,
     [Version]                 INT             NOT NULL,
     [CommitId]                NVARCHAR (64)   NOT NULL,
-    [ProcessId]               NVARCHAR (36)   NOT NULL,
+    [ProcessId]               NVARCHAR (36)   NULL,
     [Timestamp]               DATETIME        NOT NULL,
     [Events]                  VARBINARY (MAX) NOT NULL,
     CONSTRAINT [PK_Event] PRIMARY KEY CLUSTERED ([Sequence] ASC)
