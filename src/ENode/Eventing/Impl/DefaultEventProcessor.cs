@@ -70,7 +70,7 @@ namespace ENode.Eventing.Impl
             for (var index = 0; index < WorkerCount; index++)
             {
                 var queue = _queueList[index];
-                var worker = new Worker(() =>
+                var worker = new Worker("DispatchEventsToHandlers", () =>
                 {
                     DispatchEventsToHandlers(queue.Take());
                 });

@@ -65,11 +65,11 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
         {
             var scheduleService = ObjectContainer.Resolve<IScheduleService>();
             var waitHandle = new ManualResetEvent(false);
-            var taskId = scheduleService.ScheduleTask(() =>
+            var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
                 var executedCommandMessageConsumerAllocatedQueues = _commandResultProcessor.CommandExecutedMessageConsumer.GetCurrentQueues();
                 var domainEventHandledMessageConsumerAllocatedQueues = _commandResultProcessor.DomainEventHandledMessageConsumer.GetCurrentQueues();
-                if (executedCommandMessageConsumerAllocatedQueues.Count() == 4 && domainEventHandledMessageConsumerAllocatedQueues.Count() == 4)
+                if (executedCommandMessageConsumerAllocatedQueues.Count() == 1 && domainEventHandledMessageConsumerAllocatedQueues.Count() == 1)
                 {
                     waitHandle.Set();
                 }

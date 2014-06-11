@@ -13,11 +13,11 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized costructor.
         /// </summary>
-        /// <param name="commandExecutor"></param>
-        public ProcessingCommandProcessor()
+        /// <param name="name"></param>
+        public ProcessingCommandProcessor(string name)
         {
             _queue = new BlockingCollection<ProcessingCommand>(new ConcurrentQueue<ProcessingCommand>());
-            _worker = new Worker(() => _commandExecutor.Execute(_queue.Take()));
+            _worker = new Worker(name + "-ExecuteCommand", () => _commandExecutor.Execute(_queue.Take()));
         }
 
         /// <summary>Set the command executor.

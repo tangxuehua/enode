@@ -35,8 +35,8 @@ namespace ENode.EQueue.Commanding
             _processTaskDict = new ConcurrentDictionary<string, TaskCompletionSource<ProcessResult>>();
             _commandExecutedMessageLocalQueue = new BlockingCollection<CommandExecutedMessage>(new ConcurrentQueue<CommandExecutedMessage>());
             _domainEventHandledMessageLocalQueue = new BlockingCollection<DomainEventHandledMessage>(new ConcurrentQueue<DomainEventHandledMessage>());
-            _commandExecutedMessageWorker = new Worker(() => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
-            _domainEventHandledMessageWorker = new Worker(() => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
+            _commandExecutedMessageWorker = new Worker("ProcessExecutedCommandMessage", () => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
+            _domainEventHandledMessageWorker = new Worker("ProcessDomainEventHandledMessage", () => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
         }
 

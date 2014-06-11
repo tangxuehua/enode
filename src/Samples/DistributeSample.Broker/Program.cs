@@ -13,7 +13,8 @@ namespace DistributeSample.Broker
         static void Main(string[] args)
         {
             InitializeEQueue();
-            new BrokerController().Initialize().Start();
+            var setting = new BrokerSetting { DefaultTopicQueueCount = 1 };
+            new BrokerController(setting).Initialize().Start();
 
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();

@@ -68,10 +68,10 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
         {
             var scheduleService = ObjectContainer.Resolve<IScheduleService>();
             var waitHandle = new ManualResetEvent(false);
-            var taskId = scheduleService.ScheduleTask(() =>
+            var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
-                if (commandConsumerAllocatedQueues.Count() == 8)
+                if (commandConsumerAllocatedQueues.Count() == 2)
                 {
                     waitHandle.Set();
                 }

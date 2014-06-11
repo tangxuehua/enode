@@ -14,7 +14,7 @@
         public DefaultWaitingCommandService(IWaitingCommandCache waitingCommandCache)
         {
             _waitingCommandCache = waitingCommandCache;
-            _processor = new ProcessingCommandProcessor();
+            _processor = new ProcessingCommandProcessor("WaitingCommandService");
         }
 
         /// <summary>Set the command executor.
