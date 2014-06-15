@@ -58,7 +58,7 @@ namespace NoteSample.EQueueIntegrations
                 MessageHandleMode = MessageHandleMode.Sequential
             };
 
-            _broker = new BrokerController().Initialize();
+            _broker = new BrokerController();
 
             var commandExecutedMessageConsumer = new Consumer("CommandExecutedMessageConsumer", "CommandExecutedMessageConsumerGroup", consumerSetting);
             var domainEventHandledMessageConsumer = new Consumer("DomainEventHandledMessageConsumer", "DomainEventHandledMessageConsumerGroup", consumerSetting);
@@ -108,10 +108,10 @@ namespace NoteSample.EQueueIntegrations
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
                 var executedCommandMessageConsumerAllocatedQueues = _commandResultProcessor.CommandExecutedMessageConsumer.GetCurrentQueues();
                 var domainEventHandledMessageConsumerAllocatedQueues = _commandResultProcessor.DomainEventHandledMessageConsumer.GetCurrentQueues();
-                if (eventConsumerAllocatedQueues.Count() == 4
-                    && commandConsumerAllocatedQueues.Count() == 4
-                    && executedCommandMessageConsumerAllocatedQueues.Count() == 4
-                    && domainEventHandledMessageConsumerAllocatedQueues.Count() == 4)
+                if (eventConsumerAllocatedQueues.Count() == 1
+                    && commandConsumerAllocatedQueues.Count() == 1
+                    && executedCommandMessageConsumerAllocatedQueues.Count() == 1
+                    && domainEventHandledMessageConsumerAllocatedQueues.Count() == 1)
                 {
                     waitHandle.Set();
                 }

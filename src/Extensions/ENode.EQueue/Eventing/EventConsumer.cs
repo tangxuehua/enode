@@ -49,7 +49,7 @@ namespace ENode.EQueue
 
         public EventConsumer Start()
         {
-            _consumer.Start(this);
+            _consumer.SetMessageHandler(this).Start();
             return this;
         }
         public EventConsumer Subscribe(string topic)

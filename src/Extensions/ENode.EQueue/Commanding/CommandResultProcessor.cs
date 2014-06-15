@@ -93,8 +93,8 @@ namespace ENode.EQueue.Commanding
 
         public CommandResultProcessor Start()
         {
-            _commandExecutedMessageConsumer.Start(new CommandExecutedMessageHandler(this));
-            _domainEventHandledMessageConsumer.Start(new DomainEventHandledMessageHandler(this));
+            _commandExecutedMessageConsumer.SetMessageHandler(new CommandExecutedMessageHandler(this)).Start();
+            _domainEventHandledMessageConsumer.SetMessageHandler(new DomainEventHandledMessageHandler(this)).Start();
             _commandExecutedMessageWorker.Start();
             _domainEventHandledMessageWorker.Start();
             return this;
