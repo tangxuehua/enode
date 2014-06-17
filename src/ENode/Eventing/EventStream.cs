@@ -81,10 +81,6 @@ namespace ENode.Eventing
                 {
                     throw new ENodeException("Domain event version mismatch, current domain event version:{0}, expected version:{1}", evnt.Version, Version);
                 }
-                if (evnt.Timestamp != Timestamp)
-                {
-                    throw new ENodeException("Domain event timestamp mismatch, current domain event timestamp:{0}, expected timestamp:{1}", evnt.Timestamp, Timestamp);
-                }
             }
         }
     }

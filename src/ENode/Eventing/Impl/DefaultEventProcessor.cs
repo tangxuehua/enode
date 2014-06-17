@@ -120,7 +120,7 @@ namespace ENode.Eventing.Impl
 
             try
             {
-                _actionExecutionService.TryAction("DispatchEventsToHandlers", dispatchEventsToHandlers, 5, new ActionInfo("DispatchEventsToHandlersCallback", obj =>
+                _actionExecutionService.TryAction("DispatchEventsToHandlers", dispatchEventsToHandlers, 3, new ActionInfo("DispatchEventsToHandlersCallback", obj =>
                 {
                     var currentContext = obj as EventProcessingContext;
                     UpdatePublishedVersion(currentContext.EventStream);
@@ -140,7 +140,7 @@ namespace ENode.Eventing.Impl
             {
                 foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
                 {
-                    if (!_actionExecutionService.TryRecursively("DispatchEventToHandler", () => DispatchEventToHandler(evnt, handler), 3))
+                    if (!DispatchEventToHandler(evnt, handler))
                     {
                         success = false;
                     }
