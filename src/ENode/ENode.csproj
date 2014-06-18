@@ -47,13 +47,14 @@
     <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\CommandAggregateRootIdMissingException.cs" />
+    <Compile Include="Commanding\Impl\DefaultExecutedCommandService.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandTypeCodeProvider.cs" />
+    <Compile Include="Commanding\IExecutedCommandService.cs" />
     <Compile Include="Commanding\ProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
     <Compile Include="Commanding\IProcessCommand.cs" />
-    <Compile Include="Commanding\Impl\ProcessingCommandProcessor.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
@@ -61,10 +62,8 @@
     <Compile Include="Commanding\ICommandExecutor.cs" />
     <Compile Include="Commanding\Impl\DefaultWaitingCommandService.cs" />
     <Compile Include="Commanding\IWaitingCommandService.cs" />
-    <Compile Include="Commanding\Impl\DefaultWaitingCommandCache.cs" />
     <Compile Include="Commanding\Impl\DefaultRetryCommandService.cs" />
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
-    <Compile Include="Commanding\IWaitingCommandCache.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\DomainException.cs" />

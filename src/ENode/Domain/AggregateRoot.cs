@@ -72,10 +72,7 @@ namespace ENode.Domain
         /// <param name="evnt"></param>
         protected void RaiseEvent(IDomainEvent evnt)
         {
-            if (_uncommittedEvents == null)
-            {
-                _uncommittedEvents = new Queue<IDomainEvent>();
-            }
+            EnsureUncommittedEventsInstantiated();
             _uncommittedEvents.Enqueue(evnt);
         }
 
@@ -118,22 +115,31 @@ namespace ENode.Domain
         /// <returns></returns>
         IEnumerable<IDomainEvent> IAggregateRoot.GetUncommittedEvents()
         {
+            EnsureUncommittedEventsInstantiated();
             return _uncommittedEvents;
         }
         /// <summary>Clear all the uncommitted domain events of the current aggregate root, only used by framework.
         /// </summary>
         void IAggregateRoot.ClearUncommittedEvents()
         {
+            EnsureUncommittedEventsInstantiated();
             _uncommittedEvents.Clear();
         }
 
-        /// <summary>Increase the version of aggregate root, only used by framework.
+        /// <summary>Increase the version of aggregate root, this method is only used by framework.
         /// <remarks>This method must be provided as enode will call it when rebuilding the aggregate using event sourcing.
         /// </remarks>
         /// </summary>
         private void IncreaseVersion()
         {
             _version++;
+        }
+        private void EnsureUncommittedEventsInstantiated()
+        {
+            if (_uncommittedEvents == null)
+            {
+                _uncommittedEvents = new Queue<IDomainEvent>();
+            }
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using ECommon.Logging;
 using ECommon.Retring;
 using ENode.Commanding;
@@ -14,7 +13,7 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private readonly IWaitingCommandService _waitingCommandService;
+        private readonly IExecutedCommandService _executedCommandService;
         private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeCodeProvider;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IEventStreamConvertService _eventStreamConvertService;
@@ -34,7 +33,7 @@ namespace ENode.Eventing.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="waitingCommandService"></param>
+        /// <param name="executedCommandService"></param>
         /// <param name="aggregateRootTypeCodeProvider"></param>
         /// <param name="aggregateRootFactory"></param>
         /// <param name="eventStreamConvertService"></param>
@@ -48,7 +47,7 @@ namespace ENode.Eventing.Impl
         /// <param name="eventSynchronizerProvider"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommitEventService(
-            IWaitingCommandService waitingCommandService,
+            IExecutedCommandService executedCommandService,
             IAggregateRootTypeCodeProvider aggregateRootTypeCodeProvider,
             IAggregateRootFactory aggregateRootFactory,
             IEventStreamConvertService eventStreamConvertService,
@@ -62,7 +61,7 @@ namespace ENode.Eventing.Impl
             IEventSynchronizerProvider eventSynchronizerProvider,
             ILoggerFactory loggerFactory)
         {
-            _waitingCommandService = waitingCommandService;
+            _executedCommandService = executedCommandService;
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
             _aggregateRootFactory = aggregateRootFactory;
             _eventStreamConvertService = eventStreamConvertService;
@@ -85,7 +84,6 @@ namespace ENode.Eventing.Impl
         public void SetCommandExecutor(ICommandExecutor commandExecutor)
         {
             _retryCommandService.SetCommandExecutor(commandExecutor);
-            _waitingCommandService.SetCommandExecutor(commandExecutor);
         }
         /// <summary>Commit the dirty aggregate's domain events to the eventstore and publish the domain events.
         /// </summary>
@@ -118,12 +116,8 @@ namespace ENode.Eventing.Impl
                 case SynchronizeStatus.SynchronizerConcurrentException:
                     return false;
                 case SynchronizeStatus.Failed:
-                    context.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(
-                        context.ProcessingCommand.Command,
-                        CommandStatus.Failed,
-                        null,
-                        synchronizerResult.ExceptionTypeName,
-                        synchronizerResult.ErrorMessage);
+
+                    NotifyCommandExecuted(context, CommandStatus.Failed, synchronizerResult.ExceptionTypeName, synchronizerResult.ErrorMessage);
                     return true;
                 default:
                 {
@@ -135,37 +129,34 @@ namespace ENode.Eventing.Impl
                         if (currentContext.AppendResult == EventAppendResult.Success)
                         {
                             RefreshMemoryCache(currentContext);
-                            SendWaitingCommand(eventStream);
                             SyncAfterEventPersisted(eventStream);
                             PublishEvents(currentContext, eventStream);
+                            NotifyCommandExecuted(currentContext, CommandStatus.Success, null, null);
                         }
                         else if (currentContext.AppendResult == EventAppendResult.DuplicateCommit)
                         {
-                            SendWaitingCommand(eventStream);
                             var existingEventStream = GetEventStream(eventStream.AggregateRootId, eventStream.CommitId);
                             if (existingEventStream != null)
                             {
                                 SyncAfterEventPersisted(existingEventStream);
                                 PublishEvents(currentContext, existingEventStream);
+                                NotifyCommandExecuted(currentContext, CommandStatus.Success, null, null);
                             }
                             else
                             {
-                                _logger.ErrorFormat("Duplicate commit, but can't find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}",
+                                var errorMessage = string.Format("Duplicate commit, but can't find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}",
                                     eventStream.CommitId,
                                     eventStream.AggregateRootId,
                                     eventStream.AggregateRootTypeCode);
+                                _logger.Error(errorMessage);
+                                NotifyCommandExecuted(currentContext, CommandStatus.Failed, null, errorMessage);
                             }
                         }
                         else if (currentContext.Exception != null)
                         {
                             if (currentContext.Exception is DuplicateAggregateException)
                             {
-                                currentContext.ProcessingCommand.CommandExecuteContext.OnCommandExecuted(
-                                    currentContext.ProcessingCommand.Command,
-                                    CommandStatus.Failed,
-                                    null,
-                                    currentContext.Exception.GetType().Name,
-                                    currentContext.Exception.Message);
+                                NotifyCommandExecuted(currentContext, CommandStatus.Failed, currentContext.Exception.GetType().Name, currentContext.Exception.Message);
                             }
                             else if (currentContext.Exception is ConcurrentException)
                             {
@@ -204,10 +195,6 @@ namespace ENode.Eventing.Impl
             });
 
             _actionExecutionService.TryAction("PersistEvents", persistEvents, 3, successCallback);
-        }
-        private void SendWaitingCommand(EventStream eventStream)
-        {
-            _waitingCommandService.SendWaitingCommand(eventStream.AggregateRootId);
         }
         private void RefreshMemoryCache(EventProcessingContext context)
         {
@@ -333,7 +320,22 @@ namespace ENode.Eventing.Impl
         }
         private void RetryCommand(EventProcessingContext context)
         {
-            _retryCommandService.RetryCommand(context.ProcessingCommand);
+            if (!_retryCommandService.RetryCommand(context.ProcessingCommand))
+            {
+                var command = context.ProcessingCommand.Command;
+                var errorMessage = string.Format("{0} [id:{1}, aggregateId:{2}] retried count reached to its max retry count {3}.", command.GetType().Name, command.Id, context.EventStream.AggregateRootId, command.RetryCount);
+                NotifyCommandExecuted(context, CommandStatus.Failed, null, errorMessage);
+            }
+        }
+        private void NotifyCommandExecuted(EventProcessingContext context, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
+        {
+            _executedCommandService.ProcessExecutedCommand(
+                context.ProcessingCommand.CommandExecuteContext,
+                context.ProcessingCommand.Command,
+                commandStatus,
+                context.EventStream.AggregateRootId,
+                exceptionTypeName,
+                errorMessage);
         }
         private EventStream GetEventStream(string aggregateRootId, string commitId)
         {

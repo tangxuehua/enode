@@ -11,7 +11,8 @@ namespace ENode.Commanding.Impl
     {
         #region Private Variables
 
-        private readonly IWaitingCommandCache _waitingCommandCache;
+        private readonly IWaitingCommandService _waitingCommandService;
+        private readonly IExecutedCommandService _executedCommandService;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeProvider;
         private readonly ICommitEventService _commitEventService;
@@ -23,24 +24,27 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="waitingCommandCache"></param>
+        /// <param name="waitingCommandService"></param>
+        /// <param name="executedCommandService"></param>
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="commitEventService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
-            IWaitingCommandCache waitingCommandCache,
+            IWaitingCommandService waitingCommandService,
+            IExecutedCommandService executedCommandService,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeCodeProvider aggregateRootTypeProvider,
             ICommitEventService commitEventService,
             ILoggerFactory loggerFactory)
         {
-            _waitingCommandCache = waitingCommandCache;
+            _waitingCommandService = waitingCommandService;
+            _executedCommandService = executedCommandService;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _commitEventService = commitEventService;
             _logger = loggerFactory.Create(GetType().FullName);
-            _commitEventService.SetCommandExecutor(this);
+            _waitingCommandService.SetCommandExecutor(this);
         }
 
         #endregion
@@ -70,17 +74,13 @@ namespace ENode.Commanding.Impl
             catch (Exception ex)
             {
                 _logger.Error(ex.Message);
-                context.OnCommandExecuted(command, CommandStatus.Failed, null, ex.GetType().Name, ex.Message);
+                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message);
                 return;
             }
 
             //Try to add command to waiting queue if necessary. If the command is added into the waiting queue, it will be executed later.
-            if (context.CheckCommandWaiting && TryToAddWaitingCommand(processingCommand))
+            if (context.CheckCommandWaiting && _waitingCommandService.RegisterCommand(processingCommand))
             {
-                _logger.DebugFormat("Queued a waiting command, commandType:{0}, commandId:{1}, aggregateRootId:{2}.",
-                    command.GetType().Name,
-                    command.Id,
-                    command.AggregateRootId);
                 return;
             }
 
@@ -113,7 +113,7 @@ namespace ENode.Commanding.Impl
                     command.AggregateRootId,
                     ex.Message);
                 _logger.Error(errorMessage, ex);
-                context.OnCommandExecuted(command, CommandStatus.Failed, null, ex.GetType().Name, ex.Message);
+                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message);
             }
 
             //Commit the changes.
@@ -124,14 +124,6 @@ namespace ENode.Commanding.Impl
 
         #region Private Methods
 
-        private bool TryToAddWaitingCommand(ProcessingCommand processingCommand)
-        {
-            if (processingCommand.Command is ICreatingAggregateCommand)
-            {
-                return false;
-            }
-            return _waitingCommandCache.AddWaitingCommand(processingCommand.Command.AggregateRootId, processingCommand);
-        }
         private void CommitChanges(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Command;
@@ -143,7 +135,7 @@ namespace ENode.Commanding.Impl
             if (dirtyAggregateRootCount == 0)
             {
                 _logger.DebugFormat("No aggregate created or modified by command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
-                context.OnCommandExecuted(command, CommandStatus.NothingChanged, null, null, null);
+                NotifyCommandExecuted(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
             }
             else if (dirtyAggregateRootCount > 1)
@@ -154,7 +146,7 @@ namespace ENode.Commanding.Impl
                     command.Id,
                     dirtyAggregateTypes);
                 _logger.ErrorFormat(errorMessage);
-                context.OnCommandExecuted(command, CommandStatus.Failed, null, null, errorMessage);
+                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage);
                 return;
             }
 
@@ -187,6 +179,16 @@ namespace ENode.Commanding.Impl
                 nextVersion,
                 currentTime,
                 uncommittedEvents);
+        }
+        private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
+        {
+            _executedCommandService.ProcessExecutedCommand(
+                processingCommand.CommandExecuteContext,
+                processingCommand.Command,
+                commandStatus,
+                null,
+                exceptionTypeName,
+                errorMessage);
         }
 
         #endregion

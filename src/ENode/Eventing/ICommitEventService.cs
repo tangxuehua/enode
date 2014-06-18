@@ -1,5 +1,4 @@
 ﻿using ENode.Commanding;
-using ENode.Domain;
 
 namespace ENode.Eventing
 {
