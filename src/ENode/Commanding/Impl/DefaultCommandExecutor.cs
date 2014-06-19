@@ -74,7 +74,7 @@ namespace ENode.Commanding.Impl
             catch (Exception ex)
             {
                 _logger.Error(ex.Message);
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message);
+                ProcessFailedCommand(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message);
                 return;
             }
 
@@ -113,7 +113,7 @@ namespace ENode.Commanding.Impl
                     command.AggregateRootId,
                     ex.Message);
                 _logger.Error(errorMessage, ex);
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message);
+                ProcessFailedCommand(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message);
             }
 
             //Commit the changes.
@@ -135,7 +135,7 @@ namespace ENode.Commanding.Impl
             if (dirtyAggregateRootCount == 0)
             {
                 _logger.DebugFormat("No aggregate created or modified by command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
-                NotifyCommandExecuted(processingCommand, CommandStatus.NothingChanged, null, null);
+                ProcessFailedCommand(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
             }
             else if (dirtyAggregateRootCount > 1)
@@ -146,7 +146,7 @@ namespace ENode.Commanding.Impl
                     command.Id,
                     dirtyAggregateTypes);
                 _logger.ErrorFormat(errorMessage);
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage);
+                ProcessFailedCommand(processingCommand, CommandStatus.Failed, null, errorMessage);
                 return;
             }
 
@@ -163,7 +163,16 @@ namespace ENode.Commanding.Impl
             var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
             var nextVersion = aggregateRoot.Version + 1;
             var currentTime = DateTime.Now;
-            var processId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null;
+            var processId = default(string);
+
+            if (command is IStartProcessCommand)
+            {
+                processId = aggregateRoot.UniqueId;
+            }
+            else if (command is IProcessCommand)
+            {
+                processId = ((IProcessCommand)command).ProcessId;
+            }
 
             foreach (var evnt in uncommittedEvents)
             {
@@ -180,13 +189,30 @@ namespace ENode.Commanding.Impl
                 currentTime,
                 uncommittedEvents);
         }
-        private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
+        private void ProcessFailedCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {
+            var command = processingCommand.Command;
+            var aggregateRootId = command.AggregateRootId;
+            var processId = default(string);
+
+            if (command is IProcessCommand)
+            {
+                processId = ((IProcessCommand)command).ProcessId;
+            }
+            else if (command is IStartProcessCommand)
+            {
+                if (!string.IsNullOrEmpty(aggregateRootId))
+                {
+                    processId = aggregateRootId;
+                }
+            }
+
             _executedCommandService.ProcessExecutedCommand(
                 processingCommand.CommandExecuteContext,
                 processingCommand.Command,
                 commandStatus,
-                null,
+                processId,
+                aggregateRootId,
                 exceptionTypeName,
                 errorMessage);
         }

@@ -117,7 +117,7 @@ namespace ENode.EQueue.Commanding
                 {
                     commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage));
                 }
-                if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
+                else if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
                 {
                     if (message.CommandStatus == CommandStatus.Failed || message.CommandStatus == CommandStatus.NothingChanged)
                     {

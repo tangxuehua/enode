@@ -19,18 +19,14 @@
         /// <param name="context"></param>
         /// <param name="command"></param>
         /// <param name="commandStatus"></param>
+        /// <param name="processId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="exceptionTypeName"></param>
         /// <param name="errorMessage"></param>
-        public void ProcessExecutedCommand(ICommandExecuteContext context, ICommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage)
+        public void ProcessExecutedCommand(ICommandExecuteContext context, ICommand command, CommandStatus commandStatus, string processId, string aggregateRootId, string exceptionTypeName, string errorMessage)
         {
-            var currentAggregateRootId = aggregateRootId;
-            if (string.IsNullOrEmpty(currentAggregateRootId))
-            {
-                currentAggregateRootId = command.AggregateRootId;
-            }
-            _waitingCommandService.NotifyCommandExecuted(currentAggregateRootId);
-            context.OnCommandExecuted(command, commandStatus, currentAggregateRootId, exceptionTypeName, errorMessage);
+            _waitingCommandService.NotifyCommandExecuted(aggregateRootId);
+            context.OnCommandExecuted(command, commandStatus, processId, aggregateRootId, exceptionTypeName, errorMessage);
         }
     }
 }

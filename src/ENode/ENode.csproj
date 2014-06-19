@@ -50,11 +50,12 @@
     <Compile Include="Commanding\Impl\DefaultExecutedCommandService.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\IExecutedCommandService.cs" />
+    <Compile Include="Commanding\IProcessCommand.cs" />
     <Compile Include="Commanding\ProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
-    <Compile Include="Commanding\IProcessCommand.cs" />
+    <Compile Include="Commanding\IStartProcessCommand.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />

@@ -6,7 +6,6 @@ using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Domain;
-using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -85,7 +84,7 @@ namespace ENode.EQueue
             }
         }
 
-        private void CommandExecutedCallback(ICommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage, CommandExecuteContext commandExecuteContext)
+        private void CommandExecutedCallback(ICommand command, CommandStatus commandStatus, string processId, string aggregateRootId, string exceptionTypeName, string errorMessage, CommandExecuteContext commandExecuteContext)
         {
             IMessageContext messageContext;
             if (_messageContextDict.TryRemove(command.Id, out messageContext))
@@ -97,7 +96,7 @@ namespace ENode.EQueue
             {
                 CommandId = command.Id,
                 AggregateRootId = aggregateRootId,
-                ProcessId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null,
+                ProcessId = processId,
                 CommandStatus = commandStatus,
                 ExceptionTypeName = exceptionTypeName,
                 ErrorMessage = errorMessage
@@ -109,12 +108,12 @@ namespace ENode.EQueue
             private readonly ConcurrentDictionary<string, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
 
-            public Action<ICommand, CommandStatus, string, string, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
+            public Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
             public CommandMessage CommandMessage { get; private set; }
             public IDictionary<string, string> Items { get; private set; }
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, string> items, Action<ICommand, CommandStatus, string, string, string, CommandExecuteContext> commandExecutedAction)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, string> items, Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> commandExecutedAction)
             {
                 _trackingAggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
@@ -126,9 +125,9 @@ namespace ENode.EQueue
             }
 
             public bool CheckCommandWaiting { get; set; }
-            public void OnCommandExecuted(ICommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage)
+            public void OnCommandExecuted(ICommand command, CommandStatus commandStatus, string processId, string aggregateRootId, string exceptionTypeName, string errorMessage)
             {
-                CommandExecutedAction(command, commandStatus, aggregateRootId, exceptionTypeName, errorMessage, this);
+                CommandExecutedAction(command, commandStatus, processId, aggregateRootId, exceptionTypeName, errorMessage, this);
             }
 
             /// <summary>Add an aggregate root to the context.
