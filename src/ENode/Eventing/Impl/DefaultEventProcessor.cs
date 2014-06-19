@@ -213,13 +213,9 @@ namespace ENode.Eventing.Impl
         private string BuildCommandId(ICommand command, IDomainEvent evnt, int eventHandlerTypeCode)
         {
             var key = command.GetKey();
-            if (key == null)
-            {
-                throw new ENodeException("Command key cannot be null.");
-            }
-
+            var commandKey = key == null ? string.Empty : key.ToString();
             var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            return string.Format("{0}{1}{2}{3}", evnt.Id, eventHandlerTypeCode, commandTypeCode, key);
+            return string.Format("{0}{1}{2}{3}", evnt.Id, eventHandlerTypeCode, commandTypeCode, commandKey);
         }
 
         #endregion
