@@ -139,7 +139,8 @@ namespace ENode.Eventing.Impl.SQL
                     commitRecord.ProcessId,
                     commitRecord.Version,
                     commitRecord.Timestamp,
-                    _binarySerializer.Deserialize<IEnumerable<EventEntry>>(commitRecord.Events));
+                    _binarySerializer.Deserialize<IEnumerable<EventEntry>>(commitRecord.Events),
+                    _binarySerializer.Deserialize<IDictionary<string, string>>(commitRecord.Items));
         }
         private SqlEventCommitRecord ConvertTo(EventCommitRecord eventStream)
         {
@@ -151,7 +152,8 @@ namespace ENode.Eventing.Impl.SQL
                 ProcessId = eventStream.ProcessId,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
-                Events = _binarySerializer.Serialize(eventStream.Events)
+                Events = _binarySerializer.Serialize(eventStream.Events),
+                Items = _binarySerializer.Serialize(eventStream.Items)
             };
         }
 
@@ -166,6 +168,7 @@ namespace ENode.Eventing.Impl.SQL
             public int Version { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }
+            public byte[] Items { get; set; }
         }
     }
 }

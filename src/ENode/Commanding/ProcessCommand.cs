@@ -1,4 +1,5 @@
 ﻿using System;
+using ECommon.Utilities;
 
 namespace ENode.Commanding
 {
@@ -11,11 +12,13 @@ namespace ENode.Commanding
         /// </summary>
         public string ProcessId { get; private set; }
 
+        /// <summary>Default constructor.
+        /// </summary>
+        protected ProcessCommand() : this(ObjectId.GenerateNewStringId()) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processId"></param>
-        /// <param name="retryCount"></param>
-        protected ProcessCommand(object processId, int retryCount) : this(processId, default(TAggregateRootId), retryCount) { }
+        protected ProcessCommand(object processId) : this(processId, default(TAggregateRootId)) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processId"></param>
@@ -33,14 +36,6 @@ namespace ENode.Commanding
                 throw new ArgumentNullException("processId");
             }
             ProcessId = processId.ToString();
-        }
-
-        /// <summary>Returns the command type name.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return GetType().Name;
         }
     }
 }

@@ -143,7 +143,7 @@ namespace ENode.Eventing.Impl
             {
                 foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
                 {
-                    if (!DispatchEventToHandler(eventStream.ProcessId, evnt, handler))
+                    if (!DispatchEventToHandler(eventStream.ProcessId, eventStream.Items, evnt, handler))
                     {
                         success = false;
                     }
@@ -158,7 +158,7 @@ namespace ENode.Eventing.Impl
             }
             return success;
         }
-        private bool DispatchEventToHandler(string processId, IDomainEvent evnt, IEventHandler handler)
+        private bool DispatchEventToHandler(string processId, IDictionary<string, string> items, IDomainEvent evnt, IEventHandler handler)
         {
             try
             {
@@ -167,7 +167,7 @@ namespace ENode.Eventing.Impl
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
-                var context = new EventContext(_repository, processId);
+                var context = new EventContext(_repository, processId, items);
                 handler.Handle(context, evnt);
                 var commands = context.GetCommands();
                 if (commands.Any())
@@ -239,13 +239,15 @@ namespace ENode.Eventing.Impl
             private readonly List<ICommand> _commands = new List<ICommand>();
             private readonly IRepository _repository;
 
-            public EventContext(IRepository repository, string processId)
+            public EventContext(IRepository repository, string processId, IDictionary<string, string> items)
             {
                 _repository = repository;
                 ProcessId = processId;
+                Items = items ?? new Dictionary<string, string>();
             }
 
             public string ProcessId { get; private set; }
+            public IDictionary<string, string> Items { get; private set; }
 
             public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
             {

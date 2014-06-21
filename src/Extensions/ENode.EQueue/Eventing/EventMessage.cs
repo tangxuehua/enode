@@ -15,6 +15,7 @@ namespace ENode.EQueue
         public int Version { get; set; }
         public DateTime Timestamp { get; set; }
         public IList<EventEntry> Events { get; set; }
+        public IDictionary<string, string> Items { get; set; }
         public IDictionary<string, string> ContextItems { get; set; }
 
         public EventMessage()

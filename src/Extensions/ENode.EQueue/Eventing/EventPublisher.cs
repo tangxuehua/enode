@@ -64,6 +64,7 @@ namespace ENode.EQueue
             data.Timestamp = eventStream.Timestamp;
             data.ProcessId = eventStream.ProcessId;
             data.Version = eventStream.Version;
+            data.Items = eventStream.Items;
             data.ContextItems = contextItems;
 
             foreach (var evnt in eventStream.Events)

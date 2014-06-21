@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ECommon.Utilities;
 using ENode.Infrastructure;
 
@@ -12,8 +13,8 @@ namespace ENode.Commanding
         private TAggregateRootId _aggregateRootId;
         private string _aggregateRootStringId;
         private int _retryCount;
-        public const int DefaultRetryCount = 5;
-        public const int MaxRetryCount = 50;
+        public const int DefaultRetryCount = 3;
+        public const int MaxRetryCount = 10;
 
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
@@ -57,6 +58,9 @@ namespace ENode.Commanding
                 return _aggregateRootStringId;
             }
         }
+        /// <summary>Represents the extension information of the command.
+        /// </summary>
+        public IDictionary<string, string> Items { get; private set; }
 
         /// <summary>Default constructor.
         /// </summary>
@@ -82,21 +86,15 @@ namespace ENode.Commanding
                 _aggregateRootStringId = aggregateRootId.ToString();
             }
             RetryCount = retryCount;
+            Items = new Dictionary<string, string>();
         }
+
         /// <summary>Returns the aggregate root id as the key by default.
         /// </summary>
         /// <returns></returns>
         public virtual object GetKey()
         {
             return _aggregateRootId;
-        }
-
-        /// <summary>Returns the command type name.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString()
-        {
-            return GetType().Name;
         }
     }
 }

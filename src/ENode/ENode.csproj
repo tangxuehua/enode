@@ -52,6 +52,7 @@
     <Compile Include="Commanding\Impl\NotImplementedCommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\IExecutedCommandService.cs" />
     <Compile Include="Commanding\IProcessCommand.cs" />
+    <Compile Include="Commanding\CancelProcessCommand.cs" />
     <Compile Include="Commanding\ProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Domain\Impl\NotImplementedAggregateRootTypeCodeProvider.cs" />
+    <Compile Include="Eventing\ProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IEventContext.cs" />
     <Compile Include="Eventing\IEventStreamConvertService.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />

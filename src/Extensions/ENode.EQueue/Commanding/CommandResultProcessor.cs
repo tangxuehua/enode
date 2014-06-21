@@ -141,12 +141,19 @@ namespace ENode.EQueue.Commanding
             {
                 commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, null, null));
             }
-            if (message.IsProcessCompletedEvent && !string.IsNullOrEmpty(message.ProcessId))
+            if (message.IsProcessCompleted && !string.IsNullOrEmpty(message.ProcessId))
             {
                 TaskCompletionSource<ProcessResult> processTaskCompletionSource;
                 if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
                 {
-                    processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId));
+                    if (message.IsProcessSuccess)
+                    {
+                        processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId));
+                    }
+                    else
+                    {
+                        processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ErrorCode));
+                    }
                 }
             }
         }

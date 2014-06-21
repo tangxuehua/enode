@@ -178,7 +178,8 @@ namespace ENode.Commanding.Impl
                 processId,
                 nextVersion,
                 currentTime,
-                uncommittedEvents);
+                uncommittedEvents,
+                command.Items);
         }
         private void ProcessFailedCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {

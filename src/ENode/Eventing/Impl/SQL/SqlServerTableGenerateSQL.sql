@@ -7,6 +7,7 @@ CREATE TABLE [dbo].[Event] (
     [ProcessId]               NVARCHAR (36)   NULL,
     [Timestamp]               DATETIME        NOT NULL,
     [Events]                  VARBINARY (MAX) NOT NULL,
+    [Items]                   VARBINARY (MAX) NOT NULL,
     CONSTRAINT [PK_Event] PRIMARY KEY CLUSTERED ([Sequence] ASC)
 )
 GO

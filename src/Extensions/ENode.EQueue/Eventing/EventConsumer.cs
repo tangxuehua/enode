@@ -85,14 +85,31 @@ namespace ENode.EQueue
             if (eventProcessContext.EventMessage.ContextItems != null && eventProcessContext.EventMessage.ContextItems.ContainsKey("DomainEventHandledMessageTopic"))
             {
                 var domainEventHandledMessageTopic = eventProcessContext.EventMessage.ContextItems["DomainEventHandledMessageTopic"] as string;
-                var hasProcessCompletedEvent = eventStream.Events.Any(x => x is IProcessCompletedEvent);
+                var processCompletedEvents = eventStream.Events.Where(x => x is IProcessCompletedEvent);
+                if (processCompletedEvents.Count() > 1)
+                {
+                    throw new Exception("One event stream cannot contains more than one IProcessCompletedEvent.");
+                }
+
+                var isProcessCompleted = processCompletedEvents.Count() == 1;
+                var isProcessSuccess = false;
+                var errorCode = 0;
+
+                if (isProcessCompleted)
+                {
+                    var processCompletedEvent = processCompletedEvents.Single() as IProcessCompletedEvent;
+                    isProcessSuccess = processCompletedEvent.IsSuccess;
+                    errorCode = processCompletedEvent.ErrorCode;
+                }
 
                 _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
                 {
                     CommandId = eventStream.CommitId,
                     AggregateRootId = eventStream.AggregateRootId,
                     ProcessId = eventStream.ProcessId,
-                    IsProcessCompletedEvent = hasProcessCompletedEvent
+                    IsProcessCompleted = isProcessCompleted,
+                    IsProcessSuccess = isProcessSuccess,
+                    ErrorCode = errorCode
                 }, domainEventHandledMessageTopic);
             }
         }
@@ -108,7 +125,7 @@ namespace ENode.EQueue
                 events.Add(evnt);
             }
 
-            return new EventStream(data.CommitId, data.AggregateRootId, data.AggregateRootTypeCode, data.ProcessId, data.Version, data.Timestamp, events);
+            return new EventStream(data.CommitId, data.AggregateRootId, data.AggregateRootTypeCode, data.ProcessId, data.Version, data.Timestamp, events, data.Items);
         }
 
         class EventProcessContext : IEventProcessContext

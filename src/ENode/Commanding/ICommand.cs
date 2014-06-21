@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ENode.Commanding
 {
@@ -9,12 +10,15 @@ namespace ENode.Commanding
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
         string Id { get; set; }
-        /// <summary>Represents the id of aggregate root which is created or updated by the command.
+        /// <summary>Represents the aggregate root id associated with the command.
         /// </summary>
         string AggregateRootId { get; }
-        /// <summary>How many times the command should retry if meets concurrent exception.
+        /// <summary>Represents the times the command should retry when the command execution has concurrent exception.
         /// </summary>
         int RetryCount { get; }
+        /// <summary>Represents the extension information of the command.
+        /// </summary>
+        IDictionary<string, string> Items { get; }
         /// <summary>Represents a key of the command.
         /// <remarks>
         /// The framework will use the domain event id, event handler type code, command type code,

@@ -15,8 +15,9 @@ namespace ENode.Eventing
         public int Version { get; private set; }
         public DateTime Timestamp { get; private set; }
         public IEnumerable<EventEntry> Events { get; private set; }
+        public IDictionary<string, string> Items { get; private set; }
 
-        public EventCommitRecord(string commitId, string aggregateRootId, int aggregateRootTypeCode, string processId, int version, DateTime timestamp, IEnumerable<EventEntry> events)
+        public EventCommitRecord(string commitId, string aggregateRootId, int aggregateRootTypeCode, string processId, int version, DateTime timestamp, IEnumerable<EventEntry> events, IDictionary<string, string> items)
         {
             CommitId = commitId;
             AggregateRootId = aggregateRootId;
@@ -25,6 +26,7 @@ namespace ENode.Eventing
             Version = version;
             Timestamp = timestamp;
             Events = events;
+            Items = items ?? new Dictionary<string, string>();
         }
     }
     [Serializable]

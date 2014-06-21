@@ -27,7 +27,7 @@ namespace ENode.Eventing.Impl
                 eventEntryList.Add(new EventEntry(typeCode, eventData));
             }
 
-            return new EventCommitRecord(source.CommitId, source.AggregateRootId, source.AggregateRootTypeCode, source.ProcessId, source.Version, source.Timestamp, eventEntryList);
+            return new EventCommitRecord(source.CommitId, source.AggregateRootId, source.AggregateRootTypeCode, source.ProcessId, source.Version, source.Timestamp, eventEntryList, source.Items);
         }
         public EventStream ConvertFrom(EventCommitRecord source)
         {
@@ -42,7 +42,7 @@ namespace ENode.Eventing.Impl
                 eventList.Add(domainEvent);
             }
 
-            return new EventStream(source.CommitId, source.AggregateRootId, source.AggregateRootTypeCode, source.ProcessId, source.Version, source.Timestamp, eventList);
+            return new EventStream(source.CommitId, source.AggregateRootId, source.AggregateRootTypeCode, source.ProcessId, source.Version, source.Timestamp, eventList, source.Items);
         }
     }
 }

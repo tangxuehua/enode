@@ -13,6 +13,9 @@ namespace ENode.Commanding
         /// <summary>Represents the unique identifier of the process.
         /// </summary>
         public string ProcessId { get; private set; }
+        /// <summary>Represents the error code if the process is not success.
+        /// </summary>
+        public int ErrorCode { get; set; }
         /// <summary>Represents the exception type name if the process has any exception.
         /// </summary>
         public string ExceptionTypeName { get; private set; }
@@ -26,6 +29,14 @@ namespace ENode.Commanding
         {
             Status = ProcessStatus.Success;
             ProcessId = processId;
+        }
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        public ProcessResult(string processId, int errorCode)
+        {
+            Status = ProcessStatus.Failed;
+            ProcessId = processId;
+            ErrorCode = errorCode;
         }
         /// <summary>Parameterized constructor.
         /// </summary>

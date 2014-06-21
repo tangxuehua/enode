@@ -15,7 +15,13 @@ namespace ENode.EQueue
         public string AggregateRootId { get; set; }
         /// <summary>Represents whether the domain event indicates a business process is completed.
         /// </summary>
-        public bool IsProcessCompletedEvent { get; set; }
+        public bool IsProcessCompleted { get; set; }
+        /// <summary>Represents whether the process is success.
+        /// </summary>
+        public bool IsProcessSuccess { get; set; }
+        /// <summary>Represents the error code if the process is not success.
+        /// </summary>
+        public int ErrorCode { get; set; }
         /// <summary>If the IsProcessCompletedEvent property is true, the value of this property represents the id of the process; otherwise, the value is null.
         /// </summary>
         public string ProcessId { get; set; }

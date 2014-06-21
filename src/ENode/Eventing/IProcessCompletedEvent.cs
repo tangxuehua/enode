@@ -6,5 +6,11 @@ namespace ENode.Eventing
     /// </summary>
     public interface IProcessCompletedEvent
     {
+        /// <summary>Represents whether the process is success.
+        /// </summary>
+        bool IsSuccess { get; }
+        /// <summary>Represents the error code if the process is not success.
+        /// </summary>
+        int ErrorCode { get; }
     }
 }
