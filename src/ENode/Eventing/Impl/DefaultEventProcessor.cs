@@ -6,7 +6,7 @@ using ECommon.Logging;
 using ECommon.Retring;
 using ECommon.Scheduling;
 using ENode.Commanding;
-using ENode.Infrastructure;
+using ENode.Domain;
 
 namespace ENode.Eventing.Impl
 {
@@ -19,6 +19,7 @@ namespace ENode.Eventing.Impl
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
         private readonly IEventHandlerProvider _eventHandlerProvider;
         private readonly ICommandService _commandService;
+        private readonly IRepository _repository;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IEventHandleInfoStore _eventHandleInfoStore;
         private readonly IEventHandleInfoCache _eventHandleInfoCache;
@@ -34,7 +35,10 @@ namespace ENode.Eventing.Impl
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="eventHandlerTypeCodeProvider"></param>
+        /// <param name="commandTypeCodeProvider"></param>
         /// <param name="eventHandlerProvider"></param>
+        /// <param name="commandService"></param>
+        /// <param name="repository"></param>
         /// <param name="eventPublishInfoStore"></param>
         /// <param name="eventHandleInfoStore"></param>
         /// <param name="eventHandleInfoCache"></param>
@@ -45,6 +49,7 @@ namespace ENode.Eventing.Impl
             ICommandTypeCodeProvider commandTypeCodeProvider,
             IEventHandlerProvider eventHandlerProvider,
             ICommandService commandService,
+            IRepository repository,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
             IEventHandleInfoCache eventHandleInfoCache,
@@ -55,6 +60,7 @@ namespace ENode.Eventing.Impl
             _commandTypeCodeProvider = commandTypeCodeProvider;
             _eventHandlerProvider = eventHandlerProvider;
             _commandService = commandService;
+            _repository = repository;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventHandleInfoStore = eventHandleInfoStore;
             _eventHandleInfoCache = eventHandleInfoCache;
@@ -70,9 +76,9 @@ namespace ENode.Eventing.Impl
             for (var index = 0; index < WorkerCount; index++)
             {
                 var queue = _queueList[index];
-                var worker = new Worker("DispatchEventsToHandlers", () =>
+                var worker = new Worker("ProcessEvents", () =>
                 {
-                    DispatchEventsToHandlers(queue.Take());
+                    ProcessEvents(queue.Take());
                 });
                 _workerList.Add(worker);
                 worker.Start();
@@ -94,44 +100,41 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
-        private void DispatchEventsToHandlers(EventProcessingContext context)
+        private void ProcessEvents(EventProcessingContext context)
         {
-            var dispatchEventsToHandlers = new Func<bool>(() =>
+            _actionExecutionService.TryAction(
+                "DispatchEvents",
+                () => DispatchEvents(context),
+                3,
+                new ActionInfo("DispatchEventsCallback", DispatchEventsCallback, context, null));
+        }
+        private bool DispatchEvents(EventProcessingContext context)
+        {
+            var eventStream = context.EventStream;
+            if (eventStream.Version == 1)
             {
-                var eventStream = context.EventStream;
-                switch (eventStream.Version)
-                {
-                    case 1:
-                        return DispatchEventsToHandlers(eventStream);
-                    default:
-                        var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(eventStream.AggregateRootId);
-                        if (lastPublishedVersion == eventStream.Version - 1)
-                        {
-                            return DispatchEventsToHandlers(eventStream);
-                        }
-                        if (lastPublishedVersion < eventStream.Version - 1)
-                        {
-                            _logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
-                            return false;
-                        }
-                        return true;
-                }
-            });
+                return DispatchEventsToHandlers(eventStream);
+            }
 
-            try
+            var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(eventStream.AggregateRootId);
+            if (lastPublishedVersion == eventStream.Version - 1)
             {
-                _actionExecutionService.TryAction("DispatchEventsToHandlers", dispatchEventsToHandlers, 3, new ActionInfo("DispatchEventsToHandlersCallback", obj =>
-                {
-                    var currentContext = obj as EventProcessingContext;
-                    UpdatePublishedVersion(currentContext.EventStream);
-                    currentContext.EventProcessContext.OnEventProcessed(currentContext.EventStream);
-                    return true;
-                }, context, null));
+                return DispatchEventsToHandlers(eventStream);
             }
-            catch (Exception ex)
+            else if (lastPublishedVersion < eventStream.Version - 1)
             {
-                _logger.Error(string.Format("Exception raised when dispatching event stream:{0}", context.EventStream), ex);
+                _logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
+                return false;
             }
+
+            return true;
+        }
+        private bool DispatchEventsCallback(object obj)
+        {
+            var context = obj as EventProcessingContext;
+            UpdatePublishedVersion(context.EventStream);
+            context.EventProcessContext.OnEventProcessed(context.EventStream);
+            return true;
         }
         private bool DispatchEventsToHandlers(EventStream eventStream)
         {
@@ -140,7 +143,7 @@ namespace ENode.Eventing.Impl
             {
                 foreach (var handler in _eventHandlerProvider.GetEventHandlers(evnt.GetType()))
                 {
-                    if (!DispatchEventToHandler(evnt, handler))
+                    if (!DispatchEventToHandler(eventStream.ProcessId, evnt, handler))
                     {
                         success = false;
                     }
@@ -155,7 +158,7 @@ namespace ENode.Eventing.Impl
             }
             return success;
         }
-        private bool DispatchEventToHandler(IDomainEvent evnt, IEventHandler handler)
+        private bool DispatchEventToHandler(string processId, IDomainEvent evnt, IEventHandler handler)
         {
             try
             {
@@ -164,7 +167,7 @@ namespace ENode.Eventing.Impl
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
-                var context = new EventContext();
+                var context = new EventContext(_repository, processId);
                 handler.Handle(context, evnt);
                 var commands = context.GetCommands();
                 if (commands.Any())
@@ -229,6 +232,32 @@ namespace ENode.Eventing.Impl
             {
                 EventStream = eventStream;
                 EventProcessContext = eventProcessContext;
+            }
+        }
+        class EventContext : IEventContext
+        {
+            private readonly List<ICommand> _commands = new List<ICommand>();
+            private readonly IRepository _repository;
+
+            public EventContext(IRepository repository, string processId)
+            {
+                _repository = repository;
+                ProcessId = processId;
+            }
+
+            public string ProcessId { get; private set; }
+
+            public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
+            {
+                return _repository.Get<T>(aggregateRootId);
+            }
+            public void AddCommand(ICommand command)
+            {
+                _commands.Add(command);
+            }
+            public IEnumerable<ICommand> GetCommands()
+            {
+                return _commands;
             }
         }
     }

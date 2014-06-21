@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ENode.Commanding;
+using ENode.Domain;
 
 namespace ENode.Eventing
 {
@@ -7,6 +8,15 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventContext
     {
+        /// <summary>Represents the current business process id.
+        /// </summary>
+        string ProcessId { get; }
+        /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="aggregateRootId"></param>
+        /// <returns></returns>
+        T Get<T>(object aggregateRootId) where T : class, IAggregateRoot;
         /// <summary>Add a to be execute command in the context.
         /// </summary>
         /// <param name="command">The command to execute.</param>

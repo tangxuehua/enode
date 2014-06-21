@@ -130,11 +130,6 @@ namespace ENode.EQueue
                 CommandExecutedAction(command, commandStatus, processId, aggregateRootId, exceptionTypeName, errorMessage, this);
             }
 
-            /// <summary>Add an aggregate root to the context.
-            /// </summary>
-            /// <param name="aggregateRoot">The aggregate root to add.</param>
-            /// <exception cref="ArgumentNullException">Throwed when the aggregate root is null.</exception>
-            /// <exception cref="AggregateRootAlreadyExistException">Throwed when the aggregate root already exist in command context.</exception>
             public void Add(IAggregateRoot aggregateRoot)
             {
                 if (aggregateRoot == null)
@@ -146,13 +141,6 @@ namespace ENode.EQueue
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
             }
-            /// <summary>Get the aggregate from the context.
-            /// </summary>
-            /// <param name="id">The id of the aggregate root.</param>
-            /// <typeparam name="T">The type of the aggregate root.</typeparam>
-            /// <returns>The found aggregate root.</returns>
-            /// <exception cref="ArgumentNullException">Throwed when the id is null.</exception>
-            /// <exception cref="AggregateRootNotExistException">Throwed when the aggregate root not found.</exception>
             public T Get<T>(object id) where T : class, IAggregateRoot
             {
                 if (id == null)
@@ -168,24 +156,15 @@ namespace ENode.EQueue
 
                 aggregateRoot = _repository.Get<T>(id);
 
-                if (aggregateRoot == null)
-                {
-                    throw new AggregateRootNotExistException(id, typeof(T));
-                }
-
                 _trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
 
                 return aggregateRoot as T;
             }
-            /// <summary>Returns all the tracked aggregate roots of the current context.
-            /// </summary>
-            /// <returns></returns>
+
             public IEnumerable<IAggregateRoot> GetTrackedAggregateRoots()
             {
                 return _trackingAggregateRoots.Values;
             }
-            /// <summary>Clear all the tracking aggregates.
-            /// </summary>
             public void Clear()
             {
                 _trackingAggregateRoots.Clear();

@@ -163,16 +163,7 @@ namespace ENode.Commanding.Impl
             var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
             var nextVersion = aggregateRoot.Version + 1;
             var currentTime = DateTime.Now;
-            var processId = default(string);
-
-            if (command is IStartProcessCommand)
-            {
-                processId = aggregateRoot.UniqueId;
-            }
-            else if (command is IProcessCommand)
-            {
-                processId = ((IProcessCommand)command).ProcessId;
-            }
+            var processId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null;
 
             foreach (var evnt in uncommittedEvents)
             {
@@ -193,19 +184,7 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Command;
             var aggregateRootId = command.AggregateRootId;
-            var processId = default(string);
-
-            if (command is IProcessCommand)
-            {
-                processId = ((IProcessCommand)command).ProcessId;
-            }
-            else if (command is IStartProcessCommand)
-            {
-                if (!string.IsNullOrEmpty(aggregateRootId))
-                {
-                    processId = aggregateRootId;
-                }
-            }
+            var processId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null;
 
             _executedCommandService.ProcessExecutedCommand(
                 processingCommand.CommandExecuteContext,

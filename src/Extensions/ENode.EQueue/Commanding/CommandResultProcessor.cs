@@ -125,15 +125,12 @@ namespace ENode.EQueue.Commanding
                     }
                 }
             }
-            if (!string.IsNullOrEmpty(message.ProcessId))
+            if (message.CommandStatus == CommandStatus.Failed && !string.IsNullOrEmpty(message.ProcessId))
             {
-                if (message.CommandStatus == CommandStatus.Failed)
+                TaskCompletionSource<ProcessResult> processTaskCompletionSource;
+                if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
                 {
-                    TaskCompletionSource<ProcessResult> processTaskCompletionSource;
-                    if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
-                    {
-                        processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ExceptionTypeName, message.ErrorMessage));
-                    }
+                    processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ExceptionTypeName, message.ErrorMessage));
                 }
             }
         }

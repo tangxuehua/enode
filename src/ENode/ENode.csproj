@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
     <Compile Include="Commanding\CommandHandlerNotFoundException.cs" />
+    <Compile Include="Commanding\CommandSendException.cs" />
     <Compile Include="Commanding\CommandSendResult.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
@@ -55,7 +56,6 @@
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
-    <Compile Include="Commanding\IStartProcessCommand.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
@@ -79,7 +79,6 @@
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventProcessingContext.cs" />
     <Compile Include="Eventing\IEventHandlerTypeCodeProvider.cs" />
-    <Compile Include="Eventing\Impl\EventContext.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventHandlerTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\ITypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\DefaultEventStreamConvertService.cs" />

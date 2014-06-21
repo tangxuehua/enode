@@ -6,6 +6,5 @@ namespace ENode.Eventing
     /// </summary>
     public interface IProcessCompletedEvent
     {
-        string ProcessId { get; }
     }
 }

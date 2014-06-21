@@ -47,7 +47,11 @@ namespace ENode.EQueue
         public void Send(ICommand command)
         {
             VerifyCommand(command);
-            _producer.Send(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command));
+            var result = _producer.Send(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command));
+            if (result.SendStatus == SendStatus.Failed)
+            {
+                throw new CommandSendException(result.ErrorMessage);
+            }
         }
         public Task<CommandSendResult> SendAsync(ICommand command)
         {

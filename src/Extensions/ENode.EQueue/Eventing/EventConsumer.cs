@@ -85,22 +85,14 @@ namespace ENode.EQueue
             if (eventProcessContext.EventMessage.ContextItems != null && eventProcessContext.EventMessage.ContextItems.ContainsKey("DomainEventHandledMessageTopic"))
             {
                 var domainEventHandledMessageTopic = eventProcessContext.EventMessage.ContextItems["DomainEventHandledMessageTopic"] as string;
-                var processCompletedEvent = eventStream.Events.FirstOrDefault(x => x is IProcessCompletedEvent) as IProcessCompletedEvent;
-                var processId = default(string);
-                var isProcessCompletedEvent = false;
-
-                if (processCompletedEvent != null)
-                {
-                    isProcessCompletedEvent = true;
-                    processId = processCompletedEvent.ProcessId;
-                }
+                var hasProcessCompletedEvent = eventStream.Events.Any(x => x is IProcessCompletedEvent);
 
                 _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
                 {
                     CommandId = eventStream.CommitId,
                     AggregateRootId = eventStream.AggregateRootId,
-                    IsProcessCompletedEvent = isProcessCompletedEvent,
-                    ProcessId = processId
+                    ProcessId = eventStream.ProcessId,
+                    IsProcessCompletedEvent = hasProcessCompletedEvent
                 }, domainEventHandledMessageTopic);
             }
         }

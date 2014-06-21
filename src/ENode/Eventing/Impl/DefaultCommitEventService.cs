@@ -205,11 +205,7 @@ namespace ENode.Eventing.Impl
                 "PublishEvents",
                 () => DoPublishEvents(context, eventStream),
                 3,
-                new ActionInfo("PublishEventsCallback", obj =>
-                {
-                    NotifyCommandExecuted(obj as EventProcessingContext, CommandStatus.Success, null, null);
-                    return true;
-                }, context, null));
+                new ActionInfo("PublishEventsCallback", PublishEventsCallback, context, null));
         }
         private bool DoPublishEvents(EventProcessingContext context, EventStream eventStream)
         {
@@ -224,6 +220,11 @@ namespace ENode.Eventing.Impl
                 _logger.Error(string.Format("Exception raised when publishing events:{0}", eventStream), ex);
                 return false;
             }
+        }
+        private bool PublishEventsCallback(object obj)
+        {
+            NotifyCommandExecuted(obj as EventProcessingContext, CommandStatus.Success, null, null);
+            return true;
         }
         private void RetryCommand(EventProcessingContext context)
         {
