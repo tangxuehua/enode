@@ -10,11 +10,17 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class Command<TAggregateRootId> : ICommand
     {
+        #region Private Variables
+
         private TAggregateRootId _aggregateRootId;
         private string _aggregateRootStringId;
         private int _retryCount;
         public const int DefaultRetryCount = 3;
         public const int MaxRetryCount = 10;
+
+        #endregion
+
+        #region Public Properties
 
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
@@ -62,13 +68,13 @@ namespace ENode.Commanding
         /// </summary>
         public IDictionary<string, string> Items { get; private set; }
 
+        #endregion
+
+        #region Constructors
+
         /// <summary>Default constructor.
         /// </summary>
-        protected Command() : this(DefaultRetryCount) { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="retryCount"></param>
-        protected Command(int retryCount) : this(default(TAggregateRootId), retryCount) { }
+        protected Command() : this(default(TAggregateRootId)) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
@@ -89,6 +95,10 @@ namespace ENode.Commanding
             Items = new Dictionary<string, string>();
         }
 
+        #endregion
+
+        #region Public Methods
+
         /// <summary>Returns the aggregate root id as the key by default.
         /// </summary>
         /// <returns></returns>
@@ -96,5 +106,7 @@ namespace ENode.Commanding
         {
             return _aggregateRootId;
         }
+
+        #endregion
     }
 }

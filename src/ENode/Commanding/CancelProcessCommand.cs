@@ -34,6 +34,7 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="processId"></param>
         /// <param name="aggregateRootId"></param>
+        /// <param name="retryCount"></param>
         /// <param name="errorCode"></param>
         protected CancelProcessCommand(object processId, TAggregateRootId aggregateRootId, int retryCount, int errorCode)
             : base(processId, aggregateRootId, retryCount)

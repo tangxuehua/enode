@@ -8,9 +8,15 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class ProcessCommand<TAggregateRootId> : Command<TAggregateRootId>, IProcessCommand
     {
+        #region Public Properties
+
         /// <summary>Represents the process id.
         /// </summary>
         public string ProcessId { get; private set; }
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>Default constructor.
         /// </summary>
@@ -29,7 +35,8 @@ namespace ENode.Commanding
         /// <param name="processId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="retryCount"></param>
-        protected ProcessCommand(object processId, TAggregateRootId aggregateRootId, int retryCount) : base(aggregateRootId, retryCount)
+        protected ProcessCommand(object processId, TAggregateRootId aggregateRootId, int retryCount)
+            : base(aggregateRootId, retryCount)
         {
             if (processId == null)
             {
@@ -37,5 +44,7 @@ namespace ENode.Commanding
             }
             ProcessId = processId.ToString();
         }
+
+        #endregion
     }
 }
