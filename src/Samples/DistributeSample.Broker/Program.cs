@@ -1,8 +1,10 @@
 ﻿using System;
 using ECommon.Autofac;
+using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
+using ECommon.Logging;
 using EQueue.Broker;
 using EQueue.Configurations;
 
@@ -15,7 +17,7 @@ namespace DistributeSample.Broker
             InitializeEQueue();
             new BrokerController().Start();
 
-            Console.WriteLine("Press Enter to exit...");
+            ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Press Enter to exit...");
             Console.ReadLine();
         }
 

@@ -17,6 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{473C2B
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DistributeSample", "DistributeSample", "{B46666A1-9210-4DBB-94C7-8D0BF1184174}"
+	ProjectSection(SolutionItems) = preProject
+		README.txt = README.txt
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributeSample.CommandProducer", "src\Samples\DistributeSample.CommandProducer\DistributeSample.CommandProducer.csproj", "{37CD22D9-EDFD-41AD-88C2-04E8493E03D7}"
 EndProject

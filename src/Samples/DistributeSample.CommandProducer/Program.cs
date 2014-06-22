@@ -4,10 +4,11 @@ using System.Threading;
 using DistributeSample.CommandProducer.EQueueIntegrations;
 using DistributeSample.Commands;
 using ECommon.Autofac;
-using ECommon.Configurations;
 using ECommon.Components;
+using ECommon.Configurations;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
+using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
@@ -17,6 +18,7 @@ namespace DistributeSample.CommandProducer
     class Program
     {
         static int _count;
+        static ILogger _logger;
 
         static void Main(string[] args)
         {
@@ -26,11 +28,11 @@ namespace DistributeSample.CommandProducer
 
             for (var index = 1; index <= 10; index++)
             {
-                commandService.Execute(new CreateNoteCommand(ObjectId.GenerateNewStringId(), "Sample Note" + index), CommandReturnType.CommandExecuted).ContinueWith(task =>
+                commandService.SendAsync(new CreateNoteCommand(ObjectId.GenerateNewStringId(), "Sample Note" + index)).ContinueWith(task =>
                 {
-                    if (task.Result.Status == CommandStatus.Success)
+                    if (task.Result.Status == CommandSendStatus.Success)
                     {
-                        Console.WriteLine("Executed command{0}.", Interlocked.Increment(ref _count));
+                        _logger.InfoFormat("Sent command{0}", Interlocked.Increment(ref _count));
                     }
                 });
             }
@@ -56,7 +58,8 @@ namespace DistributeSample.CommandProducer
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();
 
-            Console.WriteLine("Command Producer started.");
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name);
+            _logger.Info("Command Producer started.");
         }
     }
 }

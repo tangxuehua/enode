@@ -2,9 +2,11 @@
 using System.Reflection;
 using DistributeSample.CommandProcessor.EQueueIntegrations;
 using ECommon.Autofac;
+using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
+using ECommon.Logging;
 using ENode.Configurations;
 
 namespace DistributeSample.CommandProcessor
@@ -37,7 +39,7 @@ namespace DistributeSample.CommandProcessor
                 .StartWaitingCommandService()
                 .StartEQueue();
 
-            Console.WriteLine("Command Processor started.");
+            ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Command Processor started.");
         }
     }
 }

@@ -14,6 +14,8 @@ namespace ENode.EQueue
 {
     public class CommandConsumer : IMessageHandler
     {
+        private const string DefaultCommandConsumerId = "sys_cc";
+        private const string DefaultCommandConsumerGroup = "sys_ccg";
         private readonly Consumer _consumer;
         private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
         private readonly IBinarySerializer _binarySerializer;
@@ -25,12 +27,16 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
+        public CommandConsumer()
+            : this(null, new CommandExecutedMessageSender())
+        {
+        }
         public CommandConsumer(CommandExecutedMessageSender commandExecutedMessageSender)
             : this(null, commandExecutedMessageSender)
         {
         }
         public CommandConsumer(ConsumerSetting setting, CommandExecutedMessageSender commandExecutedMessageSender)
-            : this("CommandConsumer", "CommandConsumerGroup", setting, commandExecutedMessageSender)
+            : this(DefaultCommandConsumerId, DefaultCommandConsumerGroup, setting, commandExecutedMessageSender)
         {
         }
         public CommandConsumer(string id, string groupName, CommandExecutedMessageSender commandExecutedMessageSender)
@@ -39,7 +45,7 @@ namespace ENode.EQueue
         }
         public CommandConsumer(string id, string groupName, ConsumerSetting setting, CommandExecutedMessageSender commandExecutedMessageSender)
         {
-            _consumer = new Consumer(id, string.IsNullOrEmpty(groupName) ? typeof(CommandConsumer).Name + "Group" : groupName, setting);
+            _consumer = new Consumer(id, groupName, setting);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
@@ -52,6 +58,7 @@ namespace ENode.EQueue
         public CommandConsumer Start()
         {
             _consumer.SetMessageHandler(this).Start();
+            _commandExecutedMessageSender.Start();
             return this;
         }
         public CommandConsumer Subscribe(string topic)
@@ -62,6 +69,7 @@ namespace ENode.EQueue
         public CommandConsumer Shutdown()
         {
             _consumer.Shutdown();
+            _commandExecutedMessageSender.Shutdown();
             return this;
         }
 
@@ -91,6 +99,10 @@ namespace ENode.EQueue
             {
                 messageContext.OnMessageHandled(commandExecuteContext.QueueMessage);
             }
+            if (string.IsNullOrEmpty(commandExecuteContext.CommandMessage.CommandExecutedMessageTopic))
+            {
+                return;
+            }
 
             _commandExecutedMessageSender.Send(new CommandExecutedMessage
             {
@@ -99,7 +111,8 @@ namespace ENode.EQueue
                 ProcessId = processId,
                 CommandStatus = commandStatus,
                 ExceptionTypeName = exceptionTypeName,
-                ErrorMessage = errorMessage
+                ErrorMessage = errorMessage,
+                Items = command.Items ?? new Dictionary<string, string>()
             }, commandExecuteContext.CommandMessage.CommandExecutedMessageTopic);
         }
 

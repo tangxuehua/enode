@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Reflection;
 using ECommon.Autofac;
-using ECommon.Configurations;
 using ECommon.Components;
+using ECommon.Configurations;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
+using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
@@ -15,6 +16,8 @@ namespace NoteSample
 {
     class Program
     {
+        static ILogger _logger;
+
         static void Main(string[] args)
         {
             InitializeENodeFramework();
@@ -32,7 +35,7 @@ namespace NoteSample
 
             Console.WriteLine(string.Empty);
 
-            Console.WriteLine("Press Enter to exit...");
+            _logger.Info("Press Enter to exit...");
 
             Console.ReadLine();
         }
@@ -57,7 +60,9 @@ namespace NoteSample
                 .StartEQueue();
 
             Console.WriteLine(string.Empty);
-            Console.WriteLine("Enode Framework started.");
+
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name);
+            _logger.Info("ENode started...");
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Scheduling;
@@ -12,6 +13,13 @@ namespace ENode.EQueue.Commanding
 {
     public class CommandResultProcessor
     {
+        private const string DefaultCommandExecutedMessageConsumerId = "sys_cemc";
+        private const string DefaultCommandExecutedMessageConsumerGroup = "sys_cemcg";
+        private const string DefaultDomainEventHandledMessageConsumerId = "sys_dehmc";
+        private const string DefaultDomainEventHandledMessageConsumerGroup = "sys_dehmcg";
+        private const string DefaultCommandExecutedMessageTopic = "sys_ecmt";
+        private const string DefaultDomainEventHandledMessageTopic = "sys_dehmt";
+
         private readonly Consumer _commandExecutedMessageConsumer;
         private readonly Consumer _domainEventHandledMessageConsumer;
         private readonly ConcurrentDictionary<string, CommandTaskCompletionSource> _commandTaskDict;
@@ -21,12 +29,18 @@ namespace ENode.EQueue.Commanding
         private readonly Worker _commandExecutedMessageWorker;
         private readonly Worker _domainEventHandledMessageWorker;
         private readonly IBinarySerializer _binarySerializer;
+        private bool _started;
 
         public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
         public Consumer CommandExecutedMessageConsumer { get { return _commandExecutedMessageConsumer; } }
         public Consumer DomainEventHandledMessageConsumer { get { return _domainEventHandledMessageConsumer; } }
 
+        public CommandResultProcessor() : this(
+            new Consumer(DefaultCommandExecutedMessageConsumerId, DefaultCommandExecutedMessageConsumerGroup),
+            new Consumer(DefaultDomainEventHandledMessageConsumerId, DefaultDomainEventHandledMessageConsumerGroup))
+        {
+        }
         public CommandResultProcessor(Consumer commandExecutedMessageConsumer, Consumer domainEventHandledMessageConsumer)
         {
             _commandExecutedMessageConsumer = commandExecutedMessageConsumer;
@@ -38,25 +52,17 @@ namespace ENode.EQueue.Commanding
             _commandExecutedMessageWorker = new Worker("ProcessExecutedCommandMessage", () => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
             _domainEventHandledMessageWorker = new Worker("ProcessDomainEventHandledMessage", () => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;
+            DomainEventHandledMessageTopic = DefaultDomainEventHandledMessageTopic;
         }
 
         public CommandResultProcessor SetExecutedCommandMessageTopic(string topic)
         {
-            if (CommandExecutedMessageTopic != null)
-            {
-                throw new ENodeException("Executed command message topic can't be set twice.");
-            }
-            _commandExecutedMessageConsumer.Subscribe(topic);
             CommandExecutedMessageTopic = topic;
             return this;
         }
         public CommandResultProcessor SetDomainEventHandledMessageTopic(string topic)
         {
-            if (DomainEventHandledMessageTopic != null)
-            {
-                throw new ENodeException("Domain event handled message topic can't be set twice.");
-            }
-            _domainEventHandledMessageConsumer.Subscribe(topic);
             DomainEventHandledMessageTopic = topic;
             return this;
         }
@@ -77,7 +83,14 @@ namespace ENode.EQueue.Commanding
             CommandTaskCompletionSource commandTaskCompletionSource;
             if (_commandTaskDict.TryGetValue(command.Id, out commandTaskCompletionSource))
             {
-                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "CommandSendFailed", "Failed to send the command."));
+                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
+                    new CommandResult(
+                        CommandStatus.Failed,
+                        command.Id,
+                        command.AggregateRootId,
+                        "CommandSendFailed",
+                        "Failed to send the command.",
+                        command.Items));
             }
             return this;
         }
@@ -86,17 +99,42 @@ namespace ENode.EQueue.Commanding
             TaskCompletionSource<ProcessResult> taskCompletionSource;
             if (_processTaskDict.TryGetValue(command.ProcessId, out taskCompletionSource))
             {
-                taskCompletionSource.TrySetResult(new ProcessResult(command.ProcessId, "ProcessCommandSendFailed", "Failed to send the process command."));
+                taskCompletionSource.TrySetResult(
+                    new ProcessResult(
+                        command.ProcessId,
+                        ProcessStatus.Failed,
+                        0,
+                        "ProcessCommandSendFailed",
+                        "Failed to send the process command.",
+                        command.Items));
             }
             return this;
         }
 
         public CommandResultProcessor Start()
         {
+            if (_started) return this;
+
+            if (string.IsNullOrEmpty(CommandExecutedMessageTopic))
+            {
+                throw new Exception("Command result processor cannot start as the command executed message topic is not set.");
+            }
+            if (string.IsNullOrEmpty(DomainEventHandledMessageTopic))
+            {
+                throw new Exception("Command result processor cannot start as the domain event handled message topic is not set.");
+            }
+
+            _commandExecutedMessageConsumer.Subscribe(CommandExecutedMessageTopic);
+            _domainEventHandledMessageConsumer.Subscribe(DomainEventHandledMessageTopic);
+
             _commandExecutedMessageConsumer.SetMessageHandler(new CommandExecutedMessageHandler(this)).Start();
             _domainEventHandledMessageConsumer.SetMessageHandler(new DomainEventHandledMessageHandler(this)).Start();
+
             _commandExecutedMessageWorker.Start();
             _domainEventHandledMessageWorker.Start();
+
+            _started = true;
+
             return this;
         }
         public CommandResultProcessor Shutdown()
@@ -115,13 +153,27 @@ namespace ENode.EQueue.Commanding
             {
                 if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.CommandExecuted)
                 {
-                    commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage));
+                    commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
+                        new CommandResult(
+                            message.CommandStatus,
+                            message.CommandId,
+                            message.AggregateRootId,
+                            message.ExceptionTypeName,
+                            message.ErrorMessage,
+                            message.Items));
                 }
                 else if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
                 {
                     if (message.CommandStatus == CommandStatus.Failed || message.CommandStatus == CommandStatus.NothingChanged)
                     {
-                        commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage));
+                        commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
+                            new CommandResult(
+                                message.CommandStatus,
+                                message.CommandId,
+                                message.AggregateRootId,
+                                message.ExceptionTypeName,
+                                message.ErrorMessage,
+                                message.Items));
                     }
                 }
             }
@@ -130,7 +182,14 @@ namespace ENode.EQueue.Commanding
                 TaskCompletionSource<ProcessResult> processTaskCompletionSource;
                 if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
                 {
-                    processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ExceptionTypeName, message.ErrorMessage));
+                    processTaskCompletionSource.TrySetResult(
+                        new ProcessResult(
+                            message.ProcessId,
+                            ProcessStatus.Failed,
+                            0,
+                            message.ExceptionTypeName,
+                            message.ErrorMessage,
+                            message.Items));
                 }
             }
         }
@@ -139,7 +198,14 @@ namespace ENode.EQueue.Commanding
             CommandTaskCompletionSource commandTaskCompletionSource;
             if (_commandTaskDict.TryGetValue(message.CommandId, out commandTaskCompletionSource))
             {
-                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, null, null));
+                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
+                    new CommandResult(
+                        CommandStatus.Success,
+                        message.CommandId,
+                        message.AggregateRootId,
+                        null,
+                        null,
+                        message.Items));
             }
             if (message.IsProcessCompleted && !string.IsNullOrEmpty(message.ProcessId))
             {
@@ -148,11 +214,25 @@ namespace ENode.EQueue.Commanding
                 {
                     if (message.IsProcessSuccess)
                     {
-                        processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId));
+                        processTaskCompletionSource.TrySetResult(
+                            new ProcessResult(
+                                message.ProcessId,
+                                ProcessStatus.Success,
+                                0,
+                                null,
+                                null,
+                                message.Items));
                     }
                     else
                     {
-                        processTaskCompletionSource.TrySetResult(new ProcessResult(message.ProcessId, message.ErrorCode));
+                        processTaskCompletionSource.TrySetResult(
+                            new ProcessResult(
+                                message.ProcessId,
+                                ProcessStatus.Failed,
+                                message.ErrorCode,
+                                null,
+                                null,
+                                message.Items));
                     }
                 }
             }

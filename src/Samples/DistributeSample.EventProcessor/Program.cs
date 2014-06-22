@@ -2,9 +2,11 @@
 using System.Reflection;
 using DistributeSample.EventProcessor.EQueueIntegrations;
 using ECommon.Autofac;
+using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
+using ECommon.Logging;
 using ENode.Configurations;
 
 namespace DistributeSample.EventProcessor
@@ -35,7 +37,7 @@ namespace DistributeSample.EventProcessor
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();
 
-            Console.WriteLine("Event Processor started.");
+            ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Event Processor started.");
         }
     }
 }

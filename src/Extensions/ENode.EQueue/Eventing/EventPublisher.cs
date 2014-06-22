@@ -11,6 +11,7 @@ namespace ENode.EQueue
 {
     public class EventPublisher : IEventPublisher
     {
+        private const string DefaultEventPublisherProcuderId = "sys_epp";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventTopicProvider _eventTopicProvider;
@@ -19,7 +20,7 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public EventPublisher() : this("EventPublisher") { }
+        public EventPublisher() : this(DefaultEventPublisherProcuderId) { }
         public EventPublisher(string id) : this(id, new ProducerSetting()) { }
         public EventPublisher(string id, ProducerSetting setting)
         {

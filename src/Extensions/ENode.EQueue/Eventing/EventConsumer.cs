@@ -12,6 +12,8 @@ namespace ENode.EQueue
 {
     public class EventConsumer : IMessageHandler
     {
+        private const string DefaultEventConsumerId = "sys_ec";
+        private const string DefaultEventConsumerGroup = "sys_ecg";
         private readonly Consumer _consumer;
         private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IBinarySerializer _binarySerializer;
@@ -25,12 +27,16 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
+        public EventConsumer()
+            : this(_consumerSetting, new DomainEventHandledMessageSender())
+        {
+        }
         public EventConsumer(DomainEventHandledMessageSender domainEventHandledMessageSender)
             : this(_consumerSetting, domainEventHandledMessageSender)
         {
         }
         public EventConsumer(ConsumerSetting setting, DomainEventHandledMessageSender domainEventHandledMessageSender)
-            : this("EventConsumer", "EventConsumerGroup", setting, domainEventHandledMessageSender)
+            : this(DefaultEventConsumerId, DefaultEventConsumerGroup, setting, domainEventHandledMessageSender)
         {
         }
         public EventConsumer(string id, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
@@ -39,7 +45,7 @@ namespace ENode.EQueue
         }
         public EventConsumer(string id, string groupName, ConsumerSetting setting, DomainEventHandledMessageSender domainEventHandledMessageSender)
         {
-            _consumer = new Consumer(id, string.IsNullOrEmpty(groupName) ? typeof(EventConsumer).Name + "Group" : groupName, setting);
+            _consumer = new Consumer(id, groupName, setting);
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
@@ -50,6 +56,7 @@ namespace ENode.EQueue
         public EventConsumer Start()
         {
             _consumer.SetMessageHandler(this).Start();
+            _domainEventHandledMessageSender.Start();
             return this;
         }
         public EventConsumer Subscribe(string topic)
@@ -60,6 +67,7 @@ namespace ENode.EQueue
         public EventConsumer Shutdown()
         {
             _consumer.Shutdown();
+            _domainEventHandledMessageSender.Shutdown();
             return this;
         }
 
@@ -82,36 +90,40 @@ namespace ENode.EQueue
                 messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
             }
 
-            if (eventProcessContext.EventMessage.ContextItems != null && eventProcessContext.EventMessage.ContextItems.ContainsKey("DomainEventHandledMessageTopic"))
+            var contextItems = eventProcessContext.EventMessage.ContextItems;
+            if (contextItems == null || !contextItems.ContainsKey("DomainEventHandledMessageTopic") || string.IsNullOrEmpty(contextItems["DomainEventHandledMessageTopic"]))
             {
-                var domainEventHandledMessageTopic = eventProcessContext.EventMessage.ContextItems["DomainEventHandledMessageTopic"] as string;
-                var processCompletedEvents = eventStream.Events.Where(x => x is IProcessCompletedEvent);
-                if (processCompletedEvents.Count() > 1)
-                {
-                    throw new Exception("One event stream cannot contains more than one IProcessCompletedEvent.");
-                }
-
-                var isProcessCompleted = processCompletedEvents.Count() == 1;
-                var isProcessSuccess = false;
-                var errorCode = 0;
-
-                if (isProcessCompleted)
-                {
-                    var processCompletedEvent = processCompletedEvents.Single() as IProcessCompletedEvent;
-                    isProcessSuccess = processCompletedEvent.IsSuccess;
-                    errorCode = processCompletedEvent.ErrorCode;
-                }
-
-                _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
-                {
-                    CommandId = eventStream.CommitId,
-                    AggregateRootId = eventStream.AggregateRootId,
-                    ProcessId = eventStream.ProcessId,
-                    IsProcessCompleted = isProcessCompleted,
-                    IsProcessSuccess = isProcessSuccess,
-                    ErrorCode = errorCode
-                }, domainEventHandledMessageTopic);
+                return;
             }
+
+            var domainEventHandledMessageTopic = contextItems["DomainEventHandledMessageTopic"];
+            var processCompletedEvents = eventStream.Events.Where(x => x is IProcessCompletedEvent);
+            if (processCompletedEvents.Count() > 1)
+            {
+                throw new Exception("One event stream cannot contains more than one IProcessCompletedEvent.");
+            }
+
+            var isProcessCompleted = processCompletedEvents.Count() == 1;
+            var isProcessSuccess = false;
+            var errorCode = 0;
+
+            if (isProcessCompleted)
+            {
+                var processCompletedEvent = processCompletedEvents.Single() as IProcessCompletedEvent;
+                isProcessSuccess = processCompletedEvent.IsSuccess;
+                errorCode = processCompletedEvent.ErrorCode;
+            }
+
+            _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
+            {
+                CommandId = eventStream.CommitId,
+                AggregateRootId = eventStream.AggregateRootId,
+                ProcessId = eventStream.ProcessId,
+                IsProcessCompleted = isProcessCompleted,
+                IsProcessSuccess = isProcessSuccess,
+                ErrorCode = errorCode,
+                Items = eventStream.Items ?? new Dictionary<string, string>()
+            }, domainEventHandledMessageTopic);
         }
 
         private EventStream ConvertToEventStream(EventMessage data)

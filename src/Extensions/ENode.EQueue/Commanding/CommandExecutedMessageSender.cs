@@ -7,12 +7,13 @@ namespace ENode.EQueue
 {
     public class CommandExecutedMessageSender
     {
+        private const string DefaultCommandExecutedMessageSenderProcuderId = "sys_cemsp";
         private readonly Producer _producer;
         private readonly IBinarySerializer _binarySerializer;
 
         public Producer Producer { get { return _producer; } }
 
-        public CommandExecutedMessageSender() : this("CommandExecutedMessageSender") { }
+        public CommandExecutedMessageSender() : this(DefaultCommandExecutedMessageSenderProcuderId) { }
         public CommandExecutedMessageSender(string id) : this(id, new ProducerSetting()) { }
         public CommandExecutedMessageSender(string id, ProducerSetting setting)
         {

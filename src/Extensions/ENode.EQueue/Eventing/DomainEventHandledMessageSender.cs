@@ -7,12 +7,13 @@ namespace ENode.EQueue
 {
     public class DomainEventHandledMessageSender
     {
+        private const string DefaultDomainEventHandledMessageSenderProcuderId = "sys_dehmsp";
         private readonly Producer _producer;
         private readonly IBinarySerializer _binarySerializer;
 
         public Producer Producer { get { return _producer; } }
 
-        public DomainEventHandledMessageSender() : this("DomainEventHandledMessageSender") { }
+        public DomainEventHandledMessageSender() : this(DefaultDomainEventHandledMessageSenderProcuderId) { }
         public DomainEventHandledMessageSender(string id) : this(id, new ProducerSetting()) { }
         public DomainEventHandledMessageSender(string id, ProducerSetting setting)
         {

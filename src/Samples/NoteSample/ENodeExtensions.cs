@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Threading;
 using ECommon.Components;
+using ECommon.Logging;
 using ECommon.Scheduling;
-using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
@@ -10,7 +10,6 @@ using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
 using EQueue.Broker;
-using EQueue.Clients.Consumers;
 using EQueue.Configurations;
 using NoteSample.Providers;
 
@@ -23,8 +22,6 @@ namespace NoteSample.EQueueIntegrations
         private static CommandConsumer _commandConsumer;
         private static EventPublisher _eventPublisher;
         private static EventConsumer _eventConsumer;
-        private static CommandExecutedMessageSender _commandExecutedMessageSender;
-        private static DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private static CommandResultProcessor _commandResultProcessor;
 
         public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
@@ -44,41 +41,20 @@ namespace NoteSample.EQueueIntegrations
 
             configuration.RegisterEQueueComponents();
 
-            var consumerSetting = new ConsumerSetting
-            {
-                HeartbeatBrokerInterval = 1000,
-                UpdateTopicQueueCountInterval = 1000,
-                RebalanceInterval = 1000
-            };
-            var eventConsumerSetting = new ConsumerSetting
-            {
-                HeartbeatBrokerInterval = 1000,
-                UpdateTopicQueueCountInterval = 1000,
-                RebalanceInterval = 1000,
-                MessageHandleMode = MessageHandleMode.Sequential
-            };
-
             _broker = new BrokerController();
 
-            var commandExecutedMessageConsumer = new Consumer("CommandExecutedMessageConsumer", "CommandExecutedMessageConsumerGroup", consumerSetting);
-            var domainEventHandledMessageConsumer = new Consumer("DomainEventHandledMessageConsumer", "DomainEventHandledMessageConsumerGroup", consumerSetting);
-            _commandResultProcessor = new CommandResultProcessor(commandExecutedMessageConsumer, domainEventHandledMessageConsumer);
-
+            _commandResultProcessor = new CommandResultProcessor();
             _commandService = new CommandService(_commandResultProcessor);
-            _commandExecutedMessageSender = new CommandExecutedMessageSender();
-            _domainEventHandledMessageSender = new DomainEventHandledMessageSender();
             _eventPublisher = new EventPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
 
-            _commandConsumer = new CommandConsumer(consumerSetting, _commandExecutedMessageSender);
-            _eventConsumer = new EventConsumer(eventConsumerSetting, _domainEventHandledMessageSender);
+            _commandConsumer = new CommandConsumer();
+            _eventConsumer = new EventConsumer();
 
             _commandConsumer.Subscribe("NoteCommandTopic");
             _eventConsumer.Subscribe("NoteEventTopic");
-            _commandResultProcessor.SetExecutedCommandMessageTopic("ExecutedCommandMessageTopic");
-            _commandResultProcessor.SetDomainEventHandledMessageTopic("DomainEventHandledMessageTopic");
 
             return enodeConfiguration;
         }
@@ -89,9 +65,6 @@ namespace NoteSample.EQueueIntegrations
             _commandConsumer.Start();
             _eventPublisher.Start();
             _commandService.Start();
-            _commandExecutedMessageSender.Start();
-            _domainEventHandledMessageSender.Start();
-            _commandResultProcessor.Start();
 
             WaitAllConsumerLoadBalanceComplete();
 
@@ -100,8 +73,10 @@ namespace NoteSample.EQueueIntegrations
 
         private static void WaitAllConsumerLoadBalanceComplete()
         {
+            var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);
             var scheduleService = ObjectContainer.Resolve<IScheduleService>();
             var waitHandle = new ManualResetEvent(false);
+            logger.Info("Waiting for all consumer load balance complete.");
             var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
                 var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
@@ -119,6 +94,7 @@ namespace NoteSample.EQueueIntegrations
 
             waitHandle.WaitOne();
             scheduleService.ShutdownTask(taskId);
+            logger.Info("All consumer load balance completed.");
         }
     }
 }

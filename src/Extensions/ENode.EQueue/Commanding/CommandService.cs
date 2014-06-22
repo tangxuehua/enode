@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.EQueue.Commanding;
-using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -13,6 +13,7 @@ namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
+        private const string DefaultCommandServiceProcuderId = "sys_csp";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ICommandTopicProvider _commandTopicProvider;
@@ -21,7 +22,8 @@ namespace ENode.EQueue
         private readonly CommandResultProcessor _commandResultProcessor;
         private readonly Producer _producer;
 
-        public CommandService(CommandResultProcessor commandResultProcessor) : this(commandResultProcessor, "CommandService") { }
+        public CommandService() : this(null) { }
+        public CommandService(CommandResultProcessor commandResultProcessor) : this(commandResultProcessor, DefaultCommandServiceProcuderId) { }
         public CommandService(CommandResultProcessor commandResultProcessor, string id) : this(commandResultProcessor, id, new ProducerSetting()) { }
         public CommandService(CommandResultProcessor commandResultProcessor, string id, ProducerSetting setting)
         {
@@ -37,16 +39,24 @@ namespace ENode.EQueue
         public CommandService Start()
         {
             _producer.Start();
+            if (_commandResultProcessor != null)
+            {
+                _commandResultProcessor.Start();
+            }
             return this;
         }
         public CommandService Shutdown()
         {
             _producer.Shutdown();
+            if (_commandResultProcessor != null)
+            {
+                _commandResultProcessor.Shutdown();
+            }
             return this;
         }
         public void Send(ICommand command)
         {
-            VerifyCommand(command);
+            ValidateCommand(command);
             var result = _producer.Send(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command));
             if (result.SendStatus == SendStatus.Failed)
             {
@@ -55,7 +65,7 @@ namespace ENode.EQueue
         }
         public Task<CommandSendResult> SendAsync(ICommand command)
         {
-            VerifyCommand(command);
+            ValidateCommand(command);
             var taskCompletionSource = new TaskCompletionSource<CommandSendResult>();
 
             _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
@@ -74,7 +84,12 @@ namespace ENode.EQueue
         }
         public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
         {
-            VerifyCommand(command);
+            if (_commandResultProcessor == null)
+            {
+                throw new NotSupportedException("Not supported operation as the command result processor is not set.");
+            }
+
+            ValidateCommand(command);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
 
             _commandResultProcessor.RegisterCommand(command, commandReturnType, taskCompletionSource);
@@ -91,7 +106,12 @@ namespace ENode.EQueue
         }
         public Task<ProcessResult> StartProcess(IProcessCommand command)
         {
-            VerifyCommand(command);
+            if (_commandResultProcessor == null)
+            {
+                throw new NotSupportedException("Not supported operation as the command result processor is not set.");
+            }
+
+            ValidateCommand(command);
             var taskCompletionSource = new TaskCompletionSource<ProcessResult>();
 
             _commandResultProcessor.RegisterProcess(command, taskCompletionSource);
@@ -107,16 +127,16 @@ namespace ENode.EQueue
             return taskCompletionSource.Task;
         }
 
-        private void VerifyCommand(ICommand command)
+        private void ValidateCommand(ICommand command)
         {
             if (string.IsNullOrEmpty(command.Id))
             {
-                throw new ENodeException("Command id can not be null or empty.");
+                throw new ArgumentException("Command id can not be null or empty.");
             }
             if (!(command is ICreatingAggregateCommand) && string.IsNullOrEmpty(command.AggregateRootId))
             {
                 var format = "AggregateRootId cannot be null or empty if the command is not a ICreatingAggregateCommand, commandType:{0}, commandId:{1}.";
-                throw new ENodeException(format, command.GetType().FullName, command.Id);
+                throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
             }
         }
         private Message BuildCommandMessage(ICommand command)
@@ -128,8 +148,8 @@ namespace ENode.EQueue
             var messageData = _binarySerializer.Serialize(new CommandMessage
             {
                 CommandData = commandData,
-                CommandExecutedMessageTopic = _commandResultProcessor.CommandExecutedMessageTopic,
-                DomainEventHandledMessageTopic = _commandResultProcessor.DomainEventHandledMessageTopic
+                CommandExecutedMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.CommandExecutedMessageTopic : null,
+                DomainEventHandledMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.DomainEventHandledMessageTopic : null
             });
             return new Message(topic, messageData);
         }

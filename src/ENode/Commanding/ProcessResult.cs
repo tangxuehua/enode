@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ENode.Commanding
 {
@@ -22,30 +23,20 @@ namespace ENode.Commanding
         /// <summary>Represents the error message if the process execution is failed.
         /// </summary>
         public string ErrorMessage { get; private set; }
+        /// <summary>Represents the extension information of the process result.
+        /// </summary>
+        public IDictionary<string, string> Items { get; private set; }
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public ProcessResult(string processId)
+        public ProcessResult(string processId, ProcessStatus status, int errorCode, string exceptionTypeName, string errorMessage, IDictionary<string, string> items)
         {
-            Status = ProcessStatus.Success;
             ProcessId = processId;
-        }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        public ProcessResult(string processId, int errorCode)
-        {
-            Status = ProcessStatus.Failed;
-            ProcessId = processId;
+            Status = status;
             ErrorCode = errorCode;
-        }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        public ProcessResult(string processId, string exceptionTypeName, string errorMessage)
-        {
-            Status = ProcessStatus.Failed;
-            ProcessId = processId;
             ExceptionTypeName = exceptionTypeName;
             ErrorMessage = errorMessage;
+            Items = items ?? new Dictionary<string, string>();
         }
     }
     /// <summary>Represents a process result status enum.
