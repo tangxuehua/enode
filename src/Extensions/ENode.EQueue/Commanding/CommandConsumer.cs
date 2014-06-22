@@ -14,8 +14,8 @@ namespace ENode.EQueue
 {
     public class CommandConsumer : IMessageHandler
     {
-        private const string DefaultCommandConsumerId = "sys_cc";
-        private const string DefaultCommandConsumerGroup = "sys_ccg";
+        private const string DefaultCommandConsumerId = "CommandConsumer";
+        private const string DefaultCommandConsumerGroup = "CommandConsumerGroup";
         private readonly Consumer _consumer;
         private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
         private readonly IBinarySerializer _binarySerializer;

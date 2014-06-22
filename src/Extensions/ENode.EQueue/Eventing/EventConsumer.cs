@@ -12,8 +12,8 @@ namespace ENode.EQueue
 {
     public class EventConsumer : IMessageHandler
     {
-        private const string DefaultEventConsumerId = "sys_ec";
-        private const string DefaultEventConsumerGroup = "sys_ecg";
+        private const string DefaultEventConsumerId = "EventConsumer";
+        private const string DefaultEventConsumerGroup = "EventConsumerGroup";
         private readonly Consumer _consumer;
         private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IBinarySerializer _binarySerializer;
