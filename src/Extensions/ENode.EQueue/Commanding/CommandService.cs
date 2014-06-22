@@ -13,6 +13,8 @@ namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
+        private const string DefaultCommandExecutedMessageTopic = "sys_ecmt";
+        private const string DefaultDomainEventHandledMessageTopic = "sys_dehmt";
         private const string DefaultCommandServiceProcuderId = "sys_csp";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
@@ -21,6 +23,9 @@ namespace ENode.EQueue
         private readonly ICommandRouteKeyProvider _commandRouteKeyProvider;
         private readonly CommandResultProcessor _commandResultProcessor;
         private readonly Producer _producer;
+
+        public string CommandExecutedMessageTopic { get; private set; }
+        public string DomainEventHandledMessageTopic { get; private set; }
 
         public CommandService() : this(null) { }
         public CommandService(CommandResultProcessor commandResultProcessor) : this(commandResultProcessor, DefaultCommandServiceProcuderId) { }
@@ -34,6 +39,8 @@ namespace ENode.EQueue
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRouteKeyProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;
+            DomainEventHandledMessageTopic = DefaultDomainEventHandledMessageTopic;
         }
 
         public CommandService Start()
@@ -148,8 +155,8 @@ namespace ENode.EQueue
             var messageData = _binarySerializer.Serialize(new CommandMessage
             {
                 CommandData = commandData,
-                CommandExecutedMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.CommandExecutedMessageTopic : null,
-                DomainEventHandledMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.DomainEventHandledMessageTopic : null
+                CommandExecutedMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.CommandExecutedMessageTopic : CommandExecutedMessageTopic,
+                DomainEventHandledMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.DomainEventHandledMessageTopic : DomainEventHandledMessageTopic
             });
             return new Message(topic, messageData);
         }

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using ECommon.Components;
+using ECommon.Logging;
 using ECommon.Scheduling;
 using ECommon.Serializing;
 using ENode.Commanding;
@@ -29,6 +30,7 @@ namespace ENode.EQueue.Commanding
         private readonly Worker _commandExecutedMessageWorker;
         private readonly Worker _domainEventHandledMessageWorker;
         private readonly IBinarySerializer _binarySerializer;
+        private readonly ILogger _logger;
         private bool _started;
 
         public string CommandExecutedMessageTopic { get; private set; }
@@ -52,6 +54,7 @@ namespace ENode.EQueue.Commanding
             _commandExecutedMessageWorker = new Worker("ProcessExecutedCommandMessage", () => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
             _domainEventHandledMessageWorker = new Worker("ProcessDomainEventHandledMessage", () => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;
             DomainEventHandledMessageTopic = DefaultDomainEventHandledMessageTopic;
         }
@@ -161,6 +164,10 @@ namespace ENode.EQueue.Commanding
                             message.ExceptionTypeName,
                             message.ErrorMessage,
                             message.Items));
+                    _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}",
+                        message.CommandId,
+                        message.CommandStatus,
+                        message.AggregateRootId);
                 }
                 else if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
                 {
@@ -174,6 +181,12 @@ namespace ENode.EQueue.Commanding
                                 message.ExceptionTypeName,
                                 message.ErrorMessage,
                                 message.Items));
+                        _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}, exceptionTypeName:{3}, errorMessage:{4}",
+                            message.CommandId,
+                            message.CommandStatus,
+                            message.AggregateRootId,
+                            message.ExceptionTypeName,
+                            message.ErrorMessage);
                     }
                 }
             }
@@ -190,6 +203,11 @@ namespace ENode.EQueue.Commanding
                             message.ExceptionTypeName,
                             message.ErrorMessage,
                             message.Items));
+                    _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, exceptionTypeName:{2}, errorMessage:{3}",
+                        message.ProcessId,
+                        ProcessStatus.Failed,
+                        message.ExceptionTypeName,
+                        message.ErrorMessage);
                 }
             }
         }
@@ -206,6 +224,10 @@ namespace ENode.EQueue.Commanding
                         null,
                         null,
                         message.Items));
+                _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}",
+                    message.CommandId,
+                    CommandStatus.Success,
+                    message.AggregateRootId);
             }
             if (message.IsProcessCompleted && !string.IsNullOrEmpty(message.ProcessId))
             {
@@ -222,6 +244,9 @@ namespace ENode.EQueue.Commanding
                                 null,
                                 null,
                                 message.Items));
+                        _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}",
+                            message.ProcessId,
+                            ProcessStatus.Success);
                     }
                     else
                     {
@@ -233,6 +258,10 @@ namespace ENode.EQueue.Commanding
                                 null,
                                 null,
                                 message.Items));
+                        _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, errorCode:{2}",
+                            message.ProcessId,
+                            ProcessStatus.Failed,
+                            message.ErrorCode);
                     }
                 }
             }
