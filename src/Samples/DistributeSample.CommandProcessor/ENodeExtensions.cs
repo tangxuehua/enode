@@ -59,7 +59,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
             var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);
             var scheduleService = ObjectContainer.Resolve<IScheduleService>();
             var waitHandle = new ManualResetEvent(false);
-            logger.Info("Waiting for all consumer load balance complete.");
+            logger.Info("Waiting for all consumer load balance complete, please wait for a moment...");
             var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
