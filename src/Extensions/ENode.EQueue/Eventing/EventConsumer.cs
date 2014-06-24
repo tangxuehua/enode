@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using ECommon.Components;
+using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Eventing;
 using EQueue.Clients.Consumers;
@@ -20,6 +21,7 @@ namespace ENode.EQueue
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventProcessor _eventProcessor;
         private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
+        private readonly ILogger _logger;
         private readonly static ConsumerSetting _consumerSetting = new ConsumerSetting
         {
             MessageHandleMode = MessageHandleMode.Sequential
@@ -49,6 +51,7 @@ namespace ENode.EQueue
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _domainEventHandledMessageSender = domainEventHandledMessageSender;
         }
@@ -91,12 +94,14 @@ namespace ENode.EQueue
             }
 
             var contextItems = eventProcessContext.EventMessage.ContextItems;
-            if (contextItems == null || !contextItems.ContainsKey("DomainEventHandledMessageTopic") || string.IsNullOrEmpty(contextItems["DomainEventHandledMessageTopic"]))
+            if (!ValidateContextItems(contextItems))
             {
                 return;
             }
 
             var domainEventHandledMessageTopic = contextItems["DomainEventHandledMessageTopic"];
+            var currentCommandId = contextItems["CurrentCommandId"];
+            var currentProcessId = contextItems["CurrentProcessId"];
             var processCompletedEvents = eventStream.Events.Where(x => x is IProcessCompletedEvent);
             if (processCompletedEvents.Count() > 1)
             {
@@ -116,9 +121,9 @@ namespace ENode.EQueue
 
             _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
             {
-                CommandId = eventStream.CommitId,
+                CommandId = currentCommandId,
+                ProcessId = currentProcessId,
                 AggregateRootId = eventStream.AggregateRootId,
-                ProcessId = eventStream.ProcessId,
                 IsProcessCompleted = isProcessCompleted,
                 IsProcessSuccess = isProcessSuccess,
                 ErrorCode = errorCode,
@@ -126,18 +131,38 @@ namespace ENode.EQueue
             }, domainEventHandledMessageTopic);
         }
 
+        private bool ValidateContextItems(IDictionary<string, string> contextItems)
+        {
+            if (!contextItems.ContainsKey("DomainEventHandledMessageTopic"))
+            {
+                _logger.Error("Key 'DomainEventHandledMessageTopic' missing in event message context items dict.");
+                return false;
+            }
+            else if (!contextItems.ContainsKey("CurrentCommandId"))
+            {
+                _logger.Error("Key 'CurrentCommandId' missing in event message context items dict.");
+                return false;
+            }
+            else if (!contextItems.ContainsKey("CurrentProcessId"))
+            {
+                _logger.Error("Key 'CurrentProcessId' missing in event message context items dict.");
+                return false;
+            }
+            else if (string.IsNullOrEmpty(contextItems["DomainEventHandledMessageTopic"]))
+            {
+                _logger.Error("DomainEventHandledMessageTopic cannot be empty.");
+                return false;
+            }
+            else if (string.IsNullOrEmpty(contextItems["CurrentCommandId"]))
+            {
+                _logger.Error("CurrentCommandId cannot be empty.");
+                return false;
+            }
+            return true;
+        }
         private EventStream ConvertToEventStream(EventMessage data)
         {
-            var events = new List<IDomainEvent>();
-
-            foreach (var typeData in data.Events)
-            {
-                var eventType = _eventTypeCodeProvider.GetType(typeData.EventTypeCode);
-                var evnt = _binarySerializer.Deserialize(typeData.EventData, eventType) as IDomainEvent;
-                events.Add(evnt);
-            }
-
-            return new EventStream(data.CommitId, data.AggregateRootId, data.AggregateRootTypeCode, data.ProcessId, data.Version, data.Timestamp, events, data.Items);
+            return new EventStream(data.CommitId, data.AggregateRootId, data.AggregateRootTypeCode, data.ProcessId, data.Version, data.Timestamp, data.Events, data.Items);
         }
 
         class EventProcessContext : IEventProcessContext

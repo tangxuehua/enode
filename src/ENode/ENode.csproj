@@ -44,11 +44,16 @@
     <Compile Include="Commanding\CommandSendException.cs" />
     <Compile Include="Commanding\CommandSendResult.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
+    <Compile Include="Commanding\HandledCommand.cs" />
+    <Compile Include="Commanding\CommandAddResult.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
+    <Compile Include="Commanding\ICommandStore.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\CommandAggregateRootIdMissingException.cs" />
     <Compile Include="Commanding\Impl\DefaultExecutedCommandService.cs" />
+    <Compile Include="Commanding\Impl\SqlServerCommandStore.cs" />
+    <Compile Include="Commanding\Impl\InMemoryCommandStore.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\IExecutedCommandService.cs" />
     <Compile Include="Commanding\IProcessCommand.cs" />
@@ -68,7 +73,6 @@
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
-    <Compile Include="Domain\DomainException.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
     <Compile Include="Domain\IEventSourcingService.cs" />
     <Compile Include="Domain\Impl\DefaultEventSourcingService.cs" />
@@ -77,29 +81,24 @@
     <Compile Include="Domain\Impl\NotImplementedAggregateRootTypeCodeProvider.cs" />
     <Compile Include="Eventing\ProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IEventContext.cs" />
-    <Compile Include="Eventing\IEventStreamConvertService.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />
-    <Compile Include="Eventing\EventProcessingContext.cs" />
+    <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Eventing\IEventHandlerTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventHandlerTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\ITypeCodeProvider.cs" />
-    <Compile Include="Eventing\Impl\DefaultEventStreamConvertService.cs" />
     <Compile Include="Eventing\IEventProcessContext.cs" />
-    <Compile Include="Eventing\ICommitEventService.cs" />
+    <Compile Include="Eventing\IEventService.cs" />
     <Compile Include="Eventing\IEventTypeCodeProvider.cs" />
-    <Compile Include="Eventing\Impl\DefaultCommitEventService.cs" />
+    <Compile Include="Eventing\Impl\DefaultEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventStore.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlServerEventStore.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
-    <Compile Include="Eventing\IEventSynchronizer.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
     <Compile Include="Eventing\IEventProcessor.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
-    <Compile Include="Eventing\EventCommitRecord.cs" />
-    <Compile Include="Infrastructure\DuplicateAggregateException.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\ConcurrentException.cs" />
     <Compile Include="Eventing\EventStream.cs" />
@@ -117,9 +116,6 @@
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoStore.cs" />
     <Compile Include="Eventing\IEventPublishInfoStore.cs" />
     <Compile Include="Eventing\IEventHandleInfoStore.cs" />
-    <Compile Include="Eventing\IEventSynchronizerProvider.cs" />
-    <Compile Include="Eventing\Impl\DefaultEventSynchronizerProvider.cs" />
-    <Compile Include="Eventing\Impl\EventSynchronizerWrapper.cs" />
     <Compile Include="Infrastructure\AbstractTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Commanding\IRetryCommandService.cs" />
@@ -167,7 +163,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Eventing\Impl\SQL\SqlServerTableGenerateSQL.sql" />
+    <Content Include="SqlServerTableGenerateSQL.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

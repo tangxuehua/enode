@@ -11,11 +11,13 @@ namespace ENode.Commanding.Impl
     {
         #region Private Variables
 
+        private readonly ICommandStore _commandStore;
+        private readonly IEventStore _eventStore;
         private readonly IWaitingCommandService _waitingCommandService;
         private readonly IExecutedCommandService _executedCommandService;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeProvider;
-        private readonly ICommitEventService _commitEventService;
+        private readonly IEventService _eventService;
         private readonly ILogger _logger;
 
         #endregion
@@ -24,25 +26,31 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="commandStore"></param>
+        /// <param name="eventStore"></param>
         /// <param name="waitingCommandService"></param>
         /// <param name="executedCommandService"></param>
         /// <param name="commandHandlerProvider"></param>
         /// <param name="aggregateRootTypeProvider"></param>
-        /// <param name="commitEventService"></param>
+        /// <param name="eventService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
+            ICommandStore commandStore,
+            IEventStore eventStore,
             IWaitingCommandService waitingCommandService,
             IExecutedCommandService executedCommandService,
             ICommandHandlerProvider commandHandlerProvider,
             IAggregateRootTypeCodeProvider aggregateRootTypeProvider,
-            ICommitEventService commitEventService,
+            IEventService eventService,
             ILoggerFactory loggerFactory)
         {
+            _commandStore = commandStore;
+            _eventStore = eventStore;
             _waitingCommandService = waitingCommandService;
             _executedCommandService = executedCommandService;
             _commandHandlerProvider = commandHandlerProvider;
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
-            _commitEventService = commitEventService;
+            _eventService = eventService;
             _logger = loggerFactory.Create(GetType().FullName);
             _waitingCommandService.SetCommandExecutor(this);
         }
@@ -134,7 +142,9 @@ namespace ENode.Commanding.Impl
 
             if (dirtyAggregateRootCount == 0)
             {
-                _logger.DebugFormat("No aggregate created or modified by command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
+                _logger.DebugFormat("No aggregate created or modified by command. commandType:{0}, commandId:{1}",
+                    command.GetType().Name,
+                    command.Id);
                 ProcessFailedCommand(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
             }
@@ -152,8 +162,35 @@ namespace ENode.Commanding.Impl
 
             var dirtyAggregate = dirtyAggregateRoots.Single();
             var eventStream = BuildEventStream(dirtyAggregate, command);
+            var commandAddResult = _commandStore.AddCommand(new HandledCommand(command, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode, eventStream.Version));
 
-            _commitEventService.CommitEvent(new EventProcessingContext(dirtyAggregate, eventStream, processingCommand));
+            if (commandAddResult == CommandAddResult.DuplicateCommand)
+            {
+                var existingHandledCommand = _commandStore.Find(command.Id);
+                if (existingHandledCommand != null)
+                {
+                    var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, existingHandledCommand.Version);
+                    if (existingEventStream != null)
+                    {
+                        _eventService.PublishEvent(processingCommand, existingEventStream);
+                    }
+                    else
+                    {
+                        _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                    }
+                }
+                else
+                {
+                    var errorMessage = string.Format("Command exist in the command store, but it cannot be found from the command store. commandType:{0}, commandId:{1}",
+                        command.GetType().Name,
+                        command.Id);
+                    ProcessFailedCommand(processingCommand, CommandStatus.Failed, null, errorMessage);
+                }
+            }
+            else if (commandAddResult == CommandAddResult.Success)
+            {
+                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+            }
         }
         private EventStream BuildEventStream(IAggregateRoot aggregateRoot, ICommand command)
         {

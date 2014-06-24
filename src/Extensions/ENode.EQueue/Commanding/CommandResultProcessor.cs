@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using ECommon.Components;
+using ECommon.Extensions;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ECommon.Serializing;
@@ -164,6 +165,7 @@ namespace ENode.EQueue.Commanding
                             message.ExceptionTypeName,
                             message.ErrorMessage,
                             message.Items));
+                    _commandTaskDict.Remove(message.CommandId);
                     _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}",
                         message.CommandId,
                         message.CommandStatus,
@@ -181,6 +183,7 @@ namespace ENode.EQueue.Commanding
                                 message.ExceptionTypeName,
                                 message.ErrorMessage,
                                 message.Items));
+                        _commandTaskDict.Remove(message.CommandId);
                         _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}, exceptionTypeName:{3}, errorMessage:{4}",
                             message.CommandId,
                             message.CommandStatus,
@@ -193,7 +196,7 @@ namespace ENode.EQueue.Commanding
             if (message.CommandStatus == CommandStatus.Failed && !string.IsNullOrEmpty(message.ProcessId))
             {
                 TaskCompletionSource<ProcessResult> processTaskCompletionSource;
-                if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
+                if (_processTaskDict.TryRemove(message.ProcessId, out processTaskCompletionSource))
                 {
                     processTaskCompletionSource.TrySetResult(
                         new ProcessResult(
@@ -214,7 +217,7 @@ namespace ENode.EQueue.Commanding
         private void ProcessDomainEventHandledMessage(DomainEventHandledMessage message)
         {
             CommandTaskCompletionSource commandTaskCompletionSource;
-            if (_commandTaskDict.TryGetValue(message.CommandId, out commandTaskCompletionSource))
+            if (_commandTaskDict.TryRemove(message.CommandId, out commandTaskCompletionSource))
             {
                 commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
                     new CommandResult(
@@ -232,7 +235,7 @@ namespace ENode.EQueue.Commanding
             if (message.IsProcessCompleted && !string.IsNullOrEmpty(message.ProcessId))
             {
                 TaskCompletionSource<ProcessResult> processTaskCompletionSource;
-                if (_processTaskDict.TryGetValue(message.ProcessId, out processTaskCompletionSource))
+                if (_processTaskDict.TryRemove(message.ProcessId, out processTaskCompletionSource))
                 {
                     if (message.IsProcessSuccess)
                     {

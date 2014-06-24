@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using ECommon.Configurations;
 using ECommon.Components;
+using ECommon.Configurations;
 using ENode.Commanding;
 using ENode.Commanding.Impl;
 using ENode.Domain;
@@ -69,7 +69,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
             _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
-            _configuration.SetDefault<IEventSynchronizerProvider, DefaultEventSynchronizerProvider>();
             _configuration.SetDefault<ICommandTypeCodeProvider, NotImplementedCommandTypeCodeProvider>();
             _configuration.SetDefault<IAggregateRootTypeCodeProvider, NotImplementedAggregateRootTypeCodeProvider>();
             _configuration.SetDefault<IEventTypeCodeProvider, NotImplementedEventTypeCodeProvider>();
@@ -85,25 +84,24 @@ namespace ENode.Configurations
             _configuration.SetDefault<ISnapshotPolicy, NoSnapshotPolicy>();
             _configuration.SetDefault<ISnapshotStore, EmptySnapshotStore>();
 
+            _configuration.SetDefault<ICommandStore, InMemoryCommandStore>();
             _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
             _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
             _configuration.SetDefault<IExecutedCommandService, DefaultExecutedCommandService>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
             _configuration.SetDefault<ICommandRouteKeyProvider, DefaultCommandRouteKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
-            _configuration.SetDefault<IEventStreamConvertService, DefaultEventStreamConvertService>();
 
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
-            _configuration.SetDefault<ICommitEventService, DefaultCommitEventService>();
+            _configuration.SetDefault<IEventService, DefaultEventService>();
             _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
             _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
 
             _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(IEventSynchronizerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IEventHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
 
@@ -131,13 +129,33 @@ namespace ENode.Configurations
             }
             return this;
         }
+
+        /// <summary>Use the SqlServerCommandStore as the ICommandStore.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <returns></returns>
+        public ENodeConfiguration UseSqlServerCommandStore(string connectionString)
+        {
+            return UseSqlServerCommandStore(connectionString, "Command", "PK_Command");
+        }
+        /// <summary>Use the SqlServerCommandStore as the ICommandStore.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="commandTable"></param>
+        /// <param name="primaryKeyName"></param>
+        /// <returns></returns>
+        public ENodeConfiguration UseSqlServerCommandStore(string connectionString, string commandTable, string primaryKeyName)
+        {
+            _configuration.SetDefault<ICommandStore, SqlServerCommandStore>(new SqlServerCommandStore(connectionString, commandTable, primaryKeyName));
+            return this;
+        }
         /// <summary>Use the SqlServerEventStore as the IEventStore.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventStore(string connectionString)
         {
-            return UseSqlServerEventStore(connectionString, "Event", "IX_Event_CommitIndex", "IX_Event_VersionIndex");
+            return UseSqlServerEventStore(connectionString, "Event", "PK_Event");
         }
         /// <summary>Use the SqlServerEventStore as the IEventStore.
         /// </summary>
@@ -146,9 +164,9 @@ namespace ENode.Configurations
         /// <param name="commitIndexName"></param>
         /// <param name="versionIndexName"></param>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventStore(string connectionString, string eventTable, string commitIndexName, string versionIndexName)
+        public ENodeConfiguration UseSqlServerEventStore(string connectionString, string eventTable, string primaryKeyName)
         {
-            _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(connectionString, eventTable, commitIndexName, versionIndexName));
+            _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(connectionString, eventTable, primaryKeyName));
             return this;
         }
         /// <summary>Use the SqlServerEventPublishInfoStore as the IEventPublishInfoStore.
@@ -157,16 +175,16 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString)
         {
-            return UseSqlServerEventPublishInfoStore(connectionString, "EventPublishInfo");
+            return UseSqlServerEventPublishInfoStore(connectionString, "EventPublishInfo", "PK_EventPublishInfo");
         }
         /// <summary>Use the SqlServerEventPublishInfoStore as the IEventPublishInfoStore.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="eventPublishInfoTable"></param>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString, string eventPublishInfoTable)
+        public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString, string eventPublishInfoTable, string primaryKeyName)
         {
-            _configuration.SetDefault<IEventPublishInfoStore, SqlServerEventPublishInfoStore>(new SqlServerEventPublishInfoStore(connectionString, eventPublishInfoTable));
+            _configuration.SetDefault<IEventPublishInfoStore, SqlServerEventPublishInfoStore>(new SqlServerEventPublishInfoStore(connectionString, eventPublishInfoTable, primaryKeyName));
             return this;
         }
         /// <summary>Use the SqlServerEventHandleInfoStore as the IEventHandleInfoStore.
@@ -201,19 +219,12 @@ namespace ENode.Configurations
             return this;
         }
 
-        /// <summary>Start the retry command service.
+        /// <summary>Start enode.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration StartRetryCommandService()
+        public ENodeConfiguration StartENode()
         {
             ObjectContainer.Resolve<IRetryCommandService>().Start();
-            return this;
-        }
-        /// <summary>Start the waiting command service.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration StartWaitingCommandService()
-        {
             ObjectContainer.Resolve<IWaitingCommandService>().Start();
             return this;
         }

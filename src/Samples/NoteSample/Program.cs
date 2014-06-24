@@ -30,8 +30,8 @@ namespace NoteSample
 
             Console.WriteLine(string.Empty);
 
-            commandService.Execute(command1).Wait();
-            commandService.Execute(command2).Wait();
+            commandService.Execute(command1, CommandReturnType.EventHandled).Wait();
+            commandService.Execute(command2, CommandReturnType.EventHandled).Wait();
 
             Console.WriteLine(string.Empty);
 
@@ -42,6 +42,7 @@ namespace NoteSample
 
         static void InitializeENodeFramework()
         {
+            var connectionString = @"Data Source=(localdb)\Projects;Integrated Security=true;Initial Catalog=ENode;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100";
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             Configuration
                 .Create()
@@ -52,11 +53,12 @@ namespace NoteSample
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
+                .UseSqlServerCommandStore(connectionString)
+                .UseSqlServerEventStore(connectionString)
                 .SetProviders()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartRetryCommandService()
-                .StartWaitingCommandService()
+                .StartENode()
                 .StartEQueue();
 
             Console.WriteLine(string.Empty);

@@ -35,8 +35,7 @@ namespace DistributeSample.CommandProcessor
                 .SetProviders()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartRetryCommandService()
-                .StartWaitingCommandService()
+                .StartENode()
                 .StartEQueue();
 
             ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Command Processor started.");

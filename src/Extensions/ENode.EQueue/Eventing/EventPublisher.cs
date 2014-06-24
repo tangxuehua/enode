@@ -66,14 +66,8 @@ namespace ENode.EQueue
             data.ProcessId = eventStream.ProcessId;
             data.Version = eventStream.Version;
             data.Items = eventStream.Items;
+            data.Events = eventStream.Events;
             data.ContextItems = contextItems;
-
-            foreach (var evnt in eventStream.Events)
-            {
-                var typeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
-                var eventData = _binarySerializer.Serialize(evnt);
-                data.Events.Add(new EventEntry(typeCode, eventData));
-            }
 
             return data;
         }

@@ -17,8 +17,7 @@ namespace ENode.Eventing.Impl.SQL
 
         private readonly string _connectionString;
         private readonly string _eventTable;
-        private readonly string _commitIndexName;
-        private readonly string _versionIndexName;
+        private readonly string _primaryKeyName;
         private readonly IBinarySerializer _binarySerializer;
 
         #endregion
@@ -27,12 +26,11 @@ namespace ENode.Eventing.Impl.SQL
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public SqlServerEventStore(string connectionString, string eventTable, string commitIndexName, string versionIndexName)
+        public SqlServerEventStore(string connectionString, string eventTable, string primaryKeyName)
         {
             _connectionString = connectionString;
             _eventTable = eventTable;
-            _commitIndexName = commitIndexName;
-            _versionIndexName = versionIndexName;
+            _primaryKeyName = primaryKeyName;
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
         }
 
@@ -40,85 +38,77 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Public Methods
 
-        public EventAppendResult Append(EventCommitRecord record)
+        public EventAppendResult Append(EventStream eventStream)
         {
-            var commitRecord = ConvertTo(record);
+            var record = ConvertTo(eventStream);
 
             using (var connection = GetConnection())
             {
                 connection.Open();
                 try
                 {
-                    connection.Insert(commitRecord, _eventTable);
+                    connection.Insert(record, _eventTable);
                     return EventAppendResult.Success;
                 }
                 catch (SqlException ex)
                 {
-                    if (ex.Number == 2601)
+                    if (ex.Number == 2627)
                     {
-                        if (ex.Message.Contains(_commitIndexName))
+                        if (ex.Message.Contains(_primaryKeyName))
                         {
-                            return EventAppendResult.DuplicateCommit;
-                        }
-                        if (ex.Message.Contains(_versionIndexName))
-                        {
-                            if (commitRecord.Version == 1)
-                            {
-                                throw new DuplicateAggregateException(commitRecord.AggregateRootTypeCode, commitRecord.AggregateRootId);
-                            }
-                            throw new ConcurrentException();
+                            return EventAppendResult.DuplicateEvent;
                         }
                     }
                     throw;
                 }
             }
         }
-        public EventCommitRecord Find(string aggregateRootId, string commitId)
+        public EventStream Find(string aggregateRootId, int version)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
-                var commitRecord = connection.QueryList<SqlEventCommitRecord>(new { AggregateRootId = aggregateRootId, CommitId = commitId }, _eventTable).SingleOrDefault();
-                if (commitRecord != null)
+                var record = connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _eventTable).SingleOrDefault();
+                if (record != null)
                 {
-                    return ConvertFrom(commitRecord);
+                    return ConvertFrom(record);
                 }
                 return null;
             }
         }
-        public IEnumerable<EventCommitRecord> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        public IEnumerable<EventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
                 var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _eventTable);
-                var commitRecords = connection.Query<SqlEventCommitRecord>(sql,
+                var records = connection.Query<StreamRecord>(sql,
                 new
                 {
                     AggregateRootId = aggregateRootId,
                     MinVersion = minVersion,
                     MaxVersion = maxVersion
                 });
-                var records = new List<EventCommitRecord>();
-                foreach (var commitRecord in commitRecords)
+                var streams = new List<EventStream>();
+                foreach (var record in records)
                 {
-                    records.Add(ConvertFrom(commitRecord));
+                    streams.Add(ConvertFrom(record));
                 }
-                return records;
+                return streams;
             }
         }
-        public IEnumerable<EventCommitRecord> QueryByPage(int pageIndex, int pageSize)
+        public IEnumerable<EventStream> QueryByPage(int pageIndex, int pageSize)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
-                var commitRecords = connection.QueryPaged<SqlEventCommitRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
-                var records = new List<EventCommitRecord>();
-                foreach (var commitRecord in commitRecords)
+                var records = connection.QueryPaged<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
+                var streams = new List<EventStream>();
+                foreach (var record in records)
                 {
-                    records.Add(ConvertFrom(commitRecord));
+                    streams.Add(ConvertFrom(record));
                 }
-                return records;
+                return streams;
             }
         }
 
@@ -130,21 +120,21 @@ namespace ENode.Eventing.Impl.SQL
         {
             return new SqlConnection(_connectionString);
         }
-        private EventCommitRecord ConvertFrom(SqlEventCommitRecord commitRecord)
+        private EventStream ConvertFrom(StreamRecord record)
         {
-            return new EventCommitRecord(
-                    commitRecord.CommitId,
-                    commitRecord.AggregateRootId,
-                    commitRecord.AggregateRootTypeCode,
-                    commitRecord.ProcessId,
-                    commitRecord.Version,
-                    commitRecord.Timestamp,
-                    _binarySerializer.Deserialize<IEnumerable<EventEntry>>(commitRecord.Events),
-                    _binarySerializer.Deserialize<IDictionary<string, string>>(commitRecord.Items));
+            return new EventStream(
+                record.CommitId,
+                record.AggregateRootId,
+                record.AggregateRootTypeCode,
+                record.ProcessId,
+                record.Version,
+                record.Timestamp,
+                _binarySerializer.Deserialize<IEnumerable<IDomainEvent>>(record.Events),
+                _binarySerializer.Deserialize<IDictionary<string, string>>(record.Items));
         }
-        private SqlEventCommitRecord ConvertTo(EventCommitRecord eventStream)
+        private StreamRecord ConvertTo(EventStream eventStream)
         {
-            return new SqlEventCommitRecord
+            return new StreamRecord
             {
                 CommitId = eventStream.CommitId,
                 AggregateRootId = eventStream.AggregateRootId,
@@ -159,13 +149,13 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
-        class SqlEventCommitRecord
+        class StreamRecord
         {
-            public string CommitId { get; set; }
-            public string AggregateRootId { get; set; }
             public int AggregateRootTypeCode { get; set; }
-            public string ProcessId { get; set; }
+            public string AggregateRootId { get; set; }
             public int Version { get; set; }
+            public string CommitId { get; set; }
+            public string ProcessId { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }
             public byte[] Items { get; set; }

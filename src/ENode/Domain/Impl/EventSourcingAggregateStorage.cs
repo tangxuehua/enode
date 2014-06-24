@@ -15,7 +15,6 @@ namespace ENode.Domain.Impl
         private const int minVersion = 1;
         private const int maxVersion = int.MaxValue;
         private readonly IAggregateRootFactory _aggregateRootFactory;
-        private readonly IEventStreamConvertService _eventStreamConvertService;
         private readonly IEventSourcingService _eventSourcingService;
         private readonly IEventStore _eventStore;
         private readonly ISnapshotStore _snapshotStore;
@@ -24,21 +23,18 @@ namespace ENode.Domain.Impl
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootFactory"></param>
-        /// <param name="eventStreamConvertService"></param>
         /// <param name="eventSourcingService"></param>
         /// <param name="eventStore"></param>
         /// <param name="snapshotStore"></param>
         /// <param name="aggregateRootTypeCodeProvider"></param>
         public EventSourcingAggregateStorage(
             IAggregateRootFactory aggregateRootFactory,
-            IEventStreamConvertService eventStreamConvertService,
             IEventSourcingService eventSourcingService,
             IEventStore eventStore,
             ISnapshotStore snapshotStore,
             IAggregateRootTypeCodeProvider aggregateRootTypeCodeProvider)
         {
             _aggregateRootFactory = aggregateRootFactory;
-            _eventStreamConvertService = eventStreamConvertService;
             _eventSourcingService = eventSourcingService;
             _eventStore = eventStore;
             _snapshotStore = snapshotStore;
@@ -62,8 +58,8 @@ namespace ENode.Domain.Impl
             }
 
             var aggregateRootTypeCode = _aggregateRootTypeCodeProvider.GetTypeCode(aggregateRootType);
-            var streams = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, minVersion, maxVersion);
-            aggregateRoot = BuildAggregateRoot(aggregateRootType, streams.Select(x => _eventStreamConvertService.ConvertFrom(x)));
+            var events = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, minVersion, maxVersion);
+            aggregateRoot = BuildAggregateRoot(aggregateRootType, events);
 
             return aggregateRoot;
         }
@@ -89,7 +85,7 @@ namespace ENode.Domain.Impl
 
             var aggregateRootTypeCode = _aggregateRootTypeCodeProvider.GetTypeCode(aggregateRootType);
             var eventsAfterSnapshot = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, snapshot.Version + 1, int.MaxValue);
-            _eventSourcingService.ReplayEvents(aggregateRootFromSnapshot, eventsAfterSnapshot.Select(x => _eventStreamConvertService.ConvertFrom(x)));
+            _eventSourcingService.ReplayEvents(aggregateRootFromSnapshot, eventsAfterSnapshot);
             aggregateRoot = aggregateRootFromSnapshot;
             return true;
         }

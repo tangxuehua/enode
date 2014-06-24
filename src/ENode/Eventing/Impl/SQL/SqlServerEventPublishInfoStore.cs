@@ -13,6 +13,7 @@ namespace ENode.Eventing.Impl.SQL
 
         private readonly string _connectionString;
         private readonly string _tableName;
+        private readonly string _primaryKeyName;
 
         #endregion
 
@@ -22,8 +23,9 @@ namespace ENode.Eventing.Impl.SQL
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="tableName"></param>
+        /// <param name="primaryKeyName"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public SqlServerEventPublishInfoStore(string connectionString, string tableName)
+        public SqlServerEventPublishInfoStore(string connectionString, string tableName, string primaryKeyName)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -33,9 +35,14 @@ namespace ENode.Eventing.Impl.SQL
             {
                 throw new ArgumentNullException("tableName");
             }
+            if (string.IsNullOrEmpty(primaryKeyName))
+            {
+                throw new ArgumentNullException("primaryKeyName");
+            }
 
             _connectionString = connectionString;
             _tableName = tableName;
+            _primaryKeyName = primaryKeyName;
         }
 
         #endregion
@@ -48,7 +55,18 @@ namespace ENode.Eventing.Impl.SQL
             using (var connection = GetConnection())
             {
                 connection.Open();
-                connection.Insert(new { AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
+                try
+                {
+                    connection.Insert(new { AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                    {
+                        return;
+                    }
+                    throw;
+                }
             }
         }
         /// <summary>Update the published event version of aggregate.

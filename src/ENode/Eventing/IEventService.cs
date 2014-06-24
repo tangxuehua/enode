@@ -2,7 +2,7 @@
 
 namespace ENode.Eventing
 {
-    public interface ICommitEventService
+    public interface IEventService
     {
         /// <summary>Set the command executor.
         /// </summary>
@@ -11,6 +11,11 @@ namespace ENode.Eventing
         /// <summary>Commit the given aggregate's domain events to the eventstore and publish the domain events.
         /// </summary>
         /// <param name="context"></param>
-        void CommitEvent(EventProcessingContext context);
+        void CommitEvent(EventCommittingContext context);
+        /// <summary>Publish the given aggregate's domain events.
+        /// </summary>
+        /// <param name="processingCommand"></param>
+        /// <param name="eventStream"></param>
+        void PublishEvent(ProcessingCommand processingCommand, EventStream eventStream);
     }
 }
