@@ -32,6 +32,7 @@ namespace ENode.Commanding
         protected ProcessCommand(TAggregateRootId aggregateRootId, int retryCount)
             : base(aggregateRootId, retryCount)
         {
+            ProcessId = ObjectId.GenerateNewStringId();
         }
 
         #endregion

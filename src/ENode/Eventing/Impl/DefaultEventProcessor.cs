@@ -175,7 +175,7 @@ namespace ENode.Eventing.Impl
                     foreach (var command in commands)
                     {
                         command.Id = BuildCommandId(command, evnt, eventHandlerTypeCode);
-                        if (command is IProcessCommand && ((IProcessCommand)command).ProcessId == null)
+                        if (command is IProcessCommand)
                         {
                             ((IProcessCommand)command).ProcessId = processId;
                         }
@@ -222,7 +222,7 @@ namespace ENode.Eventing.Impl
             var key = command.GetKey();
             var commandKey = key == null ? string.Empty : key.ToString();
             var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            return string.Format("{0}{1}{2}{3}", evnt.Id, eventHandlerTypeCode, commandTypeCode, commandKey);
+            return string.Format("{0}{1}{2}{3}", eventHandlerTypeCode, commandTypeCode, commandKey, evnt.Id);
         }
 
         #endregion
