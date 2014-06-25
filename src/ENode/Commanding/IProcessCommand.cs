@@ -6,6 +6,6 @@
     {
         /// <summary>Represents the unique identifier of the business process.
         /// </summary>
-        string ProcessId { get; }
+        string ProcessId { get; set; }
     }
 }

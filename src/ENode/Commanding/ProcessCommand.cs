@@ -12,7 +12,7 @@ namespace ENode.Commanding
 
         /// <summary>Represents the process id.
         /// </summary>
-        public string ProcessId { get; private set; }
+        public string ProcessId { get; set; }
 
         #endregion
 
@@ -20,7 +20,7 @@ namespace ENode.Commanding
 
         /// <summary>Default constructor.
         /// </summary>
-        protected ProcessCommand() : this(ObjectId.GenerateNewStringId()) { }
+        protected ProcessCommand() : this(null) { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="processId"></param>
@@ -40,9 +40,12 @@ namespace ENode.Commanding
         {
             if (processId == null)
             {
-                throw new ArgumentNullException("processId");
+                ProcessId = ObjectId.GenerateNewStringId();
             }
-            ProcessId = processId.ToString();
+            else
+            {
+                ProcessId = processId.ToString();
+            }
         }
 
         #endregion

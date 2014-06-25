@@ -175,6 +175,10 @@ namespace ENode.Eventing.Impl
                     foreach (var command in commands)
                     {
                         command.Id = BuildCommandId(command, evnt, eventHandlerTypeCode);
+                        if (command is IProcessCommand && ((IProcessCommand)command).ProcessId == null)
+                        {
+                            ((IProcessCommand)command).ProcessId = processId;
+                        }
                         _commandService.Send(command);
                         _logger.DebugFormat("Send command from event context success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}, commandType:{5}, commandId:{6}",
                             eventHandlerType.Name,
