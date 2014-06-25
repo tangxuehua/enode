@@ -57,7 +57,6 @@
     <Compile Include="Commanding\Impl\NotImplementedCommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\IExecutedCommandService.cs" />
     <Compile Include="Commanding\IProcessCommand.cs" />
-    <Compile Include="Commanding\CancelProcessCommand.cs" />
     <Compile Include="Commanding\ProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />

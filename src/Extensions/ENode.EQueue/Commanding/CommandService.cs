@@ -145,6 +145,11 @@ namespace ENode.EQueue
                 var format = "AggregateRootId cannot be null or empty if the command is not a ICreatingAggregateCommand, commandType:{0}, commandId:{1}.";
                 throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
             }
+            if (command is IProcessCommand && string.IsNullOrEmpty(((IProcessCommand)command).ProcessId))
+            {
+                var format = "ProcessId cannot be null or empty if the command is a IProcessCommand, commandType:{0}, commandId:{1}.";
+                throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
+            }
         }
         private Message BuildCommandMessage(ICommand command)
         {
