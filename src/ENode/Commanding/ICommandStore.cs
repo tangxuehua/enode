@@ -9,9 +9,13 @@ namespace ENode.Commanding
         /// <summary>Add the given handled command to the command store.
         /// </summary>
         CommandAddResult AddCommand(HandledCommand handledCommand);
-        /// <summary>Find a single handled command by the commandId.
+        /// <summary>Find a handled command by the commandId.
         /// </summary>
         /// <returns></returns>
         HandledCommand Find(string commandId);
+        /// <summary>Remove a handled command by the commandId.
+        /// </summary>
+        /// <returns></returns>
+        void Remove(string commandId);
     }
 }

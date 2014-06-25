@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using ECommon.Extensions;
 
 namespace ENode.Commanding.Impl
 {
@@ -24,6 +25,10 @@ namespace ENode.Commanding.Impl
                 return handledCommand;
             }
             return null;
+        }
+        public void Remove(string commandId)
+        {
+            _dict.Remove(commandId);
         }
     }
 }

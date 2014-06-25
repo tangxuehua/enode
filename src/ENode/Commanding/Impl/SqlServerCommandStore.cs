@@ -74,6 +74,14 @@ namespace ENode.Commanding.Impl
                 return null;
             }
         }
+        public void Remove(string commandId)
+        {
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                connection.Delete(new { CommandId = commandId }, _commandTable);
+            }
+        }
 
         #endregion
 

@@ -71,15 +71,13 @@ namespace ENode.EQueue.Commanding
             return this;
         }
 
-        public CommandResultProcessor RegisterCommand(ICommand command, CommandReturnType commandReturnType, TaskCompletionSource<CommandResult> taskCompletionSource)
+        public bool RegisterCommand(ICommand command, CommandReturnType commandReturnType, TaskCompletionSource<CommandResult> taskCompletionSource)
         {
-            _commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource });
-            return this;
+            return _commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource });
         }
-        public CommandResultProcessor RegisterProcess(IProcessCommand command, TaskCompletionSource<ProcessResult> taskCompletionSource)
+        public bool RegisterProcess(IProcessCommand command, TaskCompletionSource<ProcessResult> taskCompletionSource)
         {
-            _processTaskDict.TryAdd(command.ProcessId, taskCompletionSource);
-            return this;
+            return _processTaskDict.TryAdd(command.ProcessId, taskCompletionSource);
         }
 
         public CommandResultProcessor NotifyCommandSendFailed(ICommand command)
@@ -173,7 +171,9 @@ namespace ENode.EQueue.Commanding
                 }
                 else if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
                 {
-                    if (message.CommandStatus == CommandStatus.Failed || message.CommandStatus == CommandStatus.NothingChanged)
+                    if (message.CommandStatus == CommandStatus.Failed ||
+                        message.CommandStatus == CommandStatus.NothingChanged ||
+                        message.CommandStatus == CommandStatus.DuplicateAndIgnored)
                     {
                         commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
                             new CommandResult(

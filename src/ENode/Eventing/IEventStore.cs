@@ -13,6 +13,10 @@ namespace ENode.Eventing
         /// </summary>
         /// <returns></returns>
         EventStream Find(string aggregateRootId, int version);
+        /// <summary>Find a single event stream by aggregateRootId and commitId.
+        /// </summary>
+        /// <returns></returns>
+        EventStream Find(string aggregateRootId, string commitId);
         /// <summary>Query a range of event streams of a single aggregate from event store.
         /// </summary>
         IEnumerable<EventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion);

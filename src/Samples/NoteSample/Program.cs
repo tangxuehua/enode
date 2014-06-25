@@ -42,7 +42,6 @@ namespace NoteSample
 
         static void InitializeENodeFramework()
         {
-            var connectionString = @"Data Source=(localdb)\Projects;Integrated Security=true;Initial Catalog=ENode;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100";
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             Configuration
                 .Create()
@@ -53,8 +52,6 @@ namespace NoteSample
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .UseSqlServerCommandStore(connectionString)
-                .UseSqlServerEventStore(connectionString)
                 .SetProviders()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)

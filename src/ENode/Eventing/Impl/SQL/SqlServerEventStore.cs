@@ -76,6 +76,19 @@ namespace ENode.Eventing.Impl.SQL
                 return null;
             }
         }
+        public EventStream Find(string aggregateRootId, string commitId)
+        {
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                var record = connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, CommitId = commitId }, _eventTable).SingleOrDefault();
+                if (record != null)
+                {
+                    return ConvertFrom(record);
+                }
+                return null;
+            }
+        }
         public IEnumerable<EventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
             using (var connection = GetConnection())

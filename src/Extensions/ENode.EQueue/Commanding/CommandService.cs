@@ -99,7 +99,10 @@ namespace ENode.EQueue
             ValidateCommand(command);
             var taskCompletionSource = new TaskCompletionSource<CommandResult>();
 
-            _commandResultProcessor.RegisterCommand(command, commandReturnType, taskCompletionSource);
+            if (!_commandResultProcessor.RegisterCommand(command, commandReturnType, taskCompletionSource))
+            {
+                throw new Exception("Duplicate command as there already has a command with the same command id is being executing.");
+            }
 
             _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
             {
@@ -121,7 +124,10 @@ namespace ENode.EQueue
             ValidateCommand(command);
             var taskCompletionSource = new TaskCompletionSource<ProcessResult>();
 
-            _commandResultProcessor.RegisterProcess(command, taskCompletionSource);
+            if (!_commandResultProcessor.RegisterProcess(command, taskCompletionSource))
+            {
+                throw new Exception("Duplicate process as there already has a process with the same process id is being processing.");
+            }
 
             _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
             {

@@ -46,5 +46,6 @@ namespace ENode.Commanding
         Success = 1,
         NothingChanged = 2,
         Failed = 3,
+        DuplicateAndIgnored = 4
     }
 }
