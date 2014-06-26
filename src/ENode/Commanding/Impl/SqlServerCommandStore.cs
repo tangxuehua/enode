@@ -96,8 +96,7 @@ namespace ENode.Commanding.Impl
             return new HandledCommand(
                 _binarySerializer.Deserialize<ICommand>(record.Payload),
                 record.AggregateRootId,
-                record.AggregateRootTypeCode,
-                record.Version);
+                record.AggregateRootTypeCode);
         }
         private CommandRecord ConvertTo(HandledCommand handledCommand)
         {
@@ -106,7 +105,6 @@ namespace ENode.Commanding.Impl
                 CommandId = handledCommand.Command.Id,
                 AggregateRootId = handledCommand.AggregateRootId,
                 AggregateRootTypeCode = handledCommand.AggregateRootTypeCode,
-                Version = handledCommand.Version,
                 ProcessId = handledCommand.Command is IProcessCommand ? ((IProcessCommand)handledCommand.Command).ProcessId : null,
                 Timestamp = DateTime.Now,
                 Payload = _binarySerializer.Serialize(handledCommand.Command),
@@ -121,7 +119,6 @@ namespace ENode.Commanding.Impl
             public string CommandId { get; set; }
             public int AggregateRootTypeCode { get; set; }
             public string AggregateRootId { get; set; }
-            public int Version { get; set; }
             public string ProcessId { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Payload { get; set; }

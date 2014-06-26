@@ -3,7 +3,6 @@ CREATE TABLE [dbo].[Command] (
     [CommandId]               NVARCHAR (64)          NOT NULL,
     [AggregateRootTypeCode]   INT                    NOT NULL,
     [AggregateRootId]         NVARCHAR (32)          NOT NULL,
-    [Version]                 INT                    NOT NULL,
     [ProcessId]               NVARCHAR (32)          NULL,
     [Timestamp]               DATETIME               NOT NULL,
     [Payload]                 VARBINARY (MAX)        NOT NULL,

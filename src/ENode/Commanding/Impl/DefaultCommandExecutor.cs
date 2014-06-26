@@ -178,8 +178,7 @@ namespace ENode.Commanding.Impl
                 new HandledCommand(
                     command,
                     eventStream.AggregateRootId,
-                    eventStream.AggregateRootTypeCode,
-                    eventStream.Version));
+                    eventStream.AggregateRootTypeCode));
 
             //如果添加的结果是command重复，则做如下处理
             if (commandAddResult == CommandAddResult.DuplicateCommand)
