@@ -17,10 +17,12 @@ namespace ENode.Eventing.Impl
         private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeCodeProvider;
         private readonly IEventSourcingService _eventSourcingService;
         private readonly IMemoryCache _memoryCache;
+        private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IAggregateStorage _aggregateStorage;
         private readonly IRetryCommandService _retryCommandService;
         private readonly IEventStore _eventStore;
         private readonly IEventPublisher _eventPublisher;
+        private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
 
@@ -34,10 +36,12 @@ namespace ENode.Eventing.Impl
         /// <param name="aggregateRootTypeCodeProvider"></param>
         /// <param name="eventSourcingService"></param>
         /// <param name="memoryCache"></param>
+        /// <param name="aggregateRootFactory"></param>
         /// <param name="aggregateStorage"></param>
         /// <param name="retryCommandService"></param>
         /// <param name="eventStore"></param>
         /// <param name="eventPublisher"></param>
+        /// <param name="eventPublishInfoStore"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultEventService(
@@ -45,21 +49,25 @@ namespace ENode.Eventing.Impl
             IAggregateRootTypeCodeProvider aggregateRootTypeCodeProvider,
             IEventSourcingService eventSourcingService,
             IMemoryCache memoryCache,
+            IAggregateRootFactory aggregateRootFactory,
             IAggregateStorage aggregateStorage,
             IRetryCommandService retryCommandService,
             IEventStore eventStore,
             IEventPublisher eventPublisher,
             IActionExecutionService actionExecutionService,
+            IEventPublishInfoStore eventPublishInfoStore,
             ILoggerFactory loggerFactory)
         {
             _executedCommandService = executedCommandService;
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
             _eventSourcingService = eventSourcingService;
             _memoryCache = memoryCache;
+            _aggregateRootFactory = aggregateRootFactory;
             _aggregateStorage = aggregateStorage;
             _retryCommandService = retryCommandService;
             _eventStore = eventStore;
             _eventPublisher = eventPublisher;
+            _eventPublishInfoStore = eventPublishInfoStore;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
         }
@@ -141,20 +149,36 @@ namespace ENode.Eventing.Impl
             var context = obj as EventCommittingContext;
             var eventStream = context.EventStream;
 
+            //如果事件持久化成功
             if (context.EventAppendResult == EventAppendResult.Success)
             {
+                //刷新内存缓存并发布事件
                 RefreshMemoryCache(context);
                 PublishEvent(context.ProcessingCommand, eventStream);
             }
+            //如果事件持久化遇到重复的情况
             else if (context.EventAppendResult == EventAppendResult.DuplicateEvent)
             {
+                //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
                 if (eventStream.Version == 1)
                 {
-                    var existingEventStream = _eventStore.Find(eventStream.AggregateRootId, 1);
-                    if (existingEventStream != null)
+                    //取出该聚合根版本号为1的事件，然后根据条件判断是否需要更新内存缓存以及是否需要发布事件；
+                    //之所以要这样做，是因为虽然该事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
+                    //有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
+                    var firstEventStream = _eventStore.Find(eventStream.AggregateRootId, 1);
+                    if (firstEventStream != null)
                     {
-                        RefreshMemoryCacheFromEventStore(existingEventStream);
-                        PublishEvent(context.ProcessingCommand, existingEventStream);
+                        RefreshMemoryCache(firstEventStream);
+                        var publishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(eventStream.AggregateRootId);
+                        if (publishedVersion < firstEventStream.Version)
+                        {
+                            PublishEvent(context.ProcessingCommand, firstEventStream);
+                        }
+                        else
+                        {
+                            //到这里说明当前聚合根虽然被重复创建，但之前已经创建的聚合根的事件已经被所有消费者消费了，所以直接认为当前这个command执行成功即可；
+                            NotifyCommandExecuted(context.ProcessingCommand, eventStream, CommandStatus.DuplicateAndIgnored, null, null);
+                        }
                     }
                     else
                     {
@@ -166,6 +190,8 @@ namespace ENode.Eventing.Impl
                         NotifyCommandExecuted(context.ProcessingCommand, eventStream, CommandStatus.Failed, null, errorMessage);
                     }
                 }
+                //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了；
+                //那么我么需要先将聚合根的最新状态更新到内存，然后重试command；
                 else
                 {
                     RefreshMemoryCacheFromEventStore(eventStream);
@@ -174,6 +200,25 @@ namespace ENode.Eventing.Impl
             }
 
             return true;
+        }
+        private void RefreshMemoryCache(EventStream firstEventStream)
+        {
+            try
+            {
+                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(firstEventStream.AggregateRootTypeCode);
+                var aggregateRoot = _memoryCache.Get(firstEventStream.AggregateRootId, aggregateRootType);
+                if (aggregateRoot == null)
+                {
+                    aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
+                    _eventSourcingService.ReplayEvents(aggregateRoot, new EventStream[] { firstEventStream });
+                    _memoryCache.Set(aggregateRoot);
+                    _logger.DebugFormat("Memory cache refreshed, aggregateRootType:{0}, aggregateRootId:{1}, aggregateRootVersion:{2}", aggregateRootType.Name, aggregateRoot.UniqueId, aggregateRoot.Version);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Exception raised when refreshing memory cache, current event stream:{0}", firstEventStream), ex);
+            }
         }
         private void RefreshMemoryCache(EventCommittingContext context)
         {
