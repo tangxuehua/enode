@@ -104,6 +104,7 @@ namespace ENode.EQueue.Commanding
                 taskCompletionSource.TrySetResult(
                     new ProcessResult(
                         command.ProcessId,
+                        command.AggregateRootId,
                         ProcessStatus.Failed,
                         0,
                         "ProcessCommandSendFailed",
@@ -201,14 +202,16 @@ namespace ENode.EQueue.Commanding
                     processTaskCompletionSource.TrySetResult(
                         new ProcessResult(
                             message.ProcessId,
+                            message.AggregateRootId,
                             ProcessStatus.Failed,
                             0,
                             message.ExceptionTypeName,
                             message.ErrorMessage,
                             message.Items));
-                    _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, exceptionTypeName:{2}, errorMessage:{3}",
+                    _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, aggregateRootId:{2}, exceptionTypeName:{3}, errorMessage:{4}",
                         message.ProcessId,
                         ProcessStatus.Failed,
+                        message.AggregateRootId,
                         message.ExceptionTypeName,
                         message.ErrorMessage);
                 }
@@ -242,29 +245,33 @@ namespace ENode.EQueue.Commanding
                         processTaskCompletionSource.TrySetResult(
                             new ProcessResult(
                                 message.ProcessId,
+                                message.AggregateRootId,
                                 ProcessStatus.Success,
                                 0,
                                 null,
                                 null,
                                 message.Items));
-                        _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}",
+                        _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, aggregateRootId:{2}",
                             message.ProcessId,
-                            ProcessStatus.Success);
+                            ProcessStatus.Success,
+                            message.AggregateRootId);
                     }
                     else
                     {
                         processTaskCompletionSource.TrySetResult(
                             new ProcessResult(
                                 message.ProcessId,
+                                message.AggregateRootId,
                                 ProcessStatus.Failed,
                                 message.ErrorCode,
                                 null,
                                 null,
                                 message.Items));
-                        _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, errorCode:{2}",
+                        _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, errorCode:{2}, aggregateRootId:{3}",
                             message.ProcessId,
                             ProcessStatus.Failed,
-                            message.ErrorCode);
+                            message.ErrorCode,
+                            message.AggregateRootId);
                     }
                 }
             }

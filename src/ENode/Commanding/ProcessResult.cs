@@ -14,6 +14,9 @@ namespace ENode.Commanding
         /// <summary>Represents the unique identifier of the process.
         /// </summary>
         public string ProcessId { get; private set; }
+        /// <summary>Represents the unique identifier of the aggregate which result the process complete.
+        /// </summary>
+        public string CompleteProcessAggregateRootId { get; private set; }
         /// <summary>Represents the error code if the process is not success.
         /// </summary>
         public int ErrorCode { get; set; }
@@ -29,9 +32,10 @@ namespace ENode.Commanding
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public ProcessResult(string processId, ProcessStatus status, int errorCode, string exceptionTypeName, string errorMessage, IDictionary<string, string> items)
+        public ProcessResult(string processId, string completeProcessAggregateRootId, ProcessStatus status, int errorCode, string exceptionTypeName, string errorMessage, IDictionary<string, string> items)
         {
             ProcessId = processId;
+            CompleteProcessAggregateRootId = completeProcessAggregateRootId;
             Status = status;
             ErrorCode = errorCode;
             ExceptionTypeName = exceptionTypeName;
