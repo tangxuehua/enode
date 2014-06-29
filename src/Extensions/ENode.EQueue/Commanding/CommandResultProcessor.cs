@@ -39,15 +39,10 @@ namespace ENode.EQueue.Commanding
         public Consumer CommandExecutedMessageConsumer { get { return _commandExecutedMessageConsumer; } }
         public Consumer DomainEventHandledMessageConsumer { get { return _domainEventHandledMessageConsumer; } }
 
-        public CommandResultProcessor() : this(
-            new Consumer(DefaultCommandExecutedMessageConsumerId, DefaultCommandExecutedMessageConsumerGroup),
-            new Consumer(DefaultDomainEventHandledMessageConsumerId, DefaultDomainEventHandledMessageConsumerGroup))
+        public CommandResultProcessor(Consumer commandExecutedMessageConsumer = null, Consumer domainEventHandledMessageConsumer = null)
         {
-        }
-        public CommandResultProcessor(Consumer commandExecutedMessageConsumer, Consumer domainEventHandledMessageConsumer)
-        {
-            _commandExecutedMessageConsumer = commandExecutedMessageConsumer;
-            _domainEventHandledMessageConsumer = domainEventHandledMessageConsumer;
+            _commandExecutedMessageConsumer = commandExecutedMessageConsumer ?? new Consumer(DefaultCommandExecutedMessageConsumerId, DefaultCommandExecutedMessageConsumerGroup);
+            _domainEventHandledMessageConsumer = domainEventHandledMessageConsumer ?? new Consumer(DefaultDomainEventHandledMessageConsumerId, DefaultDomainEventHandledMessageConsumerGroup);
             _commandTaskDict = new ConcurrentDictionary<string, CommandTaskCompletionSource>();
             _processTaskDict = new ConcurrentDictionary<string, TaskCompletionSource<ProcessResult>>();
             _commandExecutedMessageLocalQueue = new BlockingCollection<CommandExecutedMessage>(new ConcurrentQueue<CommandExecutedMessage>());

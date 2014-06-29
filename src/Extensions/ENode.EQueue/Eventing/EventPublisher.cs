@@ -20,11 +20,9 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public EventPublisher() : this(DefaultEventPublisherProcuderId) { }
-        public EventPublisher(string id) : this(id, new ProducerSetting()) { }
-        public EventPublisher(string id, ProducerSetting setting)
+        public EventPublisher(string id = null, ProducerSetting setting = null)
         {
-            _producer = new Producer(id, setting);
+            _producer = new Producer(id ?? DefaultEventPublisherProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<IEventTopicProvider>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();

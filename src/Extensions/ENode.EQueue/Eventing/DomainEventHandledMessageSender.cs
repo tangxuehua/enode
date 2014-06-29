@@ -13,11 +13,9 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public DomainEventHandledMessageSender() : this(DefaultDomainEventHandledMessageSenderProcuderId) { }
-        public DomainEventHandledMessageSender(string id) : this(id, new ProducerSetting()) { }
-        public DomainEventHandledMessageSender(string id, ProducerSetting setting)
+        public DomainEventHandledMessageSender(string id = null, ProducerSetting setting = null)
         {
-            _producer = new Producer(id, setting);
+            _producer = new Producer(id ?? DefaultDomainEventHandledMessageSenderProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
         }
 

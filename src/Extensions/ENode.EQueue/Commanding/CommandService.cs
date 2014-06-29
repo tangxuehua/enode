@@ -27,13 +27,10 @@ namespace ENode.EQueue
         public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
 
-        public CommandService() : this(null) { }
-        public CommandService(CommandResultProcessor commandResultProcessor) : this(commandResultProcessor, DefaultCommandServiceProcuderId) { }
-        public CommandService(CommandResultProcessor commandResultProcessor, string id) : this(commandResultProcessor, id, new ProducerSetting()) { }
-        public CommandService(CommandResultProcessor commandResultProcessor, string id, ProducerSetting setting)
+        public CommandService(CommandResultProcessor commandResultProcessor = null, string id = null, ProducerSetting setting = null)
         {
             _commandResultProcessor = commandResultProcessor;
-            _producer = new Producer(id, setting);
+            _producer = new Producer(id ?? DefaultCommandServiceProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ICommandTopicProvider>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();

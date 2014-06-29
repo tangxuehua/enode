@@ -27,32 +27,20 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public CommandConsumer()
-            : this(null, new CommandExecutedMessageSender())
+        public CommandConsumer(
+            string id = null,
+            string groupName = null,
+            ConsumerSetting setting = null,
+            CommandExecutedMessageSender commandExecutedMessageSender = null)
         {
-        }
-        public CommandConsumer(CommandExecutedMessageSender commandExecutedMessageSender)
-            : this(null, commandExecutedMessageSender)
-        {
-        }
-        public CommandConsumer(ConsumerSetting setting, CommandExecutedMessageSender commandExecutedMessageSender)
-            : this(DefaultCommandConsumerId, DefaultCommandConsumerGroup, setting, commandExecutedMessageSender)
-        {
-        }
-        public CommandConsumer(string id, string groupName, CommandExecutedMessageSender commandExecutedMessageSender)
-            : this(id, groupName, new ConsumerSetting(), commandExecutedMessageSender)
-        {
-        }
-        public CommandConsumer(string id, string groupName, ConsumerSetting setting, CommandExecutedMessageSender commandExecutedMessageSender)
-        {
-            _consumer = new Consumer(id, groupName, setting);
+            _consumer = new Consumer(id ?? DefaultCommandConsumerId, groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
-            _commandExecutedMessageSender = commandExecutedMessageSender;
+            _commandExecutedMessageSender = commandExecutedMessageSender ?? new CommandExecutedMessageSender();
         }
 
         public CommandConsumer Start()

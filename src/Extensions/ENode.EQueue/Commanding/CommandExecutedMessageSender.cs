@@ -13,11 +13,9 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public CommandExecutedMessageSender() : this(DefaultCommandExecutedMessageSenderProcuderId) { }
-        public CommandExecutedMessageSender(string id) : this(id, new ProducerSetting()) { }
-        public CommandExecutedMessageSender(string id, ProducerSetting setting)
+        public CommandExecutedMessageSender(string id = null, ProducerSetting setting = null)
         {
-            _producer = new Producer(id, setting);
+            _producer = new Producer(id ?? DefaultCommandExecutedMessageSenderProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
         }
 

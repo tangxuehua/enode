@@ -22,38 +22,21 @@ namespace ENode.EQueue
         private readonly IEventProcessor _eventProcessor;
         private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
         private readonly ILogger _logger;
-        private readonly static ConsumerSetting _consumerSetting = new ConsumerSetting
-        {
-            MessageHandleMode = MessageHandleMode.Sequential
-        };
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public EventConsumer()
-            : this(_consumerSetting, new DomainEventHandledMessageSender())
+        public EventConsumer(string id = null, string groupName = null, ConsumerSetting setting = null, DomainEventHandledMessageSender domainEventHandledMessageSender = null)
         {
-        }
-        public EventConsumer(DomainEventHandledMessageSender domainEventHandledMessageSender)
-            : this(_consumerSetting, domainEventHandledMessageSender)
-        {
-        }
-        public EventConsumer(ConsumerSetting setting, DomainEventHandledMessageSender domainEventHandledMessageSender)
-            : this(DefaultEventConsumerId, DefaultEventConsumerGroup, setting, domainEventHandledMessageSender)
-        {
-        }
-        public EventConsumer(string id, string groupName, DomainEventHandledMessageSender domainEventHandledMessageSender)
-            : this(id, groupName, _consumerSetting, domainEventHandledMessageSender)
-        {
-        }
-        public EventConsumer(string id, string groupName, ConsumerSetting setting, DomainEventHandledMessageSender domainEventHandledMessageSender)
-        {
-            _consumer = new Consumer(id, groupName, setting);
+            _consumer = new Consumer(id ?? DefaultEventConsumerId, groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
+            {
+                MessageHandleMode = MessageHandleMode.Sequential
+            });
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
-            _domainEventHandledMessageSender = domainEventHandledMessageSender;
+            _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
         }
 
         public EventConsumer Start()
