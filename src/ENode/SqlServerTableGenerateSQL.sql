@@ -1,6 +1,7 @@
 CREATE TABLE [dbo].[Command] (
     [Sequence]                BIGINT IDENTITY (1, 1) NOT NULL,
     [CommandId]               NVARCHAR (64)          NOT NULL,
+    [CommandTypeCode]         INT                    NOT NULL,
     [AggregateRootTypeCode]   INT                    NOT NULL,
     [AggregateRootId]         NVARCHAR (32)          NOT NULL,
     [ProcessId]               NVARCHAR (32)          NULL,

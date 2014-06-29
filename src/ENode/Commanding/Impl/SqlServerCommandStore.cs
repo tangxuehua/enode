@@ -17,6 +17,7 @@ namespace ENode.Commanding.Impl
         private readonly string _commandTable;
         private readonly string _primaryKeyName;
         private readonly IBinarySerializer _binarySerializer;
+        private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
 
         #region Constructors
 
@@ -28,6 +29,7 @@ namespace ENode.Commanding.Impl
             _commandTable = commandTable;
             _primaryKeyName = primaryKeyName;
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
         }
 
         #endregion
@@ -103,6 +105,7 @@ namespace ENode.Commanding.Impl
             return new CommandRecord
             {
                 CommandId = handledCommand.Command.Id,
+                CommandTypeCode = _commandTypeCodeProvider.GetTypeCode(handledCommand.Command.GetType()),
                 AggregateRootId = handledCommand.AggregateRootId,
                 AggregateRootTypeCode = handledCommand.AggregateRootTypeCode,
                 ProcessId = handledCommand.Command is IProcessCommand ? ((IProcessCommand)handledCommand.Command).ProcessId : null,
@@ -117,6 +120,7 @@ namespace ENode.Commanding.Impl
         class CommandRecord
         {
             public string CommandId { get; set; }
+            public int CommandTypeCode { get; set; }
             public int AggregateRootTypeCode { get; set; }
             public string AggregateRootId { get; set; }
             public string ProcessId { get; set; }
