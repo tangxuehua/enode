@@ -76,12 +76,12 @@ namespace ENode.Eventing.Impl.SQL
                 return null;
             }
         }
-        public EventStream Find(string aggregateRootId, string commitId)
+        public EventStream Find(string aggregateRootId, string commandId)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
-                var record = connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, CommitId = commitId }, _eventTable).SingleOrDefault();
+                var record = connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _eventTable).SingleOrDefault();
                 if (record != null)
                 {
                     return ConvertFrom(record);
@@ -136,7 +136,7 @@ namespace ENode.Eventing.Impl.SQL
         private EventStream ConvertFrom(StreamRecord record)
         {
             return new EventStream(
-                record.CommitId,
+                record.CommandId,
                 record.AggregateRootId,
                 record.AggregateRootTypeCode,
                 record.ProcessId,
@@ -149,7 +149,7 @@ namespace ENode.Eventing.Impl.SQL
         {
             return new StreamRecord
             {
-                CommitId = eventStream.CommitId,
+                CommandId = eventStream.CommandId,
                 AggregateRootId = eventStream.AggregateRootId,
                 AggregateRootTypeCode = eventStream.AggregateRootTypeCode,
                 ProcessId = eventStream.ProcessId,
@@ -167,7 +167,7 @@ namespace ENode.Eventing.Impl.SQL
             public int AggregateRootTypeCode { get; set; }
             public string AggregateRootId { get; set; }
             public int Version { get; set; }
-            public string CommitId { get; set; }
+            public string CommandId { get; set; }
             public string ProcessId { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }

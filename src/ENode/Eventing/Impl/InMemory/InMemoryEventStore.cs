@@ -39,7 +39,7 @@ namespace ENode.Eventing.Impl.InMemory
                 if (eventStream.Version == aggregateInfo.CurrentVersion + 1)
                 {
                     aggregateInfo.EventDict[eventStream.Version] = eventStream;
-                    aggregateInfo.CommitDict[eventStream.CommitId] = eventStream;
+                    aggregateInfo.CommandDict[eventStream.CommandId] = eventStream;
                     aggregateInfo.CurrentVersion = eventStream.Version;
                     _eventDict.TryAdd(Interlocked.Increment(ref _sequence), eventStream);
                     return EventAppendResult.Success;
@@ -62,7 +62,7 @@ namespace ENode.Eventing.Impl.InMemory
             EventStream eventStream;
             return aggregateInfo.EventDict.TryGetValue(version, out eventStream) ? eventStream : null;
         }
-        public EventStream Find(string aggregateRootId, string commitId)
+        public EventStream Find(string aggregateRootId, string commandId)
         {
             AggregateInfo aggregateInfo;
             if (!_aggregateInfoDict.TryGetValue(aggregateRootId, out aggregateInfo))
@@ -71,7 +71,7 @@ namespace ENode.Eventing.Impl.InMemory
             }
 
             EventStream eventStream;
-            return aggregateInfo.CommitDict.TryGetValue(commitId, out eventStream) ? eventStream : null;
+            return aggregateInfo.CommandDict.TryGetValue(commandId, out eventStream) ? eventStream : null;
         }
         public IEnumerable<EventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
@@ -99,7 +99,7 @@ namespace ENode.Eventing.Impl.InMemory
             public int Status;
             public long CurrentVersion;
             public ConcurrentDictionary<int, EventStream> EventDict = new ConcurrentDictionary<int, EventStream>();
-            public ConcurrentDictionary<string, EventStream> CommitDict = new ConcurrentDictionary<string, EventStream>();
+            public ConcurrentDictionary<string, EventStream> CommandDict = new ConcurrentDictionary<string, EventStream>();
         }
     }
 }

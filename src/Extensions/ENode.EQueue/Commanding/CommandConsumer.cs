@@ -72,6 +72,7 @@ namespace ENode.EQueue
             {
                 var items = new Dictionary<string, string>();
                 items.Add("DomainEventHandledMessageTopic", commandMessage.DomainEventHandledMessageTopic);
+                items.Add("SourceEventId", commandMessage.SourceEventId);
                 _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, commandMessage, items, CommandExecutedCallback)));
             }
             else

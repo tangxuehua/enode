@@ -168,8 +168,7 @@ namespace ENode.EQueue.Commanding
                 else if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
                 {
                     if (message.CommandStatus == CommandStatus.Failed ||
-                        message.CommandStatus == CommandStatus.NothingChanged ||
-                        message.CommandStatus == CommandStatus.DuplicateAndIgnored)
+                        message.CommandStatus == CommandStatus.NothingChanged)
                     {
                         commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
                             new CommandResult(

@@ -10,7 +10,10 @@ namespace ENode.Eventing
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeCode"></param>
-        void AddEventHandleInfo(string eventId, int eventHandlerTypeCode);
+        /// <param name="eventTypeCode"></param>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootVersion"></param>
+        void AddEventHandleInfo(string eventId, int eventHandlerTypeCode, int eventTypeCode, string aggregateRootId, int aggregateRootVersion);
         /// <summary>Check whether the given event was handled by the given event handler.
         /// </summary>
         /// <param name="eventId"></param>

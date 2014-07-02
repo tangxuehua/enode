@@ -57,7 +57,7 @@ namespace ENode.EQueue
         {
             var data = new EventMessage();
 
-            data.CommitId = eventStream.CommitId;
+            data.CommandId = eventStream.CommandId;
             data.AggregateRootId = eventStream.AggregateRootId;
             data.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
             data.Timestamp = eventStream.Timestamp;

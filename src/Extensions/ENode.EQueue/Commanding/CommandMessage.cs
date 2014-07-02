@@ -9,5 +9,6 @@ namespace ENode.EQueue
         public byte[] CommandData { get; set; }
         public string CommandExecutedMessageTopic { get; set; }
         public string DomainEventHandledMessageTopic { get; set; }
+        public string SourceEventId { get; set; }
     }
 }

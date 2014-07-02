@@ -10,9 +10,10 @@ namespace ENode.Commanding
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="command"></param>
+        /// <param name="sourceEventId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootTypeCode"></param>
-        public HandledCommand(ICommand command, string aggregateRootId, int aggregateRootTypeCode)
+        public HandledCommand(ICommand command, string sourceEventId, string aggregateRootId, int aggregateRootTypeCode)
         {
             if (command == null)
             {
@@ -23,6 +24,7 @@ namespace ENode.Commanding
                 throw new ArgumentNullException("aggregateRootId");
             }
             Command = command;
+            SourceEventId = sourceEventId;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeCode = aggregateRootTypeCode;
         }
@@ -30,6 +32,9 @@ namespace ENode.Commanding
         /// <summary>The command object.
         /// </summary>
         public ICommand Command { get; private set; }
+        /// <summary>The source domain event id.
+        /// </summary>
+        public string SourceEventId { get; private set; }
         /// <summary>The aggregate root type code.
         /// </summary>
         public int AggregateRootTypeCode { get; private set; }
@@ -42,10 +47,11 @@ namespace ENode.Commanding
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandType={0},CommandId={1},AggregateRootTypeCode={2},AggregateRootId={3},ProcessId={4},Items={5}]";
+            var format = "[CommandType={0},CommandId={1},SourceEventId={2},AggregateRootTypeCode={3},AggregateRootId={4},ProcessId={5},Items={6}]";
             return string.Format(format,
                 Command.GetType().Name,
                 Command.Id,
+                SourceEventId,
                 AggregateRootTypeCode,
                 AggregateRootId,
                 Command is IProcessCommand ? ((IProcessCommand)Command).ProcessId : null,

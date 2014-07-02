@@ -27,7 +27,8 @@ namespace ENode.EQueue
 
         public EventConsumer(string id = null, string groupName = null, ConsumerSetting setting = null, DomainEventHandledMessageSender domainEventHandledMessageSender = null)
         {
-            _consumer = new Consumer(id ?? DefaultEventConsumerId, groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
+            var consumerId = id ?? DefaultEventConsumerId;
+            _consumer = new Consumer(consumerId, groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
             {
                 MessageHandleMode = MessageHandleMode.Sequential
             });
@@ -37,6 +38,7 @@ namespace ENode.EQueue
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
+            _eventProcessor.Name = consumerId;
         }
 
         public EventConsumer Start()
@@ -62,7 +64,7 @@ namespace ENode.EQueue
             var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(EventMessage)) as EventMessage;
             var eventStream = ConvertToEventStream(eventMessage);
 
-            if (_messageContextDict.TryAdd(eventStream.CommitId, context))
+            if (_messageContextDict.TryAdd(eventStream.CommandId, context))
             {
                 _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventHandledCallback));
             }
@@ -71,7 +73,7 @@ namespace ENode.EQueue
         private void EventHandledCallback(EventStream eventStream, EventProcessContext eventProcessContext)
         {
             IMessageContext messageContext;
-            if (_messageContextDict.TryRemove(eventStream.CommitId, out messageContext))
+            if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
             {
                 messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
             }
@@ -145,7 +147,7 @@ namespace ENode.EQueue
         }
         private EventStream ConvertToEventStream(EventMessage data)
         {
-            return new EventStream(data.CommitId, data.AggregateRootId, data.AggregateRootTypeCode, data.ProcessId, data.Version, data.Timestamp, data.Events, data.Items);
+            return new EventStream(data.CommandId, data.AggregateRootId, data.AggregateRootTypeCode, data.ProcessId, data.Version, data.Timestamp, data.Events, data.Items);
         }
 
         class EventProcessContext : IEventProcessContext

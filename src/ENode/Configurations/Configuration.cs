@@ -91,6 +91,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
             _configuration.SetDefault<ICommandRouteKeyProvider, DefaultCommandRouteKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
+            _configuration.SetDefault<IProcessCommandSender, NotImplementedCommandService>();
 
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
@@ -155,7 +156,7 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventStore(string connectionString)
         {
-            return UseSqlServerEventStore(connectionString, "Event", "PK_Event");
+            return UseSqlServerEventStore(connectionString, "EventStream", "PK_EventStream");
         }
         /// <summary>Use the SqlServerEventStore as the IEventStore.
         /// </summary>

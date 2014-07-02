@@ -43,12 +43,23 @@ namespace ENode.Eventing.Impl.SQL
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeCode"></param>
-        public void AddEventHandleInfo(string eventId, int eventHandlerTypeCode)
+        /// <param name="eventTypeCode"></param>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootVersion"></param>
+        public void AddEventHandleInfo(string eventId, int eventHandlerTypeCode, int eventTypeCode, string aggregateRootId, int aggregateRootVersion)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
-                connection.Insert(new { EventHandlerTypeCode = eventHandlerTypeCode, EventId = eventId }, _tableName);
+                connection.Insert(
+                new
+                {
+                    EventHandlerTypeCode = eventHandlerTypeCode,
+                    EventId = eventId,
+                    EventTypeCode = eventTypeCode,
+                    AggregateRootId = aggregateRootId,
+                    AggregateRootVersion = aggregateRootVersion
+                }, _tableName);
             }
         }
         /// <summary>Check whether the given event was handled by the given event handler.

@@ -174,9 +174,12 @@ namespace ENode.Commanding.Impl
             var eventStream = BuildEventStream(dirtyAggregate, command);
 
             //尝试将当前已执行的command添加到commandStore
+            string sourceEventId;
+            processingCommand.CommandExecuteContext.Items.TryGetValue("SourceEventId", out sourceEventId);
             var commandAddResult = _commandStore.AddCommand(
                 new HandledCommand(
                     command,
+                    sourceEventId,
                     eventStream.AggregateRootId,
                     eventStream.AggregateRootTypeCode));
 
@@ -189,28 +192,12 @@ namespace ENode.Commanding.Impl
                     var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
                     if (existingEventStream != null)
                     {
-                        var publishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(existingHandledCommand.AggregateRootId);
-                        if (publishedVersion < existingEventStream.Version)
-                        {
-                            //到这里，说明当前command在commandStore中已经存在，在eventStore中也存在，
-                            //但是该command对应的eventStream还没被所有的消费者消费，所以我们需要再重新publish该command对应的eventStream。
-                            _eventService.PublishEvent(processingCommand, existingEventStream);
-                        }
-                        else
-                        {
-                            //到这里，说明当前command被重复执行了，且上一次执行是成功的，因为
-                            //1.该command已经在commandStore中存在;
-                            //2.该command在eventStore中也存在;
-                            //3.该command的eventStream也已经被所有的消费者消费了;
-                            //所以，我们就可以忽略当前command的执行，不再需要做后续处理。
-                            NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.DuplicateAndIgnored, null, null);
-                        }
+                        //如果当前command已经被持久化过了，且事件已经被持久化了，则只要再做一遍发布事件的操作
+                        _eventService.PublishEvent(processingCommand, existingEventStream);
                     }
                     else
                     {
-                        //到这里，说明当前command在commandStore中存在，但是在eventStore中不存在，说明该command上次虽然执行了，
-                        //加到commandStore成功了，但是该command的产生的事件持久化到eventStore中失败或者还未来得及持久化服务器就被重启了，
-                        //这种情况，我们需要重新将当前command产生的事件提交的eventService进行后续处理。
+                        //如果当前command已经被持久化过了，但事件没有被持久化，则需要重新提交当前command所产生的事件；
                         _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
                     }
                 }
@@ -271,28 +258,12 @@ namespace ENode.Commanding.Impl
                 var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
                 if (existingEventStream != null)
                 {
-                    var publishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(existingHandledCommand.AggregateRootId);
-                    if (publishedVersion < existingEventStream.Version)
-                    {
-                        //到这里，说明当前command执行遇到异常，然后该command在commandStore中存在，
-                        //在eventStore中也存在，但是该command对应的eventStream还没被所有的消费者消费。
-                        //所以我们需要再重新publish该command对应的eventStream。
-                        _eventService.PublishEvent(processingCommand, existingEventStream);
-                    }
-                    else
-                    {
-                        //到这里，说明当前command虽然执行遇到异常，但是因为
-                        //1.该command已经在commandStore中存在;
-                        //2.该command在eventStore中也存在;
-                        //3.该command的eventStream也已经被所有的消费者消费了;
-                        //因此，该command可以认为之前已经被成功处理了，所以，我们就可以吞掉当前异常，相当于是忽略当前command的执行；
-                        NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.DuplicateAndIgnored, exception.GetType().Name, exception.Message);
-                    }
+                    _eventService.PublishEvent(processingCommand, existingEventStream);
                 }
                 else
                 {
                     //到这里，说明当前command遇到异常，然后该command在commandStore中存在，
-                    //但是在eventStore中不存在，此时可以理解为该command还没被执行，所以需要将其从commandStore中移除，
+                    //但是在eventStore中不存在，此时可以理解为该command还没被执行。所以需要将其从commandStore中移除，
                     //然后让其再重新被执行，我们只要简单的将当前异常继续throw出去，那equeue就是自动再次重试该command。
                     _commandStore.Remove(command.Id);
                     return CommandExceptionHandleResult.ThrowDirectly;

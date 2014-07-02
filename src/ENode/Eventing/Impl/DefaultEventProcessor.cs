@@ -15,10 +15,11 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private const int WorkerCount = 4;
+        private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventHandlerTypeCodeProvider _eventHandlerTypeCodeProvider;
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
         private readonly IEventHandlerProvider _eventHandlerProvider;
-        private readonly ICommandService _commandService;
+        private readonly IProcessCommandSender _processCommandSender;
         private readonly IRepository _repository;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IEventHandleInfoStore _eventHandleInfoStore;
@@ -30,14 +31,17 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
+        public string Name { get; set; }
+
         #region Constructors
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        /// <param name="eventTypeCodeProvider"></param>
         /// <param name="eventHandlerTypeCodeProvider"></param>
         /// <param name="commandTypeCodeProvider"></param>
         /// <param name="eventHandlerProvider"></param>
-        /// <param name="commandService"></param>
+        /// <param name="processCommandSender"></param>
         /// <param name="repository"></param>
         /// <param name="eventPublishInfoStore"></param>
         /// <param name="eventHandleInfoStore"></param>
@@ -45,10 +49,11 @@ namespace ENode.Eventing.Impl
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultEventProcessor(
+            IEventTypeCodeProvider eventTypeCodeProvider,
             IEventHandlerTypeCodeProvider eventHandlerTypeCodeProvider,
             ICommandTypeCodeProvider commandTypeCodeProvider,
             IEventHandlerProvider eventHandlerProvider,
-            ICommandService commandService,
+            IProcessCommandSender processCommandSender,
             IRepository repository,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
@@ -56,10 +61,11 @@ namespace ENode.Eventing.Impl
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
+            _eventTypeCodeProvider = eventTypeCodeProvider;
             _eventHandlerTypeCodeProvider = eventHandlerTypeCodeProvider;
             _commandTypeCodeProvider = commandTypeCodeProvider;
             _eventHandlerProvider = eventHandlerProvider;
-            _commandService = commandService;
+            _processCommandSender = processCommandSender;
             _repository = repository;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventHandleInfoStore = eventHandleInfoStore;
@@ -111,17 +117,13 @@ namespace ENode.Eventing.Impl
         private bool DispatchEvents(EventProcessingContext context)
         {
             var eventStream = context.EventStream;
-            if (eventStream.Version == 1)
-            {
-                return DispatchEventsToHandlers(eventStream);
-            }
+            var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(Name, eventStream.AggregateRootId);
 
-            var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(eventStream.AggregateRootId);
-            if (lastPublishedVersion == eventStream.Version - 1)
+            if (lastPublishedVersion + 1 == eventStream.Version)
             {
                 return DispatchEventsToHandlers(eventStream);
             }
-            else if (lastPublishedVersion < eventStream.Version - 1)
+            else if (lastPublishedVersion + 1 < eventStream.Version)
             {
                 _logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
                 return false;
@@ -158,36 +160,34 @@ namespace ENode.Eventing.Impl
             }
             return success;
         }
-        private bool DispatchEventToHandler(string processId, IDictionary<string, string> items, IDomainEvent evnt, IEventHandler handler)
+        private bool DispatchEventToHandler(string processId, IDictionary<string, string> items, IDomainEvent evnt, IEventHandler eventHandler)
         {
             try
             {
-                var eventHandlerType = handler.GetInnerEventHandler().GetType();
+                var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
+                var eventHandlerType = eventHandler.GetInnerEventHandler().GetType();
                 var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(eventHandlerType);
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
-                var context = new EventContext(_repository, processId, items);
-                handler.Handle(context, evnt);
-                var commands = context.GetCommands();
-                if (commands.Any())
+                var eventContext = new EventContext(_repository, processId, items);
+                eventHandler.Handle(eventContext, evnt);
+                var processCommands = eventContext.GetCommands();
+                if (processCommands.Any())
                 {
-                    foreach (var command in commands)
+                    foreach (var processCommand in processCommands)
                     {
-                        command.Id = BuildCommandId(command, evnt, eventHandlerTypeCode);
-                        if (command is IProcessCommand)
-                        {
-                            ((IProcessCommand)command).ProcessId = processId;
-                        }
-                        _commandService.Send(command);
-                        _logger.DebugFormat("Send command from event context success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}, commandType:{5}, commandId:{6}",
+                        processCommand.Id = BuildCommandId(processCommand, evnt, eventHandlerTypeCode);
+                        processCommand.ProcessId = processId;
+                        _processCommandSender.Send(processCommand, evnt.Id);
+                        _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}",
+                            processCommand.GetType().Name,
+                            processCommand.Id,
                             eventHandlerType.Name,
                             evnt.GetType().Name,
                             evnt.Id,
                             evnt.Version,
-                            evnt.AggregateRootId,
-                            command.GetType().Name,
-                            command.Id);
+                            evnt.AggregateRootId);
                     }
                 }
                 _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
@@ -196,13 +196,13 @@ namespace ENode.Eventing.Impl
                     evnt.Id,
                     evnt.Version,
                     evnt.AggregateRootId);
-                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode);
-                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode);
+                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, evnt.AggregateRootId, evnt.Version);
+                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, evnt.AggregateRootId, evnt.Version);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", handler.GetInnerEventHandler().GetType().Name, evnt.GetType().Name), ex);
+                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", eventHandler.GetInnerEventHandler().GetType().Name, evnt.GetType().Name), ex);
                 return false;
             }
         }
@@ -210,11 +210,11 @@ namespace ENode.Eventing.Impl
         {
             if (stream.Version == 1)
             {
-                _eventPublishInfoStore.InsertPublishedVersion(stream.AggregateRootId);
+                _eventPublishInfoStore.InsertPublishedVersion(Name, stream.AggregateRootId);
             }
             else
             {
-                _eventPublishInfoStore.UpdatePublishedVersion(stream.AggregateRootId, stream.Version);
+                _eventPublishInfoStore.UpdatePublishedVersion(Name, stream.AggregateRootId, stream.Version);
             }
         }
         private string BuildCommandId(ICommand command, IDomainEvent evnt, int eventHandlerTypeCode)
@@ -222,7 +222,7 @@ namespace ENode.Eventing.Impl
             var key = command.GetKey();
             var commandKey = key == null ? string.Empty : key.ToString();
             var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            return string.Format("{0}{1}{2}{3}", eventHandlerTypeCode, commandTypeCode, commandKey, evnt.Id);
+            return string.Format("{0}{1}{2}{3}", evnt.Id, commandKey, eventHandlerTypeCode, commandTypeCode);
         }
 
         #endregion
@@ -240,7 +240,7 @@ namespace ENode.Eventing.Impl
         }
         class EventContext : IEventContext
         {
-            private readonly List<ICommand> _commands = new List<ICommand>();
+            private readonly List<IProcessCommand> _commands = new List<IProcessCommand>();
             private readonly IRepository _repository;
 
             public EventContext(IRepository repository, string processId, IDictionary<string, string> items)
@@ -257,11 +257,11 @@ namespace ENode.Eventing.Impl
             {
                 return _repository.Get<T>(aggregateRootId);
             }
-            public void AddCommand(ICommand command)
+            public void AddCommand(IProcessCommand command)
             {
                 _commands.Add(command);
             }
-            public IEnumerable<ICommand> GetCommands()
+            public IEnumerable<IProcessCommand> GetCommands()
             {
                 return _commands;
             }

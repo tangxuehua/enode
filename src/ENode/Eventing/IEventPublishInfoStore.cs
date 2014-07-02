@@ -6,12 +6,12 @@
     {
         /// <summary>Insert the first published event version of aggregate.
         /// </summary>
-        void InsertPublishedVersion(string aggregateRootId);
+        void InsertPublishedVersion(string eventProcessorName, string aggregateRootId);
         /// <summary>Update the published event version of aggregate.
         /// </summary>
-        void UpdatePublishedVersion(string aggregateRootId, int version);
+        void UpdatePublishedVersion(string eventProcessorName, string aggregateRootId, int version);
         /// <summary>Get the current event published version for the specified aggregate.
         /// </summary>
-        int GetEventPublishedVersion(string aggregateRootId);
+        int GetEventPublishedVersion(string eventProcessorName, string aggregateRootId);
     }
 }

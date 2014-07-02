@@ -47,17 +47,14 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
-        /// <summary>Insert the first published event version of aggregate.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        public void InsertPublishedVersion(string aggregateRootId)
+        public void InsertPublishedVersion(string eventProcessorName, string aggregateRootId)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
                 try
                 {
-                    connection.Insert(new { AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
+                    connection.Insert(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
                 }
                 catch (SqlException ex)
                 {
@@ -69,28 +66,20 @@ namespace ENode.Eventing.Impl.SQL
                 }
             }
         }
-        /// <summary>Update the published event version of aggregate.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        /// <param name="version"></param>
-        public void UpdatePublishedVersion(string aggregateRootId, int version)
+        public void UpdatePublishedVersion(string eventProcessorName, string aggregateRootId, int version)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
-                connection.Update(new { PublishedVersion = version }, new { AggregateRootId = aggregateRootId }, _tableName);
+                connection.Update(new { PublishedVersion = version }, new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId }, _tableName);
             }
         }
-        /// <summary>Get the current event published version for the specified aggregate.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        /// <returns></returns>
-        public int GetEventPublishedVersion(string aggregateRootId)
+        public int GetEventPublishedVersion(string eventProcessorName, string aggregateRootId)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
-                return connection.QueryList<int>(new { AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion").SingleOrDefault();
+                return connection.QueryList<int>(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion").SingleOrDefault();
             }
         }
 

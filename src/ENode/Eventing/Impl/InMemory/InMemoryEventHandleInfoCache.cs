@@ -14,7 +14,10 @@ namespace ENode.Eventing.Impl.InMemory
         /// </summary>
         /// <param name="eventId"></param>
         /// <param name="eventHandlerTypeCode"></param>
-        public void AddEventHandleInfo(string eventId, int eventHandlerTypeCode)
+        /// <param name="eventTypeCode"></param>
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootVersion"></param>
+        public void AddEventHandleInfo(string eventId, int eventHandlerTypeCode, int eventTypeCode, string aggregateRootId, int aggregateRootVersion)
         {
             IList<int> handlerTypeCodeList;
             if (!_handleInfoDict.TryGetValue(eventId, out handlerTypeCodeList))

@@ -8,7 +8,7 @@ namespace ENode.EQueue
     [Serializable]
     public class EventMessage
     {
-        public string CommitId { get; set; }
+        public string CommandId { get; set; }
         public string AggregateRootId { get; set; }
         public int AggregateRootTypeCode { get; set; }
         public string ProcessId { get; set; }

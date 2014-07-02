@@ -21,13 +21,13 @@ namespace ENode.Eventing
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
         T Get<T>(object aggregateRootId) where T : class, IAggregateRoot;
-        /// <summary>Add a to be execute command in the context.
+        /// <summary>Add a to be execute process command in the context.
         /// </summary>
-        /// <param name="command">The command to execute.</param>
-        void AddCommand(ICommand command);
-        /// <summary>Get all the to be execute commands from the context.
+        /// <param name="command">The process command to execute.</param>
+        void AddCommand(IProcessCommand command);
+        /// <summary>Get all the to be execute process commands from the context.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<ICommand> GetCommands();
+        IEnumerable<IProcessCommand> GetCommands();
     }
 }

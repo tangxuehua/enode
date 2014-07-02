@@ -97,6 +97,7 @@ namespace ENode.Commanding.Impl
         {
             return new HandledCommand(
                 _binarySerializer.Deserialize<ICommand>(record.Payload),
+                record.SourceEventId,
                 record.AggregateRootId,
                 record.AggregateRootTypeCode);
         }
@@ -109,6 +110,7 @@ namespace ENode.Commanding.Impl
                 AggregateRootId = handledCommand.AggregateRootId,
                 AggregateRootTypeCode = handledCommand.AggregateRootTypeCode,
                 ProcessId = handledCommand.Command is IProcessCommand ? ((IProcessCommand)handledCommand.Command).ProcessId : null,
+                SourceEventId = handledCommand.SourceEventId,
                 Timestamp = DateTime.Now,
                 Payload = _binarySerializer.Serialize(handledCommand.Command),
                 Items = _binarySerializer.Serialize(handledCommand.Command.Items)
@@ -124,6 +126,7 @@ namespace ENode.Commanding.Impl
             public int AggregateRootTypeCode { get; set; }
             public string AggregateRootId { get; set; }
             public string ProcessId { get; set; }
+            public string SourceEventId { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Payload { get; set; }
             public byte[] Items { get; set; }

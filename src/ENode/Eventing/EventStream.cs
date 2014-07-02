@@ -15,7 +15,7 @@ namespace ENode.Eventing
     {
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="commitId"></param>
+        /// <param name="commandId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootTypeCode"></param>
         /// <param name="processId"></param>
@@ -23,9 +23,9 @@ namespace ENode.Eventing
         /// <param name="timestamp"></param>
         /// <param name="events"></param>
         /// <param name="items"></param>
-        public EventStream(string commitId, string aggregateRootId, int aggregateRootTypeCode, string processId, int version, DateTime timestamp, IEnumerable<IDomainEvent> events, IDictionary<string, string> items)
+        public EventStream(string commandId, string aggregateRootId, int aggregateRootTypeCode, string processId, int version, DateTime timestamp, IEnumerable<IDomainEvent> events, IDictionary<string, string> items)
         {
-            CommitId = commitId;
+            CommandId = commandId;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeCode = aggregateRootTypeCode;
             ProcessId = processId;
@@ -36,9 +36,9 @@ namespace ENode.Eventing
             Items = items ?? new Dictionary<string, string>();
         }
 
-        /// <summary>The commandId which generate this event stream.
+        /// <summary>The commandId which generates this event stream.
         /// </summary>
-        public string CommitId { get; private set; }
+        public string CommandId { get; private set; }
         /// <summary>The aggregate root type code.
         /// </summary>
         public int AggregateRootTypeCode { get; private set; }
@@ -67,9 +67,9 @@ namespace ENode.Eventing
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommitId={0},AggregateRootTypeCode={1},AggregateRootId={2},Version={3},ProcessId={4},Timestamp={5},Events={6},Items={7}]";
+            var format = "[CommandId={0},AggregateRootTypeCode={1},AggregateRootId={2},Version={3},ProcessId={4},Timestamp={5},Events={6},Items={7}]";
             return string.Format(format,
-                CommitId,
+                CommandId,
                 AggregateRootTypeCode,
                 AggregateRootId,
                 Version,
