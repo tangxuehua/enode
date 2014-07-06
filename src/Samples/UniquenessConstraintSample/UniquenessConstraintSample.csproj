@@ -60,7 +60,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChangeNoteTitleCommandHandler.cs" />
+    <Compile Include="ChangeSectionNameCommandHandler.cs" />
     <Compile Include="ILockService.cs" />
     <Compile Include="ITransactionService.cs" />
     <Compile Include="ISectionIndexStore.cs" />
