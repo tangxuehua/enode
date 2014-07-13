@@ -13,6 +13,7 @@ using ENode.Eventing.Impl;
 using ENode.Eventing.Impl.InMemory;
 using ENode.Eventing.Impl.SQL;
 using ENode.Infrastructure;
+using ENode.Infrastructure.SQL;
 using ENode.Snapshoting;
 using ENode.Snapshoting.Impl;
 
@@ -131,6 +132,22 @@ namespace ENode.Configurations
             return this;
         }
 
+        /// <summary>Use the SqlServerLockService as the ILockService.
+        /// </summary>
+        /// <returns></returns>
+        public ENodeConfiguration UseSqlServerLockService(string connectionString)
+        {
+            return UseSqlServerLockService(connectionString, "Lock");
+        }
+        /// <summary>Use the SqlServerLockService as the ILockService.
+        /// </summary>
+        /// <param name="lockTable"></param>
+        /// <returns></returns>
+        public ENodeConfiguration UseSqlServerLockService(string connectionString, string lockKeyTable)
+        {
+            _configuration.SetDefault<ILockService, SqlServerLockService>(new SqlServerLockService(connectionString, lockKeyTable));
+            return this;
+        }
         /// <summary>Use the SqlServerCommandStore as the ICommandStore.
         /// </summary>
         /// <param name="connectionString"></param>

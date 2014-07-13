@@ -85,6 +85,8 @@
     <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Eventing\IEventHandlerTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventHandlerTypeCodeProvider.cs" />
+    <Compile Include="Infrastructure\SQL\SqlServerLockService.cs" />
+    <Compile Include="Infrastructure\ILockService.cs" />
     <Compile Include="Infrastructure\ITypeCodeProvider.cs" />
     <Compile Include="Eventing\IEventProcessContext.cs" />
     <Compile Include="Eventing\IEventService.cs" />

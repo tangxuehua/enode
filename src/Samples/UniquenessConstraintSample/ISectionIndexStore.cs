@@ -9,7 +9,7 @@ namespace UniquenessConstraintSample
         SectionIndex FindBySectionId(string sectionId);
         SectionIndex FindBySectionName(string sectionName);
         void Add(SectionIndex index);
-        void Update(SectionIndex index);
+        void Update(string indexId, string sectionName);
     }
 
     public class SectionIndex
@@ -23,12 +23,6 @@ namespace UniquenessConstraintSample
             IndexId = indexId;
             SectionId = sectionId;
             SectionName = sectionName;
-        }
-
-        public SectionIndex ChangeSectionName(string sectionName)
-        {
-            SectionName = sectionName;
-            return this;
         }
     }
 }

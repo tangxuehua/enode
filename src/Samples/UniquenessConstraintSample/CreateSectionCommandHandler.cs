@@ -2,30 +2,26 @@
 using ECommon.Components;
 using ECommon.Utilities;
 using ENode.Commanding;
+using ENode.Infrastructure;
 
 namespace UniquenessConstraintSample
 {
     [Component]
     public class CreateSectionCommandHandler : ICommandHandler<CreateSectionCommand>
     {
-        private ITransactionService _transactionService;
         private ILockService _lockService;
         private ISectionIndexStore _indexStore;
 
-        public CreateSectionCommandHandler(ITransactionService transactionService, ILockService lockService, ISectionIndexStore indexStore)
+        public CreateSectionCommandHandler(ILockService lockService, ISectionIndexStore indexStore)
         {
-            _transactionService = transactionService;
             _lockService = lockService;
             _indexStore = indexStore;
         }
 
         public void Handle(ICommandContext context, CreateSectionCommand command)
         {
-            var transaction = _transactionService.BeginTransaction();
-            try
+            _lockService.ExecuteInLock(typeof(Section).Name, () =>
             {
-                _lockService.Lock("Section");
-
                 var sectionIndex = _indexStore.FindBySectionName(command.Name);
                 if (sectionIndex == null)
                 {
@@ -41,13 +37,7 @@ namespace UniquenessConstraintSample
                 {
                     throw new Exception("Duplicate section name:" + command.Name);
                 }
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
+            });
         }
     }
 }

@@ -50,3 +50,8 @@ CREATE TABLE [dbo].[Snapshot] (
     CONSTRAINT [PK_Snapshot] PRIMARY KEY CLUSTERED ([AggregateRootId] ASC, [Version] ASC)
 )
 GO
+CREATE TABLE [dbo].[Lock] (
+    [LockKey]                NVARCHAR (64)           NOT NULL,
+    CONSTRAINT [PK_Lock] PRIMARY KEY CLUSTERED ([LockKey] ASC)
+)
+GO

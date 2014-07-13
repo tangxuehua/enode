@@ -1,11 +1,12 @@
 ﻿using System;
 
-namespace UniquenessConstraintSample
+namespace ENode.Infrastructure
 {
     /// <summary>定义一个用于实现锁的接口
     /// </summary>
     public interface ILockService
     {
-        void Lock(string key);
+        void AddLockKey(string lockKey);
+        void ExecuteInLock(string lockKey, Action action);
     }
 }
