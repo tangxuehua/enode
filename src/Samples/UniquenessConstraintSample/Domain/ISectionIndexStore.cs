@@ -11,7 +11,8 @@ namespace UniquenessConstraintSample
         void Add(SectionIndex index);
         void Update(string indexId, string sectionName);
     }
-
+    /// <summary>版块索引信息
+    /// </summary>
     public class SectionIndex
     {
         public string IndexId { get; private set; }

@@ -22,10 +22,11 @@ namespace ENode.EQueue
         private readonly IEventProcessor _eventProcessor;
         private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
         private readonly ILogger _logger;
+        private readonly bool _sendEventHandledMessage;
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public EventConsumer(string id = null, string groupName = null, ConsumerSetting setting = null, DomainEventHandledMessageSender domainEventHandledMessageSender = null)
+        public EventConsumer(string id = null, string groupName = null, ConsumerSetting setting = null, DomainEventHandledMessageSender domainEventHandledMessageSender = null, bool sendEventHandledMessage = true)
         {
             var consumerId = id ?? DefaultEventConsumerId;
             _consumer = new Consumer(consumerId, groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
@@ -39,6 +40,7 @@ namespace ENode.EQueue
             _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
             _eventProcessor.Name = consumerId;
+            _sendEventHandledMessage = sendEventHandledMessage;
         }
 
         public EventConsumer Start()
@@ -66,16 +68,21 @@ namespace ENode.EQueue
 
             if (_messageContextDict.TryAdd(eventStream.CommandId, context))
             {
-                _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventHandledCallback));
+                _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventProcessedCallback));
             }
         }
 
-        private void EventHandledCallback(EventStream eventStream, EventProcessContext eventProcessContext)
+        private void EventProcessedCallback(EventStream eventStream, EventProcessContext eventProcessContext)
         {
             IMessageContext messageContext;
             if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
             {
                 messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
+            }
+
+            if (!_sendEventHandledMessage)
+            {
+                return;
             }
 
             var contextItems = eventProcessContext.EventMessage.ContextItems;
@@ -115,7 +122,6 @@ namespace ENode.EQueue
                 Items = eventStream.Items ?? new Dictionary<string, string>()
             }, domainEventHandledMessageTopic);
         }
-
         private bool ValidateContextItems(IDictionary<string, string> contextItems)
         {
             if (!contextItems.ContainsKey("DomainEventHandledMessageTopic"))
