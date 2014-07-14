@@ -38,6 +38,10 @@ namespace BankTransferSample
             commandService.StartProcess(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 300D))).Wait();
             Console.WriteLine(string.Empty);
 
+            //账户1向账户2转账800元
+            commandService.StartProcess(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 800D))).Wait();
+            Console.WriteLine(string.Empty);
+
             //账户2向账户1转账500元
             commandService.StartProcess(new StartTransferTransactionCommand(new TransferTransactionInfo("00002", "00001", 500D))).Wait();
             Console.WriteLine(string.Empty);

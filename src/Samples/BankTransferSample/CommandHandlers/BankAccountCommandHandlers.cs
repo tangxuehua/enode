@@ -11,8 +11,7 @@ namespace BankTransferSample.CommandHandlers
     public class BankAccountCommandHandlers :
         ICommandHandler<CreateAccountCommand>,                       //开户
         ICommandHandler<AddTransactionPreparationCommand>,           //添加预操作
-        ICommandHandler<CommitTransactionPreparationCommand>,        //提交预操作
-        ICommandHandler<CancelTransactionPreparationCommand>         //取消预操作
+        ICommandHandler<CommitTransactionPreparationCommand>         //提交预操作
     {
         public void Handle(ICommandContext context, CreateAccountCommand command)
         {
@@ -25,10 +24,6 @@ namespace BankTransferSample.CommandHandlers
         public void Handle(ICommandContext context, CommitTransactionPreparationCommand command)
         {
             context.Get<BankAccount>(command.AggregateRootId).CommitTransactionPreparation(command.TransactionId);
-        }
-        public void Handle(ICommandContext context, CancelTransactionPreparationCommand command)
-        {
-            context.Get<BankAccount>(command.AggregateRootId).CancelTransactionPreparation(command.TransactionId);
         }
     }
 }

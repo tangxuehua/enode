@@ -23,12 +23,8 @@ namespace BankTransferSample.Providers
             RegisterType<TransferInPreparationConfirmedEvent>(303);
             RegisterType<TransferOutConfirmedEvent>(304);
             RegisterType<TransferInConfirmedEvent>(305);
-            RegisterType<TransferTransactionPreparationCompletedEvent>(306);
-            RegisterType<TransferTransactionCompletedEvent>(307);
-            RegisterType<TransferTransactionCancelStartedEvent>(308);
-            RegisterType<TransferOutCanceledConfirmedEvent>(309);
-            RegisterType<TransferInCanceledConfirmedEvent>(310);
-            RegisterType<TransferTransactionCanceledEvent>(311);
+            RegisterType<TransferTransactionCompletedEvent>(306);
+            RegisterType<TransferTransactionCanceledEvent>(307);
         }
     }
 }

@@ -14,8 +14,9 @@ namespace BankTransferSample.EventHandlers
         IEventHandler<TransferTransactionStartedEvent>,
         IEventHandler<TransferOutPreparationConfirmedEvent>,
         IEventHandler<TransferInPreparationConfirmedEvent>,
-        IEventHandler<TransferTransactionPreparationCompletedEvent>,
-        IEventHandler<TransferTransactionCompletedEvent>
+        IEventHandler<TransferTransactionCompletedEvent>,
+        IEventHandler<InsufficientBalanceEvent>,
+        IEventHandler<TransferTransactionCanceledEvent>
     {
         public void Handle(IEventContext context, AccountCreatedEvent evnt)
         {
@@ -52,7 +53,7 @@ namespace BankTransferSample.EventHandlers
                 }
                 if (evnt.TransactionPreparation.PreparationType == PreparationType.CreditPreparation)
                 {
-                    Console.WriteLine("账户转入已成功，交易 ID：{0}，账户：{1}，金额：{2}，当前余额：{3}", evnt.TransactionPreparation.TransactionId, evnt.TransactionPreparation.AccountId, evnt.TransactionPreparation.Amount, evnt.CurrentBalance);
+                    Console.WriteLine("账户转入已成功，交易ID：{0}，账户：{1}，金额：{2}，当前余额：{3}", evnt.TransactionPreparation.TransactionId, evnt.TransactionPreparation.AccountId, evnt.TransactionPreparation.Amount, evnt.CurrentBalance);
                 }
             }
         }
@@ -69,13 +70,18 @@ namespace BankTransferSample.EventHandlers
         {
             Console.WriteLine("预转入确认成功，交易ID：{0}，账户：{1}", evnt.AggregateRootId, evnt.TransactionInfo.TargetAccountId);
         }
-        public void Handle(IEventContext context, TransferTransactionPreparationCompletedEvent evnt)
-        {
-            Console.WriteLine("预操作确认完成，交易ID：{0}", evnt.AggregateRootId);
-        }
         public void Handle(IEventContext context, TransferTransactionCompletedEvent evnt)
         {
             Console.WriteLine("转账交易已完成，交易ID：{0}", evnt.AggregateRootId);
+        }
+
+        public void Handle(IEventContext context, InsufficientBalanceEvent evnt)
+        {
+            Console.WriteLine("账户的余额不足，交易ID：{0}，账号：{1}，可用余额：{2}，转出金额：{3}", evnt.TransactionId, evnt.AggregateRootId, evnt.CurrentAvailableBalance, evnt.Amount);
+        }
+        public void Handle(IEventContext context, TransferTransactionCanceledEvent evnt)
+        {
+            Console.WriteLine("转账交易已取消，交易ID：{0}", evnt.AggregateRootId);
         }
     }
 }

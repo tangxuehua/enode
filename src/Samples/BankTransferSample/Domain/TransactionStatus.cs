@@ -7,7 +7,6 @@
         Started,
         PreparationCompleted,
         Completed,
-        CancelStarted,
         Canceled
     }
 }

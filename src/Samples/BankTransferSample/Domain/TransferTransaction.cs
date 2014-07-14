@@ -29,12 +29,6 @@ namespace BankTransferSample.Domain
         /// <summary>转入已确认
         /// </summary>
         public bool IsTransferInConfirmed { get; private set; }
-        /// <summary>取消转出已确认
-        /// </summary>
-        public bool IsCancelTransferOutConfirmed { get; private set; }
-        /// <summary>取消转入已确认
-        /// </summary>
-        public bool IsCancelTransferInConfirmed { get; private set; }
         /// <summary>交易状态
         /// </summary>
         public TransactionStatus Status { get; private set; }
@@ -64,10 +58,6 @@ namespace BankTransferSample.Domain
                 if (!IsTransferOutPreparationConfirmed)
                 {
                     RaiseEvent(new TransferOutPreparationConfirmedEvent(Id, TransactionInfo));
-                    if (IsTransferInPreparationConfirmed)
-                    {
-                        RaiseEvent(new TransferTransactionPreparationCompletedEvent(Id, TransactionInfo));
-                    }
                 }
             }
         }
@@ -80,10 +70,6 @@ namespace BankTransferSample.Domain
                 if (!IsTransferInPreparationConfirmed)
                 {
                     RaiseEvent(new TransferInPreparationConfirmedEvent(Id, TransactionInfo));
-                    if (IsTransferOutPreparationConfirmed)
-                    {
-                        RaiseEvent(new TransferTransactionPreparationCompletedEvent(Id, TransactionInfo));
-                    }
                 }
             }
         }
@@ -119,45 +105,13 @@ namespace BankTransferSample.Domain
                 }
             }
         }
-        /// <summary>开始取消转账交易，只有未提交状态的交易才能取消
+        /// <summary>取消转账交易
         /// </summary>
-        public void StartCancel()
+        public void Cancel()
         {
             if (Status == TransactionStatus.Started)
             {
-                RaiseEvent(new TransferTransactionCancelStartedEvent(Id, TransactionInfo));
-            }
-        }
-        /// <summary>确认转出操作已取消
-        /// </summary>
-        public void ConfirmTransferOutCanceled()
-        {
-            if (Status == TransactionStatus.CancelStarted)
-            {
-                if (!IsCancelTransferOutConfirmed)
-                {
-                    RaiseEvent(new TransferOutCanceledConfirmedEvent(Id, TransactionInfo));
-                    if (IsCancelTransferInConfirmed)
-                    {
-                        RaiseEvent(new TransferTransactionCanceledEvent(Id));
-                    }
-                }
-            }
-        }
-        /// <summary>确认转入操作已取消
-        /// </summary>
-        public void ConfirmTransferInCanceled()
-        {
-            if (Status == TransactionStatus.CancelStarted)
-            {
-                if (!IsCancelTransferInConfirmed)
-                {
-                    RaiseEvent(new TransferInCanceledConfirmedEvent(Id, TransactionInfo));
-                    if (IsCancelTransferOutConfirmed)
-                    {
-                        RaiseEvent(new TransferTransactionCanceledEvent(Id));
-                    }
-                }
+                RaiseEvent(new TransferTransactionCanceledEvent(Id));
             }
         }
 
@@ -178,9 +132,6 @@ namespace BankTransferSample.Domain
         private void Handle(TransferInPreparationConfirmedEvent evnt)
         {
             IsTransferInPreparationConfirmed = true;
-        }
-        private void Handle(TransferTransactionPreparationCompletedEvent evnt)
-        {
             Status = TransactionStatus.PreparationCompleted;
         }
         private void Handle(TransferOutConfirmedEvent evnt)
@@ -194,18 +145,6 @@ namespace BankTransferSample.Domain
         private void Handle(TransferTransactionCompletedEvent evnt)
         {
             Status = TransactionStatus.Completed;
-        }
-        private void Handle(TransferTransactionCancelStartedEvent evnt)
-        {
-            Status = TransactionStatus.CancelStarted;
-        }
-        private void Handle(TransferOutCanceledConfirmedEvent evnt)
-        {
-            IsCancelTransferOutConfirmed = true;
-        }
-        private void Handle(TransferInCanceledConfirmedEvent evnt)
-        {
-            IsCancelTransferInConfirmed = true;
         }
         private void Handle(TransferTransactionCanceledEvent evnt)
         {

@@ -45,16 +45,6 @@ namespace BankTransferSample.DomainEvents
         {
         }
     }
-    /// <summary>转账交易预转出和预转入都已确认
-    /// </summary>
-    [Serializable]
-    public class TransferTransactionPreparationCompletedEvent : AbstractTransferTransactionEvent
-    {
-        public TransferTransactionPreparationCompletedEvent(string transactionId, TransferTransactionInfo transactionInfo)
-            : base(transactionId, transactionInfo)
-        {
-        }
-    }
     /// <summary>转账交易转出已确认
     /// </summary>
     [Serializable]
@@ -78,30 +68,6 @@ namespace BankTransferSample.DomainEvents
     {
         public TransferTransactionCompletedEvent(string transactionId)
             : base(transactionId) { }
-    }
-    /// <summary>转账交易取消已开始
-    /// </summary>
-    [Serializable]
-    public class TransferTransactionCancelStartedEvent : AbstractTransferTransactionEvent
-    {
-        public TransferTransactionCancelStartedEvent(string transactionId, TransferTransactionInfo transactionInfo)
-            : base(transactionId, transactionInfo) { }
-    }
-    /// <summary>转账交易取消转出已确认
-    /// </summary>
-    [Serializable]
-    public class TransferOutCanceledConfirmedEvent : AbstractTransferTransactionEvent
-    {
-        public TransferOutCanceledConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
-            : base(transactionId, transactionInfo) { }
-    }
-    /// <summary>转账交易取消转入已确认
-    /// </summary>
-    [Serializable]
-    public class TransferInCanceledConfirmedEvent : AbstractTransferTransactionEvent
-    {
-        public TransferInCanceledConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
-            : base(transactionId, transactionInfo) { }
     }
     /// <summary>转账交易已取消（结束），交易已失败
     /// </summary>

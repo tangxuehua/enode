@@ -15,9 +15,7 @@ namespace BankTransferSample.CommandHandlers
         ICommandHandler<ConfirmTransferInPreparationCommand>,                   //确认预转入
         ICommandHandler<ConfirmTransferOutCommand>,                             //确认转出
         ICommandHandler<ConfirmTransferInCommand>,                              //确认转入
-        ICommandHandler<StartCancelTransferTransactionCommand>,                 //开始取消交易
-        ICommandHandler<ConfirmTransferOutCanceledCommand>,                     //确认转出
-        ICommandHandler<ConfirmTransferInCanceledCommand>                       //确认转入
+        ICommandHandler<CancelTransferTransactionCommand>                       //取消交易
     {
         public void Handle(ICommandContext context, StartTransferTransactionCommand command)
         {
@@ -39,17 +37,9 @@ namespace BankTransferSample.CommandHandlers
         {
             context.Get<TransferTransaction>(command.AggregateRootId).ConfirmTransferIn();
         }
-        public void Handle(ICommandContext context, StartCancelTransferTransactionCommand command)
+        public void Handle(ICommandContext context, CancelTransferTransactionCommand command)
         {
-            context.Get<TransferTransaction>(command.AggregateRootId).StartCancel();
-        }
-        public void Handle(ICommandContext context, ConfirmTransferOutCanceledCommand command)
-        {
-            context.Get<TransferTransaction>(command.AggregateRootId).ConfirmTransferOutCanceled();
-        }
-        public void Handle(ICommandContext context, ConfirmTransferInCanceledCommand command)
-        {
-            context.Get<TransferTransaction>(command.AggregateRootId).ConfirmTransferInCanceled();
+            context.Get<TransferTransaction>(command.AggregateRootId).Cancel();
         }
     }
 }

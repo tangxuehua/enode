@@ -11,7 +11,6 @@ namespace BankTransferSample.Providers
             RegisterType<CreateAccountCommand>(100);
             RegisterType<AddTransactionPreparationCommand>(101);
             RegisterType<CommitTransactionPreparationCommand>(102);
-            RegisterType<CancelTransactionPreparationCommand>(103);
 
             RegisterType<StartDepositTransactionCommand>(201);
             RegisterType<ConfirmDepositPreparationCommand>(202);
@@ -22,9 +21,7 @@ namespace BankTransferSample.Providers
             RegisterType<ConfirmTransferInPreparationCommand>(302);
             RegisterType<ConfirmTransferOutCommand>(303);
             RegisterType<ConfirmTransferInCommand>(304);
-            RegisterType<StartCancelTransferTransactionCommand>(305);
-            RegisterType<ConfirmTransferOutCanceledCommand>(306);
-            RegisterType<ConfirmTransferInCanceledCommand>(307);
+            RegisterType<CancelTransferTransactionCommand>(305);
         }
     }
 }

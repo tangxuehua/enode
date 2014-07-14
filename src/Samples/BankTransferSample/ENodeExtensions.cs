@@ -19,7 +19,6 @@ namespace BankTransferSample
     {
         private static BrokerController _broker;
         private static CommandService _commandService;
-        private static IProcessCommandSender _processCommandSender;
         private static CommandResultProcessor _commandResultProcessor;
         private static CommandConsumer _commandConsumer;
         private static EventPublisher _eventPublisher;

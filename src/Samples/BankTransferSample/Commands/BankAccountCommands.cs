@@ -48,17 +48,4 @@ namespace BankTransferSample.Commands
             TransactionId = transactionId;
         }
     }
-    /// <summary>取消预操作
-    /// </summary>
-    [Serializable]
-    public class CancelTransactionPreparationCommand : ProcessCommand<string>
-    {
-        public string TransactionId { get; set; }
-
-        public CancelTransactionPreparationCommand(string accountId, string transactionId)
-            : base(accountId)
-        {
-            TransactionId = transactionId;
-        }
-    }
 }

@@ -56,32 +56,12 @@ namespace BankTransferSample.Commands
         {
         }
     }
-    /// <summary>开始取消转账交易
+    /// <summary>取消转账交易
     /// </summary>
     [Serializable]
-    public class StartCancelTransferTransactionCommand : ProcessCommand<string>
+    public class CancelTransferTransactionCommand : ProcessCommand<string>
     {
-        public StartCancelTransferTransactionCommand(string transactionId)
-            : base(transactionId)
-        {
-        }
-    }
-    /// <summary>确认转出操作已取消
-    /// </summary>
-    [Serializable]
-    public class ConfirmTransferOutCanceledCommand : ProcessCommand<string>
-    {
-        public ConfirmTransferOutCanceledCommand(string transactionId)
-            : base(transactionId)
-        {
-        }
-    }
-    /// <summary>确认转入操作已取消
-    /// </summary>
-    [Serializable]
-    public class ConfirmTransferInCanceledCommand : ProcessCommand<string>
-    {
-        public ConfirmTransferInCanceledCommand(string transactionId)
+        public CancelTransferTransactionCommand(string transactionId)
             : base(transactionId)
         {
         }
