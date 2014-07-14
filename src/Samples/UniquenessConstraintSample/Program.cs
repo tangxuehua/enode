@@ -1,16 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
-using ECommon.Extensions;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
 using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
-using ENode.Domain;
 using ENode.Infrastructure;
 
 namespace UniquenessConstraintSample
@@ -21,6 +21,9 @@ namespace UniquenessConstraintSample
         const string ConnectionString = "Data Source=(local);Integrated Security=true;Initial Catalog=SampleDB;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100";
         const string SectionIndexTable = "SectionIndex";
 
+        /// <summary>运行本程序前，请先创建一个SampleDB数据库，然后执行一下SqlServerTableGenerateSQL.sql
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             InitializeENodeFramework();
@@ -28,17 +31,7 @@ namespace UniquenessConstraintSample
             var lockService = ObjectContainer.Resolve<ILockService>();
             lockService.AddLockKey(typeof(Section).Name);
 
-            var memoryCache = ObjectContainer.Resolve<IMemoryCache>();
-            var commandService = ObjectContainer.Resolve<ICommandService>();
-            var sectionName = ObjectId.GenerateNewStringId();
-            var command1 = new CreateSectionCommand(sectionName);
-            var result = commandService.Execute(command1, CommandReturnType.CommandExecuted).WaitResult<CommandResult>(10000);
-            var sectionId = result.AggregateRootId;
-            _logger.Info("Section Name:" + memoryCache.Get<Section>(sectionId).Name);
-
-            var command2 = new ChangeSectionNameCommand(sectionId, sectionName + "_2");
-            commandService.Execute(command2, CommandReturnType.CommandExecuted).Wait();
-            _logger.Info("Section Name:" + memoryCache.Get<Section>(sectionId).Name);
+            ConcurrentTest();
 
             Console.WriteLine(string.Empty);
 
@@ -47,6 +40,20 @@ namespace UniquenessConstraintSample
             Console.ReadLine();
         }
 
+        static void ConcurrentTest()
+        {
+            var commandService = ObjectContainer.Resolve<ICommandService>();
+            var sectionName = ObjectId.GenerateNewStringId();
+            var count = 100;
+            var tasks = new List<Task<CommandResult>>();
+
+            for (var index = 0; index < count; index++)
+            {
+                tasks.Add(commandService.Execute(new CreateSectionCommand(sectionName), CommandReturnType.CommandExecuted));
+            }
+
+            Task.WaitAll(tasks.ToArray());
+        }
         static void InitializeENodeFramework()
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };

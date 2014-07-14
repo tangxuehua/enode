@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using ECommon.Components;
 using ENode.Commanding;
 using ENode.Infrastructure;
@@ -10,6 +11,7 @@ namespace UniquenessConstraintSample
     {
         private ILockService _lockService;
         private ISectionIndexStore _indexStore;
+        private static int _duplicateCount;
 
         public ChangeSectionNameCommandHandler(ILockService lockService, ISectionIndexStore indexStore)
         {
@@ -39,7 +41,9 @@ namespace UniquenessConstraintSample
                 }
                 else
                 {
-                    throw new Exception("Duplicate section name:" + command.Name);
+                    //这里表示SectionName有重复，这里仅仅简单递增一下计数器，实际应该抛出异常告知Command发起者（controller）
+                    Console.WriteLine("duplicateCount:" + Interlocked.Increment(ref _duplicateCount));
+                    //throw new Exception("Duplicate section name:" + command.Name);
                 }
             });
         }
