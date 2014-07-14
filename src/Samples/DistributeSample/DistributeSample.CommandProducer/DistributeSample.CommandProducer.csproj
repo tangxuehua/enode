@@ -78,11 +78,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\eNode\ENode.csproj">
+    <ProjectReference Include="..\..\..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Extensions\ENode.EQueue\ENode.EQueue.csproj">
+    <ProjectReference Include="..\..\..\Extensions\ENode.EQueue\ENode.EQueue.csproj">
       <Project>{8b5368e5-8518-4684-90eb-048dcbf76e9a}</Project>
       <Name>ENode.EQueue</Name>
     </ProjectReference>
