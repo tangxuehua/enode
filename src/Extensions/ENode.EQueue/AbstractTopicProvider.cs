@@ -17,6 +17,10 @@ namespace ENode.EQueue
             return _topicDict.Values.Distinct();
         }
 
+        protected IEnumerable<Type> GetAllTypes()
+        {
+            return _topicDict.Keys;
+        }
         protected void RegisterTopic(string topic, params Type[] types)
         {
             foreach (var type in types)

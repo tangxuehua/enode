@@ -32,7 +32,7 @@ namespace UniquenessConstraintSample
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.SetDefault<ITopicProvider<ICommand>, CommandTopicProvider>();
-            configuration.SetDefault<ITopicProvider<EventStream>, EventTopicProvider>();
+            configuration.SetDefault<ITopicProvider<IDomainEvent>, EventTopicProvider>();
             configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
             configuration.SetDefault<IAggregateRootTypeCodeProvider, AggregateRootTypeCodeProvider>();
             configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeProvider>();

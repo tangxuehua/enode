@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -14,7 +15,7 @@ namespace ENode.EQueue
         private const string DefaultEventPublisherProcuderId = "sys_epp";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly ITopicProvider<EventStream> _eventTopicProvider;
+        private readonly ITopicProvider<IDomainEvent> _eventTopicProvider;
         private readonly Producer _producer;
 
         public Producer Producer { get { return _producer; } }
@@ -23,7 +24,7 @@ namespace ENode.EQueue
         {
             _producer = new Producer(id ?? DefaultEventPublisherProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<EventStream>>();
+            _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IDomainEvent>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
@@ -41,7 +42,7 @@ namespace ENode.EQueue
         public void PublishEvent(IDictionary<string, string> contextItems, EventStream eventStream)
         {
             var eventMessage = ConvertToData(contextItems, eventStream);
-            var topic = _eventTopicProvider.GetTopic(eventStream);
+            var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _binarySerializer.Serialize(eventMessage);
             var message = new Message(topic, data);
             var result = _producer.Send(message, eventStream.AggregateRootId);
