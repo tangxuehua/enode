@@ -3,9 +3,9 @@ using ENode.EQueue;
 
 namespace BankTransferSample.Providers
 {
-    public class CommandTopicProvider : ICommandTopicProvider
+    public class CommandTopicProvider : AbstractTopicProvider<ICommand>
     {
-        public string GetTopic(ICommand command)
+        public override string GetTopic(ICommand command)
         {
             return "BankTransferCommandTopic";
         }

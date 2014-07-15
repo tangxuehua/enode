@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractTopicProvider.cs" />
     <Compile Include="Commanding\CommandConsumer.cs" />
     <Compile Include="Commanding\CommandMessage.cs" />
     <Compile Include="Eventing\DomainEventHandledMessage.cs" />
@@ -62,9 +63,8 @@
     <Compile Include="Eventing\EventPublisher.cs" />
     <Compile Include="Eventing\EventMessage.cs" />
     <Compile Include="Eventing\DomainEventHandledMessageSender.cs" />
-    <Compile Include="Eventing\IEventTopicProvider.cs" />
     <Compile Include="Commanding\CommandService.cs" />
-    <Compile Include="Commanding\ICommandTopicProvider.cs" />
+    <Compile Include="ITopicProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

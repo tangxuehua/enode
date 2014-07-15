@@ -14,7 +14,7 @@ namespace ENode.EQueue
         private const string DefaultEventPublisherProcuderId = "sys_epp";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly IEventTopicProvider _eventTopicProvider;
+        private readonly ITopicProvider<EventStream> _eventTopicProvider;
         private readonly Producer _producer;
 
         public Producer Producer { get { return _producer; } }
@@ -23,7 +23,7 @@ namespace ENode.EQueue
         {
             _producer = new Producer(id ?? DefaultEventPublisherProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _eventTopicProvider = ObjectContainer.Resolve<IEventTopicProvider>();
+            _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<EventStream>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 

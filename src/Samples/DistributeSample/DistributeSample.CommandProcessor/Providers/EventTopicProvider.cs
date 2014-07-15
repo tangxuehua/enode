@@ -4,10 +4,10 @@ using ENode.Eventing;
 
 namespace DistributeSample.CommandProcessor.Providers
 {
-    public class EventTopicProvider : IEventTopicProvider
+    public class EventTopicProvider : AbstractTopicProvider<EventStream>
     {
         static int _index;
-        public string GetTopic(EventStream eventStream)
+        public override string GetTopic(EventStream eventStream)
         {
             if (Interlocked.Increment(ref _index) % 2 == 0)
             {

@@ -27,8 +27,8 @@ namespace NoteSample.EQueueIntegrations
         public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
-            configuration.SetDefault<ICommandTopicProvider, CommandTopicProvider>();
-            configuration.SetDefault<IEventTopicProvider, EventTopicProvider>();
+            configuration.SetDefault<ITopicProvider<ICommand>, CommandTopicProvider>();
+            configuration.SetDefault<ITopicProvider<EventStream>, EventTopicProvider>();
             configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
             configuration.SetDefault<IAggregateRootTypeCodeProvider, AggregateRootTypeCodeProvider>();
             configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeProvider>();

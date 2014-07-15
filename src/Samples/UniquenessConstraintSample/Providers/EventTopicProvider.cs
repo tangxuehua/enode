@@ -3,9 +3,9 @@ using ENode.Eventing;
 
 namespace UniquenessConstraintSample.Providers
 {
-    public class EventTopicProvider : IEventTopicProvider
+    public class EventTopicProvider : AbstractTopicProvider<EventStream>
     {
-        public string GetTopic(EventStream eventStream)
+        public override string GetTopic(EventStream eventStream)
         {
             return "SectionEventTopic";
         }

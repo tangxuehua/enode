@@ -18,7 +18,7 @@ namespace ENode.EQueue
         private const string DefaultCommandServiceProcuderId = "sys_csp";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly ICommandTopicProvider _commandTopicProvider;
+        private readonly ITopicProvider<ICommand> _commandTopicProvider;
         private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
         private readonly ICommandRouteKeyProvider _commandRouteKeyProvider;
         private readonly CommandResultProcessor _commandResultProcessor;
@@ -32,7 +32,7 @@ namespace ENode.EQueue
             _commandResultProcessor = commandResultProcessor;
             _producer = new Producer(id ?? DefaultCommandServiceProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _commandTopicProvider = ObjectContainer.Resolve<ICommandTopicProvider>();
+            _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRouteKeyProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
@@ -97,7 +97,7 @@ namespace ENode.EQueue
         }
         public Task<CommandResult> Execute(ICommand command)
         {
-            return Execute(command, CommandReturnType.EventHandled);
+            return Execute(command, CommandReturnType.CommandExecuted);
         }
         public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
         {

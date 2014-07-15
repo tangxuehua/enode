@@ -4,10 +4,10 @@ using ENode.EQueue;
 
 namespace DistributeSample.CommandProducer.Providers
 {
-    public class CommandTopicProvider : ICommandTopicProvider
+    public class CommandTopicProvider : AbstractTopicProvider<ICommand>
     {
         static int _index;
-        public string GetTopic(ICommand command)
+        public override string GetTopic(ICommand command)
         {
             if (Interlocked.Increment(ref _index) % 2 == 0)
             {

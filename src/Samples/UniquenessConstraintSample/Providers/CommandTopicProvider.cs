@@ -3,9 +3,9 @@ using ENode.EQueue;
 
 namespace UniquenessConstraintSample.Providers
 {
-    public class CommandTopicProvider : ICommandTopicProvider
+    public class CommandTopicProvider : AbstractTopicProvider<ICommand>
     {
-        public string GetTopic(ICommand command)
+        public override string GetTopic(ICommand command)
         {
             return "SectionCommandTopic";
         }
