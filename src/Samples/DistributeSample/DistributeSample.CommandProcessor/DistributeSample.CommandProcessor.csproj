@@ -77,7 +77,6 @@
     <Compile Include="Providers\AggregateRootTypeCodeProvider.cs" />
     <Compile Include="Providers\CommandTypeCodeProvider.cs" />
     <Compile Include="Providers\EventTopicProvider.cs" />
-    <Compile Include="Providers\EventTypeCodeProvider.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

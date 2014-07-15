@@ -24,7 +24,6 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
             configuration.SetDefault<IEventTopicProvider, EventTopicProvider>();
             configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
             configuration.SetDefault<IAggregateRootTypeCodeProvider, AggregateRootTypeCodeProvider>();
-            configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeProvider>();
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
