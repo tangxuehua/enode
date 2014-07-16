@@ -51,7 +51,7 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
             var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
                 var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
-                if (eventConsumerAllocatedQueues.Count() == 2)
+                if (eventConsumerAllocatedQueues.Count() == 8)
                 {
                     waitHandle.Set();
                 }

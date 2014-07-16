@@ -83,10 +83,10 @@ namespace NoteSample.EQueueIntegrations
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
                 var executedCommandMessageConsumerAllocatedQueues = _commandResultProcessor.CommandExecutedMessageConsumer.GetCurrentQueues();
                 var domainEventHandledMessageConsumerAllocatedQueues = _commandResultProcessor.DomainEventHandledMessageConsumer.GetCurrentQueues();
-                if (eventConsumerAllocatedQueues.Count() == 1
-                    && commandConsumerAllocatedQueues.Count() == 1
-                    && executedCommandMessageConsumerAllocatedQueues.Count() == 1
-                    && domainEventHandledMessageConsumerAllocatedQueues.Count() == 1)
+                if (eventConsumerAllocatedQueues.Count() == 4
+                    && commandConsumerAllocatedQueues.Count() == 4
+                    && executedCommandMessageConsumerAllocatedQueues.Count() == 4
+                    && domainEventHandledMessageConsumerAllocatedQueues.Count() == 4)
                 {
                     waitHandle.Set();
                 }

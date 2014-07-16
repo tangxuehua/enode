@@ -62,7 +62,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
             var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
-                if (commandConsumerAllocatedQueues.Count() == 2)
+                if (commandConsumerAllocatedQueues.Count() == 8)
                 {
                     waitHandle.Set();
                 }
