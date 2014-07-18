@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ECommon.Components;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
@@ -15,6 +16,7 @@ namespace ENode.Domain
         private string _uniqueId;
         private int _version;
         private Queue<IDomainEvent> _uncommittedEvents;
+        private static IAggregateRootInternalHandlerProvider _eventHandlerProvider;
 
         /// <summary>The strong type unique id of aggregate root.
         /// </summary>
@@ -67,13 +69,17 @@ namespace ENode.Domain
             return role;
         }
 
-        /// <summary>Raise a domain event. The domain event will be put into the local uncommitted event queue.
+        /// <summary>Raise a domain event.
+        /// <remarks>
+        /// The domain event will first be handled by the current aggregate and then be put into the local uncommitted event queue.
+        /// </remarks>
         /// </summary>
         /// <param name="evnt"></param>
         protected void RaiseEvent(IDomainEvent evnt)
         {
-            EnsureUncommittedEventsInstantiated();
-            _uncommittedEvents.Enqueue(evnt);
+            HandleEvent(evnt);
+            AddUncommittedEvent(evnt);
+            IncreaseVersion();
         }
 
         /// <summary>The unique id of aggregate root, only used by framework.
@@ -133,6 +139,24 @@ namespace ENode.Domain
         private void IncreaseVersion()
         {
             _version++;
+        }
+        private void HandleEvent(IDomainEvent evnt)
+        {
+            if (_eventHandlerProvider == null)
+            {
+                _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
+            }
+            var handler = _eventHandlerProvider.GetInternalEventHandler(this.GetType(), evnt.GetType());
+            if (handler == null)
+            {
+                throw new Exception(string.Format("Could not find event handler for [{0}] of [{1}]", evnt.GetType().FullName, this.GetType().FullName));
+            }
+            handler(this, evnt);
+        }
+        private void AddUncommittedEvent(IDomainEvent evnt)
+        {
+            EnsureUncommittedEventsInstantiated();
+            _uncommittedEvents.Enqueue(evnt);
         }
         private void EnsureUncommittedEventsInstantiated()
         {

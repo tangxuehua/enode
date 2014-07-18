@@ -57,6 +57,7 @@ namespace ENode.Commanding.Impl
             _eventPublishInfoStore = eventPublishInfoStore;
             _logger = loggerFactory.Create(GetType().FullName);
             _waitingCommandService.SetCommandExecutor(this);
+            _eventService.SetCommandExecutor(this);
         }
 
         #endregion
@@ -224,13 +225,12 @@ namespace ENode.Commanding.Impl
             aggregateRoot.ClearUncommittedEvents();
 
             var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
-            var nextVersion = aggregateRoot.Version + 1;
             var currentTime = DateTime.Now;
             var processId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null;
 
             foreach (var evnt in uncommittedEvents)
             {
-                evnt.Version = nextVersion;
+                evnt.Version = aggregateRoot.Version;
                 evnt.Timestamp = currentTime;
             }
 
@@ -239,7 +239,7 @@ namespace ENode.Commanding.Impl
                 aggregateRoot.UniqueId,
                 aggregateRootTypeCode,
                 processId,
-                nextVersion,
+                aggregateRoot.Version,
                 currentTime,
                 uncommittedEvents,
                 command.Items);
