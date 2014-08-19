@@ -33,7 +33,7 @@ namespace BankTransferSample.Domain
         public DepositTransaction(string transactionId, string accountId, double amount)
             : base(transactionId)
         {
-            RaiseEvent(new DepositTransactionStartedEvent(transactionId, accountId, amount));
+            ApplyEvent(new DepositTransactionStartedEvent(transactionId, accountId, amount));
         }
 
         #endregion
@@ -46,7 +46,7 @@ namespace BankTransferSample.Domain
         {
             if (Status == TransactionStatus.Started)
             {
-                RaiseEvent(new DepositTransactionPreparationCompletedEvent(Id, AccountId));
+                ApplyEvent(new DepositTransactionPreparationCompletedEvent(Id, AccountId));
             }
         }
         /// <summary>确认存款
@@ -55,7 +55,7 @@ namespace BankTransferSample.Domain
         {
             if (Status == TransactionStatus.PreparationCompleted)
             {
-                RaiseEvent(new DepositTransactionCompletedEvent(Id, AccountId));
+                ApplyEvent(new DepositTransactionCompletedEvent(Id, AccountId));
             }
         }
 

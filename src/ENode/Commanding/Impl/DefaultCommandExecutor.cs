@@ -222,15 +222,14 @@ namespace ENode.Commanding.Impl
         private EventStream BuildEventStream(IAggregateRoot aggregateRoot, ICommand command)
         {
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
-            aggregateRoot.ClearUncommittedEvents();
-
             var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
             var currentTime = DateTime.Now;
             var processId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null;
+            var nextVersion = aggregateRoot.Version + 1;
 
             foreach (var evnt in uncommittedEvents)
             {
-                evnt.Version = aggregateRoot.Version;
+                evnt.Version = nextVersion;
                 evnt.Timestamp = currentTime;
             }
 
@@ -239,7 +238,7 @@ namespace ENode.Commanding.Impl
                 aggregateRoot.UniqueId,
                 aggregateRootTypeCode,
                 processId,
-                aggregateRoot.Version,
+                nextVersion,
                 currentTime,
                 uncommittedEvents,
                 command.Items);

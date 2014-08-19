@@ -69,21 +69,18 @@ namespace ENode.Domain
             return role;
         }
 
-        /// <summary>Raise a domain event.
+        /// <summary>Apply a domain event.
         /// <remarks>
         /// The domain event will first be handled by the current aggregate and then be put into the local uncommitted event queue.
         /// </remarks>
         /// </summary>
         /// <param name="evnt"></param>
-        protected void RaiseEvent(IDomainEvent evnt)
+        protected void ApplyEvent(IDomainEvent evnt)
         {
             HandleEvent(evnt);
             AddUncommittedEvent(evnt);
-            IncreaseVersion();
         }
 
-        /// <summary>The unique id of aggregate root, only used by framework.
-        /// </summary>
         string IAggregateRoot.UniqueId
         {
             get
@@ -107,8 +104,6 @@ namespace ENode.Domain
                 _uniqueId = value;
             }
         }
-        /// <summary>The version of aggregate root, only used by framework.
-        /// </summary>
         int IAggregateRoot.Version
         {
             get
@@ -116,30 +111,22 @@ namespace ENode.Domain
                 return _version;
             }
         }
-        /// <summary>Returns all the uncommitted domain events of the current aggregate root, only used by framework.
-        /// </summary>
-        /// <returns></returns>
         IEnumerable<IDomainEvent> IAggregateRoot.GetUncommittedEvents()
         {
             EnsureUncommittedEventsInstantiated();
             return _uncommittedEvents;
         }
-        /// <summary>Clear all the uncommitted domain events of the current aggregate root, only used by framework.
-        /// </summary>
-        void IAggregateRoot.ClearUncommittedEvents()
+        void IAggregateRoot.AcceptChanges()
         {
             EnsureUncommittedEventsInstantiated();
             _uncommittedEvents.Clear();
+            _version++;
         }
-
-        /// <summary>Increase the version of aggregate root, this method is only used by framework.
-        /// <remarks>This method must be provided as enode will call it when rebuilding the aggregate using event sourcing.
-        /// </remarks>
-        /// </summary>
-        private void IncreaseVersion()
+        void IAggregateRoot.IncreaseVersion()
         {
             _version++;
         }
+
         private void HandleEvent(IDomainEvent evnt)
         {
             if (_eventHandlerProvider == null)

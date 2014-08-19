@@ -11,7 +11,7 @@ namespace DistributeSample.CommandProcessor.Domain
 
         public Note(string id, string title) : base(id)
         {
-            RaiseEvent(new NoteCreatedEvent(Id, title));
+            ApplyEvent(new NoteCreatedEvent(Id, title));
         }
 
         private void Handle(NoteCreatedEvent evnt)

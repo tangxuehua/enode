@@ -12,12 +12,12 @@ namespace UniquenessConstraintSample
 
         public Section(string id, string name) : base(id)
         {
-            RaiseEvent(new SectionCreatedEvent(Id, name));
+            ApplyEvent(new SectionCreatedEvent(Id, name));
         }
 
         public void ChangeName(string name)
         {
-            RaiseEvent(new SectionNameChangedEvent(Id, name));
+            ApplyEvent(new SectionNameChangedEvent(Id, name));
         }
 
         private void Handle(SectionCreatedEvent evnt)

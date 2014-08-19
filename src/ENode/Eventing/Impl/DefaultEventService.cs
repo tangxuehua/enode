@@ -215,6 +215,7 @@ namespace ENode.Eventing.Impl
         {
             try
             {
+                context.AggregateRoot.AcceptChanges();
                 _memoryCache.Set(context.AggregateRoot);
                 _logger.DebugFormat("Memory cache refreshed, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", context.EventStream.CommandId, context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
             }

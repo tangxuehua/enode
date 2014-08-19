@@ -42,7 +42,7 @@ namespace BankTransferSample.Domain
         public TransferTransaction(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId)
         {
-            RaiseEvent(new TransferTransactionStartedEvent(transactionId, transactionInfo));
+            ApplyEvent(new TransferTransactionStartedEvent(transactionId, transactionInfo));
         }
 
         #endregion
@@ -57,7 +57,7 @@ namespace BankTransferSample.Domain
             {
                 if (!IsTransferOutPreparationConfirmed)
                 {
-                    RaiseEvent(new TransferOutPreparationConfirmedEvent(Id, TransactionInfo));
+                    ApplyEvent(new TransferOutPreparationConfirmedEvent(Id, TransactionInfo));
                 }
             }
         }
@@ -69,7 +69,7 @@ namespace BankTransferSample.Domain
             {
                 if (!IsTransferInPreparationConfirmed)
                 {
-                    RaiseEvent(new TransferInPreparationConfirmedEvent(Id, TransactionInfo));
+                    ApplyEvent(new TransferInPreparationConfirmedEvent(Id, TransactionInfo));
                 }
             }
         }
@@ -81,10 +81,10 @@ namespace BankTransferSample.Domain
             {
                 if (!IsTransferOutConfirmed)
                 {
-                    RaiseEvent(new TransferOutConfirmedEvent(Id, TransactionInfo));
+                    ApplyEvent(new TransferOutConfirmedEvent(Id, TransactionInfo));
                     if (IsTransferInConfirmed)
                     {
-                        RaiseEvent(new TransferTransactionCompletedEvent(Id));
+                        ApplyEvent(new TransferTransactionCompletedEvent(Id));
                     }
                 }
             }
@@ -97,10 +97,10 @@ namespace BankTransferSample.Domain
             {
                 if (!IsTransferInConfirmed)
                 {
-                    RaiseEvent(new TransferInConfirmedEvent(Id, TransactionInfo));
+                    ApplyEvent(new TransferInConfirmedEvent(Id, TransactionInfo));
                     if (IsTransferOutConfirmed)
                     {
-                        RaiseEvent(new TransferTransactionCompletedEvent(Id));
+                        ApplyEvent(new TransferTransactionCompletedEvent(Id));
                     }
                 }
             }
@@ -111,7 +111,7 @@ namespace BankTransferSample.Domain
         {
             if (Status == TransactionStatus.Started)
             {
-                RaiseEvent(new TransferTransactionCanceledEvent(Id));
+                ApplyEvent(new TransferTransactionCanceledEvent(Id));
             }
         }
 

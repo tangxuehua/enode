@@ -35,7 +35,7 @@ namespace BankTransferSample.Domain
         /// </summary>
         public BankAccount(string accountId, string owner) : base(accountId)
         {
-            RaiseEvent(new AccountCreatedEvent(accountId, owner));
+            ApplyEvent(new AccountCreatedEvent(accountId, owner));
         }
 
         #endregion
@@ -49,11 +49,11 @@ namespace BankTransferSample.Domain
             var availableBalance = GetAvailableBalance();
             if (preparationType == PreparationType.DebitPreparation && availableBalance < amount)
             {
-                RaiseEvent(new InsufficientBalanceEvent(Id, transactionId, transactionType, amount, Balance, availableBalance));
+                ApplyEvent(new InsufficientBalanceEvent(Id, transactionId, transactionType, amount, Balance, availableBalance));
                 return;
             }
 
-            RaiseEvent(new TransactionPreparationAddedEvent(new TransactionPreparation(Id, transactionId, transactionType, preparationType, amount)));
+            ApplyEvent(new TransactionPreparationAddedEvent(new TransactionPreparation(Id, transactionId, transactionType, preparationType, amount)));
         }
         /// <summary>提交一笔预操作
         /// </summary>
@@ -69,13 +69,13 @@ namespace BankTransferSample.Domain
             {
                 currentBalance += transactionPreparation.Amount;
             }
-            RaiseEvent(new TransactionPreparationCommittedEvent(currentBalance, transactionPreparation));
+            ApplyEvent(new TransactionPreparationCommittedEvent(currentBalance, transactionPreparation));
         }
         /// <summary>取消一笔预操作
         /// </summary>
         public void CancelTransactionPreparation(string transactionId)
         {
-            RaiseEvent(new TransactionPreparationCanceledEvent(GetTransactionPreparation(transactionId)));
+            ApplyEvent(new TransactionPreparationCanceledEvent(GetTransactionPreparation(transactionId)));
         }
 
         #endregion
