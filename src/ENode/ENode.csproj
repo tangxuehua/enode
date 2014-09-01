@@ -154,9 +154,9 @@
     <Compile Include="Commanding\AggregateRootNotExistException.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="ECommon, Version=1.3.3.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ECommon, Version=1.3.4.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\ECommon.1.3.3\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ECommon.1.3.4\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
