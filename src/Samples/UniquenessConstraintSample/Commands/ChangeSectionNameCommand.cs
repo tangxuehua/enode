@@ -4,7 +4,7 @@ using ENode.Commanding;
 namespace UniquenessConstraintSample
 {
     [Serializable]
-    public class ChangeSectionNameCommand : Command<string>
+    public class ChangeSectionNameCommand : AggregateCommand<string>
     {
         public string Name { get; private set; }
 

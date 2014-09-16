@@ -8,11 +8,12 @@ namespace ENode.Commanding.Impl
     {
         public string GetRouteKey(ICommand command)
         {
-            if (string.IsNullOrEmpty(command.AggregateRootId))
+            var aggregateCommand = command as IAggregateCommand;
+            if (aggregateCommand != null && !string.IsNullOrEmpty(aggregateCommand.AggregateRootId))
             {
-                return command.Id;
+                return aggregateCommand.AggregateRootId;
             }
-            return command.AggregateRootId;
+            return command.Id;
         }
     }
 }

@@ -5,7 +5,7 @@ using ENode.Commanding;
 namespace NoteSample.Commands
 {
     [Serializable]
-    public class CreateNoteCommand : Command<string>, ICreatingAggregateCommand
+    public class CreateNoteCommand : AggregateCommand<string>, ICreatingAggregateCommand
     {
         public string Title { get; private set; }
 

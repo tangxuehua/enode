@@ -70,14 +70,9 @@ namespace ENode.Commanding.Impl
             var context = processingCommand.CommandExecuteContext;
             var commandHandler = default(ICommandHandler);
 
-            //首先验证command的合法性以及command handler是否存在
+            //首先验证command handler是否存在
             try
             {
-                if (!(command is ICreatingAggregateCommand) && string.IsNullOrEmpty(command.AggregateRootId))
-                {
-                    throw new CommandAggregateRootIdMissingException(command);
-                }
-
                 commandHandler = _commandHandlerProvider.GetCommandHandler(command);
                 if (commandHandler == null)
                 {
@@ -104,15 +99,17 @@ namespace ENode.Commanding.Impl
             try
             {
                 commandHandler.Handle(context, command);
-                _logger.DebugFormat("Handle command success. commandHandlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                _logger.DebugFormat("Handle command success. commandHandlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}, processId:{4}",
                     commandHandler.GetInnerCommandHandler().GetType().Name,
                     command.GetType().Name,
                     command.Id,
-                    command.AggregateRootId);
+                    processingCommand.AggregateRootId,
+                    processingCommand.ProcessId);
                 handleSuccess = true;
             }
             catch (ENodeException)
             {
+                //TODO，最好显式的使用一个IOException类型。
                 //如果是ENodeException，则认为是由于网络问题，不是领域内产生的异常，比如是用户在通过context.Get<T>方法获取聚合根时，遇到异常；
                 //这种异常是由ENode框架内部抛出来的，通常是由于memoryCache不可用或者eventStore不可用导致，所以此时我们应该直接throw该异常，
                 //然后EQueue会认为当前消息处理失败，会继续重试。
@@ -128,7 +125,7 @@ namespace ENode.Commanding.Impl
             }
 
             //如果command执行成功，则提交执行后的结果，ENode框架在这里会保证一个command只能对一个聚合根做修改。
-            if (handleSuccess)
+            if (handleSuccess && command is IAggregateCommand)
             {
                 CommitChanges(processingCommand);
             }
@@ -172,7 +169,7 @@ namespace ENode.Commanding.Impl
             var dirtyAggregate = dirtyAggregateRoots.Single();
 
             //从该聚合根获取所有产生的领域事件，构造出一个EventStream对象
-            var eventStream = BuildEventStream(dirtyAggregate, command);
+            var eventStream = BuildEventStream(dirtyAggregate, processingCommand);
 
             //尝试将当前已执行的command添加到commandStore
             string sourceEventId;
@@ -219,12 +216,13 @@ namespace ENode.Commanding.Impl
                 _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
             }
         }
-        private EventStream BuildEventStream(IAggregateRoot aggregateRoot, ICommand command)
+        private EventStream BuildEventStream(IAggregateRoot aggregateRoot, ProcessingCommand processingCommand)
         {
+            var command = processingCommand.Command;
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
             var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
             var currentTime = DateTime.Now;
-            var processId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null;
+            var processId = processingCommand.ProcessId;
             var nextVersion = aggregateRoot.Version + 1;
 
             foreach (var evnt in uncommittedEvents)
@@ -273,12 +271,13 @@ namespace ENode.Commanding.Impl
                 //到这里，说明当前command执行遇到领域内的异常，然后当前command之前也没执行过，是第一次被执行，那我们就记录错误日志
                 //然后认为该command处理失败即可。
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
-                var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}, exceptionMessage:{5}",
+                var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}, processId:{5}, exceptionMessage:{6}",
                     exception.GetType().Name,
                     commandHandlerType.Name,
                     command.GetType().Name,
                     command.Id,
-                    command.AggregateRootId,
+                    processingCommand.AggregateRootId,
+                    processingCommand.ProcessId,
                     exception.Message);
                 _logger.Error(errorMessage, exception);
                 NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
@@ -288,16 +287,12 @@ namespace ENode.Commanding.Impl
         }
         private void NotifyCommandExecuteFailedOrNothingChanged(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {
-            var command = processingCommand.Command;
-            var aggregateRootId = command.AggregateRootId;
-            var processId = command is IProcessCommand ? ((IProcessCommand)command).ProcessId : null;
-
             _executedCommandService.ProcessExecutedCommand(
                 processingCommand.CommandExecuteContext,
                 processingCommand.Command,
                 commandStatus,
-                processId,
-                aggregateRootId,
+                processingCommand.ProcessId,
+                processingCommand.AggregateRootId,
                 exceptionTypeName,
                 errorMessage);
         }

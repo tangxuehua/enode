@@ -8,12 +8,10 @@ namespace ENode.Commanding
     /// <summary>Represents an abstract command.
     /// </summary>
     [Serializable]
-    public abstract class Command<TAggregateRootId> : ICommand
+    public abstract class Command : ICommand
     {
         #region Private Variables
 
-        private TAggregateRootId _aggregateRootId;
-        private string _aggregateRootStringId;
         private int _retryCount;
         public const int DefaultRetryCount = 3;
         public const int MaxRetryCount = 10;
@@ -42,28 +40,6 @@ namespace ENode.Commanding
                 _retryCount = value;
             }
         }
-        /// <summary>Represents the id of aggregate root which is created or updated by the command.
-        /// </summary>
-        public TAggregateRootId AggregateRootId
-        {
-            get
-            {
-                return _aggregateRootId;
-            }
-        }
-        /// <summary>Represents the id of the aggregate root, this property is only used by framework.
-        /// </summary>
-        string ICommand.AggregateRootId
-        {
-            get
-            {
-                if (_aggregateRootStringId == null && _aggregateRootId != null)
-                {
-                    _aggregateRootStringId = _aggregateRootId.ToString();
-                }
-                return _aggregateRootStringId;
-            }
-        }
         /// <summary>Represents the extension information of the command.
         /// </summary>
         public IDictionary<string, string> Items { get; private set; }
@@ -74,24 +50,10 @@ namespace ENode.Commanding
 
         /// <summary>Default constructor.
         /// </summary>
-        protected Command() : this(default(TAggregateRootId)) { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        protected Command(TAggregateRootId aggregateRootId) : this(aggregateRootId, DefaultRetryCount) { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        /// <param name="retryCount"></param>
-        protected Command(TAggregateRootId aggregateRootId, int retryCount)
+        protected Command()
         {
             Id = ObjectId.GenerateNewStringId();
-            _aggregateRootId = aggregateRootId;
-            if (aggregateRootId != null)
-            {
-                _aggregateRootStringId = aggregateRootId.ToString();
-            }
-            RetryCount = retryCount;
+            RetryCount = DefaultRetryCount;
             Items = new Dictionary<string, string>();
         }
 
@@ -99,12 +61,12 @@ namespace ENode.Commanding
 
         #region Public Methods
 
-        /// <summary>Returns the aggregate root id as the key by default.
+        /// <summary>Returns string.Empty by default.
         /// </summary>
         /// <returns></returns>
         public virtual object GetKey()
         {
-            return _aggregateRootId;
+            return string.Empty;
         }
 
         #endregion

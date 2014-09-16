@@ -7,6 +7,7 @@ using ECommon.Retring;
 using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Domain;
+using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
@@ -175,19 +176,29 @@ namespace ENode.Eventing.Impl
                 var processCommands = eventContext.GetCommands();
                 if (processCommands.Any())
                 {
+                    if (string.IsNullOrEmpty(processId))
+                    {
+                        throw new ENodeException("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
+                            eventHandlerType.Name,
+                            evnt.GetType().Name,
+                            evnt.Id,
+                            evnt.Version,
+                            evnt.AggregateRootId);
+                    }
                     foreach (var processCommand in processCommands)
                     {
                         processCommand.Id = BuildCommandId(processCommand, evnt, eventHandlerTypeCode);
-                        processCommand.ProcessId = processId;
-                        _processCommandSender.Send(processCommand, evnt.Id);
-                        _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}",
+                        processCommand.Items["ProcessId"] = processId;
+                        _processCommandSender.SendProcessCommand(processCommand, evnt.Id);
+                        _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}, processId:{7}",
                             processCommand.GetType().Name,
                             processCommand.Id,
                             eventHandlerType.Name,
                             evnt.GetType().Name,
                             evnt.Id,
                             evnt.Version,
-                            evnt.AggregateRootId);
+                            evnt.AggregateRootId,
+                            processId);
                     }
                 }
                 _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
@@ -240,7 +251,7 @@ namespace ENode.Eventing.Impl
         }
         class EventContext : IEventContext
         {
-            private readonly List<IProcessCommand> _commands = new List<IProcessCommand>();
+            private readonly List<ICommand> _commands = new List<ICommand>();
             private readonly IRepository _repository;
 
             public EventContext(IRepository repository, string processId, IDictionary<string, string> items)
@@ -257,11 +268,11 @@ namespace ENode.Eventing.Impl
             {
                 return _repository.Get<T>(aggregateRootId);
             }
-            public void AddCommand(IProcessCommand command)
+            public void AddCommand(ICommand command)
             {
                 _commands.Add(command);
             }
-            public IEnumerable<IProcessCommand> GetCommands()
+            public IEnumerable<ICommand> GetCommands()
             {
                 return _commands;
             }

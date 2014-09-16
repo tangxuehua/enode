@@ -10,9 +10,6 @@ namespace ENode.Commanding
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
         string Id { get; set; }
-        /// <summary>Represents the aggregate root id associated with the command.
-        /// </summary>
-        string AggregateRootId { get; }
         /// <summary>Represents the times the command should retry when the command execution has concurrent exception.
         /// </summary>
         int RetryCount { get; }

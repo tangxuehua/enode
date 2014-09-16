@@ -40,12 +40,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
+    <Compile Include="Commanding\AggregateCommand.cs" />
+    <Compile Include="Commanding\CommandProcessIdMissingException.cs" />
     <Compile Include="Commanding\CommandHandlerNotFoundException.cs" />
     <Compile Include="Commanding\CommandSendException.cs" />
     <Compile Include="Commanding\CommandSendResult.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\HandledCommand.cs" />
     <Compile Include="Commanding\CommandAddResult.cs" />
+    <Compile Include="Commanding\IAggregateCommand.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\IProcessCommandSender.cs" />
     <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
@@ -57,8 +60,7 @@
     <Compile Include="Commanding\Impl\InMemoryCommandStore.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\IExecutedCommandService.cs" />
-    <Compile Include="Commanding\IProcessCommand.cs" />
-    <Compile Include="Commanding\ProcessCommand.cs" />
+    <Compile Include="Commanding\IStartProcessCommand.cs" />
     <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
@@ -79,6 +81,7 @@
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Domain\Impl\NotImplementedAggregateRootTypeCodeProvider.cs" />
+    <Compile Include="Eventing\IEvent.cs" />
     <Compile Include="Eventing\ProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IEventContext.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />

@@ -9,7 +9,7 @@ namespace ENode.Commanding.Impl
         {
             throw new NotImplementedException();
         }
-        public void Send(IProcessCommand processCommand, string sourceEventId)
+        public void SendProcessCommand(ICommand processCommand, string sourceEventId)
         {
             throw new NotImplementedException();
         }
@@ -25,7 +25,7 @@ namespace ENode.Commanding.Impl
         {
             throw new NotImplementedException();
         }
-        public Task<ProcessResult> StartProcess(IProcessCommand command)
+        public Task<ProcessResult> StartProcess(IStartProcessCommand command)
         {
             throw new NotImplementedException();
         }

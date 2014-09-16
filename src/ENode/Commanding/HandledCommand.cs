@@ -19,14 +19,27 @@ namespace ENode.Commanding
             {
                 throw new ArgumentNullException("command");
             }
-            if (aggregateRootId == null)
-            {
-                throw new ArgumentNullException("aggregateRootId");
-            }
             Command = command;
             SourceEventId = sourceEventId;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeCode = aggregateRootTypeCode;
+
+            if (command is IStartProcessCommand)
+            {
+                ProcessId = ((IStartProcessCommand)command).ProcessId;
+                if (string.IsNullOrEmpty(ProcessId))
+                {
+                    throw new CommandProcessIdMissingException(command);
+                }
+            }
+            else if (command.Items.ContainsKey("ProcessId"))
+            {
+                ProcessId = command.Items["ProcessId"];
+                if (string.IsNullOrEmpty(ProcessId))
+                {
+                    throw new CommandProcessIdMissingException(command);
+                }
+            }
         }
 
         /// <summary>The command object.
@@ -41,6 +54,9 @@ namespace ENode.Commanding
         /// <summary>The aggregate root id.
         /// </summary>
         public string AggregateRootId { get; private set; }
+        /// <summary>The process id.
+        /// </summary>
+        public string ProcessId { get; private set; }
 
         /// <summary>Overrides to return the handled command's useful information.
         /// </summary>
@@ -54,7 +70,7 @@ namespace ENode.Commanding
                 SourceEventId,
                 AggregateRootTypeCode,
                 AggregateRootId,
-                Command is IProcessCommand ? ((IProcessCommand)Command).ProcessId : null,
+                ProcessId,
                 string.Join("|", Command.Items.Select(x => x.Key + ":" + x.Value)));
         }
     }

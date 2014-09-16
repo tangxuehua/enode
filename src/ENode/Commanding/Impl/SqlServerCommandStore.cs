@@ -109,7 +109,7 @@ namespace ENode.Commanding.Impl
                 CommandTypeCode = _commandTypeCodeProvider.GetTypeCode(handledCommand.Command.GetType()),
                 AggregateRootId = handledCommand.AggregateRootId,
                 AggregateRootTypeCode = handledCommand.AggregateRootTypeCode,
-                ProcessId = handledCommand.Command is IProcessCommand ? ((IProcessCommand)handledCommand.Command).ProcessId : null,
+                ProcessId = handledCommand.ProcessId,
                 SourceEventId = handledCommand.SourceEventId,
                 Timestamp = DateTime.Now,
                 Payload = _binarySerializer.Serialize(handledCommand.Command),

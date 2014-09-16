@@ -7,7 +7,7 @@ namespace BankTransferSample.Commands
     /// <summary>开户（创建一个账户）
     /// </summary>
     [Serializable]
-    public class CreateAccountCommand : Command<string>, ICreatingAggregateCommand
+    public class CreateAccountCommand : AggregateCommand<string>, ICreatingAggregateCommand
     {
         public string Owner { get; set; }
 
@@ -19,7 +19,7 @@ namespace BankTransferSample.Commands
     /// <summary>向账户添加一笔预操作
     /// </summary>
     [Serializable]
-    public class AddTransactionPreparationCommand : ProcessCommand<string>
+    public class AddTransactionPreparationCommand : AggregateCommand<string>
     {
         public string TransactionId { get; set; }
         public TransactionType TransactionType { get; set; }
@@ -38,7 +38,7 @@ namespace BankTransferSample.Commands
     /// <summary>提交预操作
     /// </summary>
     [Serializable]
-    public class CommitTransactionPreparationCommand : ProcessCommand<string>
+    public class CommitTransactionPreparationCommand : AggregateCommand<string>
     {
         public string TransactionId { get; set; }
 

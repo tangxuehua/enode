@@ -50,7 +50,11 @@ namespace ENode.Commanding.Impl
             {
                 return false;
             }
-            var aggregateRootId = processingCommand.Command.AggregateRootId;
+            if (!(processingCommand.Command is IAggregateCommand))
+            {
+                return false;
+            }
+            var aggregateRootId = processingCommand.AggregateRootId;
             if (string.IsNullOrEmpty(aggregateRootId))
             {
                 return false;
@@ -77,7 +81,7 @@ namespace ENode.Commanding.Impl
                     _logger.DebugFormat("Queued a waiting command, commandType:{0}, commandId:{1}, aggregateRootId:{2}",
                         processingCommand.Command.GetType().Name,
                         processingCommand.Command.Id,
-                        processingCommand.Command.AggregateRootId);
+                        aggregateRootId);
                     return true;
                 }
 

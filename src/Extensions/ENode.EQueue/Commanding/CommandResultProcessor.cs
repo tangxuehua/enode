@@ -70,7 +70,7 @@ namespace ENode.EQueue.Commanding
         {
             return _commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource });
         }
-        public bool RegisterProcess(IProcessCommand command, TaskCompletionSource<ProcessResult> taskCompletionSource)
+        public bool RegisterProcess(IStartProcessCommand command, TaskCompletionSource<ProcessResult> taskCompletionSource)
         {
             return _processTaskDict.TryAdd(command.ProcessId, taskCompletionSource);
         }
@@ -84,14 +84,14 @@ namespace ENode.EQueue.Commanding
                     new CommandResult(
                         CommandStatus.Failed,
                         command.Id,
-                        command.AggregateRootId,
+                        command is IAggregateCommand ? ((IAggregateCommand)command).AggregateRootId : null,
                         "CommandSendFailed",
                         "Failed to send the command.",
                         command.Items));
             }
             return this;
         }
-        public CommandResultProcessor NotifyProcessCommandSendFailed(IProcessCommand command)
+        public CommandResultProcessor NotifyProcessCommandSendFailed(IStartProcessCommand command)
         {
             TaskCompletionSource<ProcessResult> taskCompletionSource;
             if (_processTaskDict.TryGetValue(command.ProcessId, out taskCompletionSource))
@@ -99,7 +99,7 @@ namespace ENode.EQueue.Commanding
                 taskCompletionSource.TrySetResult(
                     new ProcessResult(
                         command.ProcessId,
-                        command.AggregateRootId,
+                        command is IAggregateCommand ? ((IAggregateCommand)command).AggregateRootId : null,
                         ProcessStatus.Failed,
                         0,
                         "ProcessCommandSendFailed",

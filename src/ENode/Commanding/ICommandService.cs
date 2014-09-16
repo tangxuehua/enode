@@ -28,11 +28,11 @@ namespace ENode.Commanding
         Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType);
         /// <summary>Start a business process (saga), and returns a task.
         /// <remarks>
-        /// The task will return when the process is completed successfully or any command associated with the process meets error or exception.
+        /// The task will return when the process is completed successfully or any command associated with the process has error or exception.
         /// </remarks>
         /// </summary>
         /// <param name="command">The command which starts the process.</param>
         /// <returns>A task which contains the result of the process.</returns>
-        Task<ProcessResult> StartProcess(IProcessCommand command);
+        Task<ProcessResult> StartProcess(IStartProcessCommand command);
     }
 }

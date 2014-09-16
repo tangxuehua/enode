@@ -67,9 +67,9 @@ namespace ENode.EQueue
                 throw new CommandSendException(result.ErrorMessage);
             }
         }
-        public void Send(IProcessCommand processCommand, string sourceEventId)
+        public void SendProcessCommand(ICommand processCommand, string sourceEventId)
         {
-            ValidateCommand(processCommand);
+            ValidateProcessCommand(processCommand);
             if (string.IsNullOrEmpty(sourceEventId))
             {
                 throw new ArgumentException("Source event id can not be null or empty.");
@@ -124,14 +124,14 @@ namespace ENode.EQueue
 
             return taskCompletionSource.Task;
         }
-        public Task<ProcessResult> StartProcess(IProcessCommand command)
+        public Task<ProcessResult> StartProcess(IStartProcessCommand command)
         {
             if (_commandResultProcessor == null)
             {
                 throw new NotSupportedException("Not supported operation as the command result processor is not set.");
             }
 
-            ValidateCommand(command);
+            ValidateStartProcessCommand(command);
             var taskCompletionSource = new TaskCompletionSource<ProcessResult>();
 
             if (!_commandResultProcessor.RegisterProcess(command, taskCompletionSource))
@@ -156,14 +156,27 @@ namespace ENode.EQueue
             {
                 throw new ArgumentException("Command id can not be null or empty.");
             }
-            if (!(command is ICreatingAggregateCommand) && string.IsNullOrEmpty(command.AggregateRootId))
+            if (!(command is ICreatingAggregateCommand) && command is IAggregateCommand && string.IsNullOrEmpty(((IAggregateCommand)command).AggregateRootId))
             {
-                var format = "AggregateRootId cannot be null or empty if the command is not a ICreatingAggregateCommand, commandType:{0}, commandId:{1}.";
+                var format = "AggregateRootId cannot be null or empty if the aggregate command is not a ICreatingAggregateCommand, commandType:{0}, commandId:{1}.";
                 throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
             }
-            if (command is IProcessCommand && string.IsNullOrEmpty(((IProcessCommand)command).ProcessId))
+        }
+        private void ValidateProcessCommand(ICommand command)
+        {
+            ValidateCommand(command);
+            if (!command.Items.ContainsKey("ProcessId") || string.IsNullOrEmpty(command.Items["ProcessId"]))
             {
-                var format = "ProcessId cannot be null or empty if the command is a IProcessCommand, commandType:{0}, commandId:{1}.";
+                var format = "ProcessId cannot be null or empty if the command is a process command, commandType:{0}, commandId:{1}.";
+                throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
+            }
+        }
+        private void ValidateStartProcessCommand(IStartProcessCommand command)
+        {
+            ValidateCommand(command);
+            if (string.IsNullOrEmpty(command.ProcessId))
+            {
+                var format = "ProcessId cannot be null or empty if the command is a start process command, commandType:{0}, commandId:{1}.";
                 throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
             }
         }

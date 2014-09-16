@@ -4,7 +4,7 @@ using ENode.Domain;
 
 namespace ENode.Eventing
 {
-    /// <summary>Represents a context for event handler handling domain event.
+    /// <summary>Represents a context for event handler handling event.
     /// </summary>
     public interface IEventContext
     {
@@ -24,10 +24,10 @@ namespace ENode.Eventing
         /// <summary>Add a to be execute process command in the context.
         /// </summary>
         /// <param name="command">The process command to execute.</param>
-        void AddCommand(IProcessCommand command);
+        void AddCommand(ICommand command);
         /// <summary>Get all the to be execute process commands from the context.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IProcessCommand> GetCommands();
+        IEnumerable<ICommand> GetCommands();
     }
 }

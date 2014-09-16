@@ -104,9 +104,8 @@ namespace ENode.Eventing.Impl
                 {
                     try
                     {
-                        var processId = processingCommand.Command is IProcessCommand ? ((IProcessCommand)processingCommand.Command).ProcessId : null;
                         processingCommand.CommandExecuteContext.Items["CurrentCommandId"] = processingCommand.Command.Id;
-                        processingCommand.CommandExecuteContext.Items["CurrentProcessId"] = processId;
+                        processingCommand.CommandExecuteContext.Items["CurrentProcessId"] = processingCommand.ProcessId;
                         _eventPublisher.PublishEvent(processingCommand.CommandExecuteContext.Items, eventStream);
                         _logger.DebugFormat("Publish event success, commandId:{0}", eventStream.CommandId);
                         return true;
