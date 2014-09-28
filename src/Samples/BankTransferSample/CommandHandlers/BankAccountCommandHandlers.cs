@@ -1,5 +1,7 @@
-﻿using BankTransferSample.Commands;
+﻿using System;
+using BankTransferSample.Commands;
 using BankTransferSample.Domain;
+using BankTransferSample.DomainEvents;
 using ECommon.Components;
 using ENode.Commanding;
 
@@ -10,12 +12,24 @@ namespace BankTransferSample.CommandHandlers
     [Component]
     public class BankAccountCommandHandlers :
         ICommandHandler<CreateAccountCommand>,                       //开户
+        ICommandHandler<ValidateAccountCommand>,                     //验证账户是否合法
         ICommandHandler<AddTransactionPreparationCommand>,           //添加预操作
         ICommandHandler<CommitTransactionPreparationCommand>         //提交预操作
     {
         public void Handle(ICommandContext context, CreateAccountCommand command)
         {
             context.Add(new BankAccount(command.AggregateRootId, command.Owner));
+        }
+        public void Handle(ICommandContext context, ValidateAccountCommand command)
+        {
+            if (command.AccountId == "00001" || command.AccountId == "00002")
+            {
+                context.Add(new AccountValidatePassedEvent(command.AccountId, command.TransactionId));
+            }
+            else
+            {
+                throw new Exception("Invalid bank account:" + command.AccountId);
+            }
         }
         public void Handle(ICommandContext context, AddTransactionPreparationCommand command)
         {

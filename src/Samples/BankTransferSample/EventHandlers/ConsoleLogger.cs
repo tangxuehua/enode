@@ -9,6 +9,7 @@ namespace BankTransferSample.EventHandlers
     [Component]
     public class ConsoleLogger :
         IEventHandler<AccountCreatedEvent>,
+        IEventHandler<AccountValidatePassedEvent>,
         IEventHandler<TransactionPreparationAddedEvent>,
         IEventHandler<TransactionPreparationCommittedEvent>,
         IEventHandler<TransferTransactionStartedEvent>,
@@ -21,6 +22,10 @@ namespace BankTransferSample.EventHandlers
         public void Handle(IEventContext context, AccountCreatedEvent evnt)
         {
             Console.WriteLine("账户已创建，账户：{0}，所有者：{1}", evnt.AggregateRootId, evnt.Owner);
+        }
+        public void Handle(IEventContext context, AccountValidatePassedEvent evnt)
+        {
+            Console.WriteLine("账户验证已通过，交易ID：{0}，账户：{1}", evnt.TransactionId, evnt.AccountId);
         }
         public void Handle(IEventContext context, TransactionPreparationAddedEvent evnt)
         {

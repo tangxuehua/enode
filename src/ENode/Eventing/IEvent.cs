@@ -2,7 +2,7 @@
 
 namespace ENode.Eventing
 {
-    /// <summary>Represents a domain event.
+    /// <summary>Represents an event.
     /// </summary>
     public interface IEvent
     {

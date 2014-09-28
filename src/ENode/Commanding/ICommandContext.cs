@@ -1,4 +1,5 @@
 ﻿using ENode.Domain;
+using ENode.Eventing;
 
 namespace ENode.Commanding
 {
@@ -22,5 +23,9 @@ namespace ENode.Commanding
         /// <param name="id"></param>
         /// <returns></returns>
         T Get<T>(object id) where T : class, IAggregateRoot;
+        /// <summary>Add a new event into the current command context.
+        /// </summary>
+        /// <param name="evnt"></param>
+        void Add(IEvent evnt);
     }
 }

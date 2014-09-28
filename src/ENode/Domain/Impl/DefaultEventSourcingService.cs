@@ -15,7 +15,7 @@ namespace ENode.Domain.Impl
             _eventHandlerProvider = eventHandlerProvider;
         }
 
-        public void ReplayEvents(IAggregateRoot aggregateRoot, IEnumerable<EventStream> eventStreams)
+        public void ReplayEvents(IAggregateRoot aggregateRoot, IEnumerable<DomainEventStream> eventStreams)
         {
             foreach (var eventStream in eventStreams)
             {
@@ -46,7 +46,7 @@ namespace ENode.Domain.Impl
 
             handler(aggregateRoot, evnt);
         }
-        private void VerifyEvent(IAggregateRoot aggregateRoot, EventStream eventStream)
+        private void VerifyEvent(IAggregateRoot aggregateRoot, DomainEventStream eventStream)
         {
             if (eventStream.Version > 1 && eventStream.AggregateRootId != aggregateRoot.UniqueId)
             {

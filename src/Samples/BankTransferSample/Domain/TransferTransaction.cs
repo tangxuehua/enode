@@ -17,6 +17,12 @@ namespace BankTransferSample.Domain
         /// <summary>交易开始时间
         /// </summary>
         public DateTime StartedTime { get; private set; }
+        /// <summary>源账户验证通过
+        /// </summary>
+        public bool IsSourceAccountValidatePassed { get; private set; }
+        /// <summary>目标账户验证通过
+        /// </summary>
+        public bool IsTargetAccountValidatePassed { get; private set; }
         /// <summary>预转出已确认
         /// </summary>
         public bool IsTransferOutPreparationConfirmed { get; private set; }
@@ -49,11 +55,41 @@ namespace BankTransferSample.Domain
 
         #region Public Methods
 
+        /// <summary>确认账户验证通过
+        /// </summary>
+        public void ConfirmAccountValidatePassed(string accountId)
+        {
+            if (Status == TransactionStatus.Started)
+            {
+                if (accountId == TransactionInfo.SourceAccountId)
+                {
+                    if (!IsSourceAccountValidatePassed)
+                    {
+                        ApplyEvent(new SourceAccountValidatePassedConfirmedEvent(Id, TransactionInfo));
+                        if (IsTargetAccountValidatePassed)
+                        {
+                            ApplyEvent(new AccountValidatePassedConfirmCompletedEvent(Id, TransactionInfo));
+                        }
+                    }
+                }
+                else if (accountId == TransactionInfo.TargetAccountId)
+                {
+                    if (!IsTargetAccountValidatePassed)
+                    {
+                        ApplyEvent(new TargetAccountValidatePassedConfirmedEvent(Id, TransactionInfo));
+                        if (IsSourceAccountValidatePassed)
+                        {
+                            ApplyEvent(new AccountValidatePassedConfirmCompletedEvent(Id, TransactionInfo));
+                        }
+                    }
+                }
+            }
+        }
         /// <summary>确认预转出
         /// </summary>
         public void ConfirmTransferOutPreparation()
         {
-            if (Status == TransactionStatus.Started)
+            if (Status == TransactionStatus.AccountValidateCompleted)
             {
                 if (!IsTransferOutPreparationConfirmed)
                 {
@@ -65,7 +101,7 @@ namespace BankTransferSample.Domain
         /// </summary>
         public void ConfirmTransferInPreparation()
         {
-            if (Status == TransactionStatus.Started)
+            if (Status == TransactionStatus.AccountValidateCompleted)
             {
                 if (!IsTransferInPreparationConfirmed)
                 {
@@ -109,7 +145,7 @@ namespace BankTransferSample.Domain
         /// </summary>
         public void Cancel()
         {
-            if (Status == TransactionStatus.Started)
+            if (Status == TransactionStatus.AccountValidateCompleted)
             {
                 ApplyEvent(new TransferTransactionCanceledEvent(Id));
             }
@@ -124,6 +160,18 @@ namespace BankTransferSample.Domain
             Id = evnt.AggregateRootId;
             TransactionInfo = evnt.TransactionInfo;
             Status = TransactionStatus.Started;
+        }
+        private void Handle(SourceAccountValidatePassedConfirmedEvent evnt)
+        {
+            IsSourceAccountValidatePassed = true;
+        }
+        private void Handle(TargetAccountValidatePassedConfirmedEvent evnt)
+        {
+            IsTargetAccountValidatePassed = true;
+        }
+        private void Handle(AccountValidatePassedConfirmCompletedEvent evnt)
+        {
+            Status = TransactionStatus.AccountValidateCompleted;
         }
         private void Handle(TransferOutPreparationConfirmedEvent evnt)
         {

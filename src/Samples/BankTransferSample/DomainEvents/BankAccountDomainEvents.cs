@@ -19,6 +19,20 @@ namespace BankTransferSample.DomainEvents
             Owner = owner;
         }
     }
+    /// <summary>账户验证已通过
+    /// </summary>
+    [Serializable]
+    public class AccountValidatePassedEvent : Event
+    {
+        public string AccountId { get; set; }
+        public string TransactionId { get; set; }
+
+        public AccountValidatePassedEvent(string accountId, string transactionId)
+        {
+            AccountId = accountId;
+            TransactionId = transactionId;
+        }
+    }
     /// <summary>账户预操作已添加
     /// </summary>
     [Serializable]

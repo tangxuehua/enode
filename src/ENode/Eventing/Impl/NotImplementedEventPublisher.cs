@@ -3,11 +3,15 @@ using System.Collections.Generic;
 
 namespace ENode.Eventing.Impl
 {
-    public class NotImplementedEventPublisher : IEventPublisher
+    public class NotImplementedEventPublisher : IEventPublisher, IDomainEventPublisher
     {
-        public void PublishEvent(IDictionary<string, string> contextItems, EventStream eventStream)
+        public void PublishEvent(EventStream eventStream, IDictionary<string, string> contextItems)
         {
-            throw new NotImplementedException("NotImplementedEventPublisher does not support publishing event.");
+            throw new NotImplementedException();
+        }
+        public void PublishEvent(DomainEventStream eventStream, IDictionary<string, string> contextItems)
+        {
+            throw new NotImplementedException();
         }
     }
 }

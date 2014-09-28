@@ -91,7 +91,7 @@ namespace ENode.Domain.Impl
         }
         /// <summary>Rebuild the aggregate root using the event sourcing pattern.
         /// </summary>
-        private IAggregateRoot BuildAggregateRoot(Type aggregateRootType, IEnumerable<EventStream> streams)
+        private IAggregateRoot BuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> streams)
         {
             var eventStreams = streams.ToList();
             if (streams == null || !eventStreams.Any()) return null;

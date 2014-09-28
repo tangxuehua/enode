@@ -1,4 +1,5 @@
-﻿using ENode.Commanding;
+﻿using System.Collections.Generic;
+using ENode.Commanding;
 
 namespace ENode.Eventing
 {
@@ -13,6 +14,11 @@ namespace ENode.Eventing
         /// <param name="context"></param>
         void CommitEvent(EventCommittingContext context);
         /// <summary>Publish the given aggregate's domain events.
+        /// </summary>
+        /// <param name="processingCommand"></param>
+        /// <param name="eventStream"></param>
+        void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream);
+        /// <summary>Publish the given events.
         /// </summary>
         /// <param name="processingCommand"></param>
         /// <param name="eventStream"></param>

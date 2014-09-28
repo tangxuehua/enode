@@ -2,7 +2,7 @@
 
 namespace ENode.Commanding
 {
-    /// <summary>Represents an exception when tring to add a duplicated command into command context.
+    /// <summary>Represents an exception when tring to add a duplicated aggregate root into command context.
     /// </summary>
     [Serializable]
     public class AggregateRootAlreadyExistException : Exception

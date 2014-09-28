@@ -193,7 +193,7 @@ namespace ENode.EQueue
                 DomainEventHandledMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.DomainEventHandledMessageTopic : DomainEventHandledMessageTopic,
                 SourceEventId = sourceEventId
             });
-            return new Message(topic, messageData);
+            return new Message(topic, (int)MessageTypeCode.CommandMessage, messageData);
         }
     }
 }

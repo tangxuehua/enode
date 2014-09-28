@@ -3,7 +3,7 @@
     /// <summary>The default implementation of IEventHandler.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class EventHandlerWrapper<T> : IEventHandler where T : class, IDomainEvent
+    public class EventHandlerWrapper<T> : IEventHandler where T : class, IEvent
     {
         private readonly IEventHandler<T> _eventHandler;
 

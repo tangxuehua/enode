@@ -100,7 +100,9 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
             _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
+            _configuration.SetDefault<IDomainEventProcessor, DefaultDomainEventProcessor>();
             _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
+            _configuration.SetDefault<IDomainEventPublisher, NotImplementedEventPublisher>();
 
             _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));

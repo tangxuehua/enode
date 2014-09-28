@@ -39,6 +39,7 @@
     <DocumentationFile>D:\nugetpublish\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commanding\EventAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateCommand.cs" />
     <Compile Include="Commanding\CommandProcessIdMissingException.cs" />
@@ -47,6 +48,7 @@
     <Compile Include="Commanding\CommandSendResult.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\HandledCommand.cs" />
+    <Compile Include="Commanding\HandledAggregateCommand.cs" />
     <Compile Include="Commanding\CommandAddResult.cs" />
     <Compile Include="Commanding\IAggregateCommand.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
@@ -81,7 +83,13 @@
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Domain\Impl\NotImplementedAggregateRootTypeCodeProvider.cs" />
+    <Compile Include="Eventing\Event.cs" />
+    <Compile Include="Eventing\EventStream.cs" />
+    <Compile Include="Eventing\IEventProcessContext.cs" />
+    <Compile Include="Eventing\IEventProcessor.cs" />
+    <Compile Include="Eventing\IEventPublisher.cs" />
     <Compile Include="Eventing\IEvent.cs" />
+    <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\ProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IEventContext.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />
@@ -91,24 +99,24 @@
     <Compile Include="Infrastructure\SQL\SqlServerLockService.cs" />
     <Compile Include="Infrastructure\ILockService.cs" />
     <Compile Include="Infrastructure\ITypeCodeProvider.cs" />
-    <Compile Include="Eventing\IEventProcessContext.cs" />
+    <Compile Include="Eventing\IDomainEventProcessContext.cs" />
     <Compile Include="Eventing\IEventService.cs" />
     <Compile Include="Eventing\IEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\DefaultEventService.cs" />
-    <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
+    <Compile Include="Eventing\Impl\DefaultDomainEventProcessor.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventStore.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlServerEventStore.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
-    <Compile Include="Eventing\IEventProcessor.cs" />
+    <Compile Include="Eventing\IDomainEventProcessor.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\ConcurrentException.cs" />
-    <Compile Include="Eventing\EventStream.cs" />
+    <Compile Include="Eventing\DomainEventStream.cs" />
     <Compile Include="Eventing\IDomainEvent.cs" />
-    <Compile Include="Eventing\IEventPublisher.cs" />
+    <Compile Include="Eventing\IDomainEventPublisher.cs" />
     <Compile Include="Eventing\IEventStore.cs" />
     <Compile Include="Eventing\IEventHandler.cs" />
     <Compile Include="Eventing\IEventHandlerProvider.cs" />

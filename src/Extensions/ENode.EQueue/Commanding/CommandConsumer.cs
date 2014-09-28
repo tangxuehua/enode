@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Domain;
+using ENode.Eventing;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -107,6 +109,7 @@ namespace ENode.EQueue
 
         class CommandExecuteContext : ICommandExecuteContext
         {
+            private readonly ConcurrentDictionary<string, IEvent> _events;
             private readonly ConcurrentDictionary<string, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
 
@@ -117,6 +120,7 @@ namespace ENode.EQueue
 
             public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, string> items, Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> commandExecutedAction)
             {
+                _events = new ConcurrentDictionary<string, IEvent>();
                 _trackingAggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
                 QueueMessage = queueMessage;
@@ -162,14 +166,29 @@ namespace ENode.EQueue
 
                 return aggregateRoot as T;
             }
-
+            public void Add(IEvent evnt)
+            {
+                if (evnt == null)
+                {
+                    throw new ArgumentNullException("evnt");
+                }
+                if (!_events.TryAdd(evnt.Id, evnt))
+                {
+                    throw new EventAlreadyExistException(evnt.Id, evnt.GetType());
+                }
+            }
             public IEnumerable<IAggregateRoot> GetTrackedAggregateRoots()
             {
                 return _trackingAggregateRoots.Values;
             }
+            public IEnumerable<IEvent> GetEvents()
+            {
+                return _events.Values;
+            }
             public void Clear()
             {
                 _trackingAggregateRoots.Clear();
+                _events.Clear();
             }
         }
     }

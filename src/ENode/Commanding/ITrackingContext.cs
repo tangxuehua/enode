@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ENode.Domain;
+using ENode.Eventing;
 
 namespace ENode.Commanding
 {
@@ -11,6 +12,10 @@ namespace ENode.Commanding
         /// </summary>
         /// <returns></returns>
         IEnumerable<IAggregateRoot> GetTrackedAggregateRoots();
+        /// <summary>Get all the related events.
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<IEvent> GetEvents();
         /// <summary>Clear the tracking context.
         /// </summary>
         void Clear();

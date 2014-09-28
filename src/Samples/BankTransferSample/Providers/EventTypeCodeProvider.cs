@@ -9,22 +9,26 @@ namespace BankTransferSample.Providers
         public EventTypeCodeProvider()
         {
             RegisterType<AccountCreatedEvent>(100);
-            RegisterType<TransactionPreparationAddedEvent>(101);
-            RegisterType<TransactionPreparationCommittedEvent>(102);
-            RegisterType<TransactionPreparationCanceledEvent>(103);
-            RegisterType<InsufficientBalanceEvent>(104);
+            RegisterType<AccountValidatePassedEvent>(101);
+            RegisterType<TransactionPreparationAddedEvent>(102);
+            RegisterType<TransactionPreparationCommittedEvent>(103);
+            RegisterType<TransactionPreparationCanceledEvent>(104);
+            RegisterType<InsufficientBalanceEvent>(105);
 
             RegisterType<DepositTransactionStartedEvent>(201);
             RegisterType<DepositTransactionPreparationCompletedEvent>(202);
             RegisterType<DepositTransactionCompletedEvent>(203);
 
             RegisterType<TransferTransactionStartedEvent>(301);
-            RegisterType<TransferOutPreparationConfirmedEvent>(302);
-            RegisterType<TransferInPreparationConfirmedEvent>(303);
-            RegisterType<TransferOutConfirmedEvent>(304);
-            RegisterType<TransferInConfirmedEvent>(305);
-            RegisterType<TransferTransactionCompletedEvent>(306);
-            RegisterType<TransferTransactionCanceledEvent>(307);
+            RegisterType<SourceAccountValidatePassedConfirmedEvent>(302);
+            RegisterType<TargetAccountValidatePassedConfirmedEvent>(303);
+            RegisterType<AccountValidatePassedConfirmCompletedEvent>(304);
+            RegisterType<TransferOutPreparationConfirmedEvent>(305);
+            RegisterType<TransferInPreparationConfirmedEvent>(306);
+            RegisterType<TransferOutConfirmedEvent>(307);
+            RegisterType<TransferInConfirmedEvent>(308);
+            RegisterType<TransferTransactionCompletedEvent>(309);
+            RegisterType<TransferTransactionCanceledEvent>(310);
         }
     }
 }

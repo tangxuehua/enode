@@ -5,6 +5,7 @@
     public enum TransactionStatus
     {
         Started,
+        AccountValidateCompleted,
         PreparationCompleted,
         Completed,
         Canceled

@@ -11,7 +11,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventProcessor : IEventProcessor
+    public class DefaultDomainEventProcessor : IDomainEventProcessor
     {
         #region Private Variables
 
@@ -32,6 +32,8 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
+        public string Name { get; set; }
+
         #region Constructors
 
         /// <summary>Parameterized constructor.
@@ -47,7 +49,7 @@ namespace ENode.Eventing.Impl
         /// <param name="eventHandleInfoCache"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultEventProcessor(
+        public DefaultDomainEventProcessor(
             IEventTypeCodeProvider eventTypeCodeProvider,
             IEventHandlerTypeCodeProvider eventHandlerTypeCodeProvider,
             ICommandTypeCodeProvider commandTypeCodeProvider,
@@ -92,10 +94,10 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        public void Process(EventStream eventStream, IEventProcessContext context)
+        public void Process(DomainEventStream eventStream, IDomainEventProcessContext context)
         {
             var processingContext = new EventProcessingContext(eventStream, context);
-            var queueIndex = processingContext.EventStream.CommandId.GetHashCode() % WorkerCount;
+            var queueIndex = processingContext.EventStream.AggregateRootId.GetHashCode() % WorkerCount;
             if (queueIndex < 0)
             {
                 queueIndex = Math.Abs(queueIndex);
@@ -108,14 +110,37 @@ namespace ENode.Eventing.Impl
         private void ProcessEvents(EventProcessingContext context)
         {
             _actionExecutionService.TryAction(
-                "DispatchEvents",
+                "DispatchDomainEvents",
                 () => DispatchEvents(context),
                 3,
-                new ActionInfo("DispatchEventsCallback", DispatchEventsCallback, context, null));
+                new ActionInfo("DispatchDomainEventsCallback", DispatchEventsCallback, context, null));
         }
         private bool DispatchEvents(EventProcessingContext context)
         {
             var eventStream = context.EventStream;
+            var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(Name, eventStream.AggregateRootId);
+
+            if (lastPublishedVersion + 1 == eventStream.Version)
+            {
+                return DispatchEventsToHandlers(eventStream);
+            }
+            else if (lastPublishedVersion + 1 < eventStream.Version)
+            {
+                _logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
+                return false;
+            }
+
+            return true;
+        }
+        private bool DispatchEventsCallback(object obj)
+        {
+            var context = obj as EventProcessingContext;
+            UpdatePublishedVersion(context.EventStream);
+            context.EventProcessContext.OnEventProcessed(context.EventStream);
+            return true;
+        }
+        private bool DispatchEventsToHandlers(DomainEventStream eventStream)
+        {
             var success = true;
             foreach (var evnt in eventStream.Events)
             {
@@ -136,13 +161,7 @@ namespace ENode.Eventing.Impl
             }
             return success;
         }
-        private bool DispatchEventsCallback(object obj)
-        {
-            var context = obj as EventProcessingContext;
-            context.EventProcessContext.OnEventProcessed(context.EventStream);
-            return true;
-        }
-        private bool DispatchEventToHandler(string processId, IDictionary<string, string> contextItems, IEvent evnt, IEventHandler eventHandler)
+        private bool DispatchEventToHandler(string processId, IDictionary<string, string> items, IDomainEvent evnt, IEventHandler eventHandler)
         {
             try
             {
@@ -152,38 +171,44 @@ namespace ENode.Eventing.Impl
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
-                var eventContext = new EventContext(_repository, contextItems);
+                var eventContext = new EventContext(_repository, processId, items);
                 eventHandler.Handle(eventContext, evnt);
                 var processCommands = eventContext.GetCommands();
                 if (processCommands.Any())
                 {
                     if (string.IsNullOrEmpty(processId))
                     {
-                        throw new ENodeException("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}",
+                        throw new ENodeException("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
                             eventHandlerType.Name,
                             evnt.GetType().Name,
-                            evnt.Id);
+                            evnt.Id,
+                            evnt.Version,
+                            evnt.AggregateRootId);
                     }
                     foreach (var processCommand in processCommands)
                     {
                         processCommand.Id = BuildCommandId(processCommand, evnt, eventHandlerTypeCode);
                         processCommand.Items["ProcessId"] = processId;
                         _processCommandSender.SendProcessCommand(processCommand, evnt.Id);
-                        _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, processId:{5}",
+                        _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}, processId:{7}",
                             processCommand.GetType().Name,
                             processCommand.Id,
                             eventHandlerType.Name,
                             evnt.GetType().Name,
                             evnt.Id,
+                            evnt.Version,
+                            evnt.AggregateRootId,
                             processId);
                     }
                 }
-                _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}",
+                _logger.DebugFormat("Handle domain event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
                     eventHandlerType.Name,
                     evnt.GetType().Name,
-                    evnt.Id);
-                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, string.Empty, 0);
-                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, string.Empty, 0);
+                    evnt.Id,
+                    evnt.Version,
+                    evnt.AggregateRootId);
+                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, evnt.AggregateRootId, evnt.Version);
+                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, evnt.AggregateRootId, evnt.Version);
                 return true;
             }
             catch (Exception ex)
@@ -192,7 +217,18 @@ namespace ENode.Eventing.Impl
                 return false;
             }
         }
-        private string BuildCommandId(ICommand command, IEvent evnt, int eventHandlerTypeCode)
+        private void UpdatePublishedVersion(DomainEventStream stream)
+        {
+            if (stream.Version == 1)
+            {
+                _eventPublishInfoStore.InsertPublishedVersion(Name, stream.AggregateRootId);
+            }
+            else
+            {
+                _eventPublishInfoStore.UpdatePublishedVersion(Name, stream.AggregateRootId, stream.Version);
+            }
+        }
+        private string BuildCommandId(ICommand command, IDomainEvent evnt, int eventHandlerTypeCode)
         {
             var key = command.GetKey();
             var commandKey = key == null ? string.Empty : key.ToString();
@@ -204,10 +240,10 @@ namespace ENode.Eventing.Impl
 
         class EventProcessingContext
         {
-            public EventStream EventStream { get; private set; }
-            public IEventProcessContext EventProcessContext { get; private set; }
+            public DomainEventStream EventStream { get; private set; }
+            public IDomainEventProcessContext EventProcessContext { get; private set; }
 
-            public EventProcessingContext(EventStream eventStream, IEventProcessContext eventProcessContext)
+            public EventProcessingContext(DomainEventStream eventStream, IDomainEventProcessContext eventProcessContext)
             {
                 EventStream = eventStream;
                 EventProcessContext = eventProcessContext;
@@ -218,7 +254,7 @@ namespace ENode.Eventing.Impl
             private readonly List<ICommand> _commands = new List<ICommand>();
             private readonly IRepository _repository;
 
-            public EventContext(IRepository repository, IDictionary<string, string> items)
+            public EventContext(IRepository repository, string processId, IDictionary<string, string> items)
             {
                 _repository = repository;
                 Items = items ?? new Dictionary<string, string>();

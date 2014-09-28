@@ -10,12 +10,12 @@ using EQueue.Protocols;
 
 namespace ENode.EQueue
 {
-    public class EventPublisher : IEventPublisher
+    public class EventPublisher : IEventPublisher, IDomainEventPublisher
     {
         private const string DefaultEventPublisherProcuderId = "sys_epp";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly ITopicProvider<IDomainEvent> _eventTopicProvider;
+        private readonly ITopicProvider<IEvent> _eventTopicProvider;
         private readonly Producer _producer;
 
         public Producer Producer { get { return _producer; } }
@@ -24,7 +24,7 @@ namespace ENode.EQueue
         {
             _producer = new Producer(id ?? DefaultEventPublisherProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IDomainEvent>>();
+            _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IEvent>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
@@ -39,34 +39,57 @@ namespace ENode.EQueue
             return this;
         }
 
-        public void PublishEvent(IDictionary<string, string> contextItems, EventStream eventStream)
+        public void PublishEvent(DomainEventStream eventStream, IDictionary<string, string> contextItems)
         {
-            var eventMessage = ConvertToData(contextItems, eventStream);
+            var eventMessage = CreateEventMessage(eventStream, contextItems);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _binarySerializer.Serialize(eventMessage);
-            var message = new Message(topic, data);
+            var message = new Message(topic, (int)MessageTypeCode.DomainEventMessage, data);
             var result = _producer.Send(message, eventStream.AggregateRootId);
+            if (result.SendStatus != SendStatus.Success)
+            {
+                throw new ENodeException("Publish domain event failed, eventStream:[{0}]", eventStream);
+            }
+        }
+        public void PublishEvent(EventStream eventStream, IDictionary<string, string> contextItems)
+        {
+            var eventMessage = CreateEventMessage(eventStream, contextItems);
+            var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
+            var data = _binarySerializer.Serialize(eventMessage);
+            var message = new Message(topic, (int)MessageTypeCode.EventMessage, data);
+            var result = _producer.Send(message, eventMessage.CommandId);
             if (result.SendStatus != SendStatus.Success)
             {
                 throw new ENodeException("Publish event failed, eventStream:[{0}]", eventStream);
             }
         }
 
-        private EventMessage ConvertToData(IDictionary<string, string> contextItems, EventStream eventStream)
+        private DomainEventMessage CreateEventMessage(DomainEventStream eventStream, IDictionary<string, string> contextItems)
         {
-            var data = new EventMessage();
+            var message = new DomainEventMessage();
 
-            data.CommandId = eventStream.CommandId;
-            data.AggregateRootId = eventStream.AggregateRootId;
-            data.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
-            data.Timestamp = eventStream.Timestamp;
-            data.ProcessId = eventStream.ProcessId;
-            data.Version = eventStream.Version;
-            data.Items = eventStream.Items;
-            data.Events = eventStream.Events;
-            data.ContextItems = contextItems;
+            message.CommandId = eventStream.CommandId;
+            message.AggregateRootId = eventStream.AggregateRootId;
+            message.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
+            message.Timestamp = eventStream.Timestamp;
+            message.ProcessId = eventStream.ProcessId;
+            message.Version = eventStream.Version;
+            message.Items = eventStream.Items;
+            message.Events = eventStream.Events;
+            message.ContextItems = contextItems;
 
-            return data;
+            return message;
+        }
+        private EventMessage CreateEventMessage(EventStream eventStream, IDictionary<string, string> contextItems)
+        {
+            var message = new EventMessage();
+
+            message.CommandId = eventStream.CommandId;
+            message.ProcessId = eventStream.ProcessId;
+            message.Events = eventStream.Events;
+            message.ContextItems = contextItems;
+
+            return message;
         }
     }
 }

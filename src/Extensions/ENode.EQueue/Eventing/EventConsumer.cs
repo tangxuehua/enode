@@ -20,6 +20,7 @@ namespace ENode.EQueue
         private readonly IBinarySerializer _binarySerializer;
         private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventProcessor _eventProcessor;
+        private readonly IDomainEventProcessor _domainEventProcessor;
         private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
         private readonly ILogger _logger;
         private readonly bool _sendEventHandledMessage;
@@ -36,10 +37,11 @@ namespace ENode.EQueue
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
+            _domainEventProcessor = ObjectContainer.Resolve<IDomainEventProcessor>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
-            _eventProcessor.Name = consumerId;
+            _domainEventProcessor.Name = consumerId;
             _sendEventHandledMessage = sendEventHandledMessage;
         }
 
@@ -63,16 +65,51 @@ namespace ENode.EQueue
 
         void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
         {
-            var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(EventMessage)) as EventMessage;
-            var eventStream = ConvertToEventStream(eventMessage);
-
-            if (_messageContextDict.TryAdd(eventStream.CommandId, context))
+            if (message.Code == (int)MessageTypeCode.DomainEventMessage)
             {
-                _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventProcessedCallback));
+                var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(DomainEventMessage)) as DomainEventMessage;
+                var eventStream = ConvertToEventStream(eventMessage);
+
+                if (_messageContextDict.TryAdd(eventStream.CommandId, context))
+                {
+                    _domainEventProcessor.Process(eventStream, new DomainEventProcessContext(message, eventMessage, DomainEventProcessedCallback));
+                }
+                else
+                {
+                    _logger.DebugFormat("Duplicated queue message of domain event, topic:{0}, messageOffset:{1}", message.Topic, message.MessageOffset);
+                    context.OnMessageHandled(message);
+                }
+            }
+            else if (message.Code == (int)MessageTypeCode.EventMessage)
+            {
+                var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(EventMessage)) as EventMessage;
+                var eventStream = ConvertToEventStream(eventMessage);
+                if (_messageContextDict.TryAdd(eventStream.CommandId, context))
+                {
+                    _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventProcessedCallback));
+                }
+                else
+                {
+                    _logger.DebugFormat("Duplicated queue message of event, topic:{0}, messageOffset:{1}", message.Topic, message.MessageOffset);
+                    context.OnMessageHandled(message);
+                }
+            }
+            else
+            {
+                _logger.ErrorFormat("Invalid message code:{0}", message.Code);
+                context.OnMessageHandled(message);
             }
         }
 
         private void EventProcessedCallback(EventStream eventStream, EventProcessContext eventProcessContext)
+        {
+            IMessageContext messageContext;
+            if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
+            {
+                messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
+            }
+        }
+        private void DomainEventProcessedCallback(DomainEventStream eventStream, DomainEventProcessContext eventProcessContext)
         {
             IMessageContext messageContext;
             if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
@@ -151,9 +188,21 @@ namespace ENode.EQueue
             }
             return true;
         }
-        private EventStream ConvertToEventStream(EventMessage data)
+        private DomainEventStream ConvertToEventStream(DomainEventMessage message)
         {
-            return new EventStream(data.CommandId, data.AggregateRootId, data.AggregateRootTypeCode, data.ProcessId, data.Version, data.Timestamp, data.Events, data.Items);
+            return new DomainEventStream(
+                message.CommandId,
+                message.AggregateRootId,
+                message.AggregateRootTypeCode,
+                message.ProcessId,
+                message.Version,
+                message.Timestamp,
+                message.Events,
+                message.Items);
+        }
+        private EventStream ConvertToEventStream(EventMessage message)
+        {
+            return new EventStream(message.CommandId, message.ProcessId, message.Events, message.ContextItems);
         }
 
         class EventProcessContext : IEventProcessContext
@@ -170,6 +219,24 @@ namespace ENode.EQueue
             }
 
             public void OnEventProcessed(EventStream eventStream)
+            {
+                EventProcessedAction(eventStream, this);
+            }
+        }
+        class DomainEventProcessContext : IDomainEventProcessContext
+        {
+            public Action<DomainEventStream, DomainEventProcessContext> EventProcessedAction { get; private set; }
+            public QueueMessage QueueMessage { get; private set; }
+            public DomainEventMessage EventMessage { get; private set; }
+
+            public DomainEventProcessContext(QueueMessage queueMessage, DomainEventMessage eventMessage, Action<DomainEventStream, DomainEventProcessContext> eventProcessedAction)
+            {
+                QueueMessage = queueMessage;
+                EventMessage = eventMessage;
+                EventProcessedAction = eventProcessedAction;
+            }
+
+            public void OnEventProcessed(DomainEventStream eventStream)
             {
                 EventProcessedAction(eventStream, this);
             }

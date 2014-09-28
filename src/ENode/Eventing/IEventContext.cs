@@ -8,9 +8,6 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventContext
     {
-        /// <summary>Represents the current business process id.
-        /// </summary>
-        string ProcessId { get; }
         /// <summary>Represents the extension information of the current event.
         /// This information is from the corresponding command of the current event.
         /// </summary>

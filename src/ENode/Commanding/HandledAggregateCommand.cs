@@ -1,20 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using ENode.Eventing;
 
 namespace ENode.Commanding
 {
-    /// <summary>Represents a handled command which contains the command and the event stream information.
+    /// <summary>Represents a handled aggregate command which contains the command and the event stream key information.
     /// </summary>
-    public class HandledCommand
+    public class HandledAggregateCommand
     {
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="sourceEventId"></param>
-        /// <param name="evnts"></param>
-        public HandledCommand(ICommand command, string sourceEventId, IEnumerable<IEvent> evnts)
+        /// <param name="aggregateRootId"></param>
+        /// <param name="aggregateRootTypeCode"></param>
+        public HandledAggregateCommand(ICommand command, string sourceEventId, string aggregateRootId, int aggregateRootTypeCode)
         {
             if (command == null)
             {
@@ -22,7 +21,8 @@ namespace ENode.Commanding
             }
             Command = command;
             SourceEventId = sourceEventId;
-            Events = evnts ?? new List<IEvent>();
+            AggregateRootId = aggregateRootId;
+            AggregateRootTypeCode = aggregateRootTypeCode;
 
             if (command is IStartProcessCommand)
             {
@@ -48,25 +48,29 @@ namespace ENode.Commanding
         /// <summary>The source domain event id.
         /// </summary>
         public string SourceEventId { get; private set; }
+        /// <summary>The aggregate root type code.
+        /// </summary>
+        public int AggregateRootTypeCode { get; private set; }
+        /// <summary>The aggregate root id.
+        /// </summary>
+        public string AggregateRootId { get; private set; }
         /// <summary>The process id.
         /// </summary>
         public string ProcessId { get; private set; }
-        /// <summary>The events.
-        /// </summary>
-        public IEnumerable<IEvent> Events { get; private set; }
 
-        /// <summary>Overrides to return the handled command's useful information.
+        /// <summary>Overrides to return the handled aggregate command's useful information.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandType={0},CommandId={1},SourceEventId={2},ProcessId={3},Events={4},Items={5}]";
+            var format = "[CommandType={0},CommandId={1},SourceEventId={2},AggregateRootTypeCode={3},AggregateRootId={4},ProcessId={5},Items={6}]";
             return string.Format(format,
                 Command.GetType().Name,
                 Command.Id,
                 SourceEventId,
+                AggregateRootTypeCode,
+                AggregateRootId,
                 ProcessId,
-                string.Join("|", Events.Select(x => x.GetType().Name)),
                 string.Join("|", Command.Items.Select(x => x.Key + ":" + x.Value)));
         }
     }

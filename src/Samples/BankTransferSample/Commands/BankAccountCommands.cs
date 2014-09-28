@@ -16,6 +16,25 @@ namespace BankTransferSample.Commands
             Owner = owner;
         }
     }
+    /// <summary>验证账户是否合法
+    /// </summary>
+    [Serializable]
+    public class ValidateAccountCommand : Command
+    {
+        public string AccountId { get; set; }
+        public string TransactionId { get; set; }
+
+        public ValidateAccountCommand(string accountId, string transactionId)
+        {
+            AccountId = accountId;
+            TransactionId = transactionId;
+        }
+
+        public override object GetKey()
+        {
+            return AccountId;
+        }
+    }
     /// <summary>向账户添加一笔预操作
     /// </summary>
     [Serializable]

@@ -17,7 +17,7 @@
     /// <summary>Represents a event handler.
     /// </summary>
     /// <typeparam name="TEvent"></typeparam>
-    public interface IEventHandler<in TEvent> where TEvent : class, IDomainEvent
+    public interface IEventHandler<in TEvent> where TEvent : class, IEvent
     {
         /// <summary>Handle the given domain event.
         /// </summary>

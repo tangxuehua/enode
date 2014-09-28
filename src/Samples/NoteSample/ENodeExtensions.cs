@@ -28,7 +28,7 @@ namespace NoteSample.EQueueIntegrations
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.SetDefault<ITopicProvider<ICommand>, CommandTopicProvider>();
-            configuration.SetDefault<ITopicProvider<IDomainEvent>, EventTopicProvider>();
+            configuration.SetDefault<ITopicProvider<IEvent>, EventTopicProvider>();
             configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
             configuration.SetDefault<IAggregateRootTypeCodeProvider, AggregateRootTypeCodeProvider>();
             configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeProvider>();
@@ -48,7 +48,7 @@ namespace NoteSample.EQueueIntegrations
             _eventPublisher = new EventPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
-            configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IDomainEventPublisher, EventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer();
             _eventConsumer = new EventConsumer();
@@ -68,6 +68,16 @@ namespace NoteSample.EQueueIntegrations
 
             WaitAllConsumerLoadBalanceComplete();
 
+            return enodeConfiguration;
+        }
+        public static ENodeConfiguration ShutdownEQueue(this ENodeConfiguration enodeConfiguration)
+        {
+            _commandResultProcessor.Shutdown();
+            _commandService.Shutdown();
+            _eventPublisher.Shutdown();
+            _commandConsumer.Shutdown();
+            _eventConsumer.Shutdown();
+            _broker.Shutdown();
             return enodeConfiguration;
         }
 

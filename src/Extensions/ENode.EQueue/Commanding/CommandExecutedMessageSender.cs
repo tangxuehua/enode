@@ -31,7 +31,7 @@ namespace ENode.EQueue
         }
         public void Send(CommandExecutedMessage message, string topic)
         {
-            _producer.SendAsync(new Message(topic, _binarySerializer.Serialize(message)), message.CommandId);
+            _producer.SendAsync(new Message(topic, (int)MessageTypeCode.CommandExecutedMessage, _binarySerializer.Serialize(message)), message.CommandId);
         }
     }
 }

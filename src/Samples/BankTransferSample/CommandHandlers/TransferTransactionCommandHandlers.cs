@@ -11,6 +11,7 @@ namespace BankTransferSample.CommandHandlers
     [Component]
     public class TransferTransactionCommandHandlers :
         ICommandHandler<StartTransferTransactionCommand>,                       //开始转账交易
+        ICommandHandler<ConfirmAccountValidatePassedCommand>,                   //确认账号验证已通过
         ICommandHandler<ConfirmTransferOutPreparationCommand>,                  //确认预转出
         ICommandHandler<ConfirmTransferInPreparationCommand>,                   //确认预转入
         ICommandHandler<ConfirmTransferOutCommand>,                             //确认转出
@@ -20,6 +21,10 @@ namespace BankTransferSample.CommandHandlers
         public void Handle(ICommandContext context, StartTransferTransactionCommand command)
         {
             context.Add(new TransferTransaction(ObjectId.GenerateNewStringId(), command.TransactionInfo));
+        }
+        public void Handle(ICommandContext context, ConfirmAccountValidatePassedCommand command)
+        {
+            context.Get<TransferTransaction>(command.AggregateRootId).ConfirmAccountValidatePassed(command.AccountId);
         }
         public void Handle(ICommandContext context, ConfirmTransferOutPreparationCommand command)
         {

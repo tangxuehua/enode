@@ -23,6 +23,21 @@ namespace BankTransferSample.Commands
             TransactionInfo = transactionInfo;
         }
     }
+    /// <summary>确认账号验证已通过
+    /// </summary>
+    [Serializable]
+    public class ConfirmAccountValidatePassedCommand : AggregateCommand<string>
+    {
+        /// <summary>账号ID
+        /// </summary>
+        public string AccountId { get; private set; }
+
+        public ConfirmAccountValidatePassedCommand(string transactionId, string accountId)
+            : base(transactionId)
+        {
+            AccountId = accountId;
+        }
+    }
     /// <summary>确认预转出
     /// </summary>
     [Serializable]

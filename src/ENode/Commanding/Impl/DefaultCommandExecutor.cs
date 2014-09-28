@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ECommon.Logging;
 using ENode.Domain;
@@ -70,6 +71,11 @@ namespace ENode.Commanding.Impl
             var context = processingCommand.CommandExecuteContext;
             var commandHandler = default(ICommandHandler);
 
+            if (!(command is IAggregateCommand) && _commandStore.FindHandledAggregateCommand(command.Id) != null)
+            {
+                return;
+            }
+
             //首先验证command handler是否存在
             try
             {
@@ -124,10 +130,17 @@ namespace ENode.Commanding.Impl
                 }
             }
 
-            //如果command执行成功，则提交执行后的结果，ENode框架在这里会保证一个command只能对一个聚合根做修改。
-            if (handleSuccess && command is IAggregateCommand)
+            //如果command执行成功，则提交执行后的结果
+            if (handleSuccess)
             {
-                CommitChanges(processingCommand);
+                if (command is IAggregateCommand)
+                {
+                    CommitAggregateChanges(processingCommand);
+                }
+                else
+                {
+                    CommitChanges(processingCommand);
+                }
             }
         }
 
@@ -135,7 +148,7 @@ namespace ENode.Commanding.Impl
 
         #region Private Methods
 
-        private void CommitChanges(ProcessingCommand processingCommand)
+        private void CommitAggregateChanges(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Command;
             var context = processingCommand.CommandExecuteContext;
@@ -169,13 +182,13 @@ namespace ENode.Commanding.Impl
             var dirtyAggregate = dirtyAggregateRoots.Single();
 
             //从该聚合根获取所有产生的领域事件，构造出一个EventStream对象
-            var eventStream = BuildEventStream(dirtyAggregate, processingCommand);
+            var eventStream = BuildDomainEventStream(dirtyAggregate, processingCommand);
 
             //尝试将当前已执行的command添加到commandStore
             string sourceEventId;
             processingCommand.CommandExecuteContext.Items.TryGetValue("SourceEventId", out sourceEventId);
-            var commandAddResult = _commandStore.AddCommand(
-                new HandledCommand(
+            var commandAddResult = _commandStore.AddHandledAggregateCommand(
+                new HandledAggregateCommand(
                     command,
                     sourceEventId,
                     eventStream.AggregateRootId,
@@ -184,14 +197,14 @@ namespace ENode.Commanding.Impl
             //如果添加的结果是command重复，则做如下处理
             if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
-                var existingHandledCommand = _commandStore.Find(command.Id);
+                var existingHandledCommand = _commandStore.FindHandledAggregateCommand(command.Id);
                 if (existingHandledCommand != null)
                 {
                     var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
                     if (existingEventStream != null)
                     {
                         //如果当前command已经被持久化过了，且事件已经被持久化了，则只要再做一遍发布事件的操作
-                        _eventService.PublishEvent(processingCommand, existingEventStream);
+                        _eventService.PublishDomainEvent(processingCommand, existingEventStream);
                     }
                     else
                     {
@@ -216,7 +229,7 @@ namespace ENode.Commanding.Impl
                 _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
             }
         }
-        private EventStream BuildEventStream(IAggregateRoot aggregateRoot, ProcessingCommand processingCommand)
+        private DomainEventStream BuildDomainEventStream(IAggregateRoot aggregateRoot, ProcessingCommand processingCommand)
         {
             var command = processingCommand.Command;
             var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
@@ -231,7 +244,7 @@ namespace ENode.Commanding.Impl
                 evnt.Timestamp = currentTime;
             }
 
-            return new EventStream(
+            return new DomainEventStream(
                 command.Id,
                 aggregateRoot.UniqueId,
                 aggregateRootTypeCode,
@@ -245,31 +258,32 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Command;
 
-            //到这里，说明当前command执行时遇到异常，且该异常是由于领域内用户自己抛出的异常；此时我们需要做如下的处理；
-            //主要是判断当前command之前有没有被执行过，
+            //到这里，说明当前command执行时遇到异常，此时我们需要判断当前command之前有没有被执行过。
             //如果有执行过，则继续判断是否后续所有的步骤都执行成功了，对每一种情况做相应的处理；
-            //如果没有执行过，则也做相应处理。
-            var existingHandledCommand = _commandStore.Find(command.Id);
+            //如果未执行过，则也做相应处理。
+            var existingHandledCommand = _commandStore.FindHandledAggregateCommand(command.Id);
             if (existingHandledCommand != null)
             {
-                var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
-                if (existingEventStream != null)
+                if (command is IAggregateCommand)
                 {
-                    _eventService.PublishEvent(processingCommand, existingEventStream);
-                }
-                else
-                {
-                    //到这里，说明当前command遇到异常，然后该command在commandStore中存在，
-                    //但是在eventStore中不存在，此时可以理解为该command还没被执行。所以需要将其从commandStore中移除，
-                    //然后让其再重新被执行，我们只要简单的将当前异常继续throw出去，那equeue就是自动再次重试该command。
-                    _commandStore.Remove(command.Id);
-                    return CommandExceptionHandleResult.ThrowDirectly;
+                    var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
+                    if (existingEventStream != null)
+                    {
+                        _eventService.PublishDomainEvent(processingCommand, existingEventStream);
+                    }
+                    else
+                    {
+                        //到这里，说明当前command遇到异常，然后该command在commandStore中存在，
+                        //但是在eventStore中不存在，此时可以理解为该command还没被执行。所以需要将其从commandStore中移除，
+                        //然后让其再重新被执行，我们只要简单的将当前异常继续throw出去，那equeue就是自动再次重试该command。
+                        _commandStore.Remove(command.Id);
+                        return CommandExceptionHandleResult.ThrowDirectly;
+                    }
                 }
             }
             else
             {
-                //到这里，说明当前command执行遇到领域内的异常，然后当前command之前也没执行过，是第一次被执行，那我们就记录错误日志
-                //然后认为该command处理失败即可。
+                //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行，那我们就记录错误日志，然后认为该command处理失败即可。
                 var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
                 var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}, processId:{5}, exceptionMessage:{6}",
                     exception.GetType().Name,
@@ -287,14 +301,71 @@ namespace ENode.Commanding.Impl
         }
         private void NotifyCommandExecuteFailedOrNothingChanged(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {
-            _executedCommandService.ProcessExecutedCommand(
-                processingCommand.CommandExecuteContext,
-                processingCommand.Command,
-                commandStatus,
-                processingCommand.ProcessId,
-                processingCommand.AggregateRootId,
-                exceptionTypeName,
-                errorMessage);
+            var aggregateCommand = processingCommand.Command as IAggregateCommand;
+            if (aggregateCommand != null)
+            {
+                _executedCommandService.ProcessExecutedCommand(
+                    processingCommand.CommandExecuteContext,
+                    aggregateCommand,
+                    commandStatus,
+                    processingCommand.ProcessId,
+                    processingCommand.AggregateRootId,
+                    exceptionTypeName,
+                    errorMessage);
+            }
+            else
+            {
+                _executedCommandService.ProcessExecutedCommand(
+                    processingCommand.CommandExecuteContext,
+                    processingCommand.Command,
+                    commandStatus,
+                    processingCommand.ProcessId,
+                    exceptionTypeName,
+                    errorMessage);
+            }
+        }
+        private void CommitChanges(ProcessingCommand processingCommand)
+        {
+            var command = processingCommand.Command;
+            string sourceEventId;
+            processingCommand.CommandExecuteContext.Items.TryGetValue("SourceEventId", out sourceEventId);
+            var evnts = GetEvents(processingCommand);
+            var commandAddResult = _commandStore.AddHandledCommand(new HandledCommand(command, sourceEventId, evnts));
+
+            if (commandAddResult == CommandAddResult.Success)
+            {
+                _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, evnts, processingCommand.CommandExecuteContext.Items));
+            }
+            else if (commandAddResult == CommandAddResult.DuplicateCommand)
+            {
+                var existingHandledCommand = _commandStore.FindHandledCommand(command.Id);
+                if (existingHandledCommand != null)
+                {
+                    _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, existingHandledCommand.Events, processingCommand.CommandExecuteContext.Items));
+                }
+                else
+                {
+                    //到这里，说明当前command想添加到commandStore中时，提示command重复，但是尝试从commandStore中取出该command时却找不到该command。
+                    //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的AddCommand接口和Find接口出现读写不一致的情况；
+                    //我们记录错误日志，然后认为当前command已被处理为失败。
+                    var errorMessage = string.Format("Command exist in the command store, but it cannot be found from the command store. commandType:{0}, commandId:{1}",
+                        command.GetType().Name,
+                        command.Id);
+                    NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, null, errorMessage);
+                }
+            }
+        }
+        private IEnumerable<IEvent> GetEvents(ProcessingCommand processingCommand)
+        {
+            var events = processingCommand.CommandExecuteContext.GetEvents().ToList();
+            var currentTime = DateTime.Now;
+
+            foreach (var evnt in events)
+            {
+                evnt.Timestamp = currentTime;
+            }
+
+            return events;
         }
 
         #endregion

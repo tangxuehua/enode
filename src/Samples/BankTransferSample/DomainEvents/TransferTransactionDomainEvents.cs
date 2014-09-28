@@ -25,6 +25,36 @@ namespace BankTransferSample.DomainEvents
         public TransferTransactionStartedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo) { }
     }
+    /// <summary>源账户验证通过事件已确认
+    /// </summary>
+    [Serializable]
+    public class SourceAccountValidatePassedConfirmedEvent : AbstractTransferTransactionEvent
+    {
+        public SourceAccountValidatePassedConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
+            : base(transactionId, transactionInfo)
+        {
+        }
+    }
+    /// <summary>目标账户验证通过事件已确认
+    /// </summary>
+    [Serializable]
+    public class TargetAccountValidatePassedConfirmedEvent : AbstractTransferTransactionEvent
+    {
+        public TargetAccountValidatePassedConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
+            : base(transactionId, transactionInfo)
+        {
+        }
+    }
+    /// <summary>源账户和目标账户验证通过事件都已确认
+    /// </summary>
+    [Serializable]
+    public class AccountValidatePassedConfirmCompletedEvent : AbstractTransferTransactionEvent
+    {
+        public AccountValidatePassedConfirmCompletedEvent(string transactionId, TransferTransactionInfo transactionInfo)
+            : base(transactionId, transactionInfo)
+        {
+        }
+    }
     /// <summary>转账交易预转出已确认
     /// </summary>
     [Serializable]

@@ -11,6 +11,8 @@ namespace BankTransferSample.ProcessManagers
     [Component]
     public class TransferTransactionProcessManager :
         IEventHandler<TransferTransactionStartedEvent>,                  //转账交易已开始
+        IEventHandler<AccountValidatePassedEvent>,                       //账户验证已通过
+        IEventHandler<AccountValidatePassedConfirmCompletedEvent>,       //两个账户的验证通过事件都已确认
         IEventHandler<TransactionPreparationAddedEvent>,                 //账户预操作已添加
         IEventHandler<InsufficientBalanceEvent>,                         //账户余额不足
         IEventHandler<TransferOutPreparationConfirmedEvent>,             //转账交易预转出已确认
@@ -19,13 +21,21 @@ namespace BankTransferSample.ProcessManagers
     {
         public void Handle(IEventContext context, TransferTransactionStartedEvent evnt)
         {
+            context.AddCommand(new ValidateAccountCommand(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId));
+            context.AddCommand(new ValidateAccountCommand(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId));
+        }
+        public void Handle(IEventContext context, AccountValidatePassedEvent evnt)
+        {
+            context.AddCommand(new ConfirmAccountValidatePassedCommand(evnt.TransactionId, evnt.AccountId));
+        }
+        public void Handle(IEventContext context, AccountValidatePassedConfirmCompletedEvent evnt)
+        {
             context.AddCommand(new AddTransactionPreparationCommand(
                 evnt.TransactionInfo.SourceAccountId,
                 evnt.AggregateRootId,
                 TransactionType.TransferTransaction,
                 PreparationType.DebitPreparation,
                 evnt.TransactionInfo.Amount));
-
         }
         public void Handle(IEventContext context, TransactionPreparationAddedEvent evnt)
         {

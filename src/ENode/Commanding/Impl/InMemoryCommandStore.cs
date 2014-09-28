@@ -7,9 +7,10 @@ namespace ENode.Commanding.Impl
     /// </summary>
     public class InMemoryCommandStore : ICommandStore
     {
-        private readonly ConcurrentDictionary<string, HandledCommand> _dict = new ConcurrentDictionary<string, HandledCommand>();
+        private readonly ConcurrentDictionary<string, HandledCommand> _handledCommandDict = new ConcurrentDictionary<string, HandledCommand>();
+        private readonly ConcurrentDictionary<string, HandledAggregateCommand> _dict = new ConcurrentDictionary<string, HandledAggregateCommand>();
 
-        public CommandAddResult AddCommand(HandledCommand handledCommand)
+        public CommandAddResult AddHandledAggregateCommand(HandledAggregateCommand handledCommand)
         {
             if (_dict.TryAdd(handledCommand.Command.Id, handledCommand))
             {
@@ -17,9 +18,9 @@ namespace ENode.Commanding.Impl
             }
             return CommandAddResult.DuplicateCommand;
         }
-        public HandledCommand Find(string commandId)
+        public HandledAggregateCommand FindHandledAggregateCommand(string commandId)
         {
-            HandledCommand handledCommand;
+            HandledAggregateCommand handledCommand;
             if (_dict.TryGetValue(commandId, out handledCommand))
             {
                 return handledCommand;
@@ -29,6 +30,24 @@ namespace ENode.Commanding.Impl
         public void Remove(string commandId)
         {
             _dict.Remove(commandId);
+        }
+        public CommandAddResult AddHandledCommand(HandledCommand handledCommand)
+        {
+            if (_handledCommandDict.TryAdd(handledCommand.Command.Id, handledCommand))
+            {
+                return CommandAddResult.Success;
+            }
+            return CommandAddResult.DuplicateCommand;
+        }
+
+        public HandledCommand FindHandledCommand(string commandId)
+        {
+            HandledCommand handledCommand;
+            if (_handledCommandDict.TryGetValue(commandId, out handledCommand))
+            {
+                return handledCommand;
+            }
+            return null;
         }
     }
 }

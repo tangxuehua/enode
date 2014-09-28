@@ -38,7 +38,7 @@ namespace ENode.Commanding.Impl
 
         #region Public Methods
 
-        public CommandAddResult AddCommand(HandledCommand handledCommand)
+        public CommandAddResult AddHandledAggregateCommand(HandledAggregateCommand handledCommand)
         {
             var record = ConvertTo(handledCommand);
 
@@ -63,7 +63,7 @@ namespace ENode.Commanding.Impl
                 }
             }
         }
-        public HandledCommand Find(string commandId)
+        public HandledAggregateCommand FindHandledAggregateCommand(string commandId)
         {
             using (var connection = GetConnection())
             {
@@ -93,15 +93,15 @@ namespace ENode.Commanding.Impl
         {
             return new SqlConnection(_connectionString);
         }
-        private HandledCommand ConvertFrom(CommandRecord record)
+        private HandledAggregateCommand ConvertFrom(CommandRecord record)
         {
-            return new HandledCommand(
+            return new HandledAggregateCommand(
                 _binarySerializer.Deserialize<ICommand>(record.Payload),
                 record.SourceEventId,
                 record.AggregateRootId,
                 record.AggregateRootTypeCode);
         }
-        private CommandRecord ConvertTo(HandledCommand handledCommand)
+        private CommandRecord ConvertTo(HandledAggregateCommand handledCommand)
         {
             return new CommandRecord
             {
@@ -130,6 +130,17 @@ namespace ENode.Commanding.Impl
             public DateTime Timestamp { get; set; }
             public byte[] Payload { get; set; }
             public byte[] Items { get; set; }
+        }
+
+
+        public CommandAddResult AddHandledCommand(HandledCommand handledCommand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public HandledCommand FindHandledCommand(string commandId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

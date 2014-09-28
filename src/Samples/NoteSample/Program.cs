@@ -17,6 +17,7 @@ namespace NoteSample
     class Program
     {
         static ILogger _logger;
+        static ENodeConfiguration _configuration;
 
         static void Main(string[] args)
         {
@@ -38,12 +39,13 @@ namespace NoteSample
             _logger.Info("Press Enter to exit...");
 
             Console.ReadLine();
+            _configuration.ShutdownEQueue();
         }
 
         static void InitializeENodeFramework()
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
-            Configuration
+            _configuration = Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()

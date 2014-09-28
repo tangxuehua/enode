@@ -21,7 +21,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
         public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
-            configuration.SetDefault<ITopicProvider<IDomainEvent>, EventTopicProvider>();
+            configuration.SetDefault<ITopicProvider<IEvent>, EventTopicProvider>();
             configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
             configuration.SetDefault<IAggregateRootTypeCodeProvider, AggregateRootTypeCodeProvider>();
             return enodeConfiguration;
@@ -34,7 +34,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
 
             _eventPublisher = new EventPublisher();
 
-            configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IDomainEventPublisher, EventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer();
 

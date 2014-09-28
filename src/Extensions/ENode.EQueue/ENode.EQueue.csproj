@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MessageTypeCode.cs" />
     <Compile Include="AbstractTopicProvider.cs" />
     <Compile Include="Commanding\CommandConsumer.cs" />
     <Compile Include="Commanding\CommandMessage.cs" />
@@ -60,9 +61,10 @@
     <Compile Include="Commanding\CommandExecutedMessage.cs" />
     <Compile Include="Commanding\CommandResultProcessor.cs" />
     <Compile Include="Commanding\CommandExecutedMessageSender.cs" />
+    <Compile Include="Eventing\EventMessage.cs" />
     <Compile Include="Eventing\EventConsumer.cs" />
     <Compile Include="Eventing\EventPublisher.cs" />
-    <Compile Include="Eventing\EventMessage.cs" />
+    <Compile Include="Eventing\DomainEventMessage.cs" />
     <Compile Include="Eventing\DomainEventHandledMessageSender.cs" />
     <Compile Include="Commanding\CommandService.cs" />
     <Compile Include="ITopicProvider.cs" />

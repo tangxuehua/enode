@@ -14,6 +14,8 @@ namespace BankTransferSample
 {
     class Program
     {
+        static ENodeConfiguration _configuration;
+
         static void Main(string[] args)
         {
             InitializeENodeFramework();
@@ -48,13 +50,14 @@ namespace BankTransferSample
 
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
+            _configuration.ShutdownEQueue();
         }
 
         static void InitializeENodeFramework()
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
 
-            Configuration
+            _configuration = Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()

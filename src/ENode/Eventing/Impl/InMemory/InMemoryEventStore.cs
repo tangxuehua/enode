@@ -13,18 +13,18 @@ namespace ENode.Eventing.Impl.InMemory
         private const int Editing = 1;
         private const int UnEditing = 0;
         private readonly ConcurrentDictionary<string, AggregateInfo> _aggregateInfoDict;
-        private readonly ConcurrentDictionary<long, EventStream> _eventDict;
+        private readonly ConcurrentDictionary<long, DomainEventStream> _eventDict;
         private readonly ILogger _logger;
         private long _sequence;
 
         public InMemoryEventStore(ILoggerFactory loggerFactory)
         {
             _aggregateInfoDict = new ConcurrentDictionary<string, AggregateInfo>();
-            _eventDict = new ConcurrentDictionary<long, EventStream>();
+            _eventDict = new ConcurrentDictionary<long, DomainEventStream>();
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        public EventAppendResult Append(EventStream eventStream)
+        public EventAppendResult Append(DomainEventStream eventStream)
         {
             var aggregateInfo = _aggregateInfoDict.GetOrAdd(eventStream.AggregateRootId, new AggregateInfo());
             var originalStatus = Interlocked.CompareExchange(ref aggregateInfo.Status, Editing, UnEditing);
@@ -51,7 +51,7 @@ namespace ENode.Eventing.Impl.InMemory
                 Interlocked.Exchange(ref aggregateInfo.Status, UnEditing);
             }
         }
-        public EventStream Find(string aggregateRootId, int version)
+        public DomainEventStream Find(string aggregateRootId, int version)
         {
             AggregateInfo aggregateInfo;
             if (!_aggregateInfoDict.TryGetValue(aggregateRootId, out aggregateInfo))
@@ -59,10 +59,10 @@ namespace ENode.Eventing.Impl.InMemory
                 return null;
             }
 
-            EventStream eventStream;
+            DomainEventStream eventStream;
             return aggregateInfo.EventDict.TryGetValue(version, out eventStream) ? eventStream : null;
         }
-        public EventStream Find(string aggregateRootId, string commandId)
+        public DomainEventStream Find(string aggregateRootId, string commandId)
         {
             AggregateInfo aggregateInfo;
             if (!_aggregateInfoDict.TryGetValue(aggregateRootId, out aggregateInfo))
@@ -70,12 +70,12 @@ namespace ENode.Eventing.Impl.InMemory
                 return null;
             }
 
-            EventStream eventStream;
+            DomainEventStream eventStream;
             return aggregateInfo.CommandDict.TryGetValue(commandId, out eventStream) ? eventStream : null;
         }
-        public IEnumerable<EventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
-            var eventStreams = new List<EventStream>();
+            var eventStreams = new List<DomainEventStream>();
 
             AggregateInfo aggregateInfo;
             if (!_aggregateInfoDict.TryGetValue(aggregateRootId, out aggregateInfo))
@@ -88,7 +88,7 @@ namespace ENode.Eventing.Impl.InMemory
 
             return aggregateInfo.EventDict.Where(x => x.Key >= min && x.Key <= max).Select(x => x.Value).ToList();
         }
-        public IEnumerable<EventStream> QueryByPage(int pageIndex, int pageSize)
+        public IEnumerable<DomainEventStream> QueryByPage(int pageIndex, int pageSize)
         {
             var start = pageIndex * pageSize;
             return _eventDict.Skip(start).Take(pageSize).Select(x => x.Value).ToList();
@@ -98,8 +98,8 @@ namespace ENode.Eventing.Impl.InMemory
         {
             public int Status;
             public long CurrentVersion;
-            public ConcurrentDictionary<int, EventStream> EventDict = new ConcurrentDictionary<int, EventStream>();
-            public ConcurrentDictionary<string, EventStream> CommandDict = new ConcurrentDictionary<string, EventStream>();
+            public ConcurrentDictionary<int, DomainEventStream> EventDict = new ConcurrentDictionary<int, DomainEventStream>();
+            public ConcurrentDictionary<string, DomainEventStream> CommandDict = new ConcurrentDictionary<string, DomainEventStream>();
         }
     }
 }

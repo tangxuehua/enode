@@ -38,7 +38,7 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Public Methods
 
-        public EventAppendResult Append(EventStream eventStream)
+        public EventAppendResult Append(DomainEventStream eventStream)
         {
             var record = ConvertTo(eventStream);
 
@@ -63,7 +63,7 @@ namespace ENode.Eventing.Impl.SQL
                 }
             }
         }
-        public EventStream Find(string aggregateRootId, int version)
+        public DomainEventStream Find(string aggregateRootId, int version)
         {
             using (var connection = GetConnection())
             {
@@ -76,7 +76,7 @@ namespace ENode.Eventing.Impl.SQL
                 return null;
             }
         }
-        public EventStream Find(string aggregateRootId, string commandId)
+        public DomainEventStream Find(string aggregateRootId, string commandId)
         {
             using (var connection = GetConnection())
             {
@@ -89,7 +89,7 @@ namespace ENode.Eventing.Impl.SQL
                 return null;
             }
         }
-        public IEnumerable<EventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
             using (var connection = GetConnection())
             {
@@ -102,7 +102,7 @@ namespace ENode.Eventing.Impl.SQL
                     MinVersion = minVersion,
                     MaxVersion = maxVersion
                 });
-                var streams = new List<EventStream>();
+                var streams = new List<DomainEventStream>();
                 foreach (var record in records)
                 {
                     streams.Add(ConvertFrom(record));
@@ -110,13 +110,13 @@ namespace ENode.Eventing.Impl.SQL
                 return streams;
             }
         }
-        public IEnumerable<EventStream> QueryByPage(int pageIndex, int pageSize)
+        public IEnumerable<DomainEventStream> QueryByPage(int pageIndex, int pageSize)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
                 var records = connection.QueryPaged<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
-                var streams = new List<EventStream>();
+                var streams = new List<DomainEventStream>();
                 foreach (var record in records)
                 {
                     streams.Add(ConvertFrom(record));
@@ -133,9 +133,9 @@ namespace ENode.Eventing.Impl.SQL
         {
             return new SqlConnection(_connectionString);
         }
-        private EventStream ConvertFrom(StreamRecord record)
+        private DomainEventStream ConvertFrom(StreamRecord record)
         {
-            return new EventStream(
+            return new DomainEventStream(
                 record.CommandId,
                 record.AggregateRootId,
                 record.AggregateRootTypeCode,
@@ -145,7 +145,7 @@ namespace ENode.Eventing.Impl.SQL
                 _binarySerializer.Deserialize<IEnumerable<IDomainEvent>>(record.Events),
                 _binarySerializer.Deserialize<IDictionary<string, string>>(record.Items));
         }
-        private StreamRecord ConvertTo(EventStream eventStream)
+        private StreamRecord ConvertTo(DomainEventStream eventStream)
         {
             return new StreamRecord
             {

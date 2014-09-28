@@ -8,21 +8,21 @@ namespace ENode.Eventing
     {
         /// <summary>Append the given event stream to the event store.
         /// </summary>
-        EventAppendResult Append(EventStream eventStream);
+        EventAppendResult Append(DomainEventStream eventStream);
         /// <summary>Find a single event stream by aggregateRootId and version.
         /// </summary>
         /// <returns></returns>
-        EventStream Find(string aggregateRootId, int version);
+        DomainEventStream Find(string aggregateRootId, int version);
         /// <summary>Find a single event stream by aggregateRootId and commandId.
         /// </summary>
         /// <returns></returns>
-        EventStream Find(string aggregateRootId, string commandId);
+        DomainEventStream Find(string aggregateRootId, string commandId);
         /// <summary>Query a range of event streams of a single aggregate from event store.
         /// </summary>
-        IEnumerable<EventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion);
+        IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion);
         /// <summary>Query a range of event streams from event store by page.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<EventStream> QueryByPage(int pageIndex, int pageSize);
+        IEnumerable<DomainEventStream> QueryByPage(int pageIndex, int pageSize);
     }
 }
