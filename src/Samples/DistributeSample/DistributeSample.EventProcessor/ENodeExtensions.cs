@@ -7,6 +7,7 @@ using ECommon.Scheduling;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using EQueue.Configurations;
 
 namespace DistributeSample.EventProcessor.EQueueIntegrations
@@ -17,8 +18,8 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
 
         public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
         {
-            enodeConfiguration.GetCommonConfiguration().SetDefault<IEventTypeCodeProvider, EventTypeCodeProvider>();
-            enodeConfiguration.GetCommonConfiguration().SetDefault<IEventHandlerTypeCodeProvider, EventHandlerTypeCodeProvider>();
+            enodeConfiguration.GetCommonConfiguration().SetDefault<ITypeCodeProvider<IEvent>, EventTypeCodeProvider>();
+            enodeConfiguration.GetCommonConfiguration().SetDefault<ITypeCodeProvider<IEventHandler>, EventHandlerTypeCodeProvider>();
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)

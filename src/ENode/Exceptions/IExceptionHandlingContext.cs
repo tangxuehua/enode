@@ -2,11 +2,11 @@
 using ENode.Commanding;
 using ENode.Domain;
 
-namespace ENode.Infrastructure
+namespace ENode.Exceptions
 {
     /// <summary>Represents a context for exception handler handling exception.
     /// </summary>
-    public interface IExceptionContext
+    public interface IExceptionHandlingContext
     {
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>

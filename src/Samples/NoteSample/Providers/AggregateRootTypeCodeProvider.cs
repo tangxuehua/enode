@@ -4,7 +4,7 @@ using NoteSample.Domain;
 
 namespace NoteSample.Providers
 {
-    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider, IAggregateRootTypeCodeProvider
+    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>, ITypeCodeProvider<IAggregateRoot>
     {
         public AggregateRootTypeCodeProvider()
         {

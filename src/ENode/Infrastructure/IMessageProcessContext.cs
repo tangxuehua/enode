@@ -7,6 +7,6 @@
         /// <summary>Notify the given message has been processed.
         /// </summary>
         /// <param name="message">The processed message.</param>
-        void OnExceptionProcessed(TMessage message);
+        void OnMessageProcessed(TMessage message);
     }
 }

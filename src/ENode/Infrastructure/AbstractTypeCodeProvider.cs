@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ENode.Infrastructure
 {
-    public abstract class AbstractTypeCodeProvider : ITypeCodeProvider
+    public abstract class AbstractTypeCodeProvider<TType> : ITypeCodeProvider<TType>
     {
         private IDictionary<int, Type> _codeTypeDict = new Dictionary<int, Type>();
         private IDictionary<Type, int> _typeCodeDict = new Dictionary<Type, int>();

@@ -1,15 +1,13 @@
 ﻿using System.Collections.Generic;
 
-namespace ENode.Infrastructure
+namespace ENode.Exceptions
 {
     /// <summary>Represents an exception which can be published.
     /// </summary>
-    public interface IPublishableException
+    public interface IException
     {
         string UniqueId { get; }
-        int TypeCode { get; }
-        int ErrorCode { get; }
-        object[] Arguments { get; }
+        string Message { get; }
         IDictionary<string, string> Items { get; }
     }
 }

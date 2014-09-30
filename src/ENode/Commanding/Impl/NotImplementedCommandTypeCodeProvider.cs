@@ -2,7 +2,7 @@
 
 namespace ENode.Commanding.Impl
 {
-    public class NotImplementedCommandTypeCodeProvider : AbstractTypeCodeProvider, ICommandTypeCodeProvider
+    public class NotImplementedCommandTypeCodeProvider : AbstractTypeCodeProvider<ICommand>, ITypeCodeProvider<ICommand>
     {
     }
 }

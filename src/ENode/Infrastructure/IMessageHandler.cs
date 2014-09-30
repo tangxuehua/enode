@@ -1,4 +1,4 @@
-﻿namespace ENode.Eventing
+﻿namespace ENode.Infrastructure
 {
     /// <summary>Represents a message handler.
     /// </summary>

@@ -18,7 +18,7 @@ namespace ENode.Domain.Impl
         private readonly IEventSourcingService _eventSourcingService;
         private readonly IEventStore _eventStore;
         private readonly ISnapshotStore _snapshotStore;
-        private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeCodeProvider;
+        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
 
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -32,7 +32,7 @@ namespace ENode.Domain.Impl
             IEventSourcingService eventSourcingService,
             IEventStore eventStore,
             ISnapshotStore snapshotStore,
-            IAggregateRootTypeCodeProvider aggregateRootTypeCodeProvider)
+            ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _eventSourcingService = eventSourcingService;

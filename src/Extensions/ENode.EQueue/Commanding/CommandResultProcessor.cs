@@ -10,6 +10,7 @@ using ENode.Commanding;
 using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
+using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
 
 namespace ENode.EQueue.Commanding
 {
@@ -276,7 +277,7 @@ namespace ENode.EQueue.Commanding
             public TaskCompletionSource<CommandResult> TaskCompletionSource { get; set; }
             public CommandReturnType CommandReturnType { get; set; }
         }
-        class CommandExecutedMessageHandler : IMessageHandler
+        class CommandExecutedMessageHandler : IQueueMessageHandler
         {
             private CommandResultProcessor _processor;
 
@@ -285,13 +286,13 @@ namespace ENode.EQueue.Commanding
                 _processor = processor;
             }
 
-            void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
+            void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
             {
                 _processor._commandExecutedMessageLocalQueue.Add(_processor._binarySerializer.Deserialize(message.Body, typeof(CommandExecutedMessage)) as CommandExecutedMessage);
                 context.OnMessageHandled(message);
             }
         }
-        class DomainEventHandledMessageHandler : IMessageHandler
+        class DomainEventHandledMessageHandler : IQueueMessageHandler
         {
             private CommandResultProcessor _processor;
 
@@ -300,7 +301,7 @@ namespace ENode.EQueue.Commanding
                 _processor = processor;
             }
 
-            void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
+            void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
             {
                 _processor._domainEventHandledMessageLocalQueue.Add(_processor._binarySerializer.Deserialize(message.Body, typeof(DomainEventHandledMessage)) as DomainEventHandledMessage);
                 context.OnMessageHandled(message);

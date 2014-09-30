@@ -9,6 +9,7 @@ using ENode.Configurations;
 using ENode.Domain;
 using ENode.EQueue;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using EQueue.Configurations;
 
 namespace DistributeSample.CommandProcessor.EQueueIntegrations
@@ -22,8 +23,8 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.SetDefault<ITopicProvider<IEvent>, EventTopicProvider>();
-            configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
-            configuration.SetDefault<IAggregateRootTypeCodeProvider, AggregateRootTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<ICommand>, CommandTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, AggregateRootTypeCodeProvider>();
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
@@ -34,7 +35,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
 
             _eventPublisher = new EventPublisher();
 
-            configuration.SetDefault<IDomainEventPublisher, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer();
 

@@ -1,4 +1,6 @@
-﻿namespace ENode.Eventing
+﻿using ENode.Infrastructure;
+
+namespace ENode.Eventing
 {
     /// <summary>Represents an event handler.
     /// </summary>

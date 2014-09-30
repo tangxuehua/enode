@@ -1,4 +1,4 @@
-﻿namespace ENode.Eventing.Impl
+﻿namespace ENode.Infrastructure
 {
     /// <summary>The default implementation of IMessageHandler.
     /// </summary>

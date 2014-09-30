@@ -1,6 +1,7 @@
 ﻿using System;
 using ECommon.Serializing;
 using ENode.Domain;
+using ENode.Infrastructure;
 
 namespace ENode.Snapshoting.Impl
 {
@@ -11,7 +12,7 @@ namespace ENode.Snapshoting.Impl
         #region Private Variables
 
         private readonly IAggregateRootFactory _aggregateRootFactory;
-        private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeCodeProvider;
+        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
         private readonly IBinarySerializer _binarySerializer;
 
         #endregion
@@ -23,7 +24,7 @@ namespace ENode.Snapshoting.Impl
         /// <param name="aggregateRootFactory"></param>
         /// <param name="aggregateRootTypeCodeProvider"></param>
         /// <param name="binarySerializer"></param>
-        public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, IAggregateRootTypeCodeProvider aggregateRootTypeCodeProvider, IBinarySerializer binarySerializer)
+        public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider, IBinarySerializer binarySerializer)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;

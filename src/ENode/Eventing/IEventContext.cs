@@ -8,10 +8,6 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventContext
     {
-        /// <summary>Represents the extension information of the current event.
-        /// This information is from the corresponding command of the current event.
-        /// </summary>
-        IDictionary<string, string> Items { get; }
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
         /// <typeparam name="T"></typeparam>

@@ -4,7 +4,7 @@ using NoteSample.EventHandlers;
 
 namespace NoteSample.Providers
 {
-    public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider, IEventHandlerTypeCodeProvider
+    public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider<IEventHandler>, ITypeCodeProvider<IEventHandler>
     {
         public EventHandlerTypeCodeProvider()
         {

@@ -3,7 +3,7 @@ using ENode.Infrastructure;
 
 namespace UniquenessConstraintSample.Providers
 {
-    public class EventTypeCodeProvider : AbstractTypeCodeProvider, IEventTypeCodeProvider
+    public class EventTypeCodeProvider : AbstractTypeCodeProvider<IEvent>, ITypeCodeProvider<IEvent>
     {
         public EventTypeCodeProvider()
         {

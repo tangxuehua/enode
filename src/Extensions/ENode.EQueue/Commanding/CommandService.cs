@@ -5,6 +5,7 @@ using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.EQueue.Commanding;
+using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
 using EQueue.Utils;
@@ -19,7 +20,7 @@ namespace ENode.EQueue
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ITopicProvider<ICommand> _commandTopicProvider;
-        private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
+        private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly ICommandRouteKeyProvider _commandRouteKeyProvider;
         private readonly CommandResultProcessor _commandResultProcessor;
         private readonly Producer _producer;
@@ -33,7 +34,7 @@ namespace ENode.EQueue
             _producer = new Producer(id ?? DefaultCommandServiceProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
+            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRouteKeyProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;

@@ -10,7 +10,7 @@ using EQueue.Protocols;
 
 namespace ENode.EQueue
 {
-    public class EventPublisher : IEventPublisher, IDomainEventPublisher
+    public class EventPublisher : IMessagePublisher<EventStream>, IMessagePublisher<DomainEventStream>
     {
         private const string DefaultEventPublisherProcuderId = "sys_epp";
         private readonly ILogger _logger;
@@ -74,7 +74,7 @@ namespace ENode.EQueue
             message.Timestamp = eventStream.Timestamp;
             message.ProcessId = eventStream.ProcessId;
             message.Version = eventStream.Version;
-            message.Events = eventStream.Events;
+            message.DomainEvents = eventStream.DomainEvents;
             message.Items = eventStream.Items;
 
             return message;

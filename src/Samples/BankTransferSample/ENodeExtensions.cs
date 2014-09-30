@@ -10,6 +10,7 @@ using ENode.Domain;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Configurations;
 
@@ -29,10 +30,10 @@ namespace BankTransferSample
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.SetDefault<ITopicProvider<ICommand>, CommandTopicProvider>();
             configuration.SetDefault<ITopicProvider<IEvent>, EventTopicProvider>();
-            configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
-            configuration.SetDefault<IAggregateRootTypeCodeProvider, AggregateRootTypeCodeProvider>();
-            configuration.SetDefault<IEventTypeCodeProvider, EventTypeCodeProvider>();
-            configuration.SetDefault<IEventHandlerTypeCodeProvider, EventHandlerTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<ICommand>, CommandTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, AggregateRootTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<IEvent>, EventTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<IEventHandler>, EventHandlerTypeCodeProvider>();
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
@@ -49,8 +50,8 @@ namespace BankTransferSample
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IProcessCommandSender, CommandService>(_commandService);
-            configuration.SetDefault<IEventPublisher, EventPublisher>(_eventPublisher);
-            configuration.SetDefault<IDomainEventPublisher, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<EventStream>, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer();
             _eventConsumer = new EventConsumer();

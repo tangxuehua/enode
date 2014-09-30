@@ -5,7 +5,7 @@ using ENode.Infrastructure;
 
 namespace BankTransferSample.Providers
 {
-    public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider, IEventHandlerTypeCodeProvider
+    public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider<IEventHandler>, ITypeCodeProvider<IEventHandler>
     {
         public EventHandlerTypeCodeProvider()
         {

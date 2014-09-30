@@ -16,8 +16,8 @@ namespace ENode.Commanding.Impl
         private readonly IEventStore _eventStore;
         private readonly IWaitingCommandService _waitingCommandService;
         private readonly IExecutedCommandService _executedCommandService;
-        private readonly ICommandHandlerProvider _commandHandlerProvider;
-        private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeProvider;
+        private readonly IMessageHandlerProvider<ICommandHandler> _commandHandlerProvider;
+        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeProvider;
         private readonly IEventService _eventService;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         //private readonly IExceptionPublisher _exceptionPublisher;
@@ -44,8 +44,8 @@ namespace ENode.Commanding.Impl
             IEventStore eventStore,
             IWaitingCommandService waitingCommandService,
             IExecutedCommandService executedCommandService,
-            ICommandHandlerProvider commandHandlerProvider,
-            IAggregateRootTypeCodeProvider aggregateRootTypeProvider,
+            IMessageHandlerProvider<ICommandHandler> commandHandlerProvider,
+            ITypeCodeProvider<IAggregateRoot> aggregateRootTypeProvider,
             IEventService eventService,
             IEventPublishInfoStore eventPublishInfoStore,
             //IExceptionPublisher exceptionPublisher,
@@ -83,11 +83,16 @@ namespace ENode.Commanding.Impl
             //首先验证command handler是否存在
             try
             {
-                commandHandler = _commandHandlerProvider.GetCommandHandler(command);
-                if (commandHandler == null)
+                var commandHandlers = _commandHandlerProvider.GetMessageHandlers(command.GetType());
+                if (!commandHandlers.Any())
                 {
                     throw new CommandHandlerNotFoundException(command);
                 }
+                else if (commandHandlers.Count() > 1)
+                {
+                    throw new CommandHandlerTooManyException(command);
+                }
+                commandHandler = commandHandlers.Single();
             }
             catch (Exception ex)
             {
@@ -110,7 +115,7 @@ namespace ENode.Commanding.Impl
             {
                 commandHandler.Handle(context, command);
                 _logger.DebugFormat("Handle command success. commandHandlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}, processId:{4}",
-                    commandHandler.GetInnerCommandHandler().GetType().Name,
+                    commandHandler.GetInnerHandler().GetType().Name,
                     command.GetType().Name,
                     command.Id,
                     processingCommand.AggregateRootId,
@@ -188,6 +193,13 @@ namespace ENode.Commanding.Impl
             //从该聚合根获取所有产生的领域事件，构造出一个EventStream对象
             var eventStream = BuildDomainEventStream(dirtyAggregate, processingCommand);
 
+            //如果是重试中的command，则直接commit event，因为这个command肯定已经在command store中了
+            if (processingCommand.RetriedCount > 0)
+            {
+                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                return;
+            }
+
             //尝试将当前已执行的command添加到commandStore
             string sourceEventId;
             command.Items.TryGetValue("SourceEventId", out sourceEventId);
@@ -207,7 +219,7 @@ namespace ENode.Commanding.Impl
                     var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
                     if (existingEventStream != null)
                     {
-                        //如果当前command已经被持久化过了，且事件已经被持久化了，则只要再做一遍发布事件的操作
+                        //如果当前command已经被持久化过了，且该command产生的事件也已经被持久化了，则只要再做一遍发布事件的操作
                         _eventService.PublishDomainEvent(processingCommand, existingEventStream);
                     }
                     else
@@ -288,7 +300,7 @@ namespace ENode.Commanding.Impl
             else
             {
                 //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行，那我们就记录错误日志，然后认为该command处理失败即可。
-                var commandHandlerType = commandHandler.GetInnerCommandHandler().GetType();
+                var commandHandlerType = commandHandler.GetInnerHandler().GetType();
                 var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}, processId:{5}, exceptionMessage:{6}",
                     exception.GetType().Name,
                     commandHandlerType.Name,

@@ -12,6 +12,8 @@ using ENode.Eventing;
 using ENode.Eventing.Impl;
 using ENode.Eventing.Impl.InMemory;
 using ENode.Eventing.Impl.SQL;
+using ENode.Exceptions;
+using ENode.Exceptions.Impl;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl.SQL;
 using ENode.Snapshoting;
@@ -67,15 +69,15 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
-            _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
-            _configuration.SetDefault<IEventHandlerProvider, DefaultEventHandlerProvider>();
-            _configuration.SetDefault<ICommandTypeCodeProvider, NotImplementedCommandTypeCodeProvider>();
-            _configuration.SetDefault<IAggregateRootTypeCodeProvider, NotImplementedAggregateRootTypeCodeProvider>();
-            _configuration.SetDefault<IEventTypeCodeProvider, NotImplementedEventTypeCodeProvider>();
-            _configuration.SetDefault<IEventHandlerTypeCodeProvider, NotImplementedEventHandlerTypeCodeProvider>();
+            _configuration.SetDefault<IMessageHandlerProvider<ICommandHandler>, DefaultCommandHandlerProvider>();
+            _configuration.SetDefault<IMessageHandlerProvider<IEventHandler>, DefaultEventHandlerProvider>();
+            _configuration.SetDefault<IMessageHandlerProvider<IExceptionHandler>, DefaultExceptionHandlerProvider>();
+            _configuration.SetDefault<ITypeCodeProvider<ICommand>, NotImplementedCommandTypeCodeProvider>();
+            _configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, NotImplementedAggregateRootTypeCodeProvider>();
+            _configuration.SetDefault<ITypeCodeProvider<IEvent>, NotImplementedEventTypeCodeProvider>();
+            _configuration.SetDefault<ITypeCodeProvider<IEventHandler>, NotImplementedEventHandlerTypeCodeProvider>();
 
-            _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
             _configuration.SetDefault<IEventSourcingService, DefaultEventSourcingService>();
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
@@ -101,13 +103,12 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
             _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
-            _configuration.SetDefault<IDomainEventProcessor, DefaultDomainEventProcessor>();
-            _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
-            _configuration.SetDefault<IDomainEventPublisher, NotImplementedEventPublisher>();
+            _configuration.SetDefault<IMessagePublisher<EventStream>, NotImplementedEventPublisher>();
+            _configuration.SetDefault<IMessagePublisher<DomainEventStream>, NotImplementedEventPublisher>();
 
-            _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(IEventHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<ICommandHandler>));
+            _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<IEventHandler>));
             _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
 
             return this;

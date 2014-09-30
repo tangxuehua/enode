@@ -4,7 +4,7 @@ using ENode.Infrastructure;
 
 namespace DistributeSample.EventProcessor.Providers
 {
-    public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider, IEventHandlerTypeCodeProvider
+    public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider<IEventHandler>, ITypeCodeProvider<IEventHandler>
     {
         public EventHandlerTypeCodeProvider()
         {

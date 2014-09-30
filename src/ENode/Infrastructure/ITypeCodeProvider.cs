@@ -4,7 +4,7 @@ namespace ENode.Infrastructure
 {
     /// <summary>Represents a provider to provide the type and code mapping information.
     /// </summary>
-    public interface ITypeCodeProvider
+    public interface ITypeCodeProvider<T>
     {
         /// <summary>Get the code of the given type.
         /// </summary>

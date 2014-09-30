@@ -2,7 +2,7 @@
 
 namespace ENode.Domain.Impl
 {
-    public class NotImplementedAggregateRootTypeCodeProvider : AbstractTypeCodeProvider, IAggregateRootTypeCodeProvider
+    public class NotImplementedAggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>, ITypeCodeProvider<IAggregateRoot>
     {
     }
 }

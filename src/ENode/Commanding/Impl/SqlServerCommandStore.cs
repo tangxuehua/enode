@@ -4,6 +4,7 @@ using System.Linq;
 using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.Serializing;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
 {
@@ -17,7 +18,7 @@ namespace ENode.Commanding.Impl
         private readonly string _commandTable;
         private readonly string _primaryKeyName;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
+        private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
 
         #region Constructors
 
@@ -29,7 +30,7 @@ namespace ENode.Commanding.Impl
             _commandTable = commandTable;
             _primaryKeyName = primaryKeyName;
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
+            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
         }
 
         #endregion

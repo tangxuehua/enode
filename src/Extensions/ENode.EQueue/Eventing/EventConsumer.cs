@@ -6,9 +6,10 @@ using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
-using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
 using EQueue.Protocols;
+using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
 
 namespace ENode.EQueue
 {
@@ -19,9 +20,8 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly IEventTypeCodeProvider _eventTypeCodeProvider;
+        private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
         private readonly IEventProcessor _eventProcessor;
-        private readonly IDomainEventProcessor _domainEventProcessor;
         private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
         private readonly ILogger _logger;
         private readonly bool _sendEventHandledMessage;
@@ -36,13 +36,12 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _eventTypeCodeProvider = ObjectContainer.Resolve<IEventTypeCodeProvider>();
+            _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IEvent>>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
-            _domainEventProcessor = ObjectContainer.Resolve<IDomainEventProcessor>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
-            _domainEventProcessor.Name = consumerId;
+            _eventProcessor.Name = consumerId;
             _sendEventHandledMessage = sendEventHandledMessage;
         }
 
@@ -66,56 +65,49 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
         {
+            var eventMessage = default(EventMessage);
+            var eventStream = default(IEventStream);
+
             if (message.Code == (int)MessageTypeCode.DomainEventMessage)
             {
-                var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(DomainEventMessage)) as DomainEventMessage;
-                var eventStream = ConvertToEventStream(eventMessage);
-
-                if (_messageContextDict.TryAdd(eventStream.CommandId, context))
-                {
-                    _domainEventProcessor.Process(eventStream, new DomainEventProcessContext(message, eventMessage, DomainEventProcessedCallback));
-                }
-                else
-                {
-                    _logger.DebugFormat("Duplicated queue message of domain event, topic:{0}, messageOffset:{1}", message.Topic, message.MessageOffset);
-                    context.OnMessageHandled(message);
-                }
+                eventMessage = _binarySerializer.Deserialize(message.Body, typeof(DomainEventMessage)) as DomainEventMessage;
+                eventStream = ConvertToDomainEventStream(eventMessage as DomainEventMessage);
             }
             else if (message.Code == (int)MessageTypeCode.EventMessage)
             {
-                var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(EventMessage)) as EventMessage;
-                var eventStream = ConvertToEventStream(eventMessage);
-                if (_messageContextDict.TryAdd(eventStream.CommandId, context))
-                {
-                    _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventProcessedCallback));
-                }
-                else
-                {
-                    _logger.DebugFormat("Duplicated queue message of event, topic:{0}, messageOffset:{1}", message.Topic, message.MessageOffset);
-                    context.OnMessageHandled(message);
-                }
+                eventMessage = _binarySerializer.Deserialize(message.Body, typeof(EventMessage)) as EventMessage;
+                eventStream = ConvertToEventStream(eventMessage);
             }
             else
             {
                 _logger.ErrorFormat("Invalid message code:{0}", message.Code);
                 context.OnMessageHandled(message);
+                return;
+            }
+
+            if (_messageContextDict.TryAdd(eventStream.CommandId, context))
+            {
+                _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventProcessedCallback));
+            }
+            else
+            {
+                _logger.DebugFormat("Duplicated queue message of event, topic:{0}, messageOffset:{1}", message.Topic, message.MessageOffset);
+                context.OnMessageHandled(message);
             }
         }
 
-        private void EventProcessedCallback(EventStream eventStream, EventProcessContext eventProcessContext)
+        private void EventProcessedCallback(IEventStream eventStream, EventProcessContext eventProcessContext)
         {
             IMessageContext messageContext;
             if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
             {
                 messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
             }
-        }
-        private void DomainEventProcessedCallback(DomainEventStream eventStream, DomainEventProcessContext eventProcessContext)
-        {
-            IMessageContext messageContext;
-            if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
+
+            var domainEventStream = eventStream as IDomainEventStream;
+            if (domainEventStream == null)
             {
-                messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
+                return;
             }
 
             if (!_sendEventHandledMessage)
@@ -124,14 +116,13 @@ namespace ENode.EQueue
             }
 
             var items = eventProcessContext.EventMessage.Items;
-            if (!ValidateContextItems(eventProcessContext.EventMessage))
+            if (!items.ContainsKey("DomainEventHandledMessageTopic") || string.IsNullOrEmpty(items["DomainEventHandledMessageTopic"]))
             {
+                _logger.Error("DomainEventHandledMessageTopic cannot be empty.");
                 return;
             }
 
             var domainEventHandledMessageTopic = items["DomainEventHandledMessageTopic"];
-            var currentCommandId = items["CurrentCommandId"];
-            var currentProcessId = items["CurrentProcessId"];
             var processCompletedEvents = eventStream.Events.Where(x => x is IProcessCompletedEvent);
             if (processCompletedEvents.Count() > 1)
             {
@@ -151,45 +142,16 @@ namespace ENode.EQueue
 
             _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
             {
-                CommandId = currentCommandId,
-                ProcessId = currentProcessId,
-                AggregateRootId = eventStream.AggregateRootId,
+                CommandId = domainEventStream.CommandId,
+                ProcessId = domainEventStream.ProcessId,
+                AggregateRootId = domainEventStream.AggregateRootId,
                 IsProcessCompleted = isProcessCompleted,
                 IsProcessSuccess = isProcessSuccess,
                 ErrorCode = errorCode,
-                Items = eventStream.Items ?? new Dictionary<string, string>()
+                Items = domainEventStream.Items ?? new Dictionary<string, string>()
             }, domainEventHandledMessageTopic);
         }
-        private bool ValidateContextItems(DomainEventMessage message)
-        {
-            if (!message.Items.ContainsKey("DomainEventHandledMessageTopic"))
-            {
-                _logger.Error("Key 'DomainEventHandledMessageTopic' missing in event message context items dict.");
-                return false;
-            }
-            else if (!message.Items.ContainsKey("CurrentCommandId"))
-            {
-                _logger.Error("Key 'CurrentCommandId' missing in event message context items dict.");
-                return false;
-            }
-            else if (!message.Items.ContainsKey("CurrentProcessId"))
-            {
-                _logger.Error("Key 'CurrentProcessId' missing in event message context items dict.");
-                return false;
-            }
-            else if (string.IsNullOrEmpty(message.Items["DomainEventHandledMessageTopic"]))
-            {
-                _logger.Error("DomainEventHandledMessageTopic cannot be empty.");
-                return false;
-            }
-            else if (string.IsNullOrEmpty(message.Items["CurrentCommandId"]))
-            {
-                _logger.Error("CurrentCommandId cannot be empty.");
-                return false;
-            }
-            return true;
-        }
-        private DomainEventStream ConvertToEventStream(DomainEventMessage message)
+        private DomainEventStream ConvertToDomainEventStream(DomainEventMessage message)
         {
             return new DomainEventStream(
                 message.CommandId,
@@ -198,7 +160,7 @@ namespace ENode.EQueue
                 message.ProcessId,
                 message.Version,
                 message.Timestamp,
-                message.Events,
+                message.DomainEvents,
                 message.Items);
         }
         private EventStream ConvertToEventStream(EventMessage message)
@@ -206,38 +168,20 @@ namespace ENode.EQueue
             return new EventStream(message.CommandId, message.ProcessId, message.Events, message.Items);
         }
 
-        class EventProcessContext : IEventProcessContext
+        class EventProcessContext : IMessageProcessContext<IEventStream>
         {
-            public Action<EventStream, EventProcessContext> EventProcessedAction { get; private set; }
+            public Action<IEventStream, EventProcessContext> EventProcessedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
             public EventMessage EventMessage { get; private set; }
 
-            public EventProcessContext(QueueMessage queueMessage, EventMessage eventMessage, Action<EventStream, EventProcessContext> eventProcessedAction)
+            public EventProcessContext(QueueMessage queueMessage, EventMessage eventMessage, Action<IEventStream, EventProcessContext> eventProcessedAction)
             {
                 QueueMessage = queueMessage;
                 EventMessage = eventMessage;
                 EventProcessedAction = eventProcessedAction;
             }
 
-            public void OnEventProcessed(EventStream eventStream)
-            {
-                EventProcessedAction(eventStream, this);
-            }
-        }
-        class DomainEventProcessContext : IDomainEventProcessContext
-        {
-            public Action<DomainEventStream, DomainEventProcessContext> EventProcessedAction { get; private set; }
-            public QueueMessage QueueMessage { get; private set; }
-            public DomainEventMessage EventMessage { get; private set; }
-
-            public DomainEventProcessContext(QueueMessage queueMessage, DomainEventMessage eventMessage, Action<DomainEventStream, DomainEventProcessContext> eventProcessedAction)
-            {
-                QueueMessage = queueMessage;
-                EventMessage = eventMessage;
-                EventProcessedAction = eventProcessedAction;
-            }
-
-            public void OnEventProcessed(DomainEventStream eventStream)
+            public void OnMessageProcessed(IEventStream eventStream)
             {
                 EventProcessedAction(eventStream, this);
             }

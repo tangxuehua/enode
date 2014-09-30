@@ -39,6 +39,7 @@
     <DocumentationFile>D:\nugetpublish\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commanding\CommandHandlerTooManyException.cs" />
     <Compile Include="Commanding\EventAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateCommand.cs" />
@@ -53,7 +54,6 @@
     <Compile Include="Commanding\IAggregateCommand.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\IProcessCommandSender.cs" />
-    <Compile Include="Commanding\ICommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\ICommandStore.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\CommandAggregateRootIdMissingException.cs" />
@@ -85,17 +85,27 @@
     <Compile Include="Domain\Impl\NotImplementedAggregateRootTypeCodeProvider.cs" />
     <Compile Include="Eventing\Event.cs" />
     <Compile Include="Eventing\EventStream.cs" />
-    <Compile Include="Eventing\IEventProcessContext.cs" />
     <Compile Include="Eventing\IEventProcessor.cs" />
-    <Compile Include="Eventing\IEventPublisher.cs" />
+    <Compile Include="Eventing\IDomainEventStream.cs" />
     <Compile Include="Eventing\IEvent.cs" />
+    <Compile Include="Eventing\IEventStream.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\ProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IEventContext.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventCommittingContext.cs" />
-    <Compile Include="Eventing\IEventHandlerTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventHandlerTypeCodeProvider.cs" />
+    <Compile Include="Exceptions\IException.cs" />
+    <Compile Include="Exceptions\IExceptionHandler.cs" />
+    <Compile Include="Exceptions\IExceptionHandlingContext.cs" />
+    <Compile Include="Exceptions\Impl\DefaultExceptionHandlerProvider.cs" />
+    <Compile Include="Exceptions\Impl\DefaultExceptionProcessor.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Exceptions\Impl\ExceptionHandlerWrapper.cs" />
+    <Compile Include="Exceptions\Impl\NotImplementedExceptionHandlerTypeCodeProvider.cs" />
+    <Compile Include="Exceptions\Impl\NotImplementedExceptionPublisher.cs" />
+    <Compile Include="Infrastructure\Impl\BaseHandlerProvider.cs" />
     <Compile Include="Infrastructure\MessageHandlerWrapper.cs" />
     <Compile Include="Infrastructure\IMessageHandlerProvider.cs" />
     <Compile Include="Infrastructure\IMessageHandler.cs" />
@@ -105,27 +115,21 @@
     <Compile Include="Infrastructure\Impl\SQL\SqlServerLockService.cs" />
     <Compile Include="Infrastructure\ILockService.cs" />
     <Compile Include="Infrastructure\ITypeCodeProvider.cs" />
-    <Compile Include="Eventing\IDomainEventProcessContext.cs" />
     <Compile Include="Eventing\IEventService.cs" />
-    <Compile Include="Eventing\IEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\DefaultEventService.cs" />
-    <Compile Include="Eventing\Impl\DefaultDomainEventProcessor.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventStore.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlServerEventStore.cs" />
     <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
-    <Compile Include="Eventing\IDomainEventProcessor.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
     <Compile Include="Infrastructure\ENodeException.cs" />
     <Compile Include="Infrastructure\ConcurrentException.cs" />
     <Compile Include="Eventing\DomainEventStream.cs" />
     <Compile Include="Eventing\IDomainEvent.cs" />
-    <Compile Include="Eventing\IDomainEventPublisher.cs" />
     <Compile Include="Eventing\IEventStore.cs" />
     <Compile Include="Eventing\IEventHandler.cs" />
-    <Compile Include="Eventing\IEventHandlerProvider.cs" />
     <Compile Include="Eventing\Impl\DefaultEventHandlerProvider.cs" />
     <Compile Include="Eventing\Impl\EventHandlerWrapper.cs" />
     <Compile Include="Eventing\DomainEvent.cs" />
@@ -146,8 +150,6 @@
     <Compile Include="Infrastructure\TypeUtils.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Commanding\ICommandHandlerProvider.cs" />
-    <Compile Include="Domain\IAggregateRootTypeCodeProvider.cs" />
     <Compile Include="Domain\IAggregateRootFactory.cs" />
     <Compile Include="Domain\IAggregateRootInternalHandlerProvider.cs" />
     <Compile Include="Commanding\ICommand.cs" />
@@ -187,6 +189,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

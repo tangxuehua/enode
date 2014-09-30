@@ -8,10 +8,11 @@ using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Domain;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
-using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
 using EQueue.Protocols;
 using EQueue.Utils;
+using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
 
 namespace ENode.EQueue
 {
@@ -22,7 +23,7 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly ICommandTypeCodeProvider _commandTypeCodeProvider;
+        private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly ICommandExecutor _commandExecutor;
         private readonly IRepository _repository;
         private readonly ILogger _logger;
@@ -38,7 +39,7 @@ namespace ENode.EQueue
         {
             _consumer = new Consumer(id ?? DefaultCommandConsumerId, groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ICommandTypeCodeProvider>();
+            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);

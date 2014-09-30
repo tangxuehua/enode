@@ -4,7 +4,7 @@ using NoteSample.Commands;
 
 namespace NoteSample.Providers
 {
-    public class CommandTypeCodeProvider : AbstractTypeCodeProvider, ICommandTypeCodeProvider
+    public class CommandTypeCodeProvider : AbstractTypeCodeProvider<ICommand>, ITypeCodeProvider<ICommand>
     {
         public CommandTypeCodeProvider()
         {

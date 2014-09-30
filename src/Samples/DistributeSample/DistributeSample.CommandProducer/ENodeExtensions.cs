@@ -8,6 +8,7 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
+using ENode.Infrastructure;
 using EQueue.Configurations;
 
 namespace DistributeSample.CommandProducer.EQueueIntegrations
@@ -21,7 +22,7 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.SetDefault<ITopicProvider<ICommand>, CommandTopicProvider>();
-            configuration.SetDefault<ICommandTypeCodeProvider, CommandTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<ICommand>, CommandTypeCodeProvider>();
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)

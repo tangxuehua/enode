@@ -24,7 +24,7 @@ namespace ENode.Domain.Impl
                 {
                     aggregateRoot.UniqueId = eventStream.AggregateRootId;
                 }
-                foreach (var evnt in eventStream.Events)
+                foreach (var evnt in eventStream.DomainEvents)
                 {
                     HandleEvent(aggregateRoot, evnt);
                 }

@@ -3,7 +3,7 @@ using ENode.Infrastructure;
 
 namespace UniquenessConstraintSample.Providers
 {
-    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider, IAggregateRootTypeCodeProvider
+    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>, ITypeCodeProvider<IAggregateRoot>
     {
         public AggregateRootTypeCodeProvider()
         {
