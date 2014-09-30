@@ -184,6 +184,13 @@ namespace ENode.Commanding.Impl
             //从该聚合根获取所有产生的领域事件，构造出一个EventStream对象
             var eventStream = BuildDomainEventStream(dirtyAggregate, processingCommand);
 
+            //如果是重试中的command，则直接commit event，因为这个command肯定已经在command store中了
+            if (processingCommand.RetriedCount > 0)
+            {
+                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                return;
+            }
+
             //尝试将当前已执行的command添加到commandStore
             string sourceEventId;
             processingCommand.CommandExecuteContext.Items.TryGetValue("SourceEventId", out sourceEventId);
@@ -203,7 +210,7 @@ namespace ENode.Commanding.Impl
                     var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
                     if (existingEventStream != null)
                     {
-                        //如果当前command已经被持久化过了，且事件已经被持久化了，则只要再做一遍发布事件的操作
+                        //如果当前command已经被持久化过了，且该command产生的事件也已经被持久化了，则只要再做一遍发布事件的操作
                         _eventService.PublishDomainEvent(processingCommand, existingEventStream);
                     }
                     else

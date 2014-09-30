@@ -129,8 +129,6 @@ namespace ENode.EQueue
             }
 
             var domainEventHandledMessageTopic = contextItems["DomainEventHandledMessageTopic"];
-            var currentCommandId = contextItems["CurrentCommandId"];
-            var currentProcessId = contextItems["CurrentProcessId"];
             var processCompletedEvents = eventStream.Events.Where(x => x is IProcessCompletedEvent);
             if (processCompletedEvents.Count() > 1)
             {
@@ -150,8 +148,8 @@ namespace ENode.EQueue
 
             _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
             {
-                CommandId = currentCommandId,
-                ProcessId = currentProcessId,
+                CommandId = eventStream.CommandId,
+                ProcessId = eventStream.ProcessId,
                 AggregateRootId = eventStream.AggregateRootId,
                 IsProcessCompleted = isProcessCompleted,
                 IsProcessSuccess = isProcessSuccess,
@@ -166,24 +164,9 @@ namespace ENode.EQueue
                 _logger.Error("Key 'DomainEventHandledMessageTopic' missing in event message context items dict.");
                 return false;
             }
-            else if (!contextItems.ContainsKey("CurrentCommandId"))
-            {
-                _logger.Error("Key 'CurrentCommandId' missing in event message context items dict.");
-                return false;
-            }
-            else if (!contextItems.ContainsKey("CurrentProcessId"))
-            {
-                _logger.Error("Key 'CurrentProcessId' missing in event message context items dict.");
-                return false;
-            }
             else if (string.IsNullOrEmpty(contextItems["DomainEventHandledMessageTopic"]))
             {
                 _logger.Error("DomainEventHandledMessageTopic cannot be empty.");
-                return false;
-            }
-            else if (string.IsNullOrEmpty(contextItems["CurrentCommandId"]))
-            {
-                _logger.Error("CurrentCommandId cannot be empty.");
                 return false;
             }
             return true;

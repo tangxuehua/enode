@@ -110,8 +110,6 @@ namespace ENode.Eventing.Impl
                 {
                     try
                     {
-                        processingCommand.CommandExecuteContext.Items["CurrentCommandId"] = processingCommand.Command.Id;
-                        processingCommand.CommandExecuteContext.Items["CurrentProcessId"] = processingCommand.ProcessId;
                         _domainEventPublisher.PublishEvent(eventStream, processingCommand.CommandExecuteContext.Items);
                         _logger.DebugFormat("Publish domain event success, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, processId:{3}, events:{4}",
                             processingCommand.Command.Id,
@@ -214,14 +212,29 @@ namespace ENode.Eventing.Impl
                 //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
                 if (eventStream.Version == 1)
                 {
-                    //取出该聚合根版本号为1的事件，然后再重新做一遍更新内存缓存以及发布事件这两个操作；
-                    //之所以要这样做，是因为虽然该事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
-                    //有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
+                    //取出该聚合根版本号为1的事件
                     var firstEventStream = _eventStore.Find(eventStream.AggregateRootId, 1);
                     if (firstEventStream != null)
                     {
-                        RefreshMemoryCache(firstEventStream);
-                        PublishDomainEvent(context.ProcessingCommand, firstEventStream);
+                        //判断是否是同一个command，如果是，则再重新做一遍更新内存缓存以及发布事件这两个操作；
+                        //之所以要这样做，是因为虽然该command产生的事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
+                        //有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
+                        if (context.ProcessingCommand.Command.Id == firstEventStream.CommandId)
+                        {
+                            RefreshMemoryCache(firstEventStream);
+                            PublishDomainEvent(context.ProcessingCommand, firstEventStream);
+                        }
+                        else
+                        {
+                            //如果不是同一个command，则认为是两个不同的command重复创建ID相同的聚合根，我们需要记录错误日志，然后通知当前command的处理完成；
+                            var errorMessage = string.Format("Duplicate aggregate creation. current commandId:{0}, existing commandId:{1}, aggregateRootId:{2}, aggregateRootTypeCode:{3}",
+                                context.ProcessingCommand.Command.Id,
+                                eventStream.CommandId,
+                                eventStream.AggregateRootId,
+                                eventStream.AggregateRootTypeCode);
+                            _logger.Error(errorMessage);
+                            NotifyCommandExecuted(context.ProcessingCommand, eventStream.AggregateRootId, CommandStatus.Failed, null, errorMessage);
+                        }
                     }
                     else
                     {
@@ -234,7 +247,7 @@ namespace ENode.Eventing.Impl
                     }
                 }
                 //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了；
-                //那么我么需要先将聚合根的最新状态更新到内存，然后重试command；
+                //那么我们需要先将聚合根的最新状态更新到内存，然后重试command；
                 else
                 {
                     RefreshMemoryCacheFromEventStore(eventStream);
