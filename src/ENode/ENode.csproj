@@ -96,7 +96,13 @@
     <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Eventing\IEventHandlerTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventHandlerTypeCodeProvider.cs" />
-    <Compile Include="Infrastructure\SQL\SqlServerLockService.cs" />
+    <Compile Include="Infrastructure\MessageHandlerWrapper.cs" />
+    <Compile Include="Infrastructure\IMessageHandlerProvider.cs" />
+    <Compile Include="Infrastructure\IMessageHandler.cs" />
+    <Compile Include="Infrastructure\IMessageProcessContext.cs" />
+    <Compile Include="Infrastructure\IMessageProcessor.cs" />
+    <Compile Include="Infrastructure\IMessagePublisher.cs" />
+    <Compile Include="Infrastructure\Impl\SQL\SqlServerLockService.cs" />
     <Compile Include="Infrastructure\ILockService.cs" />
     <Compile Include="Infrastructure\ITypeCodeProvider.cs" />
     <Compile Include="Eventing\IDomainEventProcessContext.cs" />

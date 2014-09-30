@@ -147,7 +147,7 @@ namespace ENode.Eventing.Impl
             try
             {
                 var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
-                var eventHandlerType = eventHandler.GetInnerEventHandler().GetType();
+                var eventHandlerType = eventHandler.GetInnerHandler().GetType();
                 var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(eventHandlerType);
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
@@ -188,7 +188,7 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", eventHandler.GetInnerEventHandler().GetType().Name, evnt.GetType().Name), ex);
+                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", eventHandler.GetInnerHandler().GetType().Name, evnt.GetType().Name), ex);
                 return false;
             }
         }

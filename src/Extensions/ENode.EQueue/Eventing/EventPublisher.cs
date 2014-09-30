@@ -39,9 +39,9 @@ namespace ENode.EQueue
             return this;
         }
 
-        public void PublishEvent(DomainEventStream eventStream, IDictionary<string, string> contextItems)
+        public void Publish(DomainEventStream eventStream)
         {
-            var eventMessage = CreateEventMessage(eventStream, contextItems);
+            var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _binarySerializer.Serialize(eventMessage);
             var message = new Message(topic, (int)MessageTypeCode.DomainEventMessage, data);
@@ -51,9 +51,9 @@ namespace ENode.EQueue
                 throw new ENodeException("Publish domain event failed, eventStream:[{0}]", eventStream);
             }
         }
-        public void PublishEvent(EventStream eventStream, IDictionary<string, string> contextItems)
+        public void Publish(EventStream eventStream)
         {
-            var eventMessage = CreateEventMessage(eventStream, contextItems);
+            var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _binarySerializer.Serialize(eventMessage);
             var message = new Message(topic, (int)MessageTypeCode.EventMessage, data);
@@ -64,7 +64,7 @@ namespace ENode.EQueue
             }
         }
 
-        private DomainEventMessage CreateEventMessage(DomainEventStream eventStream, IDictionary<string, string> contextItems)
+        private DomainEventMessage CreateEventMessage(DomainEventStream eventStream)
         {
             var message = new DomainEventMessage();
 
@@ -74,20 +74,19 @@ namespace ENode.EQueue
             message.Timestamp = eventStream.Timestamp;
             message.ProcessId = eventStream.ProcessId;
             message.Version = eventStream.Version;
-            message.Items = eventStream.Items;
             message.Events = eventStream.Events;
-            message.ContextItems = contextItems;
+            message.Items = eventStream.Items;
 
             return message;
         }
-        private EventMessage CreateEventMessage(EventStream eventStream, IDictionary<string, string> contextItems)
+        private EventMessage CreateEventMessage(EventStream eventStream)
         {
             var message = new EventMessage();
 
             message.CommandId = eventStream.CommandId;
             message.ProcessId = eventStream.ProcessId;
             message.Events = eventStream.Events;
-            message.ContextItems = contextItems;
+            message.Items = eventStream.Items;
 
             return message;
         }

@@ -9,9 +9,9 @@ using ENode.Commanding;
 using ENode.Domain;
 using ENode.Infrastructure;
 
-namespace ENode.Eventing.Impl
+namespace ENode.Infrastructure.Impl
 {
-    public class DefaultDomainEventProcessor : IDomainEventProcessor
+    public class DefaultExceptionProcessor : IExceptionProcessor
     {
         #region Private Variables
 
@@ -27,12 +27,10 @@ namespace ENode.Eventing.Impl
         private readonly IEventHandleInfoCache _eventHandleInfoCache;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
-        private readonly IList<BlockingCollection<EventProcessingContext>> _queueList;
+        private readonly IList<BlockingCollection<ExceptionProcessingContext>> _queueList;
         private readonly IList<Worker> _workerList;
 
         #endregion
-
-        public string Name { get; set; }
 
         #region Constructors
 
@@ -49,7 +47,7 @@ namespace ENode.Eventing.Impl
         /// <param name="eventHandleInfoCache"></param>
         /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultDomainEventProcessor(
+        public DefaultExceptionProcessor(
             IEventTypeCodeProvider eventTypeCodeProvider,
             IEventHandlerTypeCodeProvider eventHandlerTypeCodeProvider,
             ICommandTypeCodeProvider commandTypeCodeProvider,
@@ -73,19 +71,19 @@ namespace ENode.Eventing.Impl
             _eventHandleInfoCache = eventHandleInfoCache;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
-            _queueList = new List<BlockingCollection<EventProcessingContext>>();
+            _queueList = new List<BlockingCollection<ExceptionProcessingContext>>();
             for (var index = 0; index < WorkerCount; index++)
             {
-                _queueList.Add(new BlockingCollection<EventProcessingContext>(new ConcurrentQueue<EventProcessingContext>()));
+                _queueList.Add(new BlockingCollection<ExceptionProcessingContext>(new ConcurrentQueue<ExceptionProcessingContext>()));
             }
 
             _workerList = new List<Worker>();
             for (var index = 0; index < WorkerCount; index++)
             {
                 var queue = _queueList[index];
-                var worker = new Worker("ProcessEvents", () =>
+                var worker = new Worker("ProcessException", () =>
                 {
-                    ProcessEvents(queue.Take());
+                    ProcessException(queue.Take());
                 });
                 _workerList.Add(worker);
                 worker.Start();
@@ -94,10 +92,10 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        public void Process(DomainEventStream eventStream, IDomainEventProcessContext context)
+        public void Process(IPublishableException exception, IExceptionProcessContext context)
         {
-            var processingContext = new EventProcessingContext(eventStream, context);
-            var queueIndex = processingContext.EventStream.AggregateRootId.GetHashCode() % WorkerCount;
+            var processingContext = new ExceptionProcessingContext(exception, context);
+            var queueIndex = processingContext.Exception.UniqueId.GetHashCode() % WorkerCount;
             if (queueIndex < 0)
             {
                 queueIndex = Math.Abs(queueIndex);
@@ -107,40 +105,17 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
-        private void ProcessEvents(EventProcessingContext context)
+        private void ProcessException(ExceptionProcessingContext context)
         {
             _actionExecutionService.TryAction(
-                "DispatchDomainEvents",
-                () => DispatchEvents(context),
+                "DispatchException",
+                () => DispatchException(context),
                 3,
-                new ActionInfo("DispatchDomainEventsCallback", DispatchEventsCallback, context, null));
+                new ActionInfo("DispatchExceptionCallback", DispatchExceptionCallback, context, null));
         }
-        private bool DispatchEvents(EventProcessingContext context)
+        private bool DispatchException(ExceptionProcessingContext context)
         {
             var eventStream = context.EventStream;
-            var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(Name, eventStream.AggregateRootId);
-
-            if (lastPublishedVersion + 1 == eventStream.Version)
-            {
-                return DispatchEventsToHandlers(eventStream);
-            }
-            else if (lastPublishedVersion + 1 < eventStream.Version)
-            {
-                _logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", eventStream.AggregateRootId, lastPublishedVersion, eventStream.Version);
-                return false;
-            }
-
-            return true;
-        }
-        private bool DispatchEventsCallback(object obj)
-        {
-            var context = obj as EventProcessingContext;
-            UpdatePublishedVersion(context.EventStream);
-            context.EventProcessContext.OnEventProcessed(context.EventStream);
-            return true;
-        }
-        private bool DispatchEventsToHandlers(DomainEventStream eventStream)
-        {
             var success = true;
             foreach (var evnt in eventStream.Events)
             {
@@ -161,92 +136,82 @@ namespace ENode.Eventing.Impl
             }
             return success;
         }
-        private bool DispatchEventToHandler(string processId, IDictionary<string, string> items, IDomainEvent evnt, IEventHandler eventHandler)
+        private bool DispatchExceptionCallback(object obj)
+        {
+            var processingContext = obj as ExceptionProcessingContext;
+            processingContext.Context.OnExceptionProcessed(processingContext.Exception);
+            return true;
+        }
+        private bool DispatchExceptionToHandler(IPublishableException exception, IExceptionHandler exceptionHandler)
         {
             try
             {
                 var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
-                var eventHandlerType = eventHandler.GetInnerHandler().GetType();
+                var eventHandlerType = eventHandler.GetInnerEventHandler().GetType();
                 var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(eventHandlerType);
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
-                var eventContext = new EventContext(_repository, processId, items);
+                var eventContext = new EventContext(_repository, contextItems);
                 eventHandler.Handle(eventContext, evnt);
                 var processCommands = eventContext.GetCommands();
                 if (processCommands.Any())
                 {
+                    var processId = exception.Items["ProcessId"];
                     if (string.IsNullOrEmpty(processId))
                     {
-                        throw new ENodeException("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
+                        throw new ENodeException("ProcessId cannot be null or empty if the exception handler generates commands. exception info:uniqueId:{0}, typeCode:{1}, errorCode:{2}, handlerType:{3}",
                             eventHandlerType.Name,
                             evnt.GetType().Name,
-                            evnt.Id,
-                            evnt.Version,
-                            evnt.AggregateRootId);
+                            evnt.Id);
                     }
                     foreach (var processCommand in processCommands)
                     {
                         processCommand.Id = BuildCommandId(processCommand, evnt, eventHandlerTypeCode);
                         processCommand.Items["ProcessId"] = processId;
                         _processCommandSender.SendProcessCommand(processCommand, evnt.Id);
-                        _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}, processId:{7}",
+                        _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, processId:{5}",
                             processCommand.GetType().Name,
                             processCommand.Id,
                             eventHandlerType.Name,
                             evnt.GetType().Name,
                             evnt.Id,
-                            evnt.Version,
-                            evnt.AggregateRootId,
                             processId);
                     }
                 }
-                _logger.DebugFormat("Handle domain event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
+                _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}",
                     eventHandlerType.Name,
                     evnt.GetType().Name,
-                    evnt.Id,
-                    evnt.Version,
-                    evnt.AggregateRootId);
-                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, evnt.AggregateRootId, evnt.Version);
-                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, evnt.AggregateRootId, evnt.Version);
+                    evnt.Id);
+                _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, string.Empty, 0);
+                _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, string.Empty, 0);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", eventHandler.GetInnerHandler().GetType().Name, evnt.GetType().Name), ex);
+                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", eventHandler.GetInnerEventHandler().GetType().Name, evnt.GetType().Name), ex);
                 return false;
             }
         }
-        private void UpdatePublishedVersion(DomainEventStream stream)
-        {
-            if (stream.Version == 1)
-            {
-                _eventPublishInfoStore.InsertPublishedVersion(Name, stream.AggregateRootId);
-            }
-            else
-            {
-                _eventPublishInfoStore.UpdatePublishedVersion(Name, stream.AggregateRootId, stream.Version);
-            }
-        }
-        private string BuildCommandId(ICommand command, IDomainEvent evnt, int eventHandlerTypeCode)
+        private string BuildCommandId(ICommand command, IPublishableException exception, int eventHandlerTypeCode)
         {
             var key = command.GetKey();
             var commandKey = key == null ? string.Empty : key.ToString();
             var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            return string.Format("{0}{1}{2}{3}", evnt.Id, commandKey, eventHandlerTypeCode, commandTypeCode);
+            return string.Format("{0}{1}{2}{3}", exception.UniqueId, commandKey, eventHandlerTypeCode, commandTypeCode);
         }
 
         #endregion
 
-        class EventProcessingContext
+        class ExceptionProcessingContext
         {
-            public DomainEventStream EventStream { get; private set; }
-            public IDomainEventProcessContext EventProcessContext { get; private set; }
+            public IPublishableException Exception { get; private set; }
+            public IExceptionProcessContext Context { get; private set; }
 
-            public EventProcessingContext(DomainEventStream eventStream, IDomainEventProcessContext eventProcessContext)
+            public ExceptionProcessingContext(IPublishableException exception, IExceptionProcessContext context)
             {
-                EventStream = eventStream;
-                EventProcessContext = eventProcessContext;
+                Exception = exception;
+                Context = context;
             }
         }
         class EventContext : IEventContext
@@ -254,7 +219,7 @@ namespace ENode.Eventing.Impl
             private readonly List<ICommand> _commands = new List<ICommand>();
             private readonly IRepository _repository;
 
-            public EventContext(IRepository repository, string processId, IDictionary<string, string> items)
+            public EventContext(IRepository repository, IDictionary<string, string> items)
             {
                 _repository = repository;
                 Items = items ?? new Dictionary<string, string>();

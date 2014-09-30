@@ -9,12 +9,13 @@ using ENode.Commanding;
 using ENode.Domain;
 using ENode.Eventing;
 using EQueue.Clients.Consumers;
+using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
 using EQueue.Protocols;
 using EQueue.Utils;
 
 namespace ENode.EQueue
 {
-    public class CommandConsumer : IMessageHandler
+    public class CommandConsumer : IQueueMessageHandler
     {
         private const string DefaultCommandConsumerId = "CommandConsumer";
         private const string DefaultCommandConsumerGroup = "CommandConsumerGroup";
@@ -63,7 +64,7 @@ namespace ENode.EQueue
             return this;
         }
 
-        void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
+        void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
         {
             var commandMessage = _binarySerializer.Deserialize<CommandMessage>(message.Body);
             var payload = ByteTypeDataUtils.Decode(commandMessage.CommandData);
@@ -72,10 +73,9 @@ namespace ENode.EQueue
 
             if (_messageContextDict.TryAdd(command.Id, context))
             {
-                var items = new Dictionary<string, string>();
-                items.Add("DomainEventHandledMessageTopic", commandMessage.DomainEventHandledMessageTopic);
-                items.Add("SourceEventId", commandMessage.SourceEventId);
-                _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, commandMessage, items, CommandExecutedCallback)));
+                command.Items["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
+                command.Items["SourceEventId"] = commandMessage.SourceEventId;
+                _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, commandMessage, CommandExecutedCallback)));
             }
             else
             {
@@ -116,16 +116,14 @@ namespace ENode.EQueue
             public Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
             public CommandMessage CommandMessage { get; private set; }
-            public IDictionary<string, string> Items { get; private set; }
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, IDictionary<string, string> items, Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> commandExecutedAction)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> commandExecutedAction)
             {
                 _events = new ConcurrentDictionary<string, IEvent>();
                 _trackingAggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
                 QueueMessage = queueMessage;
                 CommandMessage = commandMessage;
-                Items = items;
                 CheckCommandWaiting = true;
                 CommandExecutedAction = commandExecutedAction;
             }

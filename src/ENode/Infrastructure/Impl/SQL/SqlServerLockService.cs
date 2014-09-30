@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using ECommon.Dapper;
 
-namespace ENode.Infrastructure.SQL
+namespace ENode.Infrastructure.Impl.SQL
 {
     public class SqlServerLockService : ILockService
     {

@@ -66,7 +66,7 @@ namespace ENode.Eventing.Impl
                     _eventHandlerDict.Add(eventType, eventHandlers);
                 }
 
-                if (eventHandlers.Any(x => x.GetInnerEventHandler().GetType() == eventHandlerType)) continue;
+                if (eventHandlers.Any(x => x.GetInnerHandler().GetType() == eventHandlerType)) continue;
 
                 var eventHandler = ObjectContainer.Resolve(eventHandlerType);
                 var eventHandlerWrapper = Activator.CreateInstance(eventHandlerWrapperType, new[] { eventHandler }) as IEventHandler;

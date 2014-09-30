@@ -15,7 +15,6 @@ namespace ENode.EQueue
         public DateTime Timestamp { get; set; }
         public IEnumerable<IDomainEvent> Events { get; set; }
         public IDictionary<string, string> Items { get; set; }
-        public IDictionary<string, string> ContextItems { get; set; }
 
         public DomainEventMessage()
         {

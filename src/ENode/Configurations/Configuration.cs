@@ -13,7 +13,7 @@ using ENode.Eventing.Impl;
 using ENode.Eventing.Impl.InMemory;
 using ENode.Eventing.Impl.SQL;
 using ENode.Infrastructure;
-using ENode.Infrastructure.SQL;
+using ENode.Infrastructure.Impl.SQL;
 using ENode.Snapshoting;
 using ENode.Snapshoting.Impl;
 
@@ -75,6 +75,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventTypeCodeProvider, NotImplementedEventTypeCodeProvider>();
             _configuration.SetDefault<IEventHandlerTypeCodeProvider, NotImplementedEventHandlerTypeCodeProvider>();
 
+            _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
             _configuration.SetDefault<IEventSourcingService, DefaultEventSourcingService>();
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();

@@ -2,34 +2,12 @@
 {
     /// <summary>The default implementation of IEventHandler.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class EventHandlerWrapper<T> : IEventHandler where T : class, IEvent
+    /// <typeparam name="TEvent"></typeparam>
+    public class EventHandlerWrapper<TEvent> : MessageHandlerWrapper<IEventContext, TEvent, IEvent>, IEventHandler
+        where TEvent : class, IEvent
     {
-        private readonly IEventHandler<T> _eventHandler;
-
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="eventHandler"></param>
-        public EventHandlerWrapper(IEventHandler<T> eventHandler)
+        public EventHandlerWrapper(IMessageHandler<IEventContext, TEvent> eventHandler) : base(eventHandler)
         {
-            _eventHandler = eventHandler;
-        }
-
-        /// <summary>Handle the given event.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="evnt"></param>
-        public void Handle(IEventContext context, object evnt)
-        {
-            _eventHandler.Handle(context, evnt as T);
-        }
-
-        /// <summary>Get the inner event handler.
-        /// </summary>
-        /// <returns></returns>
-        public object GetInnerEventHandler()
-        {
-            return _eventHandler;
         }
     }
 }

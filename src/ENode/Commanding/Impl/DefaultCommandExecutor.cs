@@ -20,6 +20,7 @@ namespace ENode.Commanding.Impl
         private readonly IAggregateRootTypeCodeProvider _aggregateRootTypeProvider;
         private readonly IEventService _eventService;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
+        //private readonly IExceptionPublisher _exceptionPublisher;
         private readonly ILogger _logger;
 
         #endregion
@@ -36,6 +37,7 @@ namespace ENode.Commanding.Impl
         /// <param name="aggregateRootTypeProvider"></param>
         /// <param name="eventService"></param>
         /// <param name="eventPublishInfoStore"></param>
+        /// <param name="exceptionPublisher"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
             ICommandStore commandStore,
@@ -46,6 +48,7 @@ namespace ENode.Commanding.Impl
             IAggregateRootTypeCodeProvider aggregateRootTypeProvider,
             IEventService eventService,
             IEventPublishInfoStore eventPublishInfoStore,
+            //IExceptionPublisher exceptionPublisher,
             ILoggerFactory loggerFactory)
         {
             _commandStore = commandStore;
@@ -56,6 +59,7 @@ namespace ENode.Commanding.Impl
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _eventService = eventService;
             _eventPublishInfoStore = eventPublishInfoStore;
+            //_exceptionPublisher = exceptionPublisher;
             _logger = loggerFactory.Create(GetType().FullName);
             _waitingCommandService.SetCommandExecutor(this);
             _eventService.SetCommandExecutor(this);
@@ -186,7 +190,7 @@ namespace ENode.Commanding.Impl
 
             //尝试将当前已执行的command添加到commandStore
             string sourceEventId;
-            processingCommand.CommandExecuteContext.Items.TryGetValue("SourceEventId", out sourceEventId);
+            command.Items.TryGetValue("SourceEventId", out sourceEventId);
             var commandAddResult = _commandStore.AddHandledAggregateCommand(
                 new HandledAggregateCommand(
                     command,
@@ -294,6 +298,12 @@ namespace ENode.Commanding.Impl
                     processingCommand.ProcessId,
                     exception.Message);
                 _logger.Error(errorMessage, exception);
+                //var publishableException = exception as IPublishableException;
+                //if (publishableException != null)
+                //{
+                //    publishableException.Items["ProcessId"] = processingCommand.ProcessId;
+                //    _exceptionPublisher.PublishException(publishableException);
+                //}
                 NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
             }
 
@@ -328,20 +338,20 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Command;
             string sourceEventId;
-            processingCommand.CommandExecuteContext.Items.TryGetValue("SourceEventId", out sourceEventId);
+            command.Items.TryGetValue("SourceEventId", out sourceEventId);
             var evnts = GetEvents(processingCommand);
             var commandAddResult = _commandStore.AddHandledCommand(new HandledCommand(command, sourceEventId, evnts));
 
             if (commandAddResult == CommandAddResult.Success)
             {
-                _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, evnts, processingCommand.CommandExecuteContext.Items));
+                _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, evnts, command.Items));
             }
             else if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
                 var existingHandledCommand = _commandStore.FindHandledCommand(command.Id);
                 if (existingHandledCommand != null)
                 {
-                    _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, existingHandledCommand.Events, processingCommand.CommandExecuteContext.Items));
+                    _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, existingHandledCommand.Events, command.Items));
                 }
                 else
                 {

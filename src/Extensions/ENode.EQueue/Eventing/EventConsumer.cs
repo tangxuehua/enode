@@ -7,11 +7,12 @@ using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Eventing;
 using EQueue.Clients.Consumers;
+using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
 using EQueue.Protocols;
 
 namespace ENode.EQueue
 {
-    public class EventConsumer : IMessageHandler
+    public class EventConsumer : IQueueMessageHandler
     {
         private const string DefaultEventConsumerId = "EventConsumer";
         private const string DefaultEventConsumerGroup = "EventConsumerGroup";
@@ -63,7 +64,7 @@ namespace ENode.EQueue
             return this;
         }
 
-        void IMessageHandler.Handle(QueueMessage message, IMessageContext context)
+        void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
         {
             if (message.Code == (int)MessageTypeCode.DomainEventMessage)
             {
@@ -122,15 +123,15 @@ namespace ENode.EQueue
                 return;
             }
 
-            var contextItems = eventProcessContext.EventMessage.ContextItems;
-            if (!ValidateContextItems(contextItems))
+            var items = eventProcessContext.EventMessage.Items;
+            if (!ValidateContextItems(eventProcessContext.EventMessage))
             {
                 return;
             }
 
-            var domainEventHandledMessageTopic = contextItems["DomainEventHandledMessageTopic"];
-            var currentCommandId = contextItems["CurrentCommandId"];
-            var currentProcessId = contextItems["CurrentProcessId"];
+            var domainEventHandledMessageTopic = items["DomainEventHandledMessageTopic"];
+            var currentCommandId = items["CurrentCommandId"];
+            var currentProcessId = items["CurrentProcessId"];
             var processCompletedEvents = eventStream.Events.Where(x => x is IProcessCompletedEvent);
             if (processCompletedEvents.Count() > 1)
             {
@@ -159,29 +160,29 @@ namespace ENode.EQueue
                 Items = eventStream.Items ?? new Dictionary<string, string>()
             }, domainEventHandledMessageTopic);
         }
-        private bool ValidateContextItems(IDictionary<string, string> contextItems)
+        private bool ValidateContextItems(DomainEventMessage message)
         {
-            if (!contextItems.ContainsKey("DomainEventHandledMessageTopic"))
+            if (!message.Items.ContainsKey("DomainEventHandledMessageTopic"))
             {
                 _logger.Error("Key 'DomainEventHandledMessageTopic' missing in event message context items dict.");
                 return false;
             }
-            else if (!contextItems.ContainsKey("CurrentCommandId"))
+            else if (!message.Items.ContainsKey("CurrentCommandId"))
             {
                 _logger.Error("Key 'CurrentCommandId' missing in event message context items dict.");
                 return false;
             }
-            else if (!contextItems.ContainsKey("CurrentProcessId"))
+            else if (!message.Items.ContainsKey("CurrentProcessId"))
             {
                 _logger.Error("Key 'CurrentProcessId' missing in event message context items dict.");
                 return false;
             }
-            else if (string.IsNullOrEmpty(contextItems["DomainEventHandledMessageTopic"]))
+            else if (string.IsNullOrEmpty(message.Items["DomainEventHandledMessageTopic"]))
             {
                 _logger.Error("DomainEventHandledMessageTopic cannot be empty.");
                 return false;
             }
-            else if (string.IsNullOrEmpty(contextItems["CurrentCommandId"]))
+            else if (string.IsNullOrEmpty(message.Items["CurrentCommandId"]))
             {
                 _logger.Error("CurrentCommandId cannot be empty.");
                 return false;
@@ -202,7 +203,7 @@ namespace ENode.EQueue
         }
         private EventStream ConvertToEventStream(EventMessage message)
         {
-            return new EventStream(message.CommandId, message.ProcessId, message.Events, message.ContextItems);
+            return new EventStream(message.CommandId, message.ProcessId, message.Events, message.Items);
         }
 
         class EventProcessContext : IEventProcessContext

@@ -104,15 +104,20 @@ namespace ENode.Eventing.Impl
         /// <param name="eventStream"></param>
         public void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
+            eventStream.Items["CurrentCommandId"] = processingCommand.Command.Id;
+            eventStream.Items["CurrentProcessId"] = processingCommand.ProcessId;
+            foreach (var itemKey in processingCommand.Command.Items.Keys)
+            {
+                eventStream.Items[itemKey] = processingCommand.Command.Items[itemKey];
+            }
+
             _actionExecutionService.TryAction(
                 "PublishDomainEvent",
                 () =>
                 {
                     try
                     {
-                        processingCommand.CommandExecuteContext.Items["CurrentCommandId"] = processingCommand.Command.Id;
-                        processingCommand.CommandExecuteContext.Items["CurrentProcessId"] = processingCommand.ProcessId;
-                        _domainEventPublisher.PublishEvent(eventStream, processingCommand.CommandExecuteContext.Items);
+                        _domainEventPublisher.Publish(eventStream);
                         _logger.DebugFormat("Publish domain event success, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, processId:{3}, events:{4}",
                             processingCommand.Command.Id,
                             eventStream.AggregateRootId,
@@ -146,13 +151,17 @@ namespace ENode.Eventing.Impl
         /// <param name="eventStream"></param>
         public void PublishEvent(ProcessingCommand processingCommand, EventStream eventStream)
         {
+            foreach (var itemKey in processingCommand.Command.Items.Keys)
+            {
+                eventStream.Items[itemKey] = processingCommand.Command.Items[itemKey];
+            }
             _actionExecutionService.TryAction(
                 "PublishEvent",
                 () =>
                 {
                     try
                     {
-                        _eventPublisher.PublishEvent(eventStream, processingCommand.CommandExecuteContext.Items);
+                        _eventPublisher.Publish(eventStream);
                         _logger.DebugFormat("Publish event success, commandId:{0}, processId:{1}, events:{2}",
                             eventStream.CommandId,
                             eventStream.ProcessId,

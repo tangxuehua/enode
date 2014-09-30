@@ -5,11 +5,11 @@ namespace ENode.Eventing.Impl
 {
     public class NotImplementedEventPublisher : IEventPublisher, IDomainEventPublisher
     {
-        public void PublishEvent(EventStream eventStream, IDictionary<string, string> contextItems)
+        public void Publish(EventStream eventStream)
         {
             throw new NotImplementedException();
         }
-        public void PublishEvent(DomainEventStream eventStream, IDictionary<string, string> contextItems)
+        public void Publish(DomainEventStream eventStream)
         {
             throw new NotImplementedException();
         }

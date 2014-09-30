@@ -17,10 +17,6 @@ namespace ENode.Commanding
         /// </summary>
         IDictionary<string, string> Items { get; }
         /// <summary>Represents a key of the command.
-        /// <remarks>
-        /// The framework will use the domain event id, event handler type code, command type code,
-        /// and this key to build a unique id for the current command. The default key is the aggregate root id.
-        /// </remarks>
         /// </summary>
         /// <returns></returns>
         object GetKey();

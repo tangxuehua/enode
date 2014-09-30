@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
-    /// <summary>Represents a publisher to publish the committed domain event stream to all the event handlers.
+    /// <summary>Represents a domain event publisher.
     /// </summary>
-    public interface IDomainEventPublisher
+    public interface IDomainEventPublisher : IMessagePublisher<DomainEventStream>
     {
-        void PublishEvent(DomainEventStream eventStream, IDictionary<string, string> contextItems);
     }
 }
