@@ -210,7 +210,7 @@ namespace ENode.Eventing.Impl
                     {
                         processCommand.Id = BuildCommandId(processCommand, evnt, eventHandlerTypeCode);
                         processCommand.Items["ProcessId"] = processId;
-                        _processCommandSender.SendProcessCommand(processCommand, evnt.Id);
+                        _processCommandSender.SendProcessCommand(processCommand, evnt.Id, null);
 
                         if (domainEvent != null)
                         {

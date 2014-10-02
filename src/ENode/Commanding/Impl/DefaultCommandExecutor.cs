@@ -75,7 +75,7 @@ namespace ENode.Commanding.Impl
             var context = processingCommand.CommandExecuteContext;
             var commandHandler = default(ICommandHandler);
 
-            if (!(command is IAggregateCommand) && _commandStore.FindHandledAggregateCommand(command.Id) != null)
+            if (!(command is IAggregateCommand) && _commandStore.Get(command.Id) != null)
             {
                 return;
             }
@@ -202,18 +202,15 @@ namespace ENode.Commanding.Impl
 
             //尝试将当前已执行的command添加到commandStore
             string sourceEventId;
+            string sourceExceptionId;
             command.Items.TryGetValue("SourceEventId", out sourceEventId);
-            var commandAddResult = _commandStore.AddHandledAggregateCommand(
-                new HandledAggregateCommand(
-                    command,
-                    sourceEventId,
-                    eventStream.AggregateRootId,
-                    eventStream.AggregateRootTypeCode));
+            command.Items.TryGetValue("SourceExceptionId", out sourceExceptionId);
+            var commandAddResult = _commandStore.Add(new HandledAggregateCommand(command, sourceEventId, sourceExceptionId, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode));
 
             //如果添加的结果是command重复，则做如下处理
             if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
-                var existingHandledCommand = _commandStore.FindHandledAggregateCommand(command.Id);
+                var existingHandledCommand = _commandStore.Get(command.Id) as HandledAggregateCommand;
                 if (existingHandledCommand != null)
                 {
                     var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
@@ -231,7 +228,7 @@ namespace ENode.Commanding.Impl
                 else
                 {
                     //到这里，说明当前command想添加到commandStore中时，提示command重复，但是尝试从commandStore中取出该command时却找不到该command。
-                    //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的AddCommand接口和Find接口出现读写不一致的情况；
+                    //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的Add接口和Get接口出现读写不一致的情况；
                     //我们记录错误日志，然后认为当前command已被处理为失败。
                     var errorMessage = string.Format("Command exist in the command store, but it cannot be found from the command store. commandType:{0}, commandId:{1}",
                         command.GetType().Name,
@@ -277,12 +274,12 @@ namespace ENode.Commanding.Impl
             //到这里，说明当前command执行时遇到异常，此时我们需要判断当前command之前有没有被执行过。
             //如果有执行过，则继续判断是否后续所有的步骤都执行成功了，对每一种情况做相应的处理；
             //如果未执行过，则也做相应处理。
-            var existingHandledCommand = _commandStore.FindHandledAggregateCommand(command.Id);
+            var existingHandledCommand = _commandStore.Get(command.Id);
             if (existingHandledCommand != null)
             {
                 if (command is IAggregateCommand)
                 {
-                    var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
+                    var existingEventStream = _eventStore.Find(((HandledAggregateCommand)existingHandledCommand).AggregateRootId, command.Id);
                     if (existingEventStream != null)
                     {
                         _eventService.PublishDomainEvent(processingCommand, existingEventStream);
@@ -350,9 +347,11 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Command;
             string sourceEventId;
+            string sourceExceptionId;
             command.Items.TryGetValue("SourceEventId", out sourceEventId);
+            command.Items.TryGetValue("SourceExceptionId", out sourceExceptionId);
             var evnts = GetEvents(processingCommand);
-            var commandAddResult = _commandStore.AddHandledCommand(new HandledCommand(command, sourceEventId, evnts));
+            var commandAddResult = _commandStore.Add(new HandledCommand(command, sourceEventId, sourceExceptionId, evnts));
 
             if (commandAddResult == CommandAddResult.Success)
             {
@@ -360,7 +359,7 @@ namespace ENode.Commanding.Impl
             }
             else if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
-                var existingHandledCommand = _commandStore.FindHandledCommand(command.Id);
+                var existingHandledCommand = _commandStore.Get(command.Id);
                 if (existingHandledCommand != null)
                 {
                     _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, existingHandledCommand.Events, command.Items));
@@ -368,7 +367,7 @@ namespace ENode.Commanding.Impl
                 else
                 {
                     //到这里，说明当前command想添加到commandStore中时，提示command重复，但是尝试从commandStore中取出该command时却找不到该command。
-                    //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的AddCommand接口和Find接口出现读写不一致的情况；
+                    //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的Add接口和Get接口出现读写不一致的情况；
                     //我们记录错误日志，然后认为当前command已被处理为失败。
                     var errorMessage = string.Format("Command exist in the command store, but it cannot be found from the command store. commandType:{0}, commandId:{1}",
                         command.GetType().Name,

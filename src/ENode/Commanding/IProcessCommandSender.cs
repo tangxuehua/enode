@@ -10,6 +10,7 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="processCommand">The process command to send.</param>
         /// <param name="sourceEventId">The source event id.</param>
-        void SendProcessCommand(ICommand processCommand, string sourceEventId);
+        /// <param name="sourceExceptionId">The source exception id.</param>
+        void SendProcessCommand(ICommand processCommand, string sourceEventId, string sourceExceptionId);
     }
 }

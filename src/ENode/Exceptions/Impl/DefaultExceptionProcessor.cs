@@ -16,7 +16,7 @@ namespace ENode.Exceptions.Impl
     {
         #region Private Variables
 
-        private const int WorkerCount = 4;
+        private const int WorkerCount = 1;
         private readonly ITypeCodeProvider<IExceptionHandler> _exceptionHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly IMessageHandlerProvider<IExceptionHandler> _exceptionHandlerProvider;
@@ -143,8 +143,7 @@ namespace ENode.Exceptions.Impl
                     {
                         processCommand.Id = BuildCommandId(processCommand, exception, exceptionHandlerTypeCode);
                         processCommand.Items["ProcessId"] = processId;
-                        //TODO
-                        //_processCommandSender.SendProcessCommand(processCommand, evnt.Id);
+                        _processCommandSender.SendProcessCommand(processCommand, null, exception.UniqueId);
                         _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, exceptionHandlerType:{2}, exceptionType:{3}, exceptionId:{4}, processId:{5}",
                             processCommand.GetType().Name,
                             processCommand.Id,

@@ -5,69 +5,40 @@ namespace ENode.Commanding
 {
     /// <summary>Represents a handled aggregate command which contains the command and the event stream key information.
     /// </summary>
-    public class HandledAggregateCommand
+    public class HandledAggregateCommand : HandledCommand
     {
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="sourceEventId"></param>
+        /// <param name="sourceExceptionId"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootTypeCode"></param>
-        public HandledAggregateCommand(ICommand command, string sourceEventId, string aggregateRootId, int aggregateRootTypeCode)
+        public HandledAggregateCommand(ICommand command, string sourceEventId, string sourceExceptionId, string aggregateRootId, int aggregateRootTypeCode)
+            : base(command, sourceEventId, sourceExceptionId, null)
         {
-            if (command == null)
-            {
-                throw new ArgumentNullException("command");
-            }
-            Command = command;
-            SourceEventId = sourceEventId;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeCode = aggregateRootTypeCode;
-
-            if (command is IStartProcessCommand)
-            {
-                ProcessId = ((IStartProcessCommand)command).ProcessId;
-                if (string.IsNullOrEmpty(ProcessId))
-                {
-                    throw new CommandProcessIdMissingException(command);
-                }
-            }
-            else if (command.Items.ContainsKey("ProcessId"))
-            {
-                ProcessId = command.Items["ProcessId"];
-                if (string.IsNullOrEmpty(ProcessId))
-                {
-                    throw new CommandProcessIdMissingException(command);
-                }
-            }
         }
 
-        /// <summary>The command object.
-        /// </summary>
-        public ICommand Command { get; private set; }
-        /// <summary>The source domain event id.
-        /// </summary>
-        public string SourceEventId { get; private set; }
-        /// <summary>The aggregate root type code.
-        /// </summary>
-        public int AggregateRootTypeCode { get; private set; }
         /// <summary>The aggregate root id.
         /// </summary>
         public string AggregateRootId { get; private set; }
-        /// <summary>The process id.
+        /// <summary>The aggregate root type code.
         /// </summary>
-        public string ProcessId { get; private set; }
+        public int AggregateRootTypeCode { get; private set; }
 
         /// <summary>Overrides to return the handled aggregate command's useful information.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandType={0},CommandId={1},SourceEventId={2},AggregateRootTypeCode={3},AggregateRootId={4},ProcessId={5},Items={6}]";
+            var format = "[CommandType={0},CommandId={1},SourceEventId={2},SourceExceptionId={3},AggregateRootTypeCode={4},AggregateRootId={5},ProcessId={6},Items={7}]";
             return string.Format(format,
                 Command.GetType().Name,
                 Command.Id,
                 SourceEventId,
+                SourceExceptionId,
                 AggregateRootTypeCode,
                 AggregateRootId,
                 ProcessId,

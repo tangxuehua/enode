@@ -10,5 +10,6 @@ namespace ENode.EQueue
         public string CommandExecutedMessageTopic { get; set; }
         public string DomainEventHandledMessageTopic { get; set; }
         public string SourceEventId { get; set; }
+        public string SourceExceptionId { get; set; }
     }
 }

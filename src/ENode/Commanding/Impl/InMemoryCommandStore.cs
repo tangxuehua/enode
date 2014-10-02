@@ -8,30 +8,8 @@ namespace ENode.Commanding.Impl
     public class InMemoryCommandStore : ICommandStore
     {
         private readonly ConcurrentDictionary<string, HandledCommand> _handledCommandDict = new ConcurrentDictionary<string, HandledCommand>();
-        private readonly ConcurrentDictionary<string, HandledAggregateCommand> _dict = new ConcurrentDictionary<string, HandledAggregateCommand>();
 
-        public CommandAddResult AddHandledAggregateCommand(HandledAggregateCommand handledCommand)
-        {
-            if (_dict.TryAdd(handledCommand.Command.Id, handledCommand))
-            {
-                return CommandAddResult.Success;
-            }
-            return CommandAddResult.DuplicateCommand;
-        }
-        public HandledAggregateCommand FindHandledAggregateCommand(string commandId)
-        {
-            HandledAggregateCommand handledCommand;
-            if (_dict.TryGetValue(commandId, out handledCommand))
-            {
-                return handledCommand;
-            }
-            return null;
-        }
-        public void Remove(string commandId)
-        {
-            _dict.Remove(commandId);
-        }
-        public CommandAddResult AddHandledCommand(HandledCommand handledCommand)
+        public CommandAddResult Add(HandledCommand handledCommand)
         {
             if (_handledCommandDict.TryAdd(handledCommand.Command.Id, handledCommand))
             {
@@ -39,8 +17,11 @@ namespace ENode.Commanding.Impl
             }
             return CommandAddResult.DuplicateCommand;
         }
-
-        public HandledCommand FindHandledCommand(string commandId)
+        public void Remove(string commandId)
+        {
+            _handledCommandDict.Remove(commandId);
+        }
+        public HandledCommand Get(string commandId)
         {
             HandledCommand handledCommand;
             if (_handledCommandDict.TryGetValue(commandId, out handledCommand))

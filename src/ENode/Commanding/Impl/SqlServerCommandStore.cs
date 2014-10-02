@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.Serializing;
+using ENode.Eventing;
 using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
@@ -39,7 +41,7 @@ namespace ENode.Commanding.Impl
 
         #region Public Methods
 
-        public CommandAddResult AddHandledAggregateCommand(HandledAggregateCommand handledCommand)
+        public CommandAddResult Add(HandledCommand handledCommand)
         {
             var record = ConvertTo(handledCommand);
 
@@ -64,7 +66,15 @@ namespace ENode.Commanding.Impl
                 }
             }
         }
-        public HandledAggregateCommand FindHandledAggregateCommand(string commandId)
+        public void Remove(string commandId)
+        {
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                connection.Delete(new { CommandId = commandId }, _commandTable);
+            }
+        }
+        public HandledCommand Get(string commandId)
         {
             using (var connection = GetConnection())
             {
@@ -77,14 +87,6 @@ namespace ENode.Commanding.Impl
                 return null;
             }
         }
-        public void Remove(string commandId)
-        {
-            using (var connection = GetConnection())
-            {
-                connection.Open();
-                connection.Delete(new { CommandId = commandId }, _commandTable);
-            }
-        }
 
         #endregion
 
@@ -94,28 +96,43 @@ namespace ENode.Commanding.Impl
         {
             return new SqlConnection(_connectionString);
         }
-        private HandledAggregateCommand ConvertFrom(CommandRecord record)
+        private CommandRecord ConvertTo(HandledCommand handledCommand)
         {
-            return new HandledAggregateCommand(
-                _binarySerializer.Deserialize<ICommand>(record.Payload),
-                record.SourceEventId,
-                record.AggregateRootId,
-                record.AggregateRootTypeCode);
-        }
-        private CommandRecord ConvertTo(HandledAggregateCommand handledCommand)
-        {
+            var handledAggregateCommand = handledCommand as HandledAggregateCommand;
             return new CommandRecord
             {
                 CommandId = handledCommand.Command.Id,
                 CommandTypeCode = _commandTypeCodeProvider.GetTypeCode(handledCommand.Command.GetType()),
-                AggregateRootId = handledCommand.AggregateRootId,
-                AggregateRootTypeCode = handledCommand.AggregateRootTypeCode,
+                AggregateRootId = handledAggregateCommand != null ? handledAggregateCommand.AggregateRootId : null,
+                AggregateRootTypeCode = handledAggregateCommand != null ? handledAggregateCommand.AggregateRootTypeCode : 0,
                 ProcessId = handledCommand.ProcessId,
                 SourceEventId = handledCommand.SourceEventId,
+                SourceExceptionId = handledCommand.SourceExceptionId,
                 Timestamp = DateTime.Now,
                 Payload = _binarySerializer.Serialize(handledCommand.Command),
-                Items = _binarySerializer.Serialize(handledCommand.Command.Items)
+                Events = _binarySerializer.Serialize(handledCommand.Events)
             };
+        }
+        private HandledCommand ConvertFrom(CommandRecord record)
+        {
+            var commandType = _commandTypeCodeProvider.GetType(record.CommandTypeCode);
+            if (commandType == typeof(HandledAggregateCommand))
+            {
+                return new HandledAggregateCommand(
+                    _binarySerializer.Deserialize<ICommand>(record.Payload),
+                    record.SourceEventId,
+                    record.SourceExceptionId,
+                    record.AggregateRootId,
+                    record.AggregateRootTypeCode);
+            }
+            else
+            {
+                return new HandledCommand(
+                    _binarySerializer.Deserialize<ICommand>(record.Payload),
+                    record.SourceEventId,
+                    record.SourceExceptionId,
+                    _binarySerializer.Deserialize<IEnumerable<IEvent>>(record.Events));
+            }
         }
 
         #endregion
@@ -128,20 +145,10 @@ namespace ENode.Commanding.Impl
             public string AggregateRootId { get; set; }
             public string ProcessId { get; set; }
             public string SourceEventId { get; set; }
+            public string SourceExceptionId { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Payload { get; set; }
-            public byte[] Items { get; set; }
-        }
-
-
-        public CommandAddResult AddHandledCommand(HandledCommand handledCommand)
-        {
-            throw new NotImplementedException();
-        }
-
-        public HandledCommand FindHandledCommand(string commandId)
-        {
-            throw new NotImplementedException();
+            public byte[] Events { get; set; }
         }
     }
 }

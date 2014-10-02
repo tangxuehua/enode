@@ -68,14 +68,14 @@ namespace ENode.EQueue
                 throw new CommandSendException(result.ErrorMessage);
             }
         }
-        public void SendProcessCommand(ICommand processCommand, string sourceEventId)
+        public void SendProcessCommand(ICommand processCommand, string sourceEventId, string sourceExceptionId)
         {
             ValidateProcessCommand(processCommand);
-            if (string.IsNullOrEmpty(sourceEventId))
+            if (string.IsNullOrEmpty(sourceEventId) && string.IsNullOrEmpty(sourceExceptionId))
             {
-                throw new ArgumentException("Source event id can not be null or empty.");
+                throw new ArgumentException("sourceEventId and sourceExceptionId can not both be null or empty.");
             }
-            var result = _producer.Send(BuildCommandMessage(processCommand, sourceEventId), _commandRouteKeyProvider.GetRouteKey(processCommand));
+            var result = _producer.Send(BuildCommandMessage(processCommand, sourceEventId, sourceExceptionId), _commandRouteKeyProvider.GetRouteKey(processCommand));
             if (result.SendStatus == SendStatus.Failed)
             {
                 throw new CommandSendException(result.ErrorMessage);
@@ -181,7 +181,7 @@ namespace ENode.EQueue
                 throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
             }
         }
-        private Message BuildCommandMessage(ICommand command, string sourceEventId = null)
+        private Message BuildCommandMessage(ICommand command, string sourceEventId = null, string sourceExceptionId = null)
         {
             var raw = _binarySerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
@@ -192,7 +192,8 @@ namespace ENode.EQueue
                 CommandData = commandData,
                 CommandExecutedMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.CommandExecutedMessageTopic : CommandExecutedMessageTopic,
                 DomainEventHandledMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.DomainEventHandledMessageTopic : DomainEventHandledMessageTopic,
-                SourceEventId = sourceEventId
+                SourceEventId = sourceEventId,
+                SourceExceptionId = sourceExceptionId
             });
             return new Message(topic, (int)MessageTypeCode.CommandMessage, messageData);
         }
