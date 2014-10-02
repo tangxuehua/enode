@@ -53,6 +53,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exceptions\ExceptionMessage.cs" />
+    <Compile Include="Exceptions\ExceptionConsumer.cs" />
+    <Compile Include="Exceptions\ExceptionPublisher.cs" />
     <Compile Include="MessageTypeCode.cs" />
     <Compile Include="AbstractTopicProvider.cs" />
     <Compile Include="Commanding\CommandConsumer.cs" />

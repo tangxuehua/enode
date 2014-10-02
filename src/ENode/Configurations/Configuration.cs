@@ -106,9 +106,13 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMessagePublisher<EventStream>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IMessagePublisher<DomainEventStream>, NotImplementedEventPublisher>();
 
+            _configuration.SetDefault<IMessageProcessor<IPublishableException>, DefaultExceptionProcessor>();
+            _configuration.SetDefault<IMessagePublisher<IPublishableException>, NotImplementedExceptionPublisher>();
+
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<ICommandHandler>));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<IEventHandler>));
+            _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<IExceptionHandler>));
             _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
 
             return this;

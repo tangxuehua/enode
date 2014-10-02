@@ -27,7 +27,6 @@ namespace ENode.EQueue
         private readonly ICommandExecutor _commandExecutor;
         private readonly IRepository _repository;
         private readonly ILogger _logger;
-        private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
 
         public Consumer Consumer { get { return _consumer; } }
 
@@ -43,7 +42,6 @@ namespace ENode.EQueue
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
-            _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _commandExecutedMessageSender = commandExecutedMessageSender ?? new CommandExecutedMessageSender();
         }
 
@@ -72,25 +70,16 @@ namespace ENode.EQueue
             var type = _commandTypeCodeProvider.GetType(payload.TypeCode);
             var command = _binarySerializer.Deserialize(payload.Data, type) as ICommand;
 
-            if (_messageContextDict.TryAdd(command.Id, context))
-            {
-                command.Items["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
-                command.Items["SourceEventId"] = commandMessage.SourceEventId;
-                _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, commandMessage, CommandExecutedCallback)));
-            }
-            else
-            {
-                _logger.ErrorFormat("Duplicated command message. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
-            }
+            command.Items["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
+            command.Items["SourceEventId"] = commandMessage.SourceEventId;
+            command.Items["SourceExceptionId"] = commandMessage.SourceExceptionId;
+            _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, context, commandMessage, CommandExecutedCallback)));
         }
 
         private void CommandExecutedCallback(ICommand command, CommandStatus commandStatus, string processId, string aggregateRootId, string exceptionTypeName, string errorMessage, CommandExecuteContext commandExecuteContext)
         {
-            IMessageContext messageContext;
-            if (_messageContextDict.TryRemove(command.Id, out messageContext))
-            {
-                messageContext.OnMessageHandled(commandExecuteContext.QueueMessage);
-            }
+            commandExecuteContext.MessageContext.OnMessageHandled(commandExecuteContext.QueueMessage);
+
             if (string.IsNullOrEmpty(commandExecuteContext.CommandMessage.CommandExecutedMessageTopic))
             {
                 return;
@@ -116,15 +105,17 @@ namespace ENode.EQueue
 
             public Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
+            public IMessageContext MessageContext { get; private set; }
             public CommandMessage CommandMessage { get; private set; }
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, CommandMessage commandMessage, Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> commandExecutedAction)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, Action<ICommand, CommandStatus, string, string, string, string, CommandExecuteContext> commandExecutedAction)
             {
                 _events = new ConcurrentDictionary<string, IEvent>();
                 _trackingAggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
                 QueueMessage = queueMessage;
                 CommandMessage = commandMessage;
+                MessageContext = messageContext;
                 CheckCommandWaiting = true;
                 CommandExecutedAction = commandExecutedAction;
             }

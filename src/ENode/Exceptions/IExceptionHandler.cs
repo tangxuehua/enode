@@ -11,7 +11,7 @@ namespace ENode.Exceptions
     /// </summary>
     /// <typeparam name="TException"></typeparam>
     public interface IExceptionHandler<in TException> : IMessageHandler<IExceptionHandlingContext, TException>
-        where TException : class, IException
+        where TException : class, IPublishableException
     {
     }
 }

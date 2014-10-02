@@ -74,35 +74,4 @@ namespace BankTransferSample.DomainEvents
             TransactionPreparation = transactionPreparation;
         }
     }
-    /// <summary>余额不足，该领域事件不会改变账户的状态
-    /// </summary>
-    [Serializable]
-    public class InsufficientBalanceEvent : DomainEvent<string>
-    {
-        /// <summary>交易ID
-        /// </summary>
-        public string TransactionId { get; private set; }
-        /// <summary>交易类型
-        /// </summary>
-        public TransactionType TransactionType { get; private set; }
-        /// <summary>预借金额
-        /// </summary>
-        public double Amount { get; private set; }
-        /// <summary>当前余额
-        /// </summary>
-        public double CurrentBalance { get; private set; }
-        /// <summary>当前可用余额
-        /// </summary>
-        public double CurrentAvailableBalance { get; private set; }
-
-        public InsufficientBalanceEvent(string accountId, string transactionId, TransactionType transactionType, double amount, double currentBalance, double currentAvailableBalance)
-            : base(accountId)
-        {
-            TransactionId = transactionId;
-            TransactionType = transactionType;
-            Amount = amount;
-            CurrentBalance = currentBalance;
-            CurrentAvailableBalance = currentAvailableBalance;
-        }
-    }
 }

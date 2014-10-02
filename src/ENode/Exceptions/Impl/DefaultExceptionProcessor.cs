@@ -12,7 +12,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Exceptions.Impl
 {
-    public class DefaultExceptionProcessor : IMessageProcessor<IException>
+    public class DefaultExceptionProcessor : IMessageProcessor<IPublishableException>
     {
         #region Private Variables
 
@@ -77,7 +77,7 @@ namespace ENode.Exceptions.Impl
 
         #endregion
 
-        public void Process(IException exception, IMessageProcessContext<IException> context)
+        public void Process(IPublishableException exception, IMessageProcessContext<IPublishableException> context)
         {
             var processingContext = new ExceptionProcessingContext(exception, context);
             var queueIndex = processingContext.Exception.UniqueId.GetHashCode() % WorkerCount;
@@ -119,10 +119,10 @@ namespace ENode.Exceptions.Impl
             processingContext.Context.OnMessageProcessed(processingContext.Exception);
             return true;
         }
-        private bool DispatchExceptionToHandler(IException exception, IExceptionHandler exceptionHandler)
+        private bool DispatchExceptionToHandler(IPublishableException exception, IExceptionHandler exceptionHandler)
         {
-            var exceptionHandlerTypeCode = _exceptionHandlerTypeCodeProvider.GetTypeCode(exceptionHandler.GetType());
             var exceptionHandlerType = exceptionHandler.GetInnerHandler().GetType();
+            var exceptionHandlerTypeCode = _exceptionHandlerTypeCodeProvider.GetTypeCode(exceptionHandlerType);
             var exceptionHandlingContext = new ExceptionHandlingContext(_repository);
 
             try
@@ -131,8 +131,7 @@ namespace ENode.Exceptions.Impl
                 var processCommands = exceptionHandlingContext.GetCommands();
                 if (processCommands.Any())
                 {
-                    var processId = exception.Items["ProcessId"];
-                    if (string.IsNullOrEmpty(processId))
+                    if (string.IsNullOrEmpty(exception.ProcessId))
                     {
                         throw new ENodeException("ProcessId cannot be null or empty if the exception handler generates commands. exceptionId:{0}, exceptionType:{1}, handlerType:{2}",
                             exception.UniqueId,
@@ -142,7 +141,7 @@ namespace ENode.Exceptions.Impl
                     foreach (var processCommand in processCommands)
                     {
                         processCommand.Id = BuildCommandId(processCommand, exception, exceptionHandlerTypeCode);
-                        processCommand.Items["ProcessId"] = processId;
+                        processCommand.Items["ProcessId"] = exception.ProcessId;
                         _processCommandSender.SendProcessCommand(processCommand, null, exception.UniqueId);
                         _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, exceptionHandlerType:{2}, exceptionType:{3}, exceptionId:{4}, processId:{5}",
                             processCommand.GetType().Name,
@@ -150,7 +149,7 @@ namespace ENode.Exceptions.Impl
                             exceptionHandlerType.Name,
                             exception.GetType().Name,
                             exception.UniqueId,
-                            processId);
+                            exception.ProcessId);
                     }
                 }
                 _logger.DebugFormat("Handle exception success. exceptionId:{0}, exceptionType:{1}, handlerType:{2}",
@@ -165,7 +164,7 @@ namespace ENode.Exceptions.Impl
                 return false;
             }
         }
-        private string BuildCommandId(ICommand command, IException exception, int exceptionHandlerTypeCode)
+        private string BuildCommandId(ICommand command, IPublishableException exception, int exceptionHandlerTypeCode)
         {
             var key = command.GetKey();
             var commandKey = key == null ? string.Empty : key.ToString();
@@ -177,10 +176,10 @@ namespace ENode.Exceptions.Impl
 
         class ExceptionProcessingContext
         {
-            public IException Exception { get; private set; }
-            public IMessageProcessContext<IException> Context { get; private set; }
+            public IPublishableException Exception { get; private set; }
+            public IMessageProcessContext<IPublishableException> Context { get; private set; }
 
-            public ExceptionProcessingContext(IException exception, IMessageProcessContext<IException> context)
+            public ExceptionProcessingContext(IPublishableException exception, IMessageProcessContext<IPublishableException> context)
             {
                 Exception = exception;
                 Context = context;

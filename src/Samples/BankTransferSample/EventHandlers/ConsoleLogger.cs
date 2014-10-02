@@ -1,8 +1,10 @@
 ﻿using System;
 using BankTransferSample.Domain;
 using BankTransferSample.DomainEvents;
+using BankTransferSample.Exceptions;
 using ECommon.Components;
 using ENode.Eventing;
+using ENode.Exceptions;
 
 namespace BankTransferSample.EventHandlers
 {
@@ -16,7 +18,7 @@ namespace BankTransferSample.EventHandlers
         IEventHandler<TransferOutPreparationConfirmedEvent>,
         IEventHandler<TransferInPreparationConfirmedEvent>,
         IEventHandler<TransferTransactionCompletedEvent>,
-        IEventHandler<InsufficientBalanceEvent>,
+        IExceptionHandler<InsufficientBalanceException>,
         IEventHandler<TransferTransactionCanceledEvent>
     {
         public void Handle(IEventContext context, AccountCreatedEvent evnt)
@@ -80,9 +82,9 @@ namespace BankTransferSample.EventHandlers
             Console.WriteLine("转账交易已完成，交易ID：{0}", evnt.AggregateRootId);
         }
 
-        public void Handle(IEventContext context, InsufficientBalanceEvent evnt)
+        public void Handle(IExceptionHandlingContext context, InsufficientBalanceException exception)
         {
-            Console.WriteLine("账户的余额不足，交易ID：{0}，账号：{1}，可用余额：{2}，转出金额：{3}", evnt.TransactionId, evnt.AggregateRootId, evnt.CurrentAvailableBalance, evnt.Amount);
+            Console.WriteLine("账户的余额不足，交易ID：{0}，账号：{1}，可用余额：{2}，转出金额：{3}", exception.TransactionId, exception.AccountId, exception.CurrentAvailableBalance, exception.Amount);
         }
         public void Handle(IEventContext context, TransferTransactionCanceledEvent evnt)
         {

@@ -11,8 +11,12 @@
         /// <summary>Retry the given command.
         /// </summary>
         /// <param name="processingCommand"></param>
+        void RetryCommand(ProcessingCommand processingCommand);
+        /// <summary>Retry the given concurrent command.
+        /// </summary>
+        /// <param name="processingCommand"></param>
         /// <returns>Returns true if the given command was added into the retry queue; otherwise, returns false.</returns>
-        bool RetryCommand(ProcessingCommand processingCommand);
+        bool RetryConcurrentCommand(ProcessingCommand processingCommand);
         /// <summary>Start the service.
         /// </summary>
         void Start();

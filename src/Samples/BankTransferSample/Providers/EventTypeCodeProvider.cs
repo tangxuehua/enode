@@ -13,7 +13,6 @@ namespace BankTransferSample.Providers
             RegisterType<TransactionPreparationAddedEvent>(102);
             RegisterType<TransactionPreparationCommittedEvent>(103);
             RegisterType<TransactionPreparationCanceledEvent>(104);
-            RegisterType<InsufficientBalanceEvent>(105);
 
             RegisterType<DepositTransactionStartedEvent>(201);
             RegisterType<DepositTransactionPreparationCompletedEvent>(202);

@@ -3,9 +3,9 @@ using ENode.Infrastructure;
 
 namespace ENode.Exceptions.Impl
 {
-    public class NotImplementedExceptionPublisher : IMessagePublisher<IException>
+    public class NotImplementedExceptionPublisher : IMessagePublisher<IPublishableException>
     {
-        public void Publish(IException exception)
+        public void Publish(IPublishableException exception)
         {
             throw new NotImplementedException();
         }

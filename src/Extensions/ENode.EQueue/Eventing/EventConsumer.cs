@@ -20,9 +20,7 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
         private readonly IEventProcessor _eventProcessor;
-        private readonly ConcurrentDictionary<string, IMessageContext> _messageContextDict;
         private readonly ILogger _logger;
         private readonly bool _sendEventHandledMessage;
 
@@ -36,10 +34,8 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IEvent>>();
             _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
-            _messageContextDict = new ConcurrentDictionary<string, IMessageContext>();
             _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
             _eventProcessor.Name = consumerId;
             _sendEventHandledMessage = sendEventHandledMessage;
@@ -85,24 +81,12 @@ namespace ENode.EQueue
                 return;
             }
 
-            if (_messageContextDict.TryAdd(eventStream.CommandId, context))
-            {
-                _eventProcessor.Process(eventStream, new EventProcessContext(message, eventMessage, EventProcessedCallback));
-            }
-            else
-            {
-                _logger.DebugFormat("Duplicated queue message of event, topic:{0}, messageOffset:{1}", message.Topic, message.MessageOffset);
-                context.OnMessageHandled(message);
-            }
+            _eventProcessor.Process(eventStream, new EventProcessContext(message, context, eventMessage, EventProcessedCallback));
         }
 
         private void EventProcessedCallback(IEventStream eventStream, EventProcessContext eventProcessContext)
         {
-            IMessageContext messageContext;
-            if (_messageContextDict.TryRemove(eventStream.CommandId, out messageContext))
-            {
-                messageContext.OnMessageHandled(eventProcessContext.QueueMessage);
-            }
+            eventProcessContext.MessageContext.OnMessageHandled(eventProcessContext.QueueMessage);
 
             var domainEventStream = eventStream as IDomainEventStream;
             if (domainEventStream == null)
@@ -172,11 +156,13 @@ namespace ENode.EQueue
         {
             public Action<IEventStream, EventProcessContext> EventProcessedAction { get; private set; }
             public QueueMessage QueueMessage { get; private set; }
+            public IMessageContext MessageContext { get; private set; }
             public EventMessage EventMessage { get; private set; }
 
-            public EventProcessContext(QueueMessage queueMessage, EventMessage eventMessage, Action<IEventStream, EventProcessContext> eventProcessedAction)
+            public EventProcessContext(QueueMessage queueMessage, IMessageContext messageContext, EventMessage eventMessage, Action<IEventStream, EventProcessContext> eventProcessedAction)
             {
                 QueueMessage = queueMessage;
+                MessageContext = messageContext;
                 EventMessage = eventMessage;
                 EventProcessedAction = eventProcessedAction;
             }

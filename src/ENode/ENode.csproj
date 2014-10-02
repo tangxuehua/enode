@@ -95,7 +95,7 @@
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventHandlerTypeCodeProvider.cs" />
-    <Compile Include="Exceptions\IException.cs" />
+    <Compile Include="Exceptions\IPublishableException.cs" />
     <Compile Include="Exceptions\IExceptionHandler.cs" />
     <Compile Include="Exceptions\IExceptionHandlingContext.cs" />
     <Compile Include="Exceptions\Impl\DefaultExceptionHandlerProvider.cs" />
@@ -103,6 +103,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Exceptions\Impl\ExceptionHandlerWrapper.cs" />
+    <Compile Include="Exceptions\Impl\PublishableException.cs" />
     <Compile Include="Exceptions\Impl\NotImplementedExceptionHandlerTypeCodeProvider.cs" />
     <Compile Include="Exceptions\Impl\NotImplementedExceptionPublisher.cs" />
     <Compile Include="Infrastructure\Impl\BaseHandlerProvider.cs" />

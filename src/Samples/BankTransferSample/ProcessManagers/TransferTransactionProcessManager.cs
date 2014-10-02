@@ -1,8 +1,10 @@
 ﻿using BankTransferSample.Commands;
 using BankTransferSample.Domain;
 using BankTransferSample.DomainEvents;
+using BankTransferSample.Exceptions;
 using ECommon.Components;
 using ENode.Eventing;
+using ENode.Exceptions;
 
 namespace BankTransferSample.ProcessManagers
 {
@@ -14,7 +16,7 @@ namespace BankTransferSample.ProcessManagers
         IEventHandler<AccountValidatePassedEvent>,                       //账户验证已通过
         IEventHandler<AccountValidatePassedConfirmCompletedEvent>,       //两个账户的验证通过事件都已确认
         IEventHandler<TransactionPreparationAddedEvent>,                 //账户预操作已添加
-        IEventHandler<InsufficientBalanceEvent>,                         //账户余额不足
+        IExceptionHandler<InsufficientBalanceException>,                 //账户余额不足
         IEventHandler<TransferOutPreparationConfirmedEvent>,             //转账交易预转出已确认
         IEventHandler<TransferInPreparationConfirmedEvent>,              //转账交易预转入已确认
         IEventHandler<TransactionPreparationCommittedEvent>              //账户预操作已提交
@@ -51,11 +53,11 @@ namespace BankTransferSample.ProcessManagers
                 }
             }
         }
-        public void Handle(IEventContext context, InsufficientBalanceEvent evnt)
+        public void Handle(IExceptionHandlingContext context, InsufficientBalanceException exception)
         {
-            if (evnt.TransactionType == TransactionType.TransferTransaction)
+            if (exception.TransactionType == TransactionType.TransferTransaction)
             {
-                context.AddCommand(new CancelTransferTransactionCommand(evnt.TransactionId));
+                context.AddCommand(new CancelTransferTransactionCommand(exception.TransactionId));
             }
         }
         public void Handle(IEventContext context, TransferOutPreparationConfirmedEvent evnt)

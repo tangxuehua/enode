@@ -4,6 +4,7 @@ using System.Linq;
 using ECommon.Logging;
 using ENode.Domain;
 using ENode.Eventing;
+using ENode.Exceptions;
 using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
@@ -20,7 +21,8 @@ namespace ENode.Commanding.Impl
         private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeProvider;
         private readonly IEventService _eventService;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
-        //private readonly IExceptionPublisher _exceptionPublisher;
+        private readonly IMessagePublisher<IPublishableException> _exceptionPublisher;
+        private readonly IRetryCommandService _retryCommandService;
         private readonly ILogger _logger;
 
         #endregion
@@ -38,6 +40,7 @@ namespace ENode.Commanding.Impl
         /// <param name="eventService"></param>
         /// <param name="eventPublishInfoStore"></param>
         /// <param name="exceptionPublisher"></param>
+        /// <param name="retryCommandService"></param>
         /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
             ICommandStore commandStore,
@@ -48,7 +51,8 @@ namespace ENode.Commanding.Impl
             ITypeCodeProvider<IAggregateRoot> aggregateRootTypeProvider,
             IEventService eventService,
             IEventPublishInfoStore eventPublishInfoStore,
-            //IExceptionPublisher exceptionPublisher,
+            IMessagePublisher<IPublishableException> exceptionPublisher,
+            IRetryCommandService retryCommandService,
             ILoggerFactory loggerFactory)
         {
             _commandStore = commandStore;
@@ -59,7 +63,8 @@ namespace ENode.Commanding.Impl
             _aggregateRootTypeProvider = aggregateRootTypeProvider;
             _eventService = eventService;
             _eventPublishInfoStore = eventPublishInfoStore;
-            //_exceptionPublisher = exceptionPublisher;
+            _exceptionPublisher = exceptionPublisher;
+            _retryCommandService = retryCommandService;
             _logger = loggerFactory.Create(GetType().FullName);
             _waitingCommandService.SetCommandExecutor(this);
             _eventService.SetCommandExecutor(this);
@@ -75,6 +80,7 @@ namespace ENode.Commanding.Impl
             var context = processingCommand.CommandExecuteContext;
             var commandHandler = default(ICommandHandler);
 
+            //如果是非操作聚合根的command，且该command已检测到被处理过，则直接忽略。
             if (!(command is IAggregateCommand) && _commandStore.Get(command.Id) != null)
             {
                 return;
@@ -102,7 +108,7 @@ namespace ENode.Commanding.Impl
             }
 
             //判断当前command是否需要排队，如果需要排队，则会先排队；
-            //ENode框架会对每个被执行的command按照聚合根id为分组进行必要的排队，如果发现一个聚合根有两个或以上的command要执行，
+            //框架会对每个被执行的command按照聚合根id为分组进行必要的排队，如果发现一个聚合根有两个或以上的command要执行，
             //那会将第二个command以及之后的command全部排队；这样的设计可以确保对同一个聚合根的执行不会导致eventStore的并发冲突而导致不必要的重试；
             if (context.CheckCommandWaiting && _waitingCommandService.RegisterCommand(processingCommand))
             {
@@ -128,15 +134,12 @@ namespace ENode.Commanding.Impl
                 //如果是ENodeException，则认为是由于网络问题，不是领域内产生的异常，比如是用户在通过context.Get<T>方法获取聚合根时，遇到异常；
                 //这种异常是由ENode框架内部抛出来的，通常是由于memoryCache不可用或者eventStore不可用导致，所以此时我们应该直接throw该异常，
                 //然后EQueue会认为当前消息处理失败，会继续重试。
-                throw;
+                _retryCommandService.RetryCommand(processingCommand);
+                return;
             }
             catch (Exception ex)
             {
-                var result = HandleCommandException(processingCommand, commandHandler, ex);
-                if (result == CommandExceptionHandleResult.ThrowDirectly)
-                {
-                    throw;
-                }
+                HandleCommandException(processingCommand, commandHandler, ex);
             }
 
             //如果command执行成功，则提交执行后的结果
@@ -267,56 +270,74 @@ namespace ENode.Commanding.Impl
                 uncommittedEvents,
                 command.Items);
         }
-        private CommandExceptionHandleResult HandleCommandException(ProcessingCommand processingCommand, ICommandHandler commandHandler, Exception exception)
+        private void HandleCommandException(ProcessingCommand processingCommand, ICommandHandler commandHandler, Exception exception)
         {
-            var command = processingCommand.Command;
-
-            //到这里，说明当前command执行时遇到异常，此时我们需要判断当前command之前有没有被执行过。
-            //如果有执行过，则继续判断是否后续所有的步骤都执行成功了，对每一种情况做相应的处理；
-            //如果未执行过，则也做相应处理。
-            var existingHandledCommand = _commandStore.Get(command.Id);
-            if (existingHandledCommand != null)
+            try
             {
-                if (command is IAggregateCommand)
+                //判断当前command之前有没有被执行过。
+                //如果有执行过，则继续判断是否后续所有的步骤都执行成功了，对每一种情况做相应的处理；
+                //如果未执行过，则也做相应处理。
+                var command = processingCommand.Command;
+                var existingHandledCommand = _commandStore.Get(command.Id);
+                if (existingHandledCommand != null)
                 {
-                    var existingEventStream = _eventStore.Find(((HandledAggregateCommand)existingHandledCommand).AggregateRootId, command.Id);
-                    if (existingEventStream != null)
+                    if (command is IAggregateCommand)
                     {
-                        _eventService.PublishDomainEvent(processingCommand, existingEventStream);
+                        var existingEventStream = _eventStore.Find(((HandledAggregateCommand)existingHandledCommand).AggregateRootId, command.Id);
+                        if (existingEventStream != null)
+                        {
+                            _eventService.PublishDomainEvent(processingCommand, existingEventStream);
+                        }
+                        else
+                        {
+                            //到这里，说明当前command遇到异常，然后该command在commandStore中存在，
+                            //但是在eventStore中不存在，此时可以理解为该command还没被执行。
+                            //所以先将其从commandStore中移除，然后再重拾该command即可。
+                            _commandStore.Remove(command.Id);
+                            _retryCommandService.RetryCommand(processingCommand);
+                        }
+                    }
+                }
+                else
+                {
+                    //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行。
+                    //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；否则，就记录错误日志，然后认为该command处理失败即可。
+                    var publishableException = exception as IPublishableException;
+                    if (publishableException != null)
+                    {
+                        publishableException.ProcessId = processingCommand.ProcessId;
+                        _exceptionPublisher.Publish(publishableException);
+                        NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Success, null, null);
                     }
                     else
                     {
-                        //到这里，说明当前command遇到异常，然后该command在commandStore中存在，
-                        //但是在eventStore中不存在，此时可以理解为该command还没被执行。所以需要将其从commandStore中移除，
-                        //然后让其再重新被执行，我们只要简单的将当前异常继续throw出去，那equeue就是自动再次重试该command。
-                        _commandStore.Remove(command.Id);
-                        return CommandExceptionHandleResult.ThrowDirectly;
+                        var commandHandlerType = commandHandler.GetInnerHandler().GetType();
+                        var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}, processId:{5}",
+                            exception.GetType().Name,
+                            commandHandlerType.Name,
+                            command.GetType().Name,
+                            command.Id,
+                            processingCommand.AggregateRootId,
+                            processingCommand.ProcessId);
+                        _logger.Error(errorMessage, exception);
+                        NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
                     }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行，那我们就记录错误日志，然后认为该command处理失败即可。
                 var commandHandlerType = commandHandler.GetInnerHandler().GetType();
-                var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}, processId:{5}, exceptionMessage:{6}",
-                    exception.GetType().Name,
+                var errorMessage = string.Format("{0} raised when {1} handling the exception of {2}. commandId:{3}, aggregateRootId:{4}, processId:{5}, originalExceptionMessage:{6}",
+                    ex.GetType().Name,
                     commandHandlerType.Name,
-                    command.GetType().Name,
-                    command.Id,
+                    processingCommand.Command.GetType().Name,
+                    processingCommand.Command.Id,
                     processingCommand.AggregateRootId,
                     processingCommand.ProcessId,
                     exception.Message);
-                _logger.Error(errorMessage, exception);
-                //var publishableException = exception as IPublishableException;
-                //if (publishableException != null)
-                //{
-                //    publishableException.Items["ProcessId"] = processingCommand.ProcessId;
-                //    _exceptionPublisher.PublishException(publishableException);
-                //}
-                NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
+                _logger.Error(errorMessage, ex);
+                _retryCommandService.RetryCommand(processingCommand);
             }
-
-            return CommandExceptionHandleResult.Success;
         }
         private void NotifyCommandExecuteFailedOrNothingChanged(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {
@@ -390,11 +411,5 @@ namespace ENode.Commanding.Impl
         }
 
         #endregion
-
-        enum CommandExceptionHandleResult
-        {
-            Success,
-            ThrowDirectly
-        }
     }
 }

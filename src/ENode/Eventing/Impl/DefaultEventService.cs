@@ -313,7 +313,7 @@ namespace ENode.Eventing.Impl
         }
         private void RetryCommand(EventCommittingContext context)
         {
-            if (!_retryCommandService.RetryCommand(context.ProcessingCommand))
+            if (!_retryCommandService.RetryConcurrentCommand(context.ProcessingCommand))
             {
                 var command = context.ProcessingCommand.Command;
                 var errorMessage = string.Format("{0} [id:{1}, aggregateId:{2}] retried count reached to its max retry count {3}.", command.GetType().Name, command.Id, context.EventStream.AggregateRootId, command.RetryCount);

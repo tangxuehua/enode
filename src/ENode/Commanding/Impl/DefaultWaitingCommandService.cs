@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using ECommon.Logging;
+using ECommon.Retring;
 using ECommon.Scheduling;
 
 namespace ENode.Commanding.Impl
@@ -15,15 +16,18 @@ namespace ENode.Commanding.Impl
         private readonly BlockingCollection<ProcessingCommand> _queue;
         private readonly ILogger _logger;
         private readonly Worker _worker;
+        private readonly IActionExecutionService _actionExecutionService;
         private ICommandExecutor _commandExecutor;
 
         /// <summary>Parameterized costructor.
         /// </summary>
+        /// <param name="actionExecutionService"></param>
         /// <param name="loggerFactory"></param>
-        public DefaultWaitingCommandService(ILoggerFactory loggerFactory)
+        public DefaultWaitingCommandService(IActionExecutionService actionExecutionService, ILoggerFactory loggerFactory)
         {
             _queue = new BlockingCollection<ProcessingCommand>(new ConcurrentQueue<ProcessingCommand>());
             _worker = new Worker("ExecuteWaitingCommand", () => _commandExecutor.Execute(_queue.Take()));
+            _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
         }
 

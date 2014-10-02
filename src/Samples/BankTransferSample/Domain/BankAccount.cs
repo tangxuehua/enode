@@ -49,8 +49,7 @@ namespace BankTransferSample.Domain
             var availableBalance = GetAvailableBalance();
             if (preparationType == PreparationType.DebitPreparation && availableBalance < amount)
             {
-                ApplyEvent(new InsufficientBalanceEvent(Id, transactionId, transactionType, amount, Balance, availableBalance));
-                return;
+                throw new InsufficientBalanceException(Id, transactionId, transactionType, amount, Balance, availableBalance);
             }
 
             ApplyEvent(new TransactionPreparationAddedEvent(new TransactionPreparation(Id, transactionId, transactionType, preparationType, amount)));
@@ -125,7 +124,6 @@ namespace BankTransferSample.Domain
             Id = evnt.AggregateRootId;
             Owner = evnt.Owner;
         }
-        private void Handle(InsufficientBalanceEvent evnt) { }
         private void Handle(TransactionPreparationAddedEvent evnt)
         {
             _transactionPreparations.Add(evnt.TransactionPreparation.TransactionId, evnt.TransactionPreparation);

@@ -7,5 +7,6 @@
         EventMessage = 3,
         DomainEventMessage = 4,
         DomainEventHandledMessage = 5,
+        ExceptionMessage = 6,
     }
 }

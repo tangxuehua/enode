@@ -10,6 +10,7 @@ using ENode.Domain;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
+using ENode.Exceptions;
 using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Configurations;
@@ -24,16 +25,21 @@ namespace BankTransferSample
         private static CommandConsumer _commandConsumer;
         private static EventPublisher _eventPublisher;
         private static EventConsumer _eventConsumer;
+        private static ExceptionPublisher _exceptionPublisher;
+        private static ExceptionConsumer _exceptionConsumer;
 
         public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.SetDefault<ITopicProvider<ICommand>, CommandTopicProvider>();
             configuration.SetDefault<ITopicProvider<IEvent>, EventTopicProvider>();
+            configuration.SetDefault<ITopicProvider<IPublishableException>, ExceptionTopicProvider>();
             configuration.SetDefault<ITypeCodeProvider<ICommand>, CommandTypeCodeProvider>();
             configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, AggregateRootTypeCodeProvider>();
             configuration.SetDefault<ITypeCodeProvider<IEvent>, EventTypeCodeProvider>();
             configuration.SetDefault<ITypeCodeProvider<IEventHandler>, EventHandlerTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<IPublishableException>, ExceptionTypeCodeProvider>();
+            configuration.SetDefault<ITypeCodeProvider<IExceptionHandler>, ExceptionHandlerTypeCodeProvider>();
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
@@ -47,25 +53,31 @@ namespace BankTransferSample
             _commandResultProcessor = new CommandResultProcessor();
             _commandService = new CommandService(_commandResultProcessor);
             _eventPublisher = new EventPublisher();
+            _exceptionPublisher = new ExceptionPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IProcessCommandSender, CommandService>(_commandService);
             configuration.SetDefault<IMessagePublisher<EventStream>, EventPublisher>(_eventPublisher);
             configuration.SetDefault<IMessagePublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<IPublishableException>, ExceptionPublisher>(_exceptionPublisher);
 
             _commandConsumer = new CommandConsumer();
             _eventConsumer = new EventConsumer();
+            _exceptionConsumer = new ExceptionConsumer();
 
             _commandConsumer.Subscribe("BankTransferCommandTopic");
             _eventConsumer.Subscribe("BankTransferEventTopic");
+            _exceptionConsumer.Subscribe("BankTransferExceptionTopic");
 
             return enodeConfiguration;
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
             _broker.Start();
+            _exceptionConsumer.Start();
             _eventConsumer.Start();
             _commandConsumer.Start();
+            _exceptionPublisher.Start();
             _eventPublisher.Start();
             _commandService.Start();
             _commandResultProcessor.Start();
@@ -79,8 +91,10 @@ namespace BankTransferSample
             _commandResultProcessor.Shutdown();
             _commandService.Shutdown();
             _eventPublisher.Shutdown();
+            _exceptionPublisher.Shutdown();
             _commandConsumer.Shutdown();
             _eventConsumer.Shutdown();
+            _exceptionConsumer.Shutdown();
             _broker.Shutdown();
             return enodeConfiguration;
         }
@@ -96,10 +110,12 @@ namespace BankTransferSample
             {
                 var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
+                var exceptionConsumerAllocatedQueues = _exceptionConsumer.Consumer.GetCurrentQueues();
                 var commandExecutedMessageConsumerAllocatedQueues = _commandResultProcessor.CommandExecutedMessageConsumer.GetCurrentQueues();
                 var domainEventHandledMessageConsumerAllocatedQueues = _commandResultProcessor.DomainEventHandledMessageConsumer.GetCurrentQueues();
                 if (eventConsumerAllocatedQueues.Count() == 4
                     && commandConsumerAllocatedQueues.Count() == 4
+                    && exceptionConsumerAllocatedQueues.Count() == 4
                     && commandExecutedMessageConsumerAllocatedQueues.Count() == 4
                     && domainEventHandledMessageConsumerAllocatedQueues.Count() == 4)
                 {
