@@ -8,16 +8,7 @@ namespace ENode.Domain.Impl
     /// </summary>
     public class DefaultMemoryCache : IMemoryCache
     {
-        private readonly ConcurrentDictionary<string, byte[]> _cacheDict = new ConcurrentDictionary<string, byte[]>();
-        private readonly IBinarySerializer _binarySerializer;
-
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="binarySerializer"></param>
-        public DefaultMemoryCache(IBinarySerializer binarySerializer)
-        {
-            _binarySerializer = binarySerializer;
-        }
+        private readonly ConcurrentDictionary<string, IAggregateRoot> _cacheDict = new ConcurrentDictionary<string, IAggregateRoot>();
 
         /// <summary>Get an aggregate from memory cache.
         /// </summary>
@@ -27,10 +18,15 @@ namespace ENode.Domain.Impl
         public IAggregateRoot Get(object aggregateRootId, Type aggregateRootType)
         {
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
-            byte[] value;
-            if (_cacheDict.TryGetValue(aggregateRootId.ToString(), out value))
+            IAggregateRoot aggregateRoot;
+            if (_cacheDict.TryGetValue(aggregateRootId.ToString(), out aggregateRoot))
             {
-                return _binarySerializer.Deserialize(value, aggregateRootType) as IAggregateRoot;
+                if (aggregateRoot.GetType() != aggregateRootType)
+                {
+                    throw new Exception(string.Format("Incorrect aggregate root type, current aggregateRootId:{0}, type:{1}, expecting type:{2}", aggregateRootId, aggregateRoot.GetType(), aggregateRootType));
+                }
+                aggregateRoot.ResetChanges();
+                return aggregateRoot;
             }
             return null;
         }
@@ -53,7 +49,7 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRoot");
             }
-            _cacheDict[aggregateRoot.UniqueId] = _binarySerializer.Serialize(aggregateRoot);
+            _cacheDict[aggregateRoot.UniqueId] = aggregateRoot;
         }
     }
 }

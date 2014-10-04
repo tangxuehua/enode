@@ -15,20 +15,24 @@ namespace ENode.Domain.Impl
             _eventHandlerProvider = eventHandlerProvider;
         }
 
+        public void ReplayEvents(IAggregateRoot aggregateRoot, DomainEventStream eventStream)
+        {
+            VerifyEvent(aggregateRoot, eventStream);
+            foreach (var evnt in eventStream.DomainEvents)
+            {
+                HandleEvent(aggregateRoot, evnt);
+            }
+            aggregateRoot.IncreaseVersion();
+            if (aggregateRoot.Version != eventStream.Version)
+            {
+                throw new ENodeException("Aggregate root version mismatch, aggregateId:{0}, current version:{1}, expected version:{2}", aggregateRoot.UniqueId, aggregateRoot.Version, eventStream.Version);
+            }
+        }
         public void ReplayEvents(IAggregateRoot aggregateRoot, IEnumerable<DomainEventStream> eventStreams)
         {
             foreach (var eventStream in eventStreams)
             {
-                VerifyEvent(aggregateRoot, eventStream);
-                foreach (var evnt in eventStream.DomainEvents)
-                {
-                    HandleEvent(aggregateRoot, evnt);
-                }
-                aggregateRoot.IncreaseVersion();
-                if (aggregateRoot.Version != eventStream.Version)
-                {
-                    throw new ENodeException("Aggregate root version mismatch, aggregateId:{0}, current version:{1}, expected version:{2}", aggregateRoot.UniqueId, aggregateRoot.Version, eventStream.Version);
-                }
+                ReplayEvents(aggregateRoot, eventStream);
             }
         }
 

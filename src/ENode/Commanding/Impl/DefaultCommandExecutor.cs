@@ -165,7 +165,7 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Command;
             var context = processingCommand.CommandExecuteContext;
             var trackedAggregateRoots = context.GetTrackedAggregateRoots();
-            var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Any()).ToList();
+            var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetChanges().Any()).ToList();
             var dirtyAggregateRootCount = dirtyAggregateRoots.Count();
 
             //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
@@ -248,7 +248,7 @@ namespace ENode.Commanding.Impl
         private DomainEventStream BuildDomainEventStream(IAggregateRoot aggregateRoot, ProcessingCommand processingCommand)
         {
             var command = processingCommand.Command;
-            var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
+            var uncommittedEvents = aggregateRoot.GetChanges().ToList();
             var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
             var currentTime = DateTime.Now;
             var processId = processingCommand.ProcessId;

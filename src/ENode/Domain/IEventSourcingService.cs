@@ -7,6 +7,9 @@ namespace ENode.Domain
     /// </summary>
     public interface IEventSourcingService
     {
+        /// <summary>Replay the given event stream on the given aggregate root.
+        /// </summary>
+        void ReplayEvents(IAggregateRoot aggregateRoot, DomainEventStream eventStream);
         /// <summary>Replay the given event streams on the given aggregate root.
         /// </summary>
         void ReplayEvents(IAggregateRoot aggregateRoot, IEnumerable<DomainEventStream> eventStreams);

@@ -6,7 +6,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain
 {
-    /// <summary>Aggregate root base class.
+    /// <summary>Represents the base aggregate root.
     /// </summary>
     /// <typeparam name="TAggregateRootId"></typeparam>
     [Serializable]
@@ -16,7 +16,6 @@ namespace ENode.Domain
         private string _uniqueId;
         private int _version;
         private Queue<IDomainEvent> _uncommittedEvents;
-        private static IAggregateRootInternalHandlerProvider _eventHandlerProvider;
 
         /// <summary>The id of aggregate root.
         /// </summary>
@@ -74,16 +73,12 @@ namespace ENode.Domain
             return role;
         }
 
-        /// <summary>Apply a domain event.
-        /// <remarks>
-        /// The domain event will first be handled by the current aggregate and then be put into the local uncommitted event queue.
-        /// </remarks>
+        /// <summary>Apply a domain event, the event will just be added into the local uncommitted event queue by default.
         /// </summary>
         /// <param name="evnt"></param>
         protected void ApplyEvent(IDomainEvent evnt)
         {
-            HandleEvent(evnt);
-            AddUncommittedEvent(evnt);
+            _uncommittedEvents.Enqueue(evnt);
         }
 
         string IAggregateRoot.UniqueId
@@ -104,46 +99,24 @@ namespace ENode.Domain
                 return _version;
             }
         }
-        IEnumerable<IDomainEvent> IAggregateRoot.GetUncommittedEvents()
-        {
-            EnsureUncommittedEventsInstantiated();
-            return _uncommittedEvents;
-        }
-        void IAggregateRoot.AcceptChanges()
-        {
-            EnsureUncommittedEventsInstantiated();
-            _uncommittedEvents.Clear();
-            _version++;
-        }
-        void IAggregateRoot.IncreaseVersion()
-        {
-            _version++;
-        }
-
-        private void HandleEvent(IDomainEvent evnt)
-        {
-            if (_eventHandlerProvider == null)
-            {
-                _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
-            }
-            var handler = _eventHandlerProvider.GetInternalEventHandler(this.GetType(), evnt.GetType());
-            if (handler == null)
-            {
-                throw new Exception(string.Format("Could not find event handler for [{0}] of [{1}]", evnt.GetType().FullName, this.GetType().FullName));
-            }
-            handler(this, evnt);
-        }
-        private void AddUncommittedEvent(IDomainEvent evnt)
-        {
-            EnsureUncommittedEventsInstantiated();
-            _uncommittedEvents.Enqueue(evnt);
-        }
-        private void EnsureUncommittedEventsInstantiated()
+        void IAggregateRoot.ResetChanges()
         {
             if (_uncommittedEvents == null)
             {
                 _uncommittedEvents = new Queue<IDomainEvent>();
             }
+            else
+            {
+                _uncommittedEvents.Clear();
+            }
+        }
+        IEnumerable<IDomainEvent> IAggregateRoot.GetChanges()
+        {
+            return _uncommittedEvents;
+        }
+        void IAggregateRoot.IncreaseVersion()
+        {
+            _version++;
         }
     }
 }
