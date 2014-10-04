@@ -20,10 +20,6 @@ namespace ENode.Domain.Impl
             foreach (var eventStream in eventStreams)
             {
                 VerifyEvent(aggregateRoot, eventStream);
-                if (aggregateRoot.UniqueId == null && eventStream.Version == 1L)
-                {
-                    aggregateRoot.UniqueId = eventStream.AggregateRootId;
-                }
                 foreach (var evnt in eventStream.DomainEvents)
                 {
                     HandleEvent(aggregateRoot, evnt);

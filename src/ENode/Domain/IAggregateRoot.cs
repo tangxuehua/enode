@@ -9,7 +9,7 @@ namespace ENode.Domain
     {
         /// <summary>Represents the unique id of the aggregate root.
         /// </summary>
-        string UniqueId { get; set; }
+        string UniqueId { get; }
         /// <summary>Represents the current version of the aggregate root.
         /// </summary>
         int Version { get; }

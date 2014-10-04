@@ -28,7 +28,16 @@ namespace ENode.Domain
             }
             protected set
             {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("id");
+                }
+                if (_version > 0)
+                {
+                    throw new NotSupportedException("Only empty aggregateRoot can be set the Id.");
+                }
                 _id = value;
+                _uniqueId = value.ToString();
             }
         }
 
@@ -90,18 +99,6 @@ namespace ENode.Domain
                     _uniqueId = _id.ToString();
                 }
                 return _uniqueId;
-            }
-            set
-            {
-                if (_uniqueId != null)
-                {
-                    throw new NotSupportedException("AggregateRoot uniqueId cannot be set twice.");
-                }
-                if (_version > 0)
-                {
-                    throw new NotSupportedException("Only the empty aggregateRoot can be set the UniqueId.");
-                }
-                _uniqueId = value;
             }
         }
         int IAggregateRoot.Version
