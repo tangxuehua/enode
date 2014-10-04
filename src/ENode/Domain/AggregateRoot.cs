@@ -18,7 +18,7 @@ namespace ENode.Domain
         private Queue<IDomainEvent> _uncommittedEvents;
         private static IAggregateRootInternalHandlerProvider _eventHandlerProvider;
 
-        /// <summary>The strong type unique id of aggregate root.
+        /// <summary>The id of aggregate root.
         /// </summary>
         public TAggregateRootId Id
         {
@@ -32,16 +32,12 @@ namespace ENode.Domain
                 {
                     throw new ArgumentNullException("id");
                 }
-                if (_version > 0)
-                {
-                    throw new NotSupportedException("Only empty aggregateRoot can be set the Id.");
-                }
                 _id = value;
                 _uniqueId = value.ToString();
             }
         }
 
-        /// <summary>Default constructor.
+        /// <summary>Parameterized constructor.
         /// </summary>
         protected AggregateRoot(TAggregateRootId id)
         {

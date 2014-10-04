@@ -257,7 +257,6 @@ namespace ENode.Commanding.Impl
             foreach (var evnt in uncommittedEvents)
             {
                 evnt.Version = nextVersion;
-                evnt.Timestamp = currentTime;
             }
 
             return new DomainEventStream(
@@ -399,15 +398,7 @@ namespace ENode.Commanding.Impl
         }
         private IEnumerable<IEvent> GetEvents(ProcessingCommand processingCommand)
         {
-            var events = processingCommand.CommandExecuteContext.GetEvents().ToList();
-            var currentTime = DateTime.Now;
-
-            foreach (var evnt in events)
-            {
-                evnt.Timestamp = currentTime;
-            }
-
-            return events;
+            return processingCommand.CommandExecuteContext.GetEvents().ToList();
         }
 
         #endregion

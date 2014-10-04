@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ENode.Eventing
+﻿namespace ENode.Eventing
 {
     /// <summary>Represents an event.
     /// </summary>
@@ -9,8 +7,5 @@ namespace ENode.Eventing
         /// <summary>Represents the unique identifier of the event.
         /// </summary>
         string Id { get; }
-        /// <summary>Represents the time when the event happened.
-        /// </summary>
-        DateTime Timestamp { get; set; }
     }
 }
