@@ -357,7 +357,7 @@ namespace ENode.Commanding.Impl
             string sourceExceptionId;
             command.Items.TryGetValue("SourceEventId", out sourceEventId);
             command.Items.TryGetValue("SourceExceptionId", out sourceExceptionId);
-            var evnts = GetEvents(processingCommand);
+            var evnts = processingCommand.CommandExecuteContext.GetEvents().ToList();
             var commandAddResult = _commandStore.Add(new HandledCommand(command, sourceEventId, sourceExceptionId, evnts));
 
             if (commandAddResult == CommandAddResult.Success)
@@ -382,10 +382,6 @@ namespace ENode.Commanding.Impl
                     NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, null, errorMessage);
                 }
             }
-        }
-        private IEnumerable<IEvent> GetEvents(ProcessingCommand processingCommand)
-        {
-            return processingCommand.CommandExecuteContext.GetEvents().ToList();
         }
 
         #endregion
