@@ -4,7 +4,7 @@
     /// </summary>
     public enum TransactionStatus
     {
-        Started,
+        Started = 1,
         AccountValidateCompleted,
         PreparationCompleted,
         Completed,
