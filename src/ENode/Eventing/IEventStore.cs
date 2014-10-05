@@ -6,6 +6,9 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventStore
     {
+        /// <summary>Batch append the given event streams to the event store.
+        /// </summary>
+        EventAppendResult BatchAppend(IEnumerable<DomainEventStream> eventStreams);
         /// <summary>Append the given event stream to the event store.
         /// </summary>
         EventAppendResult Append(DomainEventStream eventStream);

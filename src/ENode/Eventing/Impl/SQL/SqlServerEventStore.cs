@@ -34,6 +34,49 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Public Methods
 
+        public EventAppendResult BatchAppend(IEnumerable<DomainEventStream> eventStreams)
+        {
+            var appendResult = EventAppendResult.Success;
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                var transaction = connection.BeginTransaction();
+                try
+                {
+                    foreach (var eventStream in eventStreams)
+                    {
+                        var record = ConvertTo(eventStream);
+                        try
+                        {
+                            connection.Insert(record, _eventTable);
+                        }
+                        catch (SqlException ex)
+                        {
+                            if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                            {
+                                appendResult = EventAppendResult.DuplicateEvent;
+                                break;
+                            }
+                            throw;
+                        }
+                    }
+                    if (appendResult == EventAppendResult.Success)
+                    {
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        transaction.Rollback();
+                    }
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+            return appendResult;
+        }
         public EventAppendResult Append(DomainEventStream eventStream)
         {
             var record = ConvertTo(eventStream);

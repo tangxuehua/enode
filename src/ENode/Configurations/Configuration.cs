@@ -252,6 +252,7 @@ namespace ENode.Configurations
         {
             ObjectContainer.Resolve<IRetryCommandService>().Start();
             ObjectContainer.Resolve<IWaitingCommandService>().Start();
+            ObjectContainer.Resolve<IEventService>().Start();
             return this;
         }
 

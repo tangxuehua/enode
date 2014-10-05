@@ -22,6 +22,17 @@ namespace ENode.Eventing.Impl.InMemory
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
+        public EventAppendResult BatchAppend(IEnumerable<DomainEventStream> eventStreams)
+        {
+            foreach (var eventStream in eventStreams)
+            {
+                if (Append(eventStream) == EventAppendResult.DuplicateEvent)
+                {
+                    return EventAppendResult.DuplicateEvent;
+                }
+            }
+            return EventAppendResult.Success;
+        }
         public EventAppendResult Append(DomainEventStream eventStream)
         {
             var aggregateInfo = _aggregateInfoDict.GetOrAdd(eventStream.AggregateRootId, new AggregateInfo());

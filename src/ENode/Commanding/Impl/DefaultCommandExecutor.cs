@@ -164,7 +164,7 @@ namespace ENode.Commanding.Impl
                 NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
             }
-            //如果发现被修改的聚合根操作一个，则认为当前command处理失败；
+            //如果被创建或修改的聚合根多于一个，则认为当前command处理失败，一个command只能创建或修改一个聚合根；
             else if (dirtyAggregateRootCount > 1)
             {
                 var dirtyAggregateTypes = string.Join("|", dirtyAggregateRoots.Select(x => x.GetType().Name));
@@ -183,10 +183,10 @@ namespace ENode.Commanding.Impl
             //从该聚合根获取所有产生的领域事件，构造出一个EventStream对象
             var eventStream = BuildDomainEventStream(dirtyAggregate, processingCommand);
 
-            //如果是重试中的command，则直接commit event，因为这个command肯定已经在command store中了
+            //如果是重试中的command，则直接提交该command产生的事件，因为该command肯定已经在command store中了
             if (processingCommand.RetriedCount > 0)
             {
-                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                _eventService.AddEventCommittingContextToQueue(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
                 return;
             }
 
@@ -197,8 +197,13 @@ namespace ENode.Commanding.Impl
             command.Items.TryGetValue("SourceExceptionId", out sourceExceptionId);
             var commandAddResult = _commandStore.Add(new HandledAggregateCommand(command, sourceEventId, sourceExceptionId, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode));
 
+            //如果command添加成功，则提交该command产生的事件
+            if (commandAddResult == CommandAddResult.Success)
+            {
+                _eventService.AddEventCommittingContextToQueue(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+            }
             //如果添加的结果是command重复，则做如下处理
-            if (commandAddResult == CommandAddResult.DuplicateCommand)
+            else if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
                 var existingHandledCommand = _commandStore.Get(command.Id) as HandledAggregateCommand;
                 if (existingHandledCommand != null)
@@ -212,7 +217,7 @@ namespace ENode.Commanding.Impl
                     else
                     {
                         //如果当前command已经被持久化过了，但事件没有被持久化，则需要重新提交当前command所产生的事件；
-                        _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                        _eventService.AddEventCommittingContextToQueue(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
                     }
                 }
                 else
@@ -225,11 +230,6 @@ namespace ENode.Commanding.Impl
                         command.Id);
                     NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, null, errorMessage);
                 }
-            }
-            //如果添加成功，说明该command是第一次执行，那就将当前eventStream交给eventService做后续处理
-            else if (commandAddResult == CommandAddResult.Success)
-            {
-                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
             }
         }
         private DomainEventStream BuildDomainEventStream(IAggregateRoot aggregateRoot, ProcessingCommand processingCommand)
