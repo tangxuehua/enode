@@ -6,8 +6,6 @@ using ECommon.Logging;
 
 namespace ENode.Eventing.Impl.InMemory
 {
-    /// <summary>In-memory based event store implementation. It is only used for unit test.
-    /// </summary>
     public class InMemoryEventStore : IEventStore
     {
         private const int Editing = 1;

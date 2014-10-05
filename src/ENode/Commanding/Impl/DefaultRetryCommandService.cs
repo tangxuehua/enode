@@ -5,8 +5,6 @@ using ECommon.Scheduling;
 
 namespace ENode.Commanding.Impl
 {
-    /// <summary>The default implementation of IRetryCommandService.
-    /// </summary>
     public class DefaultRetryCommandService : IRetryCommandService
     {
         private readonly BlockingCollection<ProcessingCommand> _queue;
@@ -15,10 +13,6 @@ namespace ENode.Commanding.Impl
         private readonly IActionExecutionService _actionExecutionService;
         private ICommandExecutor _commandExecutor;
 
-        /// <summary>Parameterized costructor.
-        /// </summary>
-        /// <param name="actionExecutionService"></param>
-        /// <param name="loggerFactory"></param>
         public DefaultRetryCommandService(IActionExecutionService actionExecutionService, ILoggerFactory loggerFactory)
         {
             _queue = new BlockingCollection<ProcessingCommand>(new ConcurrentQueue<ProcessingCommand>());
@@ -27,20 +21,14 @@ namespace ENode.Commanding.Impl
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        /// <summary>Set the command executor.
-        /// </summary>
-        /// <param name="commandExecutor"></param>
         public void SetCommandExecutor(ICommandExecutor commandExecutor)
         {
             _commandExecutor = commandExecutor;
         }
-        /// <summary>Start the service.
-        /// </summary>
         public void Start()
         {
             _worker.Start();
         }
-
         public bool RetryConcurrentCommand(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Command;

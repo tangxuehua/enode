@@ -3,8 +3,6 @@ using ECommon.Extensions;
 
 namespace ENode.Commanding.Impl
 {
-    /// <summary>The default implementation of ICommandStore.
-    /// </summary>
     public class InMemoryCommandStore : ICommandStore
     {
         private readonly ConcurrentDictionary<string, HandledCommand> _handledCommandDict = new ConcurrentDictionary<string, HandledCommand>();

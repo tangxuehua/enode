@@ -18,11 +18,6 @@ namespace ENode.Infrastructure.Impl.SQL
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="tableName"></param>
-        /// <exception cref="ArgumentNullException"></exception>
         public SqlServerLockService(string connectionString, string lockKeyTable)
         {
             if (string.IsNullOrEmpty(lockKeyTable))

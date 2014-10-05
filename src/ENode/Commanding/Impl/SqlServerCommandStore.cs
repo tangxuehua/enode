@@ -10,8 +10,6 @@ using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
 {
-    /// <summary>The Microsoft SqlServer based implementation of ICommandStore.
-    /// </summary>
     public class SqlServerCommandStore : ICommandStore
     {
         #region Private Variables

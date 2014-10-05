@@ -3,8 +3,6 @@ using ECommon.Utilities;
 
 namespace ENode.Exceptions
 {
-    /// <summary>Represents a base publishable exception.
-    /// </summary>
     public class PublishableException : Exception
     {
         public string UniqueId { get; set; }

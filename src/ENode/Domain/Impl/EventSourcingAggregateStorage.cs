@@ -8,8 +8,6 @@ using ENode.Snapshoting;
 
 namespace ENode.Domain.Impl
 {
-    /// <summary>An aggregate storage implementation with the event sourcing pattern.
-    /// </summary>
     public class EventSourcingAggregateStorage : IAggregateStorage
     {
         private const int minVersion = 1;
@@ -20,13 +18,6 @@ namespace ENode.Domain.Impl
         private readonly ISnapshotStore _snapshotStore;
         private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="aggregateRootFactory"></param>
-        /// <param name="eventSourcingService"></param>
-        /// <param name="eventStore"></param>
-        /// <param name="snapshotStore"></param>
-        /// <param name="aggregateRootTypeCodeProvider"></param>
         public EventSourcingAggregateStorage(
             IAggregateRootFactory aggregateRootFactory,
             IEventSourcingService eventSourcingService,
@@ -41,11 +32,6 @@ namespace ENode.Domain.Impl
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
         }
 
-        /// <summary>Get an aggregate from aggregate storage.
-        /// </summary>
-        /// <param name="aggregateRootType"></param>
-        /// <param name="aggregateRootId"></param>
-        /// <returns></returns>
         public IAggregateRoot Get(Type aggregateRootType, string aggregateRootId)
         {
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
@@ -66,8 +52,6 @@ namespace ENode.Domain.Impl
 
         #region Helper Methods
 
-        /// <summary>Try to get an aggregate root from snapshot store.
-        /// </summary>
         private bool TryGetFromSnapshot(string aggregateRootId, Type aggregateRootType, out IAggregateRoot aggregateRoot)
         {
             aggregateRoot = null;
@@ -89,8 +73,6 @@ namespace ENode.Domain.Impl
             aggregateRoot = aggregateRootFromSnapshot;
             return true;
         }
-        /// <summary>Rebuild the aggregate root using the event sourcing pattern.
-        /// </summary>
         private IAggregateRoot BuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> streams)
         {
             var eventStreams = streams.ToList();

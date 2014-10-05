@@ -6,8 +6,6 @@ using ECommon.Scheduling;
 
 namespace ENode.Commanding.Impl
 {
-    /// <summary>The default implementation of IWaitingCommandService.
-    /// </summary>
     public class DefaultWaitingCommandService : IWaitingCommandService
     {
         private readonly object _lockObject = new object();
@@ -19,10 +17,6 @@ namespace ENode.Commanding.Impl
         private readonly IActionExecutionService _actionExecutionService;
         private ICommandExecutor _commandExecutor;
 
-        /// <summary>Parameterized costructor.
-        /// </summary>
-        /// <param name="actionExecutionService"></param>
-        /// <param name="loggerFactory"></param>
         public DefaultWaitingCommandService(IActionExecutionService actionExecutionService, ILoggerFactory loggerFactory)
         {
             _queue = new BlockingCollection<ProcessingCommand>(new ConcurrentQueue<ProcessingCommand>());
@@ -31,23 +25,14 @@ namespace ENode.Commanding.Impl
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        /// <summary>Set the command executor.
-        /// </summary>
-        /// <param name="commandExecutor"></param>
         public void SetCommandExecutor(ICommandExecutor commandExecutor)
         {
             _commandExecutor = commandExecutor;
         }
-        /// <summary>Start the service. A worker will be started, which takes command from the processing queue to process.
-        /// </summary>
         public void Start()
         {
             _worker.Start();
         }
-        /// <summary>Register a command.
-        /// </summary>
-        /// <param name="processingCommand"></param>
-        /// <returns>Returns true if the given command is added into the aggregate waiting queue; otherwise returns false.</returns>
         public bool RegisterCommand(ProcessingCommand processingCommand)
         {
             if (processingCommand.Command is ICreatingAggregateCommand)
@@ -92,9 +77,6 @@ namespace ENode.Commanding.Impl
                 return false;
             }
         }
-        /// <summary>Notify that a command of the given aggregate has been executed, and the next command will be execute if exist.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
         public void NotifyCommandExecuted(string aggregateRootId)
         {
             if (string.IsNullOrEmpty(aggregateRootId))

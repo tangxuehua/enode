@@ -4,8 +4,6 @@ using ECommon.Dapper;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>The Microsoft SqlServer based implementation of IEventHandleInfoStore.
-    /// </summary>
     public class SqlServerEventHandleInfoStore : IEventHandleInfoStore
     {
         #region Private Variables
@@ -17,11 +15,6 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="tableName"></param>
-        /// <exception cref="ArgumentNullException"></exception>
         public SqlServerEventHandleInfoStore(string connectionString, string tableName)
         {
             if (string.IsNullOrEmpty(connectionString))
@@ -39,13 +32,6 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
-        /// <summary>Insert an event handle info.
-        /// </summary>
-        /// <param name="eventId"></param>
-        /// <param name="eventHandlerTypeCode"></param>
-        /// <param name="eventTypeCode"></param>
-        /// <param name="aggregateRootId"></param>
-        /// <param name="aggregateRootVersion"></param>
         public void AddEventHandleInfo(string eventId, int eventHandlerTypeCode, int eventTypeCode, string aggregateRootId, int aggregateRootVersion)
         {
             using (var connection = GetConnection())
@@ -62,11 +48,6 @@ namespace ENode.Eventing.Impl.SQL
                 }, _tableName);
             }
         }
-        /// <summary>Check whether the given event was handled by the given event handler.
-        /// </summary>
-        /// <param name="eventId"></param>
-        /// <param name="eventHandlerTypeCode"></param>
-        /// <returns></returns>
         public bool IsEventHandleInfoExist(string eventId, int eventHandlerTypeCode)
         {
             using (var connection = GetConnection())

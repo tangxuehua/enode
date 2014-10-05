@@ -3,8 +3,6 @@ using System.Collections.Concurrent;
 
 namespace ENode.Eventing.Impl.InMemory
 {
-    /// <summary>In-memory based implementation of IEventPublishInfoStore
-    /// </summary>
     public class InMemoryEventPublishInfoStore : IEventPublishInfoStore
     {
         private readonly ConcurrentDictionary<string, int> _versionDict = new ConcurrentDictionary<string, int>();

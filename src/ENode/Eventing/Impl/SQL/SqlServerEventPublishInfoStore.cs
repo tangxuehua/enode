@@ -5,8 +5,6 @@ using ECommon.Dapper;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>The Microsoft SqlServer based implementation of IEventPublishInfoStore.
-    /// </summary>
     public class SqlServerEventPublishInfoStore : IEventPublishInfoStore
     {
         #region Private Variables
@@ -19,12 +17,6 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="tableName"></param>
-        /// <param name="primaryKeyName"></param>
-        /// <exception cref="ArgumentNullException"></exception>
         public SqlServerEventPublishInfoStore(string connectionString, string tableName, string primaryKeyName)
         {
             if (string.IsNullOrEmpty(connectionString))

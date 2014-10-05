@@ -2,14 +2,8 @@
 
 namespace ENode.Snapshoting.Impl
 {
-    /// <summary>A policy that always not create snapshot.
-    /// </summary>
     public class NoSnapshotPolicy : ISnapshotPolicy
     {
-        /// <summary>Always return false.
-        /// </summary>
-        /// <param name="aggregateRoot"></param>
-        /// <returns></returns>
         public bool ShouldCreateSnapshot(IAggregateRoot aggregateRoot)
         {
             return false;

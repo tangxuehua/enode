@@ -29,19 +29,6 @@ namespace ENode.Commanding.Impl
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="commandStore"></param>
-        /// <param name="eventStore"></param>
-        /// <param name="waitingCommandService"></param>
-        /// <param name="executedCommandService"></param>
-        /// <param name="commandHandlerProvider"></param>
-        /// <param name="aggregateRootTypeProvider"></param>
-        /// <param name="eventService"></param>
-        /// <param name="eventPublishInfoStore"></param>
-        /// <param name="exceptionPublisher"></param>
-        /// <param name="retryCommandService"></param>
-        /// <param name="loggerFactory"></param>
         public DefaultCommandExecutor(
             ICommandStore commandStore,
             IEventStore eventStore,

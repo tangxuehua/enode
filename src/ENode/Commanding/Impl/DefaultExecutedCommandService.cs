@@ -1,7 +1,5 @@
 ﻿namespace ENode.Commanding.Impl
 {
-    /// <summary>The default implementation of IExecutedCommandService.
-    /// </summary>
     public class DefaultExecutedCommandService : IExecutedCommandService
     {
         private IWaitingCommandService _waitingCommandService;

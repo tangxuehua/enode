@@ -36,19 +36,6 @@ namespace ENode.Eventing.Impl
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="eventTypeCodeProvider"></param>
-        /// <param name="eventHandlerTypeCodeProvider"></param>
-        /// <param name="commandTypeCodeProvider"></param>
-        /// <param name="eventHandlerProvider"></param>
-        /// <param name="processCommandSender"></param>
-        /// <param name="repository"></param>
-        /// <param name="eventPublishInfoStore"></param>
-        /// <param name="eventHandleInfoStore"></param>
-        /// <param name="eventHandleInfoCache"></param>
-        /// <param name="actionExecutionService"></param>
-        /// <param name="loggerFactory"></param>
         public DefaultEventProcessor(
             ITypeCodeProvider<IEvent> eventTypeCodeProvider,
             ITypeCodeProvider<IEventHandler> eventHandlerTypeCodeProvider,

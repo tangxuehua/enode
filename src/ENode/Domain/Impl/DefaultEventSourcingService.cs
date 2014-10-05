@@ -4,8 +4,6 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
-    /// <summary>The default implementation of IEventSourcingService.
-    /// </summary>
     public class DefaultEventSourcingService : IEventSourcingService
     {
         private readonly IAggregateRootInternalHandlerProvider _eventHandlerProvider;

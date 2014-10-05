@@ -7,7 +7,6 @@ using ECommon.Retring;
 using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Domain;
-using ENode.Exceptions;
 using ENode.Infrastructure;
 
 namespace ENode.Exceptions.Impl
@@ -31,15 +30,6 @@ namespace ENode.Exceptions.Impl
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="exceptionHandlerTypeCodeProvider"></param>
-        /// <param name="commandTypeCodeProvider"></param>
-        /// <param name="exceptionHandlerProvider"></param>
-        /// <param name="processCommandSender"></param>
-        /// <param name="repository"></param>
-        /// <param name="actionExecutionService"></param>
-        /// <param name="loggerFactory"></param>
         public DefaultExceptionProcessor(
             ITypeCodeProvider<IExceptionHandler> exceptionHandlerTypeCodeProvider,
             ITypeCodeProvider<ICommand> commandTypeCodeProvider,

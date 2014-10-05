@@ -9,8 +9,6 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
-    /// <summary>The default implementation of IEventService.
-    /// </summary>
     public class DefaultEventService : IEventService
     {
         #region Private Variables
@@ -33,21 +31,6 @@ namespace ENode.Eventing.Impl
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="executedCommandService"></param>
-        /// <param name="aggregateRootTypeCodeProvider"></param>
-        /// <param name="eventSourcingService"></param>
-        /// <param name="memoryCache"></param>
-        /// <param name="aggregateRootFactory"></param>
-        /// <param name="aggregateStorage"></param>
-        /// <param name="retryCommandService"></param>
-        /// <param name="eventStore"></param>
-        /// <param name="domainEventPublisher"></param>
-        /// <param name="eventPublisher"></param>
-        /// <param name="eventPublishInfoStore"></param>
-        /// <param name="actionExecutionService"></param>
-        /// <param name="loggerFactory"></param>
         public DefaultEventService(
             IExecutedCommandService executedCommandService,
             ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider,
@@ -80,16 +63,10 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        /// <summary>Set the command executor.
-        /// </summary>
-        /// <param name="commandExecutor"></param>
         public void SetCommandExecutor(ICommandExecutor commandExecutor)
         {
             _retryCommandService.SetCommandExecutor(commandExecutor);
         }
-        /// <summary>Commit the given aggregate's domain events to the eventstore and publish the domain events.
-        /// </summary>
-        /// <param name="context"></param>
         public void CommitEvent(EventCommittingContext context)
         {
             _actionExecutionService.TryAction(
@@ -98,10 +75,6 @@ namespace ENode.Eventing.Impl
                 3,
                 new ActionInfo("PersistEventCallback", PersistEventCallback, context, null));
         }
-        /// <summary>Publish the given aggregate's domain events.
-        /// </summary>
-        /// <param name="processingCommand"></param>
-        /// <param name="eventStream"></param>
         public void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
             _actionExecutionService.TryAction(
@@ -139,10 +112,6 @@ namespace ENode.Eventing.Impl
                     return true;
                 }, null, null));
         }
-        /// <summary>Publish the given events.
-        /// </summary>
-        /// <param name="processingCommand"></param>
-        /// <param name="eventStream"></param>
         public void PublishEvent(ProcessingCommand processingCommand, EventStream eventStream)
         {
             _actionExecutionService.TryAction(

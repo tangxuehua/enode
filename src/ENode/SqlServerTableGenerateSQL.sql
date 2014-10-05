@@ -6,6 +6,7 @@ CREATE TABLE [dbo].[Command] (
     [AggregateRootId]         NVARCHAR (32)          NULL,
     [ProcessId]               NVARCHAR (32)          NULL,
     [SourceEventId]           NVARCHAR (32)          NULL,
+    [SourceExceptionId]       NVARCHAR (32)          NULL,
     [Timestamp]               DATETIME               NOT NULL,
     [Payload]                 VARBINARY (MAX)        NOT NULL,
     [Items]                   VARBINARY (MAX)        NULL,

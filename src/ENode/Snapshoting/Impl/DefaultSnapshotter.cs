@@ -5,8 +5,6 @@ using ENode.Infrastructure;
 
 namespace ENode.Snapshoting.Impl
 {
-    /// <summary>The default implementation of ISnapshotter.
-    /// </summary>
     public class DefaultSnapshotter : ISnapshotter
     {
         #region Private Variables
@@ -19,11 +17,6 @@ namespace ENode.Snapshoting.Impl
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        /// <param name="aggregateRootFactory"></param>
-        /// <param name="aggregateRootTypeCodeProvider"></param>
-        /// <param name="binarySerializer"></param>
         public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider, IBinarySerializer binarySerializer)
         {
             _aggregateRootFactory = aggregateRootFactory;
@@ -33,10 +26,6 @@ namespace ENode.Snapshoting.Impl
 
         #endregion
 
-        /// <summary>Create snapshot for the given aggregate root.
-        /// </summary>
-        /// <param name="aggregateRoot"></param>
-        /// <returns></returns>
         public Snapshot CreateSnapshot(IAggregateRoot aggregateRoot)
         {
             if (aggregateRoot == null)
@@ -49,10 +38,6 @@ namespace ENode.Snapshoting.Impl
 
             return new Snapshot(aggregateRootTypeCode, aggregateRoot.UniqueId, aggregateRoot.Version, payload, DateTime.Now);
         }
-        /// <summary>Restore the aggregate root from the given snapshot.
-        /// </summary>
-        /// <param name="snapshot"></param>
-        /// <returns></returns>
         public IAggregateRoot RestoreFromSnapshot(Snapshot snapshot)
         {
             if (snapshot == null)

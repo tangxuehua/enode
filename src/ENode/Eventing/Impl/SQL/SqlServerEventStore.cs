@@ -9,8 +9,6 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    /// <summary>The Microsoft SqlServer based implementation of IEventStore.
-    /// </summary>
     public class SqlServerEventStore : IEventStore
     {
         #region Private Variables
@@ -24,8 +22,6 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
-        /// </summary>
         public SqlServerEventStore(string connectionString, string eventTable, string primaryKeyName)
         {
             _connectionString = connectionString;

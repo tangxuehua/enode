@@ -6,8 +6,6 @@ using ECommon.Components;
 
 namespace ENode.Infrastructure
 {
-    /// <summary>The base implementation of IMessageHandlerProvider.
-    /// </summary>
     public abstract class BaseHandlerProvider<TMessageHandlerInterface> : IMessageHandlerProvider<TMessageHandlerInterface>, IAssemblyInitializer
         where TMessageHandlerInterface : class, IMessageHandler
     {
