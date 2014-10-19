@@ -15,8 +15,8 @@ namespace ENode.Eventing
             AggregateRootTypeCode = aggregateRootTypeCode;
             Version = version;
             Timestamp = timestamp;
-            VerifyEvents(events);
             DomainEvents = events;
+            InitEvents();
         }
 
         public int AggregateRootTypeCode { get; private set; }
@@ -39,18 +39,16 @@ namespace ENode.Eventing
                 string.Join("|", Items.Select(x => x.Key + ":" + x.Value)));
         }
 
-        private void VerifyEvents(IEnumerable<IDomainEvent> events)
+        private void InitEvents()
         {
-            foreach (var evnt in events)
+            foreach (var domainEvent in DomainEvents)
             {
-                if (evnt.AggregateRootId != AggregateRootId)
+                if (domainEvent.AggregateRootId != AggregateRootId)
                 {
-                    throw new ENodeException("Domain event aggregate root Id mismatch, current domain event aggregateRootId:{0}, expected aggregateRootId:{1}", evnt.AggregateRootId, AggregateRootId);
+                    throw new ENodeException("Domain event aggregate root Id mismatch, current domain event aggregateRootId:{0}, expected aggregateRootId:{1}", domainEvent.AggregateRootId, AggregateRootId);
                 }
-                if (evnt.Version != Version)
-                {
-                    throw new ENodeException("Domain event version mismatch, current domain event version:{0}, expected version:{1}", evnt.Version, Version);
-                }
+                domainEvent.Version = Version;
+                domainEvent.Timestamp = Timestamp;
             }
         }
     }

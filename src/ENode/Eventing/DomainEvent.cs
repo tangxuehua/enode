@@ -1,6 +1,4 @@
 ﻿using System;
-using ECommon.Utilities;
-using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
@@ -24,10 +22,10 @@ namespace ENode.Eventing
             _aggregateRootId = aggregateRootId.ToString();
         }
 
-        /// <summary>Represents the source aggregateRootId of the domain event.
+        /// <summary>Represents the aggregate root id of the domain event.
         /// </summary>
         public TAggregateRootId AggregateRootId { get; private set; }
-        /// <summary>Represents the version of the domain event, This property only should be set by framework.
+        /// <summary>Represents the version of the domain event.
         /// </summary>
         public int Version
         {
@@ -35,18 +33,8 @@ namespace ENode.Eventing
             {
                 return _version == null ? -1 : _version.Value;
             }
-            set
-            {
-                if (_version != null)
-                {
-                    throw new ENodeException("The version of domain event cannot be set twice.");
-                }
-                _version = value;
-            }
         }
 
-        /// <summary>Represents the unique id of the aggregate root, this property is only used by framework.
-        /// </summary>
         string IDomainEvent.AggregateRootId
         {
             get
@@ -56,6 +44,17 @@ namespace ENode.Eventing
                     _aggregateRootId = AggregateRootId.ToString();
                 }
                 return _aggregateRootId;
+            }
+        }
+        int IDomainEvent.Version
+        {
+            get
+            {
+                return Version;
+            }
+            set
+            {
+                _version = value;
             }
         }
     }

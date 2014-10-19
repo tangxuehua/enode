@@ -16,26 +16,13 @@ namespace ENode.Commanding
 
         #region Public Properties
 
-        /// <summary>Represents the id of aggregate root which is created or updated by the command.
+        /// <summary>Represents the aggregate root id associated with the command.
         /// </summary>
         public TAggregateRootId AggregateRootId
         {
             get
             {
                 return _aggregateRootId;
-            }
-        }
-        /// <summary>Represents the id of the aggregate root, this property is only used by framework.
-        /// </summary>
-        string IAggregateCommand.AggregateRootId
-        {
-            get
-            {
-                if (_aggregateRootStringId == null && _aggregateRootId != null)
-                {
-                    _aggregateRootStringId = _aggregateRootId.ToString();
-                }
-                return _aggregateRootStringId;
             }
         }
 
@@ -71,5 +58,17 @@ namespace ENode.Commanding
         }
 
         #endregion
+
+        string IAggregateCommand.AggregateRootId
+        {
+            get
+            {
+                if (_aggregateRootStringId == null && _aggregateRootId != null)
+                {
+                    _aggregateRootStringId = _aggregateRootId.ToString();
+                }
+                return _aggregateRootStringId;
+            }
+        }
     }
 }

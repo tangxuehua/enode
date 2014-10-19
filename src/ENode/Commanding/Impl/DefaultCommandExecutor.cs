@@ -237,22 +237,14 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Command;
             var uncommittedEvents = aggregateRoot.GetChanges().ToList();
             var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
-            var currentTime = DateTime.Now;
-            var processId = processingCommand.ProcessId;
-            var nextVersion = aggregateRoot.Version + 1;
-
-            foreach (var evnt in uncommittedEvents)
-            {
-                evnt.Version = nextVersion;
-            }
 
             return new DomainEventStream(
                 command.Id,
                 aggregateRoot.UniqueId,
                 aggregateRootTypeCode,
-                processId,
-                nextVersion,
-                currentTime,
+                processingCommand.ProcessId,
+                aggregateRoot.Version + 1,
+                DateTime.Now,
                 uncommittedEvents,
                 command.Items);
         }

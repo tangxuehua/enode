@@ -18,5 +18,20 @@ namespace ENode.Eventing
         /// <summary>Represents the unique id of the event.
         /// </summary>
         public string Id { get; private set; }
+        /// <summary>Represents the occurred time of the domain event.
+        /// </summary>
+        public DateTime Timestamp { get; private set; }
+
+        DateTime IEvent.Timestamp
+        {
+            get
+            {
+                return this.Timestamp;
+            }
+            set
+            {
+                Timestamp = value;
+            }
+        }
     }
 }
