@@ -9,6 +9,7 @@ CREATE TABLE [dbo].[Command] (
     [SourceExceptionId]       NVARCHAR (32)          NULL,
     [Timestamp]               DATETIME               NOT NULL,
     [Payload]                 VARBINARY (MAX)        NOT NULL,
+    [Events]                  VARBINARY (MAX)        NULL,
     [Items]                   VARBINARY (MAX)        NULL,
     CONSTRAINT [PK_Command] PRIMARY KEY CLUSTERED ([CommandId] ASC)
 )
