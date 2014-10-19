@@ -28,6 +28,8 @@ namespace ENode.Exceptions.Impl
 
         #endregion
 
+        public string Name { get; set; }
+
         #region Constructors
 
         public DefaultExceptionProcessor(
@@ -39,6 +41,7 @@ namespace ENode.Exceptions.Impl
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
+            Name = GetType().Name;
             _exceptionHandlerTypeCodeProvider = exceptionHandlerTypeCodeProvider;
             _commandTypeCodeProvider = commandTypeCodeProvider;
             _exceptionHandlerProvider = exceptionHandlerProvider;

@@ -85,7 +85,6 @@
     <Compile Include="Domain\Impl\NotImplementedAggregateRootTypeCodeProvider.cs" />
     <Compile Include="Eventing\Event.cs" />
     <Compile Include="Eventing\EventStream.cs" />
-    <Compile Include="Eventing\IEventProcessor.cs" />
     <Compile Include="Eventing\IDomainEventStream.cs" />
     <Compile Include="Eventing\IEvent.cs" />
     <Compile Include="Eventing\IEventStream.cs" />

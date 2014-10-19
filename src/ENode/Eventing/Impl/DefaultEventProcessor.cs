@@ -11,7 +11,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventProcessor : IEventProcessor
+    public class DefaultEventProcessor : IMessageProcessor<IEventStream>
     {
         #region Private Variables
 
@@ -83,6 +83,7 @@ namespace ENode.Eventing.Impl
 
         public void Process(IEventStream eventStream, IMessageProcessContext<IEventStream> context)
         {
+            Name = GetType().Name;
             var processingContext = new EventProcessingContext(eventStream, context);
             var hashKey = eventStream is IDomainEventStream ? ((IDomainEventStream)eventStream).AggregateRootId : eventStream.CommandId;
             var queueIndex = hashKey.GetHashCode() % WorkerCount;

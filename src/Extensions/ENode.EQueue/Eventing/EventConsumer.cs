@@ -20,7 +20,7 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly IEventProcessor _eventProcessor;
+        private readonly IMessageProcessor<IEventStream> _eventProcessor;
         private readonly ILogger _logger;
         private readonly bool _sendEventHandledMessage;
 
@@ -34,7 +34,7 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _eventProcessor = ObjectContainer.Resolve<IEventProcessor>();
+            _eventProcessor = ObjectContainer.Resolve<IMessageProcessor<IEventStream>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
             _eventProcessor.Name = consumerId;

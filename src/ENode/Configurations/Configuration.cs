@@ -102,7 +102,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
-            _configuration.SetDefault<IEventProcessor, DefaultEventProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IEventStream>, DefaultEventProcessor>();
             _configuration.SetDefault<IMessagePublisher<EventStream>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IMessagePublisher<DomainEventStream>, NotImplementedEventPublisher>();
 
