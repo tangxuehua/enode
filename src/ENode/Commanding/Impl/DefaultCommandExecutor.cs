@@ -115,12 +115,9 @@ namespace ENode.Commanding.Impl
                     processingCommand.ProcessId);
                 handleSuccess = true;
             }
-            catch (ENodeException)
+            catch (IOException ex)
             {
-                //TODO，最好显式的使用一个IOException类型。
-                //如果是ENodeException，则认为是由于网络问题，不是领域内产生的异常，比如是用户在通过context.Get<T>方法获取聚合根时，遇到异常；
-                //这种异常是由ENode框架内部抛出来的，通常是由于memoryCache不可用或者eventStore不可用导致，所以此时我们应该直接throw该异常，
-                //然后EQueue会认为当前消息处理失败，会继续重试。
+                _logger.Error(ex);
                 _retryCommandService.RetryCommand(processingCommand);
                 return;
             }

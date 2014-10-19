@@ -45,7 +45,7 @@ namespace ENode.Eventing
             {
                 if (domainEvent.AggregateRootId != AggregateRootId)
                 {
-                    throw new ENodeException("Domain event aggregate root Id mismatch, current domain event aggregateRootId:{0}, expected aggregateRootId:{1}", domainEvent.AggregateRootId, AggregateRootId);
+                    throw new Exception(string.Format("Domain event aggregate root Id mismatch, current domain event aggregateRootId:{0}, expected aggregateRootId:{1}", domainEvent.AggregateRootId, AggregateRootId));
                 }
                 domainEvent.Version = Version;
                 domainEvent.Timestamp = Timestamp;

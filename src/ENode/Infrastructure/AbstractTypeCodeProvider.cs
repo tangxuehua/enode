@@ -12,7 +12,7 @@ namespace ENode.Infrastructure
         {
             if (!_typeCodeDict.ContainsKey(type))
             {
-                throw new ENodeException("Code for type:{0} not exist.", type.FullName);
+                throw new Exception(string.Format("Code for type:{0} not exist.", type.FullName));
             }
             return _typeCodeDict[type];
         }
@@ -20,7 +20,7 @@ namespace ENode.Infrastructure
         {
             if (!_codeTypeDict.ContainsKey(typeCode))
             {
-                throw new ENodeException("Type for code:{0} not exist.", typeCode);
+                throw new Exception(string.Format("Type for code:{0} not exist.", typeCode));
             }
             return _codeTypeDict[typeCode];
         }

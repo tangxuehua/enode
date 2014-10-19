@@ -35,7 +35,7 @@ namespace ENode.Commanding
             {
                 if (value > MaxRetryCount)
                 {
-                    throw new ENodeException("Command retry count cannot exceed {0}.", MaxRetryCount);
+                    throw new Exception(string.Format("Command retry count cannot exceed {0}.", MaxRetryCount));
                 }
                 _retryCount = value;
             }

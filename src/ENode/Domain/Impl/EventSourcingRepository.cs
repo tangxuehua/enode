@@ -1,6 +1,5 @@
 ﻿using System;
 using ENode.Commanding;
-using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
@@ -29,19 +28,12 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            try
+            var aggregateRoot = _memoryCache.Get(aggregateRootId, aggregateRootType) ?? _aggregateRootStorage.Get(aggregateRootType, aggregateRootId.ToString());
+            if (aggregateRoot == null)
             {
-                var aggregateRoot = _memoryCache.Get(aggregateRootId, aggregateRootType) ?? _aggregateRootStorage.Get(aggregateRootType, aggregateRootId.ToString());
-                if (aggregateRoot == null)
-                {
-                    throw new AggregateRootNotExistException(aggregateRootId, aggregateRootType);
-                }
-                return aggregateRoot;
+                throw new AggregateRootNotExistException(aggregateRootId, aggregateRootType);
             }
-            catch (Exception ex)
-            {
-                throw new ENodeException(string.Format("Get aggregate from repoisotry has exception, aggregateRootType:{0}, aggregateRootId:{1}", aggregateRootType, aggregateRootId), ex);
-            }
+            return aggregateRoot;
         }
     }
 }

@@ -53,7 +53,7 @@ namespace ENode.Domain.Impl
 
             if (eventHandlerDic.ContainsKey(eventType))
             {
-                throw new ENodeException("Found duplicated event handler on aggregate. Aggregate type:{0}, event type:{1}", aggregateRootType.FullName, eventType.FullName);
+                throw new Exception(string.Format("Found duplicated event handler on aggregate, aggregate type:{0}, event type:{1}", aggregateRootType.FullName, eventType.FullName));
             }
             eventHandlerDic.Add(eventType, DelegateFactory.CreateDelegate<Action<IAggregateRoot, IDomainEvent>>(eventHandler, parameterTypes));
         }

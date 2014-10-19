@@ -2,6 +2,7 @@
 using ECommon.Components;
 using ECommon.Serializing;
 using ENode.Domain;
+using ENode.Infrastructure;
 using ServiceStack.Redis;
 
 namespace ENode.Redis
@@ -31,10 +32,19 @@ namespace ENode.Redis
         public IAggregateRoot Get(object id, Type type)
         {
             if (id == null) throw new ArgumentNullException("id");
-            var value = _redisClient.Get(id.ToString());
-            if (value != null && value.Length > 0)
+
+            byte[] data = null;
+            try
             {
-                return _binarySerializer.Deserialize(value, type) as IAggregateRoot;
+                data = _redisClient.Get(id.ToString());
+            }
+            catch (Exception ex)
+            {
+                throw new IOException("Get aggregate from redis server has exception, aggregateRootType:{0}, aggregateRootId:{1}", ex, type, id);
+            }
+            if (data != null && data.Length > 0)
+            {
+                return _binarySerializer.Deserialize(data, type) as IAggregateRoot;
             }
             return null;
         }

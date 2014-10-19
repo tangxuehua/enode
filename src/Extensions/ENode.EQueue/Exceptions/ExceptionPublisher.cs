@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ECommon.Components;
 using ECommon.Logging;
@@ -59,10 +60,10 @@ namespace ENode.EQueue
             var result = _producer.Send(message, exception.UniqueId);
             if (result.SendStatus != SendStatus.Success)
             {
-                throw new ENodeException("Publish exception failed, exceptionId:{0}, exceptionType:{1}, items:{2}",
+                throw new Exception(string.Format("Publish exception failed, exceptionId:{0}, exceptionType:{1}, exceptionData:{2}",
                     exception.UniqueId,
                     exception.GetType().Name,
-                    string.Join("|", serializableInfo.Select(x => x.Key + ":" + x.Value)));
+                    string.Join("|", serializableInfo.Select(x => x.Key + ":" + x.Value))));
             }
         }
     }

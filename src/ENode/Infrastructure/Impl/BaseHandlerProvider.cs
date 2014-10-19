@@ -20,7 +20,7 @@ namespace ENode.Infrastructure
             {
                 if (!TypeUtils.IsComponent(handlerType))
                 {
-                    throw new ENodeException("Message handler [type={0}] should be marked as component.", handlerType.FullName);
+                    throw new Exception(string.Format("Message handler [type={0}] should be marked as component.", handlerType.FullName));
                 }
                 RegisterMessageHandler(handlerType);
             }

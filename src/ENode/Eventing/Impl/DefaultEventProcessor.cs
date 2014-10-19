@@ -179,19 +179,19 @@ namespace ENode.Eventing.Impl
                     {
                         if (domainEvent != null)
                         {
-                            throw new ENodeException("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
+                            throw new Exception(string.Format("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
                                 eventHandlerType.Name,
                                 domainEvent.GetType().Name,
                                 domainEvent.Id,
                                 domainEvent.Version,
-                                domainEvent.AggregateRootId);
+                                domainEvent.AggregateRootId));
                         }
                         else
                         {
-                            throw new ENodeException("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}",
+                            throw new Exception(string.Format("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}",
                                 eventHandlerType.Name,
                                 evnt.GetType().Name,
-                                evnt.Id);
+                                evnt.Id));
                         }
                     }
                     foreach (var processCommand in processCommands)

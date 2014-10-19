@@ -52,7 +52,7 @@ namespace ENode.Configurations
         {
             if (Instance != null)
             {
-                throw new ENodeException("Could not create enode configuration instance twice.");
+                throw new Exception(string.Format("Could not create enode configuration instance twice."));
             }
             Instance = new ENodeConfiguration(configuration);
             return Instance;
@@ -265,12 +265,12 @@ namespace ENode.Configurations
                 foreach (var type in assembly.GetTypes().Where(
                     x => x.IsClass && (
                         typeof(ICommand).IsAssignableFrom(x) ||
-                        typeof(IDomainEvent).IsAssignableFrom(x) ||
+                        typeof(IEvent).IsAssignableFrom(x) ||
                         typeof(IAggregateRoot).IsAssignableFrom(x))))
                 {
                     if (!type.IsSerializable)
                     {
-                        throw new ENodeException("{0} should be marked as serializable.", type.FullName);
+                        throw new Exception(string.Format("{0} should be marked as serializable.", type.FullName));
                     }
                 }
             }

@@ -130,23 +130,30 @@ namespace ENode.Eventing.Impl.SQL
         }
         public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
-            using (var connection = GetConnection())
+            try
             {
-                connection.Open();
-                var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _eventTable);
-                var records = connection.Query<StreamRecord>(sql,
-                new
+                using (var connection = GetConnection())
                 {
-                    AggregateRootId = aggregateRootId,
-                    MinVersion = minVersion,
-                    MaxVersion = maxVersion
-                });
-                var streams = new List<DomainEventStream>();
-                foreach (var record in records)
-                {
-                    streams.Add(ConvertFrom(record));
+                    connection.Open();
+                    var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _eventTable);
+                    var records = connection.Query<StreamRecord>(sql,
+                    new
+                    {
+                        AggregateRootId = aggregateRootId,
+                        MinVersion = minVersion,
+                        MaxVersion = maxVersion
+                    });
+                    var streams = new List<DomainEventStream>();
+                    foreach (var record in records)
+                    {
+                        streams.Add(ConvertFrom(record));
+                    }
+                    return streams;
                 }
-                return streams;
+            }
+            catch (Exception ex)
+            {
+                throw new IOException("Query events from sql server has exception, aggregateRootTypeCode:{0}, aggregateRootId:{1}", ex, aggregateRootTypeCode, aggregateRootId);
             }
         }
         public IEnumerable<DomainEventStream> QueryByPage(int pageIndex, int pageSize)

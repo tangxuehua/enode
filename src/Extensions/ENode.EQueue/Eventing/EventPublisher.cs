@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ECommon.Components;
 using ECommon.Logging;
@@ -48,7 +49,7 @@ namespace ENode.EQueue
             var result = _producer.Send(message, eventStream.AggregateRootId);
             if (result.SendStatus != SendStatus.Success)
             {
-                throw new ENodeException("Publish domain event failed, eventStream:[{0}]", eventStream);
+                throw new Exception(string.Format("Publish domain event failed, eventStream:[{0}]", eventStream));
             }
         }
         public void Publish(EventStream eventStream)
@@ -60,7 +61,7 @@ namespace ENode.EQueue
             var result = _producer.Send(message, eventMessage.CommandId);
             if (result.SendStatus != SendStatus.Success)
             {
-                throw new ENodeException("Publish event failed, eventStream:[{0}]", eventStream);
+                throw new Exception(string.Format("Publish event failed, eventStream:[{0}]", eventStream));
             }
         }
 

@@ -126,10 +126,10 @@ namespace ENode.Exceptions.Impl
                 {
                     if (string.IsNullOrEmpty(exception.ProcessId))
                     {
-                        throw new ENodeException("ProcessId cannot be null or empty if the exception handler generates commands. exceptionId:{0}, exceptionType:{1}, handlerType:{2}",
+                        throw new Exception(string.Format("ProcessId cannot be null or empty if the exception handler generates commands. exceptionId:{0}, exceptionType:{1}, handlerType:{2}",
                             exception.UniqueId,
                             exception.GetType().Name,
-                            exceptionHandlerType.Name);
+                            exceptionHandlerType.Name));
                     }
                     foreach (var processCommand in processCommands)
                     {

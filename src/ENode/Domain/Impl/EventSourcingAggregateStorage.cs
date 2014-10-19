@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ECommon.Components;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Snapshoting;
@@ -16,6 +15,7 @@ namespace ENode.Domain.Impl
         private readonly IEventSourcingService _eventSourcingService;
         private readonly IEventStore _eventStore;
         private readonly ISnapshotStore _snapshotStore;
+        private readonly ISnapshotter _snapshotter;
         private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
 
         public EventSourcingAggregateStorage(
@@ -23,12 +23,14 @@ namespace ENode.Domain.Impl
             IEventSourcingService eventSourcingService,
             IEventStore eventStore,
             ISnapshotStore snapshotStore,
+            ISnapshotter snapshotter,
             ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _eventSourcingService = eventSourcingService;
             _eventStore = eventStore;
             _snapshotStore = snapshotStore;
+            _snapshotter = snapshotter;
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
         }
 
@@ -45,7 +47,7 @@ namespace ENode.Domain.Impl
 
             var aggregateRootTypeCode = _aggregateRootTypeCodeProvider.GetTypeCode(aggregateRootType);
             var events = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, minVersion, maxVersion);
-            aggregateRoot = BuildAggregateRoot(aggregateRootType, events);
+            aggregateRoot = RebuildAggregateRoot(aggregateRootType, events);
 
             return aggregateRoot;
         }
@@ -59,12 +61,12 @@ namespace ENode.Domain.Impl
             var snapshot = _snapshotStore.GetLastestSnapshot(aggregateRootId, aggregateRootType);
             if (snapshot == null) return false;
 
-            var aggregateRootFromSnapshot = ObjectContainer.Resolve<ISnapshotter>().RestoreFromSnapshot(snapshot);
+            var aggregateRootFromSnapshot = _snapshotter.RestoreFromSnapshot(snapshot);
             if (aggregateRootFromSnapshot == null) return false;
 
             if (aggregateRootFromSnapshot.UniqueId != aggregateRootId)
             {
-                throw new ENodeException("Aggregate root restored from snapshot not valid as the aggregate root id not matched. Snapshot aggregate root id:{0}, required aggregate root id:{1}", aggregateRootFromSnapshot.UniqueId, aggregateRootId);
+                throw new Exception(string.Format("Aggregate root restored from snapshot not valid as the aggregate root id not matched. Snapshot aggregate root id:{0}, required aggregate root id:{1}", aggregateRootFromSnapshot.UniqueId, aggregateRootId));
             }
 
             var aggregateRootTypeCode = _aggregateRootTypeCodeProvider.GetTypeCode(aggregateRootType);
@@ -73,7 +75,7 @@ namespace ENode.Domain.Impl
             aggregateRoot = aggregateRootFromSnapshot;
             return true;
         }
-        private IAggregateRoot BuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> streams)
+        private IAggregateRoot RebuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> streams)
         {
             var eventStreams = streams.ToList();
             if (streams == null || !eventStreams.Any()) return null;

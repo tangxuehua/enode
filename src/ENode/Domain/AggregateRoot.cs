@@ -60,14 +60,14 @@ namespace ENode.Domain
         {
             if (!typeof(TRole).IsInterface)
             {
-                throw new ENodeException("'{0}' is not an interface type.", typeof(TRole).Name);
+                throw new Exception(string.Format("'{0}' is not an interface type.", typeof(TRole).Name));
             }
 
             var role = this as TRole;
 
             if (role == null)
             {
-                throw new ENodeException("'{0}' can not act as role '{1}'.", this.GetType().FullName, typeof(TRole).Name);
+                throw new Exception(string.Format("'{0}' can not act as role '{1}'.", this.GetType().FullName, typeof(TRole).Name));
             }
 
             return role;
