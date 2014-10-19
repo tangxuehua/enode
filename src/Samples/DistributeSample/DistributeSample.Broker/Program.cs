@@ -17,7 +17,7 @@ namespace DistributeSample.Broker
             InitializeEQueue();
             new BrokerController().Start();
 
-            ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Press Enter to exit...");
+            ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Broker started, press Enter to exit...");
             Console.ReadLine();
         }
 
