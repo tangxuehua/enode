@@ -73,6 +73,7 @@ namespace ENode.Domain.Impl
             var eventsAfterSnapshot = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, snapshot.Version + 1, int.MaxValue);
             _eventSourcingService.ReplayEvents(aggregateRootFromSnapshot, eventsAfterSnapshot);
             aggregateRoot = aggregateRootFromSnapshot;
+            aggregateRoot.ResetChanges();
             return true;
         }
         private IAggregateRoot RebuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> streams)
@@ -82,6 +83,7 @@ namespace ENode.Domain.Impl
 
             var aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
             _eventSourcingService.ReplayEvents(aggregateRoot, eventStreams);
+            aggregateRoot.ResetChanges();
 
             return aggregateRoot;
         }
