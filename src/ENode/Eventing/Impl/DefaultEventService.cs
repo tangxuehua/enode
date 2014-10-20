@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ECommon.Logging;
 using ECommon.Retring;
 using ECommon.Scheduling;
@@ -36,6 +37,7 @@ namespace ENode.Eventing.Impl
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
+        private int _isBatchPersistingEvents;
 
         #endregion
 
@@ -83,7 +85,7 @@ namespace ENode.Eventing.Impl
 
         public void Start()
         {
-            _scheduleService.ScheduleTask("BatchPersistEvents", BatchPersistEvents, BatchCommitEventInterval, BatchCommitEventInterval);
+            _scheduleService.ScheduleTask("TryBatchPersistEvents", TryBatchPersistEvents, BatchCommitEventInterval, BatchCommitEventInterval);
             _processSuccessPersistedEventsWorker.Start();
             _processFailedPersistedEventsWorker.Start();
         }
@@ -94,6 +96,7 @@ namespace ENode.Eventing.Impl
         public void AddEventCommittingContextToQueue(EventCommittingContext context)
         {
             _toCommittingEventQueue.Enqueue(context);
+            TryBatchPersistEvents();
         }
         public void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
@@ -167,7 +170,29 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
-        private void BatchPersistEvents()
+        private void TryBatchPersistEvents()
+        {
+            if (Interlocked.CompareExchange(ref _isBatchPersistingEvents, 1, 0) == 0)
+            {
+                try
+                {
+                    var hasPersistedAllEvents = BatchPersistEvents();
+                    while (!hasPersistedAllEvents)
+                    {
+                        hasPersistedAllEvents = BatchPersistEvents();
+                    }
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _isBatchPersistingEvents, 0);
+                }
+            }
+        }
+
+        /// <summary>批量持久化事件
+        /// </summary>
+        /// <returns>返回true表示持久化了当前_toCommittingEventQueue中的所有事件；否则返回false，即可能还存在没有持久化的事件；</returns>
+        private bool BatchPersistEvents()
         {
             var eventCommittingContextList = new List<EventCommittingContext>();
             var eventContextCount = 0;
@@ -181,7 +206,7 @@ namespace ENode.Eventing.Impl
 
             if (eventContextCount == 0)
             {
-                return;
+                return true;
             }
 
             try
@@ -198,6 +223,9 @@ namespace ENode.Eventing.Impl
                 _logger.DebugFormat(string.Format("Batch persist event stream failed, current event stream count:{0}", eventContextCount), ex);
                 _failedPersistedEventsQueue.Add(eventCommittingContextList);
             }
+
+            var hasFetchedAllEvents = eventContextCount < BatchCommitEventSize;
+            return hasFetchedAllEvents;
         }
         private void ProcessSuccessPersistedEvents()
         {
