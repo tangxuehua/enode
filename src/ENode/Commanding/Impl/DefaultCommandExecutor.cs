@@ -183,7 +183,7 @@ namespace ENode.Commanding.Impl
             //如果是重试中的command，则直接提交该command产生的事件，因为该command肯定已经在command store中了
             if (processingCommand.RetriedCount > 0)
             {
-                _eventService.AddEventCommittingContextToQueue(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
                 return;
             }
 
@@ -197,7 +197,7 @@ namespace ENode.Commanding.Impl
             //如果command添加成功，则提交该command产生的事件
             if (commandAddResult == CommandAddResult.Success)
             {
-                _eventService.AddEventCommittingContextToQueue(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
             }
             //如果添加的结果是command重复，则做如下处理
             else if (commandAddResult == CommandAddResult.DuplicateCommand)
@@ -214,7 +214,7 @@ namespace ENode.Commanding.Impl
                     else
                     {
                         //如果当前command已经被持久化过了，但事件没有被持久化，则需要重新提交当前command所产生的事件；
-                        _eventService.AddEventCommittingContextToQueue(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                        _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
                     }
                 }
                 else

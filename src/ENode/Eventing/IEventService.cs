@@ -12,10 +12,10 @@ namespace ENode.Eventing
         /// </summary>
         /// <param name="commandExecutor"></param>
         void SetCommandExecutor(ICommandExecutor commandExecutor);
-        /// <summary>Add an event committing context to queue, and it will be process asynchronously.
+        /// <summary>Commit the given aggregate's domain events to the eventstore and publish the domain events.
         /// </summary>
         /// <param name="context"></param>
-        void AddEventCommittingContextToQueue(EventCommittingContext context);
+        void CommitEvent(EventCommittingContext context);
         /// <summary>Publish the given domain events.
         /// </summary>
         /// <param name="processingCommand"></param>

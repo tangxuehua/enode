@@ -6,7 +6,9 @@ using System.Threading;
 using ECommon.Logging;
 using ECommon.Retring;
 using ECommon.Scheduling;
+using ECommon.Utilities;
 using ENode.Commanding;
+using ENode.Configurations;
 using ENode.Domain;
 using ENode.Infrastructure;
 
@@ -16,8 +18,9 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private const int BatchCommitEventInterval = 50;
-        private const int BatchCommitEventSize = 50;
+        private readonly bool _enableGroupCommit;
+        private readonly int _groupCommitInterval;
+        private readonly int _groupCommitMaxCount;
         private readonly ConcurrentQueue<EventCommittingContext> _toCommittingEventQueue;
         private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _successPersistedEventsQueue;
         private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _failedPersistedEventsQueue;
@@ -60,6 +63,13 @@ namespace ENode.Eventing.Impl
             IEventPublishInfoStore eventPublishInfoStore,
             ILoggerFactory loggerFactory)
         {
+            var setting = ENodeConfiguration.Instance.Setting;
+            _enableGroupCommit = setting.EnableGroupCommitEvent;
+            _groupCommitInterval = setting.GroupCommitEventInterval;
+            _groupCommitMaxCount = setting.GroupCommitEventMaxCount;
+            Ensure.Positive(_groupCommitInterval, "GroupCommitEventInterval");
+            Ensure.Positive(_groupCommitMaxCount, "GroupCommitEventMaxCount");
+
             _toCommittingEventQueue = new ConcurrentQueue<EventCommittingContext>();
             _successPersistedEventsQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
             _failedPersistedEventsQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
@@ -86,18 +96,32 @@ namespace ENode.Eventing.Impl
 
         public void Start()
         {
-            _scheduleService.ScheduleTask("TryBatchPersistEvents", TryBatchPersistEvents, BatchCommitEventInterval, BatchCommitEventInterval);
-            _processSuccessPersistedEventsWorker.Start();
-            _processFailedPersistedEventsWorker.Start();
+            if (_enableGroupCommit)
+            {
+                _scheduleService.ScheduleTask("TryBatchPersistEvents", TryBatchPersistEvents, _groupCommitInterval, _groupCommitInterval);
+                _processSuccessPersistedEventsWorker.Start();
+                _processFailedPersistedEventsWorker.Start();
+            }
         }
         public void SetCommandExecutor(ICommandExecutor commandExecutor)
         {
             _retryCommandService.SetCommandExecutor(commandExecutor);
         }
-        public void AddEventCommittingContextToQueue(EventCommittingContext context)
+        public void CommitEvent(EventCommittingContext context)
         {
-            _toCommittingEventQueue.Enqueue(context);
-            Interlocked.Increment(ref _toCommittingEventCount);
+            if (_enableGroupCommit)
+            {
+                _toCommittingEventQueue.Enqueue(context);
+                Interlocked.Increment(ref _toCommittingEventCount);
+            }
+            else
+            {
+                _actionExecutionService.TryAction(
+                    "PersistEvent",
+                    () => PersistEvent(context),
+                    3,
+                    new ActionInfo("PersistEventCallback", PersistEventCallback, context, null));
+            }
         }
         public void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
@@ -195,7 +219,7 @@ namespace ENode.Eventing.Impl
             var eventContextCount = 0;
             EventCommittingContext context;
 
-            while (eventContextCount < BatchCommitEventSize && _toCommittingEventQueue.TryDequeue(out context))
+            while (eventContextCount < _groupCommitMaxCount && _toCommittingEventQueue.TryDequeue(out context))
             {
                 Interlocked.Decrement(ref _toCommittingEventCount);
                 eventCommittingContextList.Add(context);
@@ -222,7 +246,7 @@ namespace ENode.Eventing.Impl
                 _failedPersistedEventsQueue.Add(eventCommittingContextList);
             }
 
-            return _toCommittingEventCount >= BatchCommitEventSize;
+            return _toCommittingEventCount >= _groupCommitMaxCount;
         }
         private void ProcessSuccessPersistedEvents()
         {

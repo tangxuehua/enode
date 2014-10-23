@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Data.SqlClient;
 using ECommon.Dapper;
+using ECommon.Utilities;
+using ENode.Configurations;
 
 namespace ENode.Eventing.Impl.SQL
 {
@@ -15,19 +17,15 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        public SqlServerEventHandleInfoStore(string connectionString, string tableName)
+        public SqlServerEventHandleInfoStore()
         {
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new ArgumentNullException("connectionString");
-            }
-            if (string.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentNullException("tableName");
-            }
+            var setting = ENodeConfiguration.Instance.Setting.SqlServerEventHandleInfoStoreSetting;
+            Ensure.NotNull(setting, "SqlServerEventHandleInfoStoreSetting");
+            Ensure.NotNull(setting.ConnectionString, "SqlServerEventHandleInfoStoreSetting.ConnectionString");
+            Ensure.NotNull(setting.TableName, "SqlServerEventHandleInfoStoreSetting.TableName");
 
-            _connectionString = connectionString;
-            _tableName = tableName;
+            _connectionString = setting.ConnectionString;
+            _tableName = setting.TableName;
         }
 
         #endregion

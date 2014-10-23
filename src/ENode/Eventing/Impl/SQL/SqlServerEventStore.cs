@@ -5,6 +5,8 @@ using System.Linq;
 using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.Serializing;
+using ECommon.Utilities;
+using ENode.Configurations;
 using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl.SQL
@@ -22,11 +24,17 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        public SqlServerEventStore(string connectionString, string eventTable, string primaryKeyName)
+        public SqlServerEventStore()
         {
-            _connectionString = connectionString;
-            _eventTable = eventTable;
-            _primaryKeyName = primaryKeyName;
+            var setting = ENodeConfiguration.Instance.Setting.SqlServerEventStoreSetting;
+            Ensure.NotNull(setting, "SqlServerEventStoreSetting");
+            Ensure.NotNull(setting.ConnectionString, "SqlServerEventStoreSetting.ConnectionString");
+            Ensure.NotNull(setting.TableName, "SqlServerEventStoreSetting.TableName");
+            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerEventStoreSetting.PrimaryKeyName");
+
+            _connectionString = setting.ConnectionString;
+            _eventTable = setting.TableName;
+            _primaryKeyName = setting.PrimaryKeyName;
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
         }
 

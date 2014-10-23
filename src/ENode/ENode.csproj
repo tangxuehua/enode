@@ -76,6 +76,8 @@
     <Compile Include="Commanding\Impl\DefaultRetryCommandService.cs" />
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
     <Compile Include="Configurations\Configuration.cs" />
+    <Compile Include="Configurations\DbTableSetting.cs" />
+    <Compile Include="Configurations\ConfigurationSetting.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
     <Compile Include="Domain\IEventSourcingService.cs" />

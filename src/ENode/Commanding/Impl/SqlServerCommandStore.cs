@@ -5,6 +5,8 @@ using System.Linq;
 using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.Serializing;
+using ECommon.Utilities;
+using ENode.Configurations;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
@@ -24,11 +26,17 @@ namespace ENode.Commanding.Impl
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        public SqlServerCommandStore(string connectionString, string commandTable, string primaryKeyName)
+        public SqlServerCommandStore()
         {
-            _connectionString = connectionString;
-            _commandTable = commandTable;
-            _primaryKeyName = primaryKeyName;
+            var setting = ENodeConfiguration.Instance.Setting.SqlServerCommandStoreSetting;
+            Ensure.NotNull(setting, "SqlServerCommandStoreSetting");
+            Ensure.NotNull(setting.ConnectionString, "SqlServerCommandStoreSetting.ConnectionString");
+            Ensure.NotNull(setting.TableName, "SqlServerCommandStoreSetting.TableName");
+            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerCommandStoreSetting.PrimaryKeyName");
+
+            _connectionString = setting.ConnectionString;
+            _commandTable = setting.TableName;
+            _primaryKeyName = setting.PrimaryKeyName;
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
         }

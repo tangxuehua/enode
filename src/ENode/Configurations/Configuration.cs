@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using ECommon.Components;
 using ECommon.Configurations;
+using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Commanding.Impl;
 using ENode.Domain;
@@ -32,29 +33,36 @@ namespace ENode.Configurations
 
         #endregion
 
+        /// <summary>Get the current setting information.
+        /// </summary>
+        public ConfigurationSetting Setting { get; private set; }
+
         /// <summary>Provides the singleton access instance.
         /// </summary>
         public static ENodeConfiguration Instance { get; private set; }
 
         /// <summary>Parameterized constructor.
         /// </summary>
-        private ENodeConfiguration(Configuration configuration)
+        private ENodeConfiguration(Configuration configuration, ConfigurationSetting setting)
         {
-            _configuration = configuration;
+            Ensure.NotNull(configuration, "configuration");
+            Ensure.NotNull(setting, "setting");
             _assemblyInitializerServiceTypes = new List<Type>();
+            _configuration = configuration;
+            Setting = setting;
         }
 
         /// <summary>Create the enode configuration instance.
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        public static ENodeConfiguration CreateENode(Configuration configuration)
+        public static ENodeConfiguration CreateENode(Configuration configuration, ConfigurationSetting setting)
         {
             if (Instance != null)
             {
                 throw new Exception(string.Format("Could not create enode configuration instance twice."));
             }
-            Instance = new ENodeConfiguration(configuration);
+            Instance = new ENodeConfiguration(configuration, setting);
             return Instance;
         }
 
@@ -123,7 +131,7 @@ namespace ENode.Configurations
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetTypes().Where(TypeUtils.IsComponent))
+                foreach (var type in assembly.GetTypes().Where(ENode.Infrastructure.TypeUtils.IsComponent))
                 {
                     var life = ParseLife(type);
                     ObjectContainer.RegisterType(type, life);
@@ -143,92 +151,41 @@ namespace ENode.Configurations
         /// <summary>Use the SqlServerLockService as the ILockService.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerLockService(string connectionString)
+        public ENodeConfiguration UseSqlServerLockService()
         {
-            return UseSqlServerLockService(connectionString, "Lock");
-        }
-        /// <summary>Use the SqlServerLockService as the ILockService.
-        /// </summary>
-        /// <param name="lockTable"></param>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerLockService(string connectionString, string lockKeyTable)
-        {
-            _configuration.SetDefault<ILockService, SqlServerLockService>(new SqlServerLockService(connectionString, lockKeyTable));
+            _configuration.SetDefault<ILockService, SqlServerLockService>();
             return this;
         }
         /// <summary>Use the SqlServerCommandStore as the ICommandStore.
         /// </summary>
-        /// <param name="connectionString"></param>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerCommandStore(string connectionString)
+        public ENodeConfiguration UseSqlServerCommandStore()
         {
-            return UseSqlServerCommandStore(connectionString, "Command", "PK_Command");
-        }
-        /// <summary>Use the SqlServerCommandStore as the ICommandStore.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="commandTable"></param>
-        /// <param name="primaryKeyName"></param>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerCommandStore(string connectionString, string commandTable, string primaryKeyName)
-        {
-            _configuration.SetDefault<ICommandStore, SqlServerCommandStore>(new SqlServerCommandStore(connectionString, commandTable, primaryKeyName));
+            _configuration.SetDefault<ICommandStore, SqlServerCommandStore>();
             return this;
         }
         /// <summary>Use the SqlServerEventStore as the IEventStore.
         /// </summary>
-        /// <param name="connectionString"></param>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventStore(string connectionString)
+        public ENodeConfiguration UseSqlServerEventStore()
         {
-            return UseSqlServerEventStore(connectionString, "EventStream", "PK_EventStream");
-        }
-        /// <summary>Use the SqlServerEventStore as the IEventStore.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="eventTable"></param>
-        /// <param name="commitIndexName"></param>
-        /// <param name="versionIndexName"></param>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventStore(string connectionString, string eventTable, string primaryKeyName)
-        {
-            _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(connectionString, eventTable, primaryKeyName));
+            _configuration.SetDefault<IEventStore, SqlServerEventStore>();
             return this;
         }
         /// <summary>Use the SqlServerEventPublishInfoStore as the IEventPublishInfoStore.
         /// </summary>
-        /// <param name="connectionString"></param>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString)
+        public ENodeConfiguration UseSqlServerEventPublishInfoStore()
         {
-            return UseSqlServerEventPublishInfoStore(connectionString, "EventPublishInfo", "PK_EventPublishInfo");
-        }
-        /// <summary>Use the SqlServerEventPublishInfoStore as the IEventPublishInfoStore.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="eventPublishInfoTable"></param>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventPublishInfoStore(string connectionString, string eventPublishInfoTable, string primaryKeyName)
-        {
-            _configuration.SetDefault<IEventPublishInfoStore, SqlServerEventPublishInfoStore>(new SqlServerEventPublishInfoStore(connectionString, eventPublishInfoTable, primaryKeyName));
+            _configuration.SetDefault<IEventPublishInfoStore, SqlServerEventPublishInfoStore>();
             return this;
         }
         /// <summary>Use the SqlServerEventHandleInfoStore as the IEventHandleInfoStore.
         /// </summary>
-        /// <param name="connectionString"></param>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventHandleInfoStore(string connectionString)
+        public ENodeConfiguration UseSqlServerEventHandleInfoStore()
         {
-            return UseSqlServerEventHandleInfoStore(connectionString, "EventHandleInfo");
-        }
-        /// <summary>Use the SqlServerEventHandleInfoStore as the IEventHandleInfoStore.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="eventHandleInfoTable"></param>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventHandleInfoStore(string connectionString, string eventHandleInfoTable)
-        {
-            _configuration.SetDefault<IEventHandleInfoStore, SqlServerEventHandleInfoStore>(new SqlServerEventHandleInfoStore(connectionString, eventHandleInfoTable));
+            _configuration.SetDefault<IEventHandleInfoStore, SqlServerEventHandleInfoStore>();
             return this;
         }
 
@@ -298,9 +255,9 @@ namespace ENode.Configurations
 
     public static class ConfigurationExtensions
     {
-        public static ENodeConfiguration CreateENode(this Configuration configuration)
+        public static ENodeConfiguration CreateENode(this Configuration configuration, ConfigurationSetting setting = null)
         {
-            return ENodeConfiguration.CreateENode(configuration);
+            return ENodeConfiguration.CreateENode(configuration, setting ?? new ConfigurationSetting());
         }
     }
 }

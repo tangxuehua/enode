@@ -3,6 +3,8 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using ECommon.Dapper;
+using ECommon.Utilities;
+using ENode.Configurations;
 
 namespace ENode.Infrastructure.Impl.SQL
 {
@@ -18,16 +20,16 @@ namespace ENode.Infrastructure.Impl.SQL
 
         #region Constructors
 
-        public SqlServerLockService(string connectionString, string lockKeyTable)
+        public SqlServerLockService()
         {
-            if (string.IsNullOrEmpty(lockKeyTable))
-            {
-                throw new ArgumentNullException("lockKeyTable");
-            }
+            var setting = ENodeConfiguration.Instance.Setting.SqlServerLockServiceSetting;
+            Ensure.NotNull(setting, "SqlServerLockServiceSetting");
+            Ensure.NotNull(setting.ConnectionString, "SqlServerLockServiceSetting.ConnectionString");
+            Ensure.NotNull(setting.TableName, "SqlServerLockServiceSetting.TableName");
 
-            _connectionString = connectionString;
-            _lockKeyTable = lockKeyTable;
-            _lockKeySqlFormat = "SELECT * FROM [" + lockKeyTable + "] WITH (UPDLOCK) WHERE [LockKey] = '{0}'";
+            _connectionString = setting.ConnectionString;
+            _lockKeyTable = setting.TableName;
+            _lockKeySqlFormat = "SELECT * FROM [" + setting.TableName + "] WITH (UPDLOCK) WHERE [LockKey] = '{0}'";
         }
 
         #endregion

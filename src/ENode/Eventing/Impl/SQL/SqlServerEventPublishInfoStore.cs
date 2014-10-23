@@ -2,6 +2,8 @@
 using System.Data.SqlClient;
 using System.Linq;
 using ECommon.Dapper;
+using ECommon.Utilities;
+using ENode.Configurations;
 
 namespace ENode.Eventing.Impl.SQL
 {
@@ -17,24 +19,17 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        public SqlServerEventPublishInfoStore(string connectionString, string tableName, string primaryKeyName)
+        public SqlServerEventPublishInfoStore()
         {
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new ArgumentNullException("connectionString");
-            }
-            if (string.IsNullOrEmpty(tableName))
-            {
-                throw new ArgumentNullException("tableName");
-            }
-            if (string.IsNullOrEmpty(primaryKeyName))
-            {
-                throw new ArgumentNullException("primaryKeyName");
-            }
+            var setting = ENodeConfiguration.Instance.Setting.SqlServerEventPublishInfoStoreSetting;
+            Ensure.NotNull(setting, "SqlServerEventPublishInfoStoreSetting");
+            Ensure.NotNull(setting.ConnectionString, "SqlServerEventPublishInfoStoreSetting.ConnectionString");
+            Ensure.NotNull(setting.TableName, "SqlServerEventPublishInfoStoreSetting.TableName");
+            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerEventPublishInfoStoreSetting.PrimaryKeyName");
 
-            _connectionString = connectionString;
-            _tableName = tableName;
-            _primaryKeyName = primaryKeyName;
+            _connectionString = setting.ConnectionString;
+            _tableName = setting.TableName;
+            _primaryKeyName = setting.PrimaryKeyName;
         }
 
         #endregion
