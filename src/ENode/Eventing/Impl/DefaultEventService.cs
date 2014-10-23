@@ -16,8 +16,8 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private const int BatchCommitEventInterval = 10;
-        private const int BatchCommitEventSize = 1000;
+        private const int BatchCommitEventInterval = 50;
+        private const int BatchCommitEventSize = 50;
         private readonly ConcurrentQueue<EventCommittingContext> _toCommittingEventQueue;
         private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _successPersistedEventsQueue;
         private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _failedPersistedEventsQueue;
@@ -38,6 +38,7 @@ namespace ENode.Eventing.Impl
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
         private int _isBatchPersistingEvents;
+        private long _toCommittingEventCount;
 
         #endregion
 
@@ -96,7 +97,7 @@ namespace ENode.Eventing.Impl
         public void AddEventCommittingContextToQueue(EventCommittingContext context)
         {
             _toCommittingEventQueue.Enqueue(context);
-            TryBatchPersistEvents();
+            Interlocked.Increment(ref _toCommittingEventCount);
         }
         public void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
@@ -176,10 +177,10 @@ namespace ENode.Eventing.Impl
             {
                 try
                 {
-                    var hasPersistedAllEvents = BatchPersistEvents();
-                    while (!hasPersistedAllEvents)
+                    var hasNextBatch = BatchPersistEvents();
+                    while (hasNextBatch)
                     {
-                        hasPersistedAllEvents = BatchPersistEvents();
+                        hasNextBatch = BatchPersistEvents();
                     }
                 }
                 finally
@@ -188,10 +189,6 @@ namespace ENode.Eventing.Impl
                 }
             }
         }
-
-        /// <summary>批量持久化事件
-        /// </summary>
-        /// <returns>返回true表示持久化了当前_toCommittingEventQueue中的所有事件；否则返回false，即可能还存在没有持久化的事件；</returns>
         private bool BatchPersistEvents()
         {
             var eventCommittingContextList = new List<EventCommittingContext>();
@@ -200,13 +197,14 @@ namespace ENode.Eventing.Impl
 
             while (eventContextCount < BatchCommitEventSize && _toCommittingEventQueue.TryDequeue(out context))
             {
+                Interlocked.Decrement(ref _toCommittingEventCount);
                 eventCommittingContextList.Add(context);
                 eventContextCount++;
             }
 
             if (eventContextCount == 0)
             {
-                return true;
+                return false;
             }
 
             try
@@ -224,8 +222,7 @@ namespace ENode.Eventing.Impl
                 _failedPersistedEventsQueue.Add(eventCommittingContextList);
             }
 
-            var hasFetchedAllEvents = eventContextCount < BatchCommitEventSize;
-            return hasFetchedAllEvents;
+            return _toCommittingEventCount >= BatchCommitEventSize;
         }
         private void ProcessSuccessPersistedEvents()
         {
