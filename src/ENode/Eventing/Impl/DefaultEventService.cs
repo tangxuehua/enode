@@ -103,10 +103,6 @@ namespace ENode.Eventing.Impl
                 _processFailedPersistedEventsWorker.Start();
             }
         }
-        public void SetCommandExecutor(ICommandExecutor commandExecutor)
-        {
-            _retryCommandService.SetCommandExecutor(commandExecutor);
-        }
         public void CommitEvent(EventCommittingContext context)
         {
             if (_enableGroupCommit)

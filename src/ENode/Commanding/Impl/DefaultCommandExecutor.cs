@@ -54,7 +54,7 @@ namespace ENode.Commanding.Impl
             _retryCommandService = retryCommandService;
             _logger = loggerFactory.Create(GetType().FullName);
             _waitingCommandService.SetCommandExecutor(this);
-            _eventService.SetCommandExecutor(this);
+            _retryCommandService.SetCommandExecutor(this);
         }
 
         #endregion

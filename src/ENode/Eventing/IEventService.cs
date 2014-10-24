@@ -8,10 +8,6 @@ namespace ENode.Eventing
         /// <summary>Start the event service.
         /// </summary>
         void Start();
-        /// <summary>Set the command executor.
-        /// </summary>
-        /// <param name="commandExecutor"></param>
-        void SetCommandExecutor(ICommandExecutor commandExecutor);
         /// <summary>Commit the given aggregate's domain events to the eventstore and publish the domain events.
         /// </summary>
         /// <param name="context"></param>
