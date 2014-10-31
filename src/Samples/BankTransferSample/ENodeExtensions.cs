@@ -28,20 +28,6 @@ namespace BankTransferSample
         private static ExceptionPublisher _exceptionPublisher;
         private static ExceptionConsumer _exceptionConsumer;
 
-        public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
-        {
-            var configuration = enodeConfiguration.GetCommonConfiguration();
-            configuration.SetDefault<ITopicProvider<ICommand>, CommandTopicProvider>();
-            configuration.SetDefault<ITopicProvider<IEvent>, EventTopicProvider>();
-            configuration.SetDefault<ITopicProvider<IPublishableException>, ExceptionTopicProvider>();
-            configuration.SetDefault<ITypeCodeProvider<ICommand>, CommandTypeCodeProvider>();
-            configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, AggregateRootTypeCodeProvider>();
-            configuration.SetDefault<ITypeCodeProvider<IEvent>, EventTypeCodeProvider>();
-            configuration.SetDefault<ITypeCodeProvider<IEventHandler>, EventHandlerTypeCodeProvider>();
-            configuration.SetDefault<ITypeCodeProvider<IPublishableException>, ExceptionTypeCodeProvider>();
-            configuration.SetDefault<ITypeCodeProvider<IExceptionHandler>, ExceptionHandlerTypeCodeProvider>();
-            return enodeConfiguration;
-        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();

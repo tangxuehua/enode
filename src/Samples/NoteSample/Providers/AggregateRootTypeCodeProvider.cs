@@ -1,10 +1,12 @@
-﻿using ENode.Domain;
+﻿using ECommon.Components;
+using ENode.Domain;
 using ENode.Infrastructure;
 using NoteSample.Domain;
 
 namespace NoteSample.Providers
 {
-    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>, ITypeCodeProvider<IAggregateRoot>
+    [Component(LifeStyle.Singleton)]
+    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>
     {
         public AggregateRootTypeCodeProvider()
         {

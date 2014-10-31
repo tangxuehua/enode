@@ -1,11 +1,13 @@
 ﻿using BankTransferSample.EventHandlers;
 using BankTransferSample.ProcessManagers;
+using ECommon.Components;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
 namespace BankTransferSample.Providers
 {
-    public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider<IEventHandler>, ITypeCodeProvider<IEventHandler>
+    [Component(LifeStyle.Singleton)]
+    public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider<IEventHandler>
     {
         public EventHandlerTypeCodeProvider()
         {

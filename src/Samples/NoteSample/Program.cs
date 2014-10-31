@@ -54,7 +54,6 @@ namespace NoteSample
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .SetProviders()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartENode()

@@ -16,12 +16,6 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
     {
         private static EventConsumer _eventConsumer;
 
-        public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
-        {
-            enodeConfiguration.GetCommonConfiguration().SetDefault<ITypeCodeProvider<IEvent>, EventTypeCodeProvider>();
-            enodeConfiguration.GetCommonConfiguration().SetDefault<ITypeCodeProvider<IEventHandler>, EventHandlerTypeCodeProvider>();
-            return enodeConfiguration;
-        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();

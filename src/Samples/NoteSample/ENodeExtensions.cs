@@ -5,14 +5,12 @@ using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Configurations;
-using ENode.Domain;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Configurations;
-using NoteSample.Providers;
 
 namespace NoteSample.EQueueIntegrations
 {
@@ -25,17 +23,6 @@ namespace NoteSample.EQueueIntegrations
         private static EventConsumer _eventConsumer;
         private static CommandResultProcessor _commandResultProcessor;
 
-        public static ENodeConfiguration SetProviders(this ENodeConfiguration enodeConfiguration)
-        {
-            var configuration = enodeConfiguration.GetCommonConfiguration();
-            configuration.SetDefault<ITopicProvider<ICommand>, CommandTopicProvider>();
-            configuration.SetDefault<ITopicProvider<IEvent>, EventTopicProvider>();
-            configuration.SetDefault<ITypeCodeProvider<ICommand>, CommandTypeCodeProvider>();
-            configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, AggregateRootTypeCodeProvider>();
-            configuration.SetDefault<ITypeCodeProvider<IEvent>, EventTypeCodeProvider>();
-            configuration.SetDefault<ITypeCodeProvider<IEventHandler>, EventHandlerTypeCodeProvider>();
-            return enodeConfiguration;
-        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();

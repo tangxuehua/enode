@@ -1,10 +1,12 @@
 ﻿using DistributeSample.CommandProcessor.Domain;
+using ECommon.Components;
 using ENode.Domain;
 using ENode.Infrastructure;
 
 namespace DistributeSample.CommandProcessor.Providers
 {
-    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>, ITypeCodeProvider<IAggregateRoot>
+    [Component(LifeStyle.Singleton)]
+    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>
     {
         public AggregateRootTypeCodeProvider()
         {

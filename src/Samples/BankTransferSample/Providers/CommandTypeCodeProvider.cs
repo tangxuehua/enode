@@ -1,10 +1,12 @@
 ﻿using BankTransferSample.Commands;
+using ECommon.Components;
 using ENode.Commanding;
 using ENode.Infrastructure;
 
 namespace BankTransferSample.Providers
 {
-    public class CommandTypeCodeProvider : AbstractTypeCodeProvider<ICommand>, ITypeCodeProvider<ICommand>
+    [Component(LifeStyle.Singleton)]
+    public class CommandTypeCodeProvider : AbstractTypeCodeProvider<ICommand>
     {
         public CommandTypeCodeProvider()
         {

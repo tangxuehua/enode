@@ -65,7 +65,6 @@ namespace BankTransferSample
                 .UseJsonNet()
                 .CreateENode()
                 .RegisterENodeComponents()
-                .SetProviders()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)

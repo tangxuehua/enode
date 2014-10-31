@@ -1,10 +1,12 @@
 ﻿using BankTransferSample.Exceptions;
+using ECommon.Components;
 using ENode.Exceptions;
 using ENode.Infrastructure;
 
 namespace BankTransferSample.Providers
 {
-    public class ExceptionTypeCodeProvider : AbstractTypeCodeProvider<IPublishableException>, ITypeCodeProvider<IPublishableException>
+    [Component(LifeStyle.Singleton)]
+    public class ExceptionTypeCodeProvider : AbstractTypeCodeProvider<IPublishableException>
     {
         public ExceptionTypeCodeProvider()
         {

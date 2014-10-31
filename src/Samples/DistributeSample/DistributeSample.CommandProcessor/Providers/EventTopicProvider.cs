@@ -1,9 +1,11 @@
 ﻿using System.Threading;
+using ECommon.Components;
 using ENode.EQueue;
 using ENode.Eventing;
 
 namespace DistributeSample.CommandProcessor.Providers
 {
+    [Component(LifeStyle.Singleton)]
     public class EventTopicProvider : AbstractTopicProvider<IEvent>
     {
         static int _index;
