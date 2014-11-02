@@ -5,7 +5,7 @@ using NoteSample.DomainEvents;
 
 namespace NoteSample.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class EventTypeCodeProvider : AbstractTypeCodeProvider<IEvent>
     {
         public EventTypeCodeProvider()

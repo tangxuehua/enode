@@ -168,9 +168,9 @@
     <Compile Include="Snapshoting\ISnapshotStore.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="ECommon, Version=1.3.7.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ECommon, Version=1.3.8.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\ECommon.1.3.7\lib\net40\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ECommon.1.3.8\lib\net40\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

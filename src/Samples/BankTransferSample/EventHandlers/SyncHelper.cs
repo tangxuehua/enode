@@ -5,7 +5,7 @@ using ENode.Eventing;
 
 namespace BankTransferSample.EventHandlers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class SyncHelper :
         IEventHandler<DepositTransactionCompletedEvent>,
         IEventHandler<TransferTransactionCompletedEvent>,

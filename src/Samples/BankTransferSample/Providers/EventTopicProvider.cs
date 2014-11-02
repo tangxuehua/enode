@@ -4,7 +4,7 @@ using ENode.Eventing;
 
 namespace BankTransferSample.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class EventTopicProvider : AbstractTopicProvider<IEvent>
     {
         public override string GetTopic(IEvent source)

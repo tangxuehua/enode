@@ -5,7 +5,7 @@ using NoteSample.Commands;
 
 namespace NoteSample.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class CommandTypeCodeProvider : AbstractTypeCodeProvider<ICommand>
     {
         public CommandTypeCodeProvider()

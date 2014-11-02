@@ -4,7 +4,7 @@ using ENode.EQueue;
 
 namespace NoteSample.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class CommandTopicProvider : AbstractTopicProvider<ICommand>
     {
         public override string GetTopic(ICommand command)

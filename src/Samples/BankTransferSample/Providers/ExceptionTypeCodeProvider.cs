@@ -5,7 +5,7 @@ using ENode.Infrastructure;
 
 namespace BankTransferSample.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class ExceptionTypeCodeProvider : AbstractTypeCodeProvider<IPublishableException>
     {
         public ExceptionTypeCodeProvider()

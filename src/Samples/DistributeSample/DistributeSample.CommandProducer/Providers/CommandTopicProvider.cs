@@ -5,7 +5,7 @@ using ENode.EQueue;
 
 namespace DistributeSample.CommandProducer.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class CommandTopicProvider : AbstractTopicProvider<ICommand>
     {
         static int _index;

@@ -4,7 +4,7 @@ using ENode.Exceptions;
 
 namespace BankTransferSample.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class ExceptionTopicProvider : AbstractTopicProvider<IPublishableException>
     {
         public override string GetTopic(IPublishableException source)

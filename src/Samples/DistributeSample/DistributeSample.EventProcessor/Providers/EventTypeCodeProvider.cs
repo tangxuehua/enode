@@ -5,7 +5,7 @@ using ENode.Infrastructure;
 
 namespace DistributeSample.EventProcessor.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class EventTypeCodeProvider : AbstractTypeCodeProvider<IEvent>, ITypeCodeProvider<IEvent>
     {
         public EventTypeCodeProvider()

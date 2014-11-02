@@ -5,7 +5,7 @@ using NoteSample.Domain;
 
 namespace NoteSample.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>
     {
         public AggregateRootTypeCodeProvider()

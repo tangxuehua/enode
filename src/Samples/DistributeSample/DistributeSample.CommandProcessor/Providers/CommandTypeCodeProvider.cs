@@ -5,7 +5,7 @@ using ENode.Infrastructure;
 
 namespace DistributeSample.CommandProcessor.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class CommandTypeCodeProvider : AbstractTypeCodeProvider<ICommand>
     {
         public CommandTypeCodeProvider()

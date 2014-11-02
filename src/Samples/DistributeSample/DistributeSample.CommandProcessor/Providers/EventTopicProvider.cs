@@ -5,7 +5,7 @@ using ENode.Eventing;
 
 namespace DistributeSample.CommandProcessor.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class EventTopicProvider : AbstractTopicProvider<IEvent>
     {
         static int _index;

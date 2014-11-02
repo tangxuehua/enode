@@ -6,7 +6,7 @@ using ENode.Infrastructure;
 
 namespace BankTransferSample.Providers
 {
-    [Component(LifeStyle.Singleton)]
+    [Component]
     public class EventHandlerTypeCodeProvider : AbstractTypeCodeProvider<IEventHandler>
     {
         public EventHandlerTypeCodeProvider()
