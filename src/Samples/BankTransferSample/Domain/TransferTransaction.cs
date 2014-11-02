@@ -14,9 +14,6 @@ namespace BankTransferSample.Domain
         /// <summary>交易基本信息
         /// </summary>
         public TransferTransactionInfo TransactionInfo { get; private set; }
-        /// <summary>交易开始时间
-        /// </summary>
-        public DateTime StartedTime { get; private set; }
         /// <summary>源账户验证通过
         /// </summary>
         public bool IsSourceAccountValidatePassed { get; private set; }
