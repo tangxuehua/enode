@@ -73,7 +73,6 @@ namespace ENode.EQueue
             message.AggregateRootId = eventStream.AggregateRootId;
             message.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
             message.Timestamp = eventStream.Timestamp;
-            message.ProcessId = eventStream.ProcessId;
             message.Version = eventStream.Version;
             message.DomainEvents = eventStream.DomainEvents;
             message.Items = eventStream.Items;
@@ -85,7 +84,6 @@ namespace ENode.EQueue
             var message = new EventMessage();
 
             message.CommandId = eventStream.CommandId;
-            message.ProcessId = eventStream.ProcessId;
             message.Events = eventStream.Events;
             message.Items = eventStream.Items;
 

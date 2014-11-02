@@ -7,11 +7,8 @@ namespace BankTransferSample.Commands
     /// <summary>发起一笔存款交易
     /// </summary>
     [Serializable]
-    public class StartDepositTransactionCommand : AggregateCommand<string>, IStartProcessCommand, ICreatingAggregateCommand
+    public class StartDepositTransactionCommand : AggregateCommand<string>, ICreatingAggregateCommand
     {
-        /// <summary>流程ID
-        /// </summary>
-        public string ProcessId { get; private set; }
         /// <summary>账户ID
         /// </summary>
         public string AccountId { get; private set; }
@@ -21,7 +18,6 @@ namespace BankTransferSample.Commands
 
         public StartDepositTransactionCommand(string accountId, double amount)
         {
-            ProcessId = ObjectId.GenerateNewStringId();
             AccountId = accountId;
             Amount = amount;
         }

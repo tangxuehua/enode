@@ -51,7 +51,6 @@ namespace ENode.EQueue
             var exceptionMessage = new ExceptionMessage
             {
                 UniqueId = exception.UniqueId,
-                ProcessId = exception.ProcessId,
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
             };

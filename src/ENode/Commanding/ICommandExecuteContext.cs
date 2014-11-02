@@ -11,6 +11,6 @@ namespace ENode.Commanding
         bool CheckCommandWaiting { get; set; }
         /// <summary>Notify the given command is executed.
         /// </summary>
-        void OnCommandExecuted(ICommand command, CommandStatus commandStatus, string processId, string aggregateRootId, string exceptionTypeName, string errorMessage);
+        void OnCommandExecuted(ICommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage);
     }
 }

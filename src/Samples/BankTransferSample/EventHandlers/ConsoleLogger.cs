@@ -8,7 +8,7 @@ using ENode.Exceptions;
 
 namespace BankTransferSample.EventHandlers
 {
-    [Component]
+    [Component(LifeStyle.Singleton)]
     public class ConsoleLogger :
         IEventHandler<AccountCreatedEvent>,
         IEventHandler<AccountValidatePassedEvent>,

@@ -12,7 +12,7 @@ using EQueue.Utils;
 
 namespace ENode.EQueue
 {
-    public class CommandService : ICommandService, IProcessCommandSender
+    public class CommandService : ICommandService
     {
         private const string DefaultCommandExecutedMessageTopic = "sys_ecmt";
         private const string DefaultDomainEventHandledMessageTopic = "sys_dehmt";
@@ -68,14 +68,14 @@ namespace ENode.EQueue
                 throw new CommandSendException(result.ErrorMessage);
             }
         }
-        public void SendProcessCommand(ICommand processCommand, string sourceEventId, string sourceExceptionId)
+        public void Send(ICommand command, string sourceEventId, string sourceExceptionId)
         {
-            ValidateProcessCommand(processCommand);
+            ValidateCommand(command);
             if (string.IsNullOrEmpty(sourceEventId) && string.IsNullOrEmpty(sourceExceptionId))
             {
                 throw new ArgumentException("sourceEventId and sourceExceptionId can not both be null or empty.");
             }
-            var result = _producer.Send(BuildCommandMessage(processCommand, sourceEventId, sourceExceptionId), _commandRouteKeyProvider.GetRouteKey(processCommand));
+            var result = _producer.Send(BuildCommandMessage(command, sourceEventId, sourceExceptionId), _commandRouteKeyProvider.GetRouteKey(command));
             if (result.SendStatus == SendStatus.Failed)
             {
                 throw new CommandSendException(result.ErrorMessage);
@@ -125,31 +125,6 @@ namespace ENode.EQueue
 
             return taskCompletionSource.Task;
         }
-        public Task<ProcessResult> StartProcess(IStartProcessCommand command)
-        {
-            if (_commandResultProcessor == null)
-            {
-                throw new NotSupportedException("Not supported operation as the command result processor is not set.");
-            }
-
-            ValidateStartProcessCommand(command);
-            var taskCompletionSource = new TaskCompletionSource<ProcessResult>();
-
-            if (!_commandResultProcessor.RegisterProcess(command, taskCompletionSource))
-            {
-                throw new Exception("Duplicate process as there already has a process with the same process id is being processing.");
-            }
-
-            _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
-            {
-                if (sendTask.Result.SendStatus == SendStatus.Failed)
-                {
-                    _commandResultProcessor.NotifyProcessCommandSendFailed(command);
-                }
-            });
-
-            return taskCompletionSource.Task;
-        }
 
         private void ValidateCommand(ICommand command)
         {
@@ -160,24 +135,6 @@ namespace ENode.EQueue
             if (!(command is ICreatingAggregateCommand) && command is IAggregateCommand && string.IsNullOrEmpty(((IAggregateCommand)command).AggregateRootId))
             {
                 var format = "AggregateRootId cannot be null or empty if the aggregate command is not a ICreatingAggregateCommand, commandType:{0}, commandId:{1}.";
-                throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
-            }
-        }
-        private void ValidateProcessCommand(ICommand command)
-        {
-            ValidateCommand(command);
-            if (!command.Items.ContainsKey("ProcessId") || string.IsNullOrEmpty(command.Items["ProcessId"]))
-            {
-                var format = "ProcessId cannot be null or empty if the command is a process command, commandType:{0}, commandId:{1}.";
-                throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
-            }
-        }
-        private void ValidateStartProcessCommand(IStartProcessCommand command)
-        {
-            ValidateCommand(command);
-            if (string.IsNullOrEmpty(command.ProcessId))
-            {
-                var format = "ProcessId cannot be null or empty if the command is a start process command, commandType:{0}, commandId:{1}.";
                 throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
             }
         }

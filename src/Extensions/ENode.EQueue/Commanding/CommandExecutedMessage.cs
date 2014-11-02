@@ -20,9 +20,6 @@ namespace ENode.EQueue
         /// <summary>Represents the aggregate root id associated with the command.
         /// </summary>
         public string AggregateRootId { get; set; }
-        /// <summary>Represents the process id if the command is associated with a saga process.
-        /// </summary>
-        public string ProcessId { get; set; }
         /// <summary>Represents the result status of the command.
         /// </summary>
         public CommandStatus CommandStatus { get; set; }

@@ -193,7 +193,6 @@ namespace ENode.Eventing.Impl.SQL
                 record.CommandId,
                 record.AggregateRootId,
                 record.AggregateRootTypeCode,
-                record.ProcessId,
                 record.Version,
                 record.Timestamp,
                 _binarySerializer.Deserialize<IEnumerable<IDomainEvent>>(record.Events),
@@ -206,7 +205,6 @@ namespace ENode.Eventing.Impl.SQL
                 CommandId = eventStream.CommandId,
                 AggregateRootId = eventStream.AggregateRootId,
                 AggregateRootTypeCode = eventStream.AggregateRootTypeCode,
-                ProcessId = eventStream.ProcessId,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
                 Events = _binarySerializer.Serialize(eventStream.Events),
@@ -222,7 +220,6 @@ namespace ENode.Eventing.Impl.SQL
             public string AggregateRootId { get; set; }
             public int Version { get; set; }
             public string CommandId { get; set; }
-            public string ProcessId { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }
             public byte[] Items { get; set; }

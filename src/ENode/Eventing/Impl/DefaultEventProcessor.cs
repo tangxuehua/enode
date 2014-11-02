@@ -6,6 +6,7 @@ using ECommon.Logging;
 using ECommon.Retring;
 using ECommon.Scheduling;
 using ENode.Commanding;
+using ENode.Configurations;
 using ENode.Domain;
 using ENode.Infrastructure;
 
@@ -15,12 +16,12 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private const int WorkerCount = 4;
+        private int _workerCount = 4;
         private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
         private readonly ITypeCodeProvider<IEventHandler> _eventHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly IMessageHandlerProvider<IEventHandler> _eventHandlerProvider;
-        private readonly IProcessCommandSender _processCommandSender;
+        private readonly ICommandService _commandService;
         private readonly IRepository _repository;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IEventHandleInfoStore _eventHandleInfoStore;
@@ -41,7 +42,7 @@ namespace ENode.Eventing.Impl
             ITypeCodeProvider<IEventHandler> eventHandlerTypeCodeProvider,
             ITypeCodeProvider<ICommand> commandTypeCodeProvider,
             IMessageHandlerProvider<IEventHandler> eventHandlerProvider,
-            IProcessCommandSender processCommandSender,
+            ICommandService commandService,
             IRepository repository,
             IEventPublishInfoStore eventPublishInfoStore,
             IEventHandleInfoStore eventHandleInfoStore,
@@ -53,7 +54,7 @@ namespace ENode.Eventing.Impl
             _eventHandlerTypeCodeProvider = eventHandlerTypeCodeProvider;
             _commandTypeCodeProvider = commandTypeCodeProvider;
             _eventHandlerProvider = eventHandlerProvider;
-            _processCommandSender = processCommandSender;
+            _commandService = commandService;
             _repository = repository;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventHandleInfoStore = eventHandleInfoStore;
@@ -61,13 +62,14 @@ namespace ENode.Eventing.Impl
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
             _queueList = new List<BlockingCollection<EventProcessingContext>>();
-            for (var index = 0; index < WorkerCount; index++)
+            _workerCount = ENodeConfiguration.Instance.Setting.EventProcessorParallelThreadCount;
+            for (var index = 0; index < _workerCount; index++)
             {
                 _queueList.Add(new BlockingCollection<EventProcessingContext>(new ConcurrentQueue<EventProcessingContext>()));
             }
 
             _workerList = new List<Worker>();
-            for (var index = 0; index < WorkerCount; index++)
+            for (var index = 0; index < _workerCount; index++)
             {
                 var queue = _queueList[index];
                 var worker = new Worker("ProcessEvents", () =>
@@ -86,7 +88,7 @@ namespace ENode.Eventing.Impl
             Name = GetType().Name;
             var processingContext = new EventProcessingContext(eventStream, context);
             var hashKey = eventStream is IDomainEventStream ? ((IDomainEventStream)eventStream).AggregateRootId : eventStream.CommandId;
-            var queueIndex = hashKey.GetHashCode() % WorkerCount;
+            var queueIndex = hashKey.GetHashCode() % _workerCount;
             if (queueIndex < 0)
             {
                 queueIndex = Math.Abs(queueIndex);
@@ -144,7 +146,7 @@ namespace ENode.Eventing.Impl
             {
                 foreach (var handler in _eventHandlerProvider.GetMessageHandlers(evnt.GetType()))
                 {
-                    if (!DispatchEventToHandler(eventStream.ProcessId, evnt, handler))
+                    if (!DispatchEventToHandler(evnt, handler))
                     {
                         success = false;
                     }
@@ -159,7 +161,7 @@ namespace ENode.Eventing.Impl
             }
             return success;
         }
-        private bool DispatchEventToHandler(string processId, IEvent evnt, IEventHandler eventHandler)
+        private bool DispatchEventToHandler(IEvent evnt, IEventHandler eventHandler)
         {
             try
             {
@@ -172,55 +174,33 @@ namespace ENode.Eventing.Impl
 
                 var eventContext = new EventContext(_repository);
                 eventHandler.Handle(eventContext, evnt);
-                var processCommands = eventContext.GetCommands();
-                if (processCommands.Any())
+                var commands = eventContext.GetCommands();
+                if (commands.Any())
                 {
-                    if (string.IsNullOrEmpty(processId))
+                    foreach (var command in commands)
                     {
-                        if (domainEvent != null)
-                        {
-                            throw new Exception(string.Format("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
-                                eventHandlerType.Name,
-                                domainEvent.GetType().Name,
-                                domainEvent.Id,
-                                domainEvent.Version,
-                                domainEvent.AggregateRootId));
-                        }
-                        else
-                        {
-                            throw new Exception(string.Format("ProcessId cannot be null or empty if the event handler generates commands. eventHandlerType:{0}, eventType:{1}, eventId:{2}",
-                                eventHandlerType.Name,
-                                evnt.GetType().Name,
-                                evnt.Id));
-                        }
-                    }
-                    foreach (var processCommand in processCommands)
-                    {
-                        processCommand.Id = BuildCommandId(processCommand, evnt, eventHandlerTypeCode);
-                        processCommand.Items["ProcessId"] = processId;
-                        _processCommandSender.SendProcessCommand(processCommand, evnt.Id, null);
+                        command.Id = BuildCommandId(command, evnt, eventHandlerTypeCode);
+                        _commandService.Send(command, evnt.Id, null);
 
                         if (domainEvent != null)
                         {
-                            _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}, processId:{7}",
-                                processCommand.GetType().Name,
-                                processCommand.Id,
+                            _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}",
+                                command.GetType().Name,
+                                command.Id,
                                 eventHandlerType.Name,
                                 domainEvent.GetType().Name,
                                 domainEvent.Id,
                                 domainEvent.Version,
-                                domainEvent.AggregateRootId,
-                                processId);
+                                domainEvent.AggregateRootId);
                         }
                         else
                         {
-                            _logger.DebugFormat("Send process command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, processId:{5}",
-                                processCommand.GetType().Name,
-                                processCommand.Id,
+                            _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}",
+                                command.GetType().Name,
+                                command.Id,
                                 eventHandlerType.Name,
                                 evnt.GetType().Name,
-                                evnt.Id,
-                                processId);
+                                evnt.Id);
                         }
                     }
                 }

@@ -103,7 +103,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
             _configuration.SetDefault<ICommandRouteKeyProvider, DefaultCommandRouteKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
-            _configuration.SetDefault<IProcessCommandSender, NotImplementedCommandService>();
 
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();

@@ -107,31 +107,11 @@ namespace ENode.EQueue
             }
 
             var domainEventHandledMessageTopic = items["DomainEventHandledMessageTopic"];
-            var processCompletedEvents = eventStream.Events.Where(x => x is IProcessCompletedEvent);
-            if (processCompletedEvents.Count() > 1)
-            {
-                throw new Exception("One event stream cannot contains more than one IProcessCompletedEvent.");
-            }
-
-            var isProcessCompleted = processCompletedEvents.Count() == 1;
-            var isProcessSuccess = false;
-            var errorCode = 0;
-
-            if (isProcessCompleted)
-            {
-                var processCompletedEvent = processCompletedEvents.Single() as IProcessCompletedEvent;
-                isProcessSuccess = processCompletedEvent.IsSuccess;
-                errorCode = processCompletedEvent.ErrorCode;
-            }
 
             _domainEventHandledMessageSender.Send(new DomainEventHandledMessage
             {
                 CommandId = domainEventStream.CommandId,
-                ProcessId = domainEventStream.ProcessId,
                 AggregateRootId = domainEventStream.AggregateRootId,
-                IsProcessCompleted = isProcessCompleted,
-                IsProcessSuccess = isProcessSuccess,
-                ErrorCode = errorCode,
                 Items = domainEventStream.Items ?? new Dictionary<string, string>()
             }, domainEventHandledMessageTopic);
         }
@@ -141,7 +121,6 @@ namespace ENode.EQueue
                 message.CommandId,
                 message.AggregateRootId,
                 message.AggregateRootTypeCode,
-                message.ProcessId,
                 message.Version,
                 message.Timestamp,
                 message.DomainEvents,
@@ -149,7 +128,7 @@ namespace ENode.EQueue
         }
         private EventStream ConvertToEventStream(EventMessage message)
         {
-            return new EventStream(message.CommandId, message.ProcessId, message.Events, message.Items);
+            return new EventStream(message.CommandId, message.Events, message.Items);
         }
 
         class EventProcessContext : IMessageProcessContext<IEventStream>

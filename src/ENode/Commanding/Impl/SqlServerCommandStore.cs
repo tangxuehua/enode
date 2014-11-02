@@ -111,7 +111,6 @@ namespace ENode.Commanding.Impl
                 CommandTypeCode = _commandTypeCodeProvider.GetTypeCode(handledCommand.Command.GetType()),
                 AggregateRootId = handledAggregateCommand != null ? handledAggregateCommand.AggregateRootId : null,
                 AggregateRootTypeCode = handledAggregateCommand != null ? handledAggregateCommand.AggregateRootTypeCode : 0,
-                ProcessId = handledCommand.ProcessId,
                 SourceEventId = handledCommand.SourceEventId,
                 SourceExceptionId = handledCommand.SourceExceptionId,
                 Timestamp = DateTime.Now,
@@ -149,7 +148,6 @@ namespace ENode.Commanding.Impl
             public int CommandTypeCode { get; set; }
             public int AggregateRootTypeCode { get; set; }
             public string AggregateRootId { get; set; }
-            public string ProcessId { get; set; }
             public string SourceEventId { get; set; }
             public string SourceExceptionId { get; set; }
             public DateTime Timestamp { get; set; }

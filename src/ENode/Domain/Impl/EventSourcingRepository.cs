@@ -28,12 +28,7 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            var aggregateRoot = _memoryCache.Get(aggregateRootId, aggregateRootType) ?? _aggregateRootStorage.Get(aggregateRootType, aggregateRootId.ToString());
-            if (aggregateRoot == null)
-            {
-                throw new AggregateRootNotExistException(aggregateRootId, aggregateRootType);
-            }
-            return aggregateRoot;
+            return _memoryCache.Get(aggregateRootId, aggregateRootType) ?? _aggregateRootStorage.Get(aggregateRootType, aggregateRootId.ToString());
         }
     }
 }

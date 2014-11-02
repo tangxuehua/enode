@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace ENode.Commanding.Impl
 {
-    public class NotImplementedCommandService : ICommandService, IProcessCommandSender
+    public class NotImplementedCommandService : ICommandService
     {
         public void Send(ICommand command)
         {
             throw new NotImplementedException();
         }
-        public void SendProcessCommand(ICommand processCommand, string sourceEventId, string sourceExceptionId)
+        public void Send(ICommand command, string sourceEventId, string sourceExceptionId)
         {
             throw new NotImplementedException();
         }
@@ -22,10 +22,6 @@ namespace ENode.Commanding.Impl
             throw new NotImplementedException();
         }
         public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
-        {
-            throw new NotImplementedException();
-        }
-        public Task<ProcessResult> StartProcess(IStartProcessCommand command)
         {
             throw new NotImplementedException();
         }

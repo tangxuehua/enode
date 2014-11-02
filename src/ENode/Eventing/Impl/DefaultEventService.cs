@@ -129,21 +129,19 @@ namespace ENode.Eventing.Impl
                     {
                         eventStream.Items["DomainEventHandledMessageTopic"] = processingCommand.Command.Items["DomainEventHandledMessageTopic"];
                         _domainEventPublisher.Publish(eventStream);
-                        _logger.DebugFormat("Publish domain event success, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, processId:{3}, events:{4}",
+                        _logger.DebugFormat("Publish domain event success, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, events:{3}",
                             processingCommand.Command.Id,
                             eventStream.AggregateRootId,
                             eventStream.AggregateRootTypeCode,
-                            processingCommand.ProcessId,
                             string.Join("|", eventStream.Events.Select(x => x.GetType().Name)));
                         return true;
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(string.Format("Exception raised when publishing domain event, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, processId:{3}, events:{4}",
+                        _logger.Error(string.Format("Exception raised when publishing domain event, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, events:{3}",
                             processingCommand.Command.Id,
                             eventStream.AggregateRootId,
                             eventStream.AggregateRootTypeCode,
-                            processingCommand.ProcessId,
                             string.Join("|", eventStream.Events.Select(x => x.GetType().Name))
                         ), ex);
                         return false;
@@ -165,17 +163,15 @@ namespace ENode.Eventing.Impl
                     try
                     {
                         _eventPublisher.Publish(eventStream);
-                        _logger.DebugFormat("Publish event success, commandId:{0}, processId:{1}, events:{2}",
+                        _logger.DebugFormat("Publish event success, commandId:{0}, events:{1}",
                             eventStream.CommandId,
-                            eventStream.ProcessId,
                             string.Join("|", eventStream.Events.Select(x => x.GetType().Name)));
                         return true;
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(string.Format("Exception raised when publishing event, commandId:{0}, processId:{1}, events:{2}",
+                        _logger.Error(string.Format("Exception raised when publishing event, commandId:{0}, events:{1}",
                             eventStream.CommandId,
-                            eventStream.ProcessId,
                             string.Join("|", eventStream.Events.Select(x => x.GetType().Name))
                         ), ex);
                         return false;
@@ -421,7 +417,6 @@ namespace ENode.Eventing.Impl
                     processingCommand.CommandExecuteContext,
                     aggregateCommand,
                     commandStatus,
-                    processingCommand.ProcessId,
                     aggregateRootId,
                     exceptionTypeName,
                     errorMessage);
@@ -432,7 +427,6 @@ namespace ENode.Eventing.Impl
                     processingCommand.CommandExecuteContext,
                     processingCommand.Command,
                     commandStatus,
-                    processingCommand.ProcessId,
                     exceptionTypeName,
                     errorMessage);
             }

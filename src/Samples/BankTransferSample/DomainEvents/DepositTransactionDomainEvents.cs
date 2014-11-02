@@ -35,7 +35,7 @@ namespace BankTransferSample.DomainEvents
     /// <summary>存款交易已完成
     /// </summary>
     [Serializable]
-    public class DepositTransactionCompletedEvent : ProcessCompletedEvent<string>
+    public class DepositTransactionCompletedEvent : DomainEvent<string>
     {
         public string AccountId { get; private set; }
 

@@ -43,7 +43,6 @@
     <Compile Include="Commanding\EventAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateCommand.cs" />
-    <Compile Include="Commanding\CommandProcessIdMissingException.cs" />
     <Compile Include="Commanding\CommandHandlerNotFoundException.cs" />
     <Compile Include="Commanding\CommandSendException.cs" />
     <Compile Include="Commanding\CommandSendResult.cs" />
@@ -53,7 +52,6 @@
     <Compile Include="Commanding\CommandAddResult.cs" />
     <Compile Include="Commanding\IAggregateCommand.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
-    <Compile Include="Commanding\IProcessCommandSender.cs" />
     <Compile Include="Commanding\ICommandStore.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\CommandAggregateRootIdMissingException.cs" />
@@ -62,8 +60,6 @@
     <Compile Include="Commanding\Impl\InMemoryCommandStore.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandTypeCodeProvider.cs" />
     <Compile Include="Commanding\IExecutedCommandService.cs" />
-    <Compile Include="Commanding\IStartProcessCommand.cs" />
-    <Compile Include="Commanding\ProcessResult.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
@@ -91,7 +87,6 @@
     <Compile Include="Eventing\IEvent.cs" />
     <Compile Include="Eventing\IEventStream.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
-    <Compile Include="Eventing\ProcessCompletedEvent.cs" />
     <Compile Include="Eventing\IEventContext.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventCommittingContext.cs" />
@@ -124,7 +119,6 @@
     <Compile Include="Eventing\Impl\NotImplementedEventTypeCodeProvider.cs" />
     <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlServerEventStore.cs" />
-    <Compile Include="Eventing\IProcessCompletedEvent.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoCache.cs" />
     <Compile Include="Eventing\IEventHandleInfoCache.cs" />
     <Compile Include="Infrastructure\ConcurrentException.cs" />
@@ -172,7 +166,6 @@
     <Compile Include="Snapshoting\Impl\DefaultSnapshotter.cs" />
     <Compile Include="Snapshoting\ISnapshotter.cs" />
     <Compile Include="Snapshoting\ISnapshotStore.cs" />
-    <Compile Include="Domain\AggregateRootNotExistException.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ECommon, Version=1.3.7.0, Culture=neutral, processorArchitecture=MSIL">

@@ -2,6 +2,7 @@
 using System.Reflection;
 using BankTransferSample.Commands;
 using BankTransferSample.Domain;
+using BankTransferSample.EventHandlers;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
@@ -21,6 +22,7 @@ namespace BankTransferSample
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
+            var syncHelper = ObjectContainer.Resolve<SyncHelper>();
 
             Console.WriteLine(string.Empty);
 
@@ -31,21 +33,26 @@ namespace BankTransferSample
             Console.WriteLine(string.Empty);
 
             //每个账户都存入1000元
-            commandService.StartProcess(new StartDepositTransactionCommand("00001", 1000)).Wait();
-            commandService.StartProcess(new StartDepositTransactionCommand("00002", 1000)).Wait();
+            commandService.Send(new StartDepositTransactionCommand("00001", 1000));
+            syncHelper.WaitOne();
+            commandService.Send(new StartDepositTransactionCommand("00002", 1000));
+            syncHelper.WaitOne();
 
             Console.WriteLine(string.Empty);
 
             //账户1向账户2转账300元
-            commandService.StartProcess(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 300D))).Wait();
+            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 300D)));
+            syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
             //账户1向账户2转账800元
-            commandService.StartProcess(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 800D))).Wait();
+            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 800D)));
+            syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
             //账户2向账户1转账500元
-            commandService.StartProcess(new StartTransferTransactionCommand(new TransferTransactionInfo("00002", "00001", 500D))).Wait();
+            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00002", "00001", 500D)));
+            syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
             Console.WriteLine("Press Enter to exit...");

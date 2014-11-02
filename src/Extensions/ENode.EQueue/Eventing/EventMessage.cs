@@ -8,7 +8,6 @@ namespace ENode.EQueue
     public class EventMessage
     {
         public string CommandId { get; set; }
-        public string ProcessId { get; set; }
         public IEnumerable<IEvent> Events { get; set; }
         public IDictionary<string, string> Items { get; set; }
 

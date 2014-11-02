@@ -107,12 +107,11 @@ namespace ENode.Commanding.Impl
             try
             {
                 commandHandler.Handle(context, command);
-                _logger.DebugFormat("Handle command success. commandHandlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}, processId:{4}",
+                _logger.DebugFormat("Handle command success. commandHandlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
                     commandHandler.GetInnerHandler().GetType().Name,
                     command.GetType().Name,
                     command.Id,
-                    processingCommand.AggregateRootId,
-                    processingCommand.ProcessId);
+                    processingCommand.AggregateRootId);
                 handleSuccess = true;
             }
             catch (IOException ex)
@@ -239,7 +238,6 @@ namespace ENode.Commanding.Impl
                 command.Id,
                 aggregateRoot.UniqueId,
                 aggregateRootTypeCode,
-                processingCommand.ProcessId,
                 aggregateRoot.Version + 1,
                 DateTime.Now,
                 uncommittedEvents,
@@ -280,20 +278,18 @@ namespace ENode.Commanding.Impl
                     var publishableException = exception as IPublishableException;
                     if (publishableException != null)
                     {
-                        publishableException.ProcessId = processingCommand.ProcessId;
                         _exceptionPublisher.Publish(publishableException);
                         NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Success, null, null);
                     }
                     else
                     {
                         var commandHandlerType = commandHandler.GetInnerHandler().GetType();
-                        var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}, processId:{5}",
+                        var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}",
                             exception.GetType().Name,
                             commandHandlerType.Name,
                             command.GetType().Name,
                             command.Id,
-                            processingCommand.AggregateRootId,
-                            processingCommand.ProcessId);
+                            processingCommand.AggregateRootId);
                         _logger.Error(errorMessage, exception);
                         NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
                     }
@@ -302,13 +298,12 @@ namespace ENode.Commanding.Impl
             catch (Exception ex)
             {
                 var commandHandlerType = commandHandler.GetInnerHandler().GetType();
-                var errorMessage = string.Format("{0} raised when {1} handling the exception of {2}. commandId:{3}, aggregateRootId:{4}, processId:{5}, originalExceptionMessage:{6}",
+                var errorMessage = string.Format("{0} raised when {1} handling the exception of {2}. commandId:{3}, aggregateRootId:{4}, originalExceptionMessage:{5}",
                     ex.GetType().Name,
                     commandHandlerType.Name,
                     processingCommand.Command.GetType().Name,
                     processingCommand.Command.Id,
                     processingCommand.AggregateRootId,
-                    processingCommand.ProcessId,
                     exception.Message);
                 _logger.Error(errorMessage, ex);
                 _retryCommandService.RetryCommand(processingCommand);
@@ -323,7 +318,6 @@ namespace ENode.Commanding.Impl
                     processingCommand.CommandExecuteContext,
                     aggregateCommand,
                     commandStatus,
-                    processingCommand.ProcessId,
                     processingCommand.AggregateRootId,
                     exceptionTypeName,
                     errorMessage);
@@ -334,7 +328,6 @@ namespace ENode.Commanding.Impl
                     processingCommand.CommandExecuteContext,
                     processingCommand.Command,
                     commandStatus,
-                    processingCommand.ProcessId,
                     exceptionTypeName,
                     errorMessage);
             }
@@ -351,14 +344,14 @@ namespace ENode.Commanding.Impl
 
             if (commandAddResult == CommandAddResult.Success)
             {
-                _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, evnts, command.Items));
+                _eventService.PublishEvent(processingCommand, new EventStream(command.Id, evnts, command.Items));
             }
             else if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
                 var existingHandledCommand = _commandStore.Get(command.Id);
                 if (existingHandledCommand != null)
                 {
-                    _eventService.PublishEvent(processingCommand, new EventStream(command.Id, processingCommand.ProcessId, existingHandledCommand.Events, command.Items));
+                    _eventService.PublishEvent(processingCommand, new EventStream(command.Id, existingHandledCommand.Events, command.Items));
                 }
                 else
                 {

@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
     [Serializable]
     public class DomainEventStream : EventStream, IDomainEventStream
     {
-        public DomainEventStream(string commandId, string aggregateRootId, int aggregateRootTypeCode, string processId, int version, DateTime timestamp, IEnumerable<IDomainEvent> events, IDictionary<string, string> items)
-            : base(commandId, processId, events, items)
+        public DomainEventStream(string commandId, string aggregateRootId, int aggregateRootTypeCode, int version, DateTime timestamp, IEnumerable<IDomainEvent> events, IDictionary<string, string> items)
+            : base(commandId, events, items)
         {
             AggregateRootId = aggregateRootId;
             AggregateRootTypeCode = aggregateRootTypeCode;
@@ -27,13 +26,12 @@ namespace ENode.Eventing
 
         public override string ToString()
         {
-            var format = "[CommandId={0},AggregateRootTypeCode={1},AggregateRootId={2},Version={3},ProcessId={4},Timestamp={5},DomainEvents={6},Items={7}]";
+            var format = "[CommandId={0},AggregateRootTypeCode={1},AggregateRootId={2},Version={3},Timestamp={4},DomainEvents={5},Items={6}]";
             return string.Format(format,
                 CommandId,
                 AggregateRootTypeCode,
                 AggregateRootId,
                 Version,
-                ProcessId,
                 Timestamp,
                 string.Join("|", DomainEvents.Select(x => x.GetType().Name)),
                 string.Join("|", Items.Select(x => x.Key + ":" + x.Value)));

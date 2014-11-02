@@ -33,7 +33,7 @@ namespace ENode.Commanding
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandType={0},CommandId={1},SourceEventId={2},SourceExceptionId={3},AggregateRootTypeCode={4},AggregateRootId={5},ProcessId={6},Items={7}]";
+            var format = "[CommandType={0},CommandId={1},SourceEventId={2},SourceExceptionId={3},AggregateRootTypeCode={4},AggregateRootId={5},Items={6}]";
             return string.Format(format,
                 Command.GetType().Name,
                 Command.Id,
@@ -41,7 +41,6 @@ namespace ENode.Commanding
                 SourceExceptionId,
                 AggregateRootTypeCode,
                 AggregateRootId,
-                ProcessId,
                 string.Join("|", Command.Items.Select(x => x.Key + ":" + x.Value)));
         }
     }

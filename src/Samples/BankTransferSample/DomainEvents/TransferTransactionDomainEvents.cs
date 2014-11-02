@@ -94,7 +94,7 @@ namespace BankTransferSample.DomainEvents
     /// <summary>转账交易已完成
     /// </summary>
     [Serializable]
-    public class TransferTransactionCompletedEvent : ProcessCompletedEvent<string>
+    public class TransferTransactionCompletedEvent : DomainEvent<string>
     {
         public TransferTransactionCompletedEvent(string transactionId)
             : base(transactionId) { }
@@ -102,7 +102,7 @@ namespace BankTransferSample.DomainEvents
     /// <summary>转账交易已取消（结束），交易已失败
     /// </summary>
     [Serializable]
-    public class TransferTransactionCanceledEvent : ProcessCompletedEvent<string>
+    public class TransferTransactionCanceledEvent : DomainEvent<string>
     {
         public TransferTransactionCanceledEvent(string transactionId)
             : base(transactionId) { }

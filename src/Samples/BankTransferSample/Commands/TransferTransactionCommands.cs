@@ -8,18 +8,14 @@ namespace BankTransferSample.Commands
     /// <summary>发起一笔转账交易
     /// </summary>
     [Serializable]
-    public class StartTransferTransactionCommand : AggregateCommand<string>, IStartProcessCommand, ICreatingAggregateCommand
+    public class StartTransferTransactionCommand : AggregateCommand<string>, ICreatingAggregateCommand
     {
-        /// <summary>流程ID
-        /// </summary>
-        public string ProcessId { get; private set; }
         /// <summary>转账交易信息
         /// </summary>
         public TransferTransactionInfo TransactionInfo { get; private set; }
 
         public StartTransferTransactionCommand(TransferTransactionInfo transactionInfo)
         {
-            ProcessId = ObjectId.GenerateNewStringId();
             TransactionInfo = transactionInfo;
         }
     }

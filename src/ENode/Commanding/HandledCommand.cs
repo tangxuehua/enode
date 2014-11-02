@@ -25,23 +25,6 @@ namespace ENode.Commanding
             SourceEventId = sourceEventId;
             SourceExceptionId = sourceExceptionId;
             Events = evnts ?? new List<IEvent>();
-
-            if (command is IStartProcessCommand)
-            {
-                ProcessId = ((IStartProcessCommand)command).ProcessId;
-                if (string.IsNullOrEmpty(ProcessId))
-                {
-                    throw new CommandProcessIdMissingException(command);
-                }
-            }
-            else if (command.Items.ContainsKey("ProcessId"))
-            {
-                ProcessId = command.Items["ProcessId"];
-                if (string.IsNullOrEmpty(ProcessId))
-                {
-                    throw new CommandProcessIdMissingException(command);
-                }
-            }
         }
 
         /// <summary>The command object.
@@ -53,9 +36,6 @@ namespace ENode.Commanding
         /// <summary>The source exception id.
         /// </summary>
         public string SourceExceptionId { get; private set; }
-        /// <summary>The process id.
-        /// </summary>
-        public string ProcessId { get; private set; }
         /// <summary>The events.
         /// </summary>
         public IEnumerable<IEvent> Events { get; private set; }
@@ -65,13 +45,12 @@ namespace ENode.Commanding
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandType={0},CommandId={1},SourceEventId={2},SourceExceptionId={3},ProcessId={4},Events={5},Items={6}]";
+            var format = "[CommandType={0},CommandId={1},SourceEventId={2},SourceExceptionId={3},Events={4},Items={5}]";
             return string.Format(format,
                 Command.GetType().Name,
                 Command.Id,
                 SourceEventId,
                 SourceExceptionId,
-                ProcessId,
                 string.Join("|", Events.Select(x => x.GetType().Name)),
                 string.Join("|", Command.Items.Select(x => x.Key + ":" + x.Value)));
         }

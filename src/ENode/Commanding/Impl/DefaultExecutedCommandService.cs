@@ -9,14 +9,14 @@
             _waitingCommandService = waitingCommandService;
         }
 
-        public void ProcessExecutedCommand(ICommandExecuteContext context, IAggregateCommand command, CommandStatus commandStatus, string processId, string aggregateRootId, string exceptionTypeName, string errorMessage)
+        public void ProcessExecutedCommand(ICommandExecuteContext context, IAggregateCommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage)
         {
             _waitingCommandService.NotifyCommandExecuted(aggregateRootId);
-            context.OnCommandExecuted(command, commandStatus, processId, aggregateRootId, exceptionTypeName, errorMessage);
+            context.OnCommandExecuted(command, commandStatus, aggregateRootId, exceptionTypeName, errorMessage);
         }
-        public void ProcessExecutedCommand(ICommandExecuteContext context, ICommand command, CommandStatus commandStatus, string processId, string exceptionTypeName, string errorMessage)
+        public void ProcessExecutedCommand(ICommandExecuteContext context, ICommand command, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {
-            context.OnCommandExecuted(command, commandStatus, processId, null, exceptionTypeName, errorMessage);
+            context.OnCommandExecuted(command, commandStatus, null, exceptionTypeName, errorMessage);
         }
     }
 }

@@ -26,7 +26,6 @@ namespace ENode.EQueue.Commanding
         private readonly Consumer _commandExecutedMessageConsumer;
         private readonly Consumer _domainEventHandledMessageConsumer;
         private readonly ConcurrentDictionary<string, CommandTaskCompletionSource> _commandTaskDict;
-        private readonly ConcurrentDictionary<string, TaskCompletionSource<ProcessResult>> _processTaskDict;
         private readonly BlockingCollection<CommandExecutedMessage> _commandExecutedMessageLocalQueue;
         private readonly BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
         private readonly Worker _commandExecutedMessageWorker;
@@ -45,7 +44,6 @@ namespace ENode.EQueue.Commanding
             _commandExecutedMessageConsumer = commandExecutedMessageConsumer ?? new Consumer(DefaultCommandExecutedMessageConsumerId, DefaultCommandExecutedMessageConsumerGroup);
             _domainEventHandledMessageConsumer = domainEventHandledMessageConsumer ?? new Consumer(DefaultDomainEventHandledMessageConsumerId, DefaultDomainEventHandledMessageConsumerGroup);
             _commandTaskDict = new ConcurrentDictionary<string, CommandTaskCompletionSource>();
-            _processTaskDict = new ConcurrentDictionary<string, TaskCompletionSource<ProcessResult>>();
             _commandExecutedMessageLocalQueue = new BlockingCollection<CommandExecutedMessage>(new ConcurrentQueue<CommandExecutedMessage>());
             _domainEventHandledMessageLocalQueue = new BlockingCollection<DomainEventHandledMessage>(new ConcurrentQueue<DomainEventHandledMessage>());
             _commandExecutedMessageWorker = new Worker("ProcessExecutedCommandMessage", () => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
@@ -71,10 +69,6 @@ namespace ENode.EQueue.Commanding
         {
             return _commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource });
         }
-        public bool RegisterProcess(IStartProcessCommand command, TaskCompletionSource<ProcessResult> taskCompletionSource)
-        {
-            return _processTaskDict.TryAdd(command.ProcessId, taskCompletionSource);
-        }
 
         public CommandResultProcessor NotifyCommandSendFailed(ICommand command)
         {
@@ -88,23 +82,6 @@ namespace ENode.EQueue.Commanding
                         command is IAggregateCommand ? ((IAggregateCommand)command).AggregateRootId : null,
                         "CommandSendFailed",
                         "Failed to send the command.",
-                        command.Items));
-            }
-            return this;
-        }
-        public CommandResultProcessor NotifyProcessCommandSendFailed(IStartProcessCommand command)
-        {
-            TaskCompletionSource<ProcessResult> taskCompletionSource;
-            if (_processTaskDict.TryGetValue(command.ProcessId, out taskCompletionSource))
-            {
-                taskCompletionSource.TrySetResult(
-                    new ProcessResult(
-                        command.ProcessId,
-                        command is IAggregateCommand ? ((IAggregateCommand)command).AggregateRootId : null,
-                        ProcessStatus.Failed,
-                        0,
-                        "ProcessCommandSendFailed",
-                        "Failed to send the process command.",
                         command.Items));
             }
             return this;
@@ -189,28 +166,6 @@ namespace ENode.EQueue.Commanding
                     }
                 }
             }
-            if (message.CommandStatus == CommandStatus.Failed && !string.IsNullOrEmpty(message.ProcessId))
-            {
-                TaskCompletionSource<ProcessResult> processTaskCompletionSource;
-                if (_processTaskDict.TryRemove(message.ProcessId, out processTaskCompletionSource))
-                {
-                    processTaskCompletionSource.TrySetResult(
-                        new ProcessResult(
-                            message.ProcessId,
-                            message.AggregateRootId,
-                            ProcessStatus.Failed,
-                            0,
-                            message.ExceptionTypeName,
-                            message.ErrorMessage,
-                            message.Items));
-                    _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, aggregateRootId:{2}, exceptionTypeName:{3}, errorMessage:{4}",
-                        message.ProcessId,
-                        ProcessStatus.Failed,
-                        message.AggregateRootId,
-                        message.ExceptionTypeName,
-                        message.ErrorMessage);
-                }
-            }
         }
         private void ProcessDomainEventHandledMessage(DomainEventHandledMessage message)
         {
@@ -229,46 +184,6 @@ namespace ENode.EQueue.Commanding
                     message.CommandId,
                     CommandStatus.Success,
                     message.AggregateRootId);
-            }
-            if (message.IsProcessCompleted && !string.IsNullOrEmpty(message.ProcessId))
-            {
-                TaskCompletionSource<ProcessResult> processTaskCompletionSource;
-                if (_processTaskDict.TryRemove(message.ProcessId, out processTaskCompletionSource))
-                {
-                    if (message.IsProcessSuccess)
-                    {
-                        processTaskCompletionSource.TrySetResult(
-                            new ProcessResult(
-                                message.ProcessId,
-                                message.AggregateRootId,
-                                ProcessStatus.Success,
-                                0,
-                                null,
-                                null,
-                                message.Items));
-                        _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, aggregateRootId:{2}",
-                            message.ProcessId,
-                            ProcessStatus.Success,
-                            message.AggregateRootId);
-                    }
-                    else
-                    {
-                        processTaskCompletionSource.TrySetResult(
-                            new ProcessResult(
-                                message.ProcessId,
-                                message.AggregateRootId,
-                                ProcessStatus.Failed,
-                                message.ErrorCode,
-                                null,
-                                null,
-                                message.Items));
-                        _logger.DebugFormat("Process result setted, processId:{0}, processStatus:{1}, errorCode:{2}, aggregateRootId:{3}",
-                            message.ProcessId,
-                            ProcessStatus.Failed,
-                            message.ErrorCode,
-                            message.AggregateRootId);
-                    }
-                }
             }
         }
 

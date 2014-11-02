@@ -6,7 +6,6 @@ namespace ENode.Exceptions
     public class PublishableException : Exception
     {
         public string UniqueId { get; set; }
-        public string ProcessId { get; set; }
 
         public PublishableException()
         {

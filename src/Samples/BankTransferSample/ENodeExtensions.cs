@@ -42,7 +42,6 @@ namespace BankTransferSample
             _exceptionPublisher = new ExceptionPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
-            configuration.SetDefault<IProcessCommandSender, CommandService>(_commandService);
             configuration.SetDefault<IMessagePublisher<EventStream>, EventPublisher>(_eventPublisher);
             configuration.SetDefault<IMessagePublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
             configuration.SetDefault<IMessagePublisher<IPublishableException>, ExceptionPublisher>(_exceptionPublisher);

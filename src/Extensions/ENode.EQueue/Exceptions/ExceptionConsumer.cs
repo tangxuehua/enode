@@ -62,7 +62,6 @@ namespace ENode.EQueue
             var exceptionType = _exceptionTypeCodeProvider.GetType(exceptionMessage.ExceptionTypeCode);
             var exception = FormatterServices.GetUninitializedObject(exceptionType) as IPublishableException;
             exception.UniqueId = exceptionMessage.UniqueId;
-            exception.ProcessId = exceptionMessage.ProcessId;
             exception.RestoreFrom(exceptionMessage.SerializableInfo);
             _exceptionProcessor.Process(exception, new ExceptionProcessContext(message, context, EventProcessedCallback));
         }
