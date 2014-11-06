@@ -2,11 +2,12 @@
 {
     /// <summary>Represents a context environment for processing message.
     /// </summary>
-    public interface IMessageProcessContext<TMessage> where TMessage : class
+    public interface IMessageProcessContext<TMessage, TResult> where TMessage : class
     {
         /// <summary>Notify the given message has been processed.
         /// </summary>
         /// <param name="message">The processed message.</param>
-        void OnMessageProcessed(TMessage message);
+        /// <param name="result">The message process result.</param>
+        void OnMessageProcessed(TMessage message, TResult result);
     }
 }

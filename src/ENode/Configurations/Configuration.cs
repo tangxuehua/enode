@@ -16,6 +16,7 @@ using ENode.Eventing.Impl.SQL;
 using ENode.Exceptions;
 using ENode.Exceptions.Impl;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using ENode.Infrastructure.Impl.SQL;
 using ENode.Snapshoting;
 using ENode.Snapshoting.Impl;
@@ -77,6 +78,13 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
+            _configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, DefaultTypeCodeProvider<IAggregateRoot>>();
+            _configuration.SetDefault<ITypeCodeProvider<ICommand>, DefaultTypeCodeProvider<ICommand>>();
+            _configuration.SetDefault<ITypeCodeProvider<IEventHandler>, DefaultTypeCodeProvider<IEventHandler>>();
+            _configuration.SetDefault<ITypeCodeProvider<IEvent>, DefaultTypeCodeProvider<IEvent>>();
+            _configuration.SetDefault<ITypeCodeProvider<IExceptionHandler>, DefaultTypeCodeProvider<IExceptionHandler>>();
+            _configuration.SetDefault<ITypeCodeProvider<IPublishableException>, DefaultTypeCodeProvider<IPublishableException>>();
+
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
             _configuration.SetDefault<IMessageHandlerProvider<ICommandHandler>, DefaultCommandHandlerProvider>();
             _configuration.SetDefault<IMessageHandlerProvider<IEventHandler>, DefaultEventHandlerProvider>();
@@ -109,11 +117,14 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
-            _configuration.SetDefault<IMessageProcessor<IEventStream>, DefaultEventProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IEvent, bool>, DefaultEventProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IEventStream, bool>, DefaultEventProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IDomainEventStream, bool>, DefaultEventProcessor>();
+            _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
             _configuration.SetDefault<IMessagePublisher<EventStream>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IMessagePublisher<DomainEventStream>, NotImplementedEventPublisher>();
 
-            _configuration.SetDefault<IMessageProcessor<IPublishableException>, DefaultExceptionProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IPublishableException, bool>, DefaultExceptionProcessor>();
             _configuration.SetDefault<IMessagePublisher<IPublishableException>, NotImplementedExceptionPublisher>();
 
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
@@ -204,11 +215,24 @@ namespace ENode.Configurations
         /// <summary>Start enode.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration StartENode()
+        public ENodeConfiguration StartENode(NodeType nodeType)
         {
-            ObjectContainer.Resolve<IRetryCommandService>().Start();
-            ObjectContainer.Resolve<IWaitingCommandService>().Start();
-            ObjectContainer.Resolve<IEventService>().Start();
+            if (((int)NodeType.CommandProcessor & (int)nodeType) == (int)NodeType.CommandProcessor)
+            {
+                ObjectContainer.Resolve<IRetryCommandService>().Start();
+                ObjectContainer.Resolve<IWaitingCommandService>().Start();
+                ObjectContainer.Resolve<IEventService>().Start();
+            }
+            if (((int)NodeType.EventProcessor & (int)nodeType) == (int)NodeType.EventProcessor)
+            {
+                ObjectContainer.Resolve<IMessageProcessor<IDomainEventStream, bool>>().Start();
+                ObjectContainer.Resolve<IMessageProcessor<IEventStream, bool>>().Start();
+                ObjectContainer.Resolve<IMessageProcessor<IEvent, bool>>().Start();
+            }
+            if (((int)NodeType.ExceptionProcessor & (int)nodeType) == (int)NodeType.ExceptionProcessor)
+            {
+                ObjectContainer.Resolve<IMessageProcessor<IPublishableException, bool>>().Start();
+            }
             return this;
         }
 
@@ -250,6 +274,12 @@ namespace ENode.Configurations
         }
 
         #endregion
+    }
+    public enum NodeType
+    {
+        CommandProcessor = 1,
+        EventProcessor = 2,
+        ExceptionProcessor = 4
     }
 
     public static class ConfigurationExtensions

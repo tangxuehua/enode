@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using ECommon.Components;
 
-namespace ENode.Infrastructure
+namespace ENode.Infrastructure.Impl
 {
     public abstract class BaseHandlerProvider<TMessageHandlerInterface> : IMessageHandlerProvider<TMessageHandlerInterface>, IAssemblyInitializer
         where TMessageHandlerInterface : class, IMessageHandler

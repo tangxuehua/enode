@@ -1,6 +1,5 @@
 ﻿using ENode.Commanding;
 using ENode.Domain;
-using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {

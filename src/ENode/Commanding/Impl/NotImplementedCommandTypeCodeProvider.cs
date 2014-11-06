@@ -1,8 +1,9 @@
 ﻿using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 
 namespace ENode.Commanding.Impl
 {
-    public class NotImplementedCommandTypeCodeProvider : AbstractTypeCodeProvider<ICommand>, ITypeCodeProvider<ICommand>
+    public class NotImplementedCommandTypeCodeProvider : DefaultTypeCodeProvider<ICommand>, ITypeCodeProvider<ICommand>
     {
     }
 }

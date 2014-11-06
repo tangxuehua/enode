@@ -1,12 +1,12 @@
 ﻿using BankTransferSample.Domain;
 using ECommon.Components;
 using ENode.Domain;
-using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 
 namespace BankTransferSample.Providers
 {
     [Component]
-    public class AggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>
+    public class AggregateRootTypeCodeProvider : DefaultTypeCodeProvider<IAggregateRoot>
     {
         public AggregateRootTypeCodeProvider()
         {

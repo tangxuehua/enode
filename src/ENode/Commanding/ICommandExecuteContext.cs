@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 namespace ENode.Commanding
 {
     /// <summary>Represents a context environment for command executor executing command.

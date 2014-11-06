@@ -1,12 +1,10 @@
 ﻿using System.Linq;
 using System.Threading;
-using BankTransferSample.Providers;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Configurations;
-using ENode.Domain;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
@@ -25,8 +23,8 @@ namespace BankTransferSample
         private static CommandConsumer _commandConsumer;
         private static EventPublisher _eventPublisher;
         private static EventConsumer _eventConsumer;
-        private static ExceptionPublisher _exceptionPublisher;
-        private static ExceptionConsumer _exceptionConsumer;
+        private static PublishableExceptionPublisher _exceptionPublisher;
+        private static PublishableExceptionConsumer _exceptionConsumer;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
@@ -39,16 +37,16 @@ namespace BankTransferSample
             _commandResultProcessor = new CommandResultProcessor();
             _commandService = new CommandService(_commandResultProcessor);
             _eventPublisher = new EventPublisher();
-            _exceptionPublisher = new ExceptionPublisher();
+            _exceptionPublisher = new PublishableExceptionPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IMessagePublisher<EventStream>, EventPublisher>(_eventPublisher);
             configuration.SetDefault<IMessagePublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
-            configuration.SetDefault<IMessagePublisher<IPublishableException>, ExceptionPublisher>(_exceptionPublisher);
+            configuration.SetDefault<IMessagePublisher<IPublishableException>, PublishableExceptionPublisher>(_exceptionPublisher);
 
             _commandConsumer = new CommandConsumer();
             _eventConsumer = new EventConsumer();
-            _exceptionConsumer = new ExceptionConsumer();
+            _exceptionConsumer = new PublishableExceptionConsumer();
 
             _commandConsumer.Subscribe("BankTransferCommandTopic");
             _eventConsumer.Subscribe("BankTransferEventTopic");

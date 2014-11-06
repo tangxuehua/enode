@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace ENode.Commanding
 {
     /// <summary>Represents a service which manages all the waiting command.

@@ -85,6 +85,7 @@
     <Compile Include="Eventing\EventStream.cs" />
     <Compile Include="Eventing\IDomainEventStream.cs" />
     <Compile Include="Eventing\IEvent.cs" />
+    <Compile Include="Eventing\IEventPublisher.cs" />
     <Compile Include="Eventing\IEventStream.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\IEventContext.cs" />
@@ -102,8 +103,10 @@
     <Compile Include="Exceptions\Impl\PublishableException.cs" />
     <Compile Include="Exceptions\Impl\NotImplementedExceptionHandlerTypeCodeProvider.cs" />
     <Compile Include="Exceptions\Impl\NotImplementedExceptionPublisher.cs" />
+    <Compile Include="Infrastructure\Impl\ProcessingContext.cs" />
     <Compile Include="Infrastructure\IOException.cs" />
     <Compile Include="Infrastructure\Impl\BaseHandlerProvider.cs" />
+    <Compile Include="Infrastructure\IProcessingContext.cs" />
     <Compile Include="Infrastructure\MessageHandlerWrapper.cs" />
     <Compile Include="Infrastructure\IMessageHandlerProvider.cs" />
     <Compile Include="Infrastructure\IMessageHandler.cs" />
@@ -135,7 +138,7 @@
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventHandleInfoStore.cs" />
     <Compile Include="Eventing\IEventPublishInfoStore.cs" />
     <Compile Include="Eventing\IEventHandleInfoStore.cs" />
-    <Compile Include="Infrastructure\AbstractTypeCodeProvider.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Commanding\IRetryCommandService.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />

@@ -1,5 +1,4 @@
 ﻿using System;
-using BankTransferSample.Domain;
 
 namespace BankTransferSample.Exceptions
 {

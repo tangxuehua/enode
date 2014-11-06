@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace ENode.Eventing
 {
     /// <summary>Represents a in-memory cache to store the event handle information of aggregate.

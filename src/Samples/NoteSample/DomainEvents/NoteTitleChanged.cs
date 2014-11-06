@@ -1,6 +1,5 @@
 ﻿using System;
 using ENode.Eventing;
-using NoteSample.Domain;
 
 namespace NoteSample.DomainEvents
 {

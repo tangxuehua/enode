@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Threading;
-using DistributeSample.CommandProducer.Providers;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
@@ -8,7 +7,6 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
-using ENode.Infrastructure;
 using EQueue.Configurations;
 
 namespace DistributeSample.CommandProducer.EQueueIntegrations

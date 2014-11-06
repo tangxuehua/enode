@@ -1,13 +1,10 @@
 ﻿using System.Linq;
 using System.Threading;
-using DistributeSample.EventProcessor.Providers;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Configurations;
 using ENode.EQueue;
-using ENode.Eventing;
-using ENode.Infrastructure;
 using EQueue.Configurations;
 
 namespace DistributeSample.EventProcessor.EQueueIntegrations

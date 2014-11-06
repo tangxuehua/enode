@@ -1,5 +1,4 @@
 ﻿using System;
-using ECommon.Utilities;
 using ENode.Commanding;
 
 namespace BankTransferSample.Commands

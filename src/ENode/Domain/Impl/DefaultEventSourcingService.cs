@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using ENode.Eventing;
-using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {

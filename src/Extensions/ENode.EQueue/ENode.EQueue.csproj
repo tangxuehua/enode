@@ -53,9 +53,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Exceptions\ExceptionMessage.cs" />
-    <Compile Include="Exceptions\ExceptionConsumer.cs" />
-    <Compile Include="Exceptions\ExceptionPublisher.cs" />
+    <Compile Include="Eventing\EventMessage.cs" />
+    <Compile Include="PublishableExceptions\PublishableExceptionMessage.cs" />
+    <Compile Include="PublishableExceptions\PublishableExceptionConsumer.cs" />
+    <Compile Include="PublishableExceptions\PublishableExceptionPublisher.cs" />
+    <Compile Include="MessageProcessContext.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="MessageTypeCode.cs" />
     <Compile Include="AbstractTopicProvider.cs" />
     <Compile Include="Commanding\CommandConsumer.cs" />
@@ -64,10 +67,10 @@
     <Compile Include="Commanding\CommandExecutedMessage.cs" />
     <Compile Include="Commanding\CommandResultProcessor.cs" />
     <Compile Include="Commanding\CommandExecutedMessageSender.cs" />
-    <Compile Include="Eventing\EventMessage.cs" />
+    <Compile Include="Eventing\EventStreamMessage.cs" />
     <Compile Include="Eventing\EventConsumer.cs" />
     <Compile Include="Eventing\EventPublisher.cs" />
-    <Compile Include="Eventing\DomainEventMessage.cs" />
+    <Compile Include="Eventing\DomainEventStreamMessage.cs" />
     <Compile Include="Eventing\DomainEventHandledMessageSender.cs" />
     <Compile Include="Commanding\CommandService.cs" />
     <Compile Include="ITopicProvider.cs" />

@@ -1,12 +1,12 @@
 ﻿using ECommon.Components;
 using ENode.Eventing;
-using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using NoteSample.DomainEvents;
 
 namespace NoteSample.Providers
 {
     [Component]
-    public class EventTypeCodeProvider : AbstractTypeCodeProvider<IEvent>
+    public class EventTypeCodeProvider : DefaultTypeCodeProvider<IEvent>
     {
         public EventTypeCodeProvider()
         {

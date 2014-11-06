@@ -1,12 +1,12 @@
 ﻿using BankTransferSample.DomainEvents;
 using ECommon.Components;
 using ENode.Eventing;
-using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 
 namespace BankTransferSample.Providers
 {
     [Component]
-    public class EventTypeCodeProvider : AbstractTypeCodeProvider<IEvent>
+    public class EventTypeCodeProvider : DefaultTypeCodeProvider<IEvent>
     {
         public EventTypeCodeProvider()
         {

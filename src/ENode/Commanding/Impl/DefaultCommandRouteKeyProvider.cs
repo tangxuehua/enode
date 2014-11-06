@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace ENode.Commanding.Impl
 {
     public class DefaultCommandRouteKeyProvider : ICommandRouteKeyProvider

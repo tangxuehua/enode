@@ -5,7 +5,7 @@ using ENode.Eventing;
 namespace ENode.EQueue
 {
     [Serializable]
-    public class DomainEventMessage : EventMessage
+    public class DomainEventStreamMessage : EventStreamMessage
     {
         public string AggregateRootId { get; set; }
         public int AggregateRootTypeCode { get; set; }
@@ -13,7 +13,7 @@ namespace ENode.EQueue
         public DateTime Timestamp { get; set; }
         public IEnumerable<IDomainEvent> DomainEvents { get; set; }
 
-        public DomainEventMessage()
+        public DomainEventStreamMessage()
         {
             Events = new List<IDomainEvent>();
         }

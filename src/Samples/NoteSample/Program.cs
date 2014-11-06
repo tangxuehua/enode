@@ -56,7 +56,7 @@ namespace NoteSample
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode()
+                .StartENode(NodeType.CommandProcessor | NodeType.EventProcessor)
                 .StartEQueue();
 
             Console.WriteLine(string.Empty);

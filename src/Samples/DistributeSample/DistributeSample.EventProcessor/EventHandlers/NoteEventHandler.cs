@@ -1,5 +1,4 @@
-﻿using System;
-using DistributeSample.Events;
+﻿using DistributeSample.Events;
 using ECommon.Components;
 using ECommon.Logging;
 using ENode.Eventing;

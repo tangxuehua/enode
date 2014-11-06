@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using ECommon.Utilities;
-using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {

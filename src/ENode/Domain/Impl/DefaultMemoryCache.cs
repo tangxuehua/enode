@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using ECommon.Serializing;
 
 namespace ENode.Domain.Impl
 {

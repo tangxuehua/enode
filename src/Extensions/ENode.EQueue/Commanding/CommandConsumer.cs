@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -73,65 +72,59 @@ namespace ENode.EQueue
             command.Items["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
             command.Items["SourceEventId"] = commandMessage.SourceEventId;
             command.Items["SourceExceptionId"] = commandMessage.SourceExceptionId;
-            _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, context, commandMessage, CommandExecutedCallback)));
-        }
-
-        private void CommandExecutedCallback(ICommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage, CommandExecuteContext commandExecuteContext)
-        {
-            commandExecuteContext.MessageContext.OnMessageHandled(commandExecuteContext.QueueMessage);
-
-            if (string.IsNullOrEmpty(commandExecuteContext.CommandMessage.CommandExecutedMessageTopic))
-            {
-                return;
-            }
-
-            _commandExecutedMessageSender.Send(new CommandExecutedMessage
-            {
-                CommandId = command.Id,
-                AggregateRootId = aggregateRootId,
-                CommandStatus = commandStatus,
-                ExceptionTypeName = exceptionTypeName,
-                ErrorMessage = errorMessage,
-                Items = command.Items ?? new Dictionary<string, string>()
-            }, commandExecuteContext.CommandMessage.CommandExecutedMessageTopic);
+            _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, context, commandMessage, _commandExecutedMessageSender)));
         }
 
         class CommandExecuteContext : ICommandExecuteContext
         {
+            private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRoots;
             private readonly ConcurrentDictionary<string, IEvent> _events;
-            private readonly ConcurrentDictionary<string, IAggregateRoot> _trackingAggregateRoots;
             private readonly IRepository _repository;
-
-            public Action<ICommand, CommandStatus, string, string, string, CommandExecuteContext> CommandExecutedAction { get; private set; }
-            public QueueMessage QueueMessage { get; private set; }
-            public IMessageContext MessageContext { get; private set; }
-            public CommandMessage CommandMessage { get; private set; }
-
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, Action<ICommand, CommandStatus, string, string, string, CommandExecuteContext> commandExecutedAction)
-            {
-                _events = new ConcurrentDictionary<string, IEvent>();
-                _trackingAggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
-                _repository = repository;
-                QueueMessage = queueMessage;
-                CommandMessage = commandMessage;
-                MessageContext = messageContext;
-                CheckCommandWaiting = true;
-                CommandExecutedAction = commandExecutedAction;
-            }
+            private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
+            private readonly QueueMessage _queueMessage;
+            private readonly IMessageContext _messageContext;
+            private readonly CommandMessage _commandMessage;
 
             public bool CheckCommandWaiting { get; set; }
-            public void OnCommandExecuted(ICommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage)
+
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, CommandExecutedMessageSender commandExecutedMessageSender)
             {
-                CommandExecutedAction(command, commandStatus, aggregateRootId, exceptionTypeName, errorMessage, this);
+                _aggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
+                _events = new ConcurrentDictionary<string, IEvent>();
+                _repository = repository;
+                _commandExecutedMessageSender = commandExecutedMessageSender;
+                _queueMessage = queueMessage;
+                _commandMessage = commandMessage;
+                _messageContext = messageContext;
+                CheckCommandWaiting = true;
             }
 
+            public void OnCommandExecuted(ICommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage)
+            {
+                _messageContext.OnMessageHandled(_queueMessage);
+
+                if (string.IsNullOrEmpty(_commandMessage.CommandExecutedMessageTopic))
+                {
+                    return;
+                }
+
+                _commandExecutedMessageSender.Send(new CommandExecutedMessage
+                {
+                    CommandId = command.Id,
+                    AggregateRootId = aggregateRootId,
+                    CommandStatus = commandStatus,
+                    ExceptionTypeName = exceptionTypeName,
+                    ErrorMessage = errorMessage,
+                    Items = command.Items ?? new Dictionary<string, string>()
+                }, _commandMessage.CommandExecutedMessageTopic);
+            }
             public void Add(IAggregateRoot aggregateRoot)
             {
                 if (aggregateRoot == null)
                 {
                     throw new ArgumentNullException("aggregateRoot");
                 }
-                if (!_trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot))
+                if (!_aggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot))
                 {
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
@@ -144,7 +137,7 @@ namespace ENode.EQueue
                 }
 
                 IAggregateRoot aggregateRoot = null;
-                if (_trackingAggregateRoots.TryGetValue(id.ToString(), out aggregateRoot))
+                if (_aggregateRoots.TryGetValue(id.ToString(), out aggregateRoot))
                 {
                     return aggregateRoot as T;
                 }
@@ -153,7 +146,7 @@ namespace ENode.EQueue
 
                 if (aggregateRoot != null)
                 {
-                    _trackingAggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
+                    _aggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
                     return aggregateRoot as T;
                 }
 
@@ -172,7 +165,7 @@ namespace ENode.EQueue
             }
             public IEnumerable<IAggregateRoot> GetTrackedAggregateRoots()
             {
-                return _trackingAggregateRoots.Values;
+                return _aggregateRoots.Values;
             }
             public IEnumerable<IEvent> GetEvents()
             {
@@ -180,7 +173,7 @@ namespace ENode.EQueue
             }
             public void Clear()
             {
-                _trackingAggregateRoots.Clear();
+                _aggregateRoots.Clear();
                 _events.Clear();
             }
         }

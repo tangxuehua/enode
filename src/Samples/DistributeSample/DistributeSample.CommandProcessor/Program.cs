@@ -34,7 +34,7 @@ namespace DistributeSample.CommandProcessor
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode()
+                .StartENode(NodeType.CommandProcessor)
                 .StartEQueue();
 
             ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Command Processor started.");

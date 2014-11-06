@@ -1,5 +1,4 @@
 ﻿using System;
-using BankTransferSample.Domain;
 using ENode.Eventing;
 
 namespace BankTransferSample.DomainEvents

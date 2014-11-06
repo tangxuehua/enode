@@ -9,10 +9,11 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventProcessor : IMessageProcessor<IEventStream>
+    public class DefaultEventProcessor : IMessageProcessor<IDomainEventStream, bool>, IMessageProcessor<IEventStream, bool>, IMessageProcessor<IEvent, bool>
     {
         #region Private Variables
 
@@ -28,8 +29,9 @@ namespace ENode.Eventing.Impl
         private readonly IEventHandleInfoCache _eventHandleInfoCache;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
-        private readonly IList<BlockingCollection<EventProcessingContext>> _queueList;
+        private readonly IList<BlockingCollection<IProcessingContext>> _queueList;
         private readonly IList<Worker> _workerList;
+        private bool _isStarted;
 
         #endregion
 
@@ -50,6 +52,7 @@ namespace ENode.Eventing.Impl
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
+            Name = GetType().Name;
             _eventTypeCodeProvider = eventTypeCodeProvider;
             _eventHandlerTypeCodeProvider = eventHandlerTypeCodeProvider;
             _commandTypeCodeProvider = commandTypeCodeProvider;
@@ -61,14 +64,21 @@ namespace ENode.Eventing.Impl
             _eventHandleInfoCache = eventHandleInfoCache;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
-            _queueList = new List<BlockingCollection<EventProcessingContext>>();
+            _queueList = new List<BlockingCollection<IProcessingContext>>();
             _workerCount = ENodeConfiguration.Instance.Setting.EventProcessorParallelThreadCount;
+            _workerList = new List<Worker>();
             for (var index = 0; index < _workerCount; index++)
             {
-                _queueList.Add(new BlockingCollection<EventProcessingContext>(new ConcurrentQueue<EventProcessingContext>()));
+                _queueList.Add(new BlockingCollection<IProcessingContext>());
             }
+        }
 
-            _workerList = new List<Worker>();
+        #endregion
+
+        public void Start()
+        {
+            if (_isStarted) return;
+
             for (var index = 0; index < _workerCount; index++)
             {
                 var queue = _queueList[index];
@@ -79,15 +89,25 @@ namespace ENode.Eventing.Impl
                 _workerList.Add(worker);
                 worker.Start();
             }
+            _isStarted = true;
+        }
+        public void Process(IDomainEventStream domainEventStream, IMessageProcessContext<IDomainEventStream, bool> context)
+        {
+            QueueProcessingContext(domainEventStream.AggregateRootId, new DomainEventStreamProcessingContext(this, domainEventStream, context));
+        }
+        public void Process(IEventStream eventStream, IMessageProcessContext<IEventStream, bool> context)
+        {
+            QueueProcessingContext(eventStream.CommandId, new EventStreamProcessingContext(this, eventStream, context));
+        }
+        public void Process(IEvent evnt, IMessageProcessContext<IEvent, bool> context)
+        {
+            QueueProcessingContext(evnt.Id, new EventProcessingContext(this, evnt, context));
         }
 
-        #endregion
+        #region Private Methods
 
-        public void Process(IEventStream eventStream, IMessageProcessContext<IEventStream> context)
+        private void QueueProcessingContext(object hashKey, IProcessingContext processingContext)
         {
-            Name = GetType().Name;
-            var processingContext = new EventProcessingContext(eventStream, context);
-            var hashKey = eventStream is IDomainEventStream ? ((IDomainEventStream)eventStream).AggregateRootId : eventStream.CommandId;
             var queueIndex = hashKey.GetHashCode() % _workerCount;
             if (queueIndex < 0)
             {
@@ -95,61 +115,18 @@ namespace ENode.Eventing.Impl
             }
             _queueList[queueIndex].Add(processingContext);
         }
-
-        #region Private Methods
-
-        private void ProcessEvents(EventProcessingContext context)
+        private void ProcessEvents(IProcessingContext context)
         {
-            _actionExecutionService.TryAction(
-                "DispatchEvents",
-                () => DispatchEvents(context),
-                3,
-                new ActionInfo("DispatchEventsCallback", DispatchEventsCallback, context, null));
-        }
-        private bool DispatchEvents(EventProcessingContext context)
-        {
-            var domainEventStream = context.EventStream as IDomainEventStream;
-            if (domainEventStream != null)
-            {
-                var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(Name, domainEventStream.AggregateRootId);
-                if (lastPublishedVersion + 1 == domainEventStream.Version)
-                {
-                    return DispatchEventsToHandlers(domainEventStream);
-                }
-                else if (lastPublishedVersion + 1 < domainEventStream.Version)
-                {
-                    _logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", domainEventStream.AggregateRootId, lastPublishedVersion, domainEventStream.Version);
-                    return false;
-                }
-                return true;
-            }
-            else
-            {
-                return DispatchEventsToHandlers(context.EventStream);
-            }
-        }
-        private bool DispatchEventsCallback(object obj)
-        {
-            var context = obj as EventProcessingContext;
-            var domainEventStream = context.EventStream as IDomainEventStream;
-            if (domainEventStream != null)
-            {
-                UpdatePublishedVersion(domainEventStream);
-            }
-            context.EventProcessContext.OnMessageProcessed(context.EventStream);
-            return true;
+            _actionExecutionService.TryAction(context.ProcessName, context.Process, 3, new ActionInfo(context.ProcessName + "Callback", context.ProcessCallback, null, null));
         }
         private bool DispatchEventsToHandlers(IEventStream eventStream)
         {
             var success = true;
             foreach (var evnt in eventStream.Events)
             {
-                foreach (var handler in _eventHandlerProvider.GetMessageHandlers(evnt.GetType()))
+                if (!DispatchEventToHandlers(evnt))
                 {
-                    if (!DispatchEventToHandler(evnt, handler))
-                    {
-                        success = false;
-                    }
+                    success = false;
                 }
             }
             if (success)
@@ -157,6 +134,18 @@ namespace ENode.Eventing.Impl
                 foreach (var evnt in eventStream.Events)
                 {
                     _eventHandleInfoCache.RemoveEventHandleInfo(evnt.Id);
+                }
+            }
+            return success;
+        }
+        private bool DispatchEventToHandlers(IEvent evnt)
+        {
+            var success = true;
+            foreach (var handler in _eventHandlerProvider.GetMessageHandlers(evnt.GetType()))
+            {
+                if (!DispatchEventToHandler(evnt, handler))
+                {
+                    success = false;
                 }
             }
             return success;
@@ -256,15 +245,69 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        class EventProcessingContext
+        class DomainEventStreamProcessingContext : ProcessingContext<IDomainEventStream, bool>
         {
-            public IEventStream EventStream { get; private set; }
-            public IMessageProcessContext<IEventStream> EventProcessContext { get; private set; }
+            private DefaultEventProcessor _processor;
 
-            public EventProcessingContext(IEventStream eventStream, IMessageProcessContext<IEventStream> eventProcessContext)
+            public DomainEventStreamProcessingContext(DefaultEventProcessor processor, IDomainEventStream domainEventStream, IMessageProcessContext<IDomainEventStream, bool> eventProcessContext)
+                : base("ProcessDomainEventStream", domainEventStream, eventProcessContext)
             {
-                EventStream = eventStream;
-                EventProcessContext = eventProcessContext;
+                _processor = processor;
+            }
+            public override bool Process()
+            {
+                var domainEventStream = Message;
+                var lastPublishedVersion = _processor._eventPublishInfoStore.GetEventPublishedVersion(_processor.Name, domainEventStream.AggregateRootId);
+
+                if (lastPublishedVersion + 1 == domainEventStream.Version)
+                {
+                    return _processor.DispatchEventsToHandlers(domainEventStream);
+                }
+                else if (lastPublishedVersion + 1 < domainEventStream.Version)
+                {
+                    _processor._logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", domainEventStream.AggregateRootId, lastPublishedVersion, domainEventStream.Version);
+                    return false;
+                }
+
+                return true;
+            }
+            public override bool ProcessCallback(object obj)
+            {
+                _processor.UpdatePublishedVersion(Message);
+                return base.ProcessCallback(obj);
+            }
+        }
+        class EventStreamProcessingContext : ProcessingContext<IEventStream, bool>
+        {
+            private DefaultEventProcessor _processor;
+
+            public EventStreamProcessingContext(DefaultEventProcessor processor, IEventStream eventStream, IMessageProcessContext<IEventStream, bool> eventProcessContext)
+                : base("ProcessEventStream", eventStream, eventProcessContext)
+            {
+                _processor = processor;
+            }
+            public override bool Process()
+            {
+                return _processor.DispatchEventsToHandlers(Message);
+            }
+        }
+        class EventProcessingContext : ProcessingContext<IEvent, bool>
+        {
+            private DefaultEventProcessor _processor;
+
+            public EventProcessingContext(DefaultEventProcessor processor, IEvent evnt, IMessageProcessContext<IEvent, bool> eventProcessContext)
+                : base("ProcessEvent", evnt, eventProcessContext)
+            {
+                _processor = processor;
+            }
+            public override bool Process()
+            {
+                var success = _processor.DispatchEventToHandlers(Message);
+                if (success)
+                {
+                    _processor._eventHandleInfoCache.RemoveEventHandleInfo(Message.Id);
+                }
+                return success;
             }
         }
         class EventContext : IEventContext

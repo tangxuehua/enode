@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ECommon.Components;
 using ENode.Eventing;
-using ENode.Infrastructure;
 
 namespace ENode.Domain
 {

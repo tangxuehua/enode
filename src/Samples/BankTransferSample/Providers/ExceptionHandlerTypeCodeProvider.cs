@@ -1,14 +1,13 @@
 ﻿using BankTransferSample.EventHandlers;
 using BankTransferSample.ProcessManagers;
 using ECommon.Components;
-using ENode.Eventing;
 using ENode.Exceptions;
-using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 
 namespace BankTransferSample.Providers
 {
     [Component]
-    public class ExceptionHandlerTypeCodeProvider : AbstractTypeCodeProvider<IExceptionHandler>
+    public class ExceptionHandlerTypeCodeProvider : DefaultTypeCodeProvider<IExceptionHandler>
     {
         public ExceptionHandlerTypeCodeProvider()
         {

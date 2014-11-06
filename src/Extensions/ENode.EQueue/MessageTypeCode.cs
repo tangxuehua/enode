@@ -4,9 +4,10 @@
     {
         CommandMessage = 1,
         CommandExecutedMessage = 2,
-        EventMessage = 3,
-        DomainEventMessage = 4,
+        EventStreamMessage = 3,
+        DomainEventStreamMessage = 4,
         DomainEventHandledMessage = 5,
         ExceptionMessage = 6,
+        EventMessage = 7,
     }
 }

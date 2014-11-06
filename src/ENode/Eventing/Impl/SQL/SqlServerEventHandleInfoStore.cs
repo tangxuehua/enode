@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data.SqlClient;
+﻿using System.Data.SqlClient;
 using ECommon.Dapper;
 using ECommon.Utilities;
 using ENode.Configurations;

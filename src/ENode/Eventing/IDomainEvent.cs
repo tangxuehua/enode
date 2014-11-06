@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace ENode.Eventing
 {
     /// <summary>Represents a domain event.

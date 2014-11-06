@@ -11,7 +11,7 @@ using EQueue.Protocols;
 
 namespace ENode.EQueue
 {
-    public class ExceptionPublisher : IMessagePublisher<IPublishableException>
+    public class PublishableExceptionPublisher : IMessagePublisher<IPublishableException>
     {
         private const string DefaultExceptionPublisherProcuderId = "ExceptionPublisher";
         private readonly ILogger _logger;
@@ -22,7 +22,7 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public ExceptionPublisher(string id = null, ProducerSetting setting = null)
+        public PublishableExceptionPublisher(string id = null, ProducerSetting setting = null)
         {
             _producer = new Producer(id ?? DefaultExceptionPublisherProcuderId, setting ?? new ProducerSetting());
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
@@ -31,12 +31,12 @@ namespace ENode.EQueue
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
-        public ExceptionPublisher Start()
+        public PublishableExceptionPublisher Start()
         {
             _producer.Start();
             return this;
         }
-        public ExceptionPublisher Shutdown()
+        public PublishableExceptionPublisher Shutdown()
         {
             _producer.Shutdown();
             return this;
@@ -48,7 +48,7 @@ namespace ENode.EQueue
             var topic = _exceptionTopicProvider.GetTopic(exception);
             var serializableInfo = new Dictionary<string, string>();
             exception.SerializeTo(serializableInfo);
-            var exceptionMessage = new ExceptionMessage
+            var exceptionMessage = new PublishableExceptionMessage
             {
                 UniqueId = exception.UniqueId,
                 ExceptionTypeCode = exceptionTypeCode,

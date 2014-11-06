@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace ENode.EQueue
 {
     [Serializable]
-    public class ExceptionMessage
+    public class PublishableExceptionMessage
     {
         public string UniqueId { get; set; }
         public int ExceptionTypeCode { get; set; }

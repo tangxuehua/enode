@@ -7,7 +7,6 @@ using ECommon.Logging;
 using ECommon.Scheduling;
 using ECommon.Serializing;
 using ENode.Commanding;
-using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;

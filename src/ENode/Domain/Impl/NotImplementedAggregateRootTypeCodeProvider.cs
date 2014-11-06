@@ -1,8 +1,9 @@
 ﻿using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 
 namespace ENode.Domain.Impl
 {
-    public class NotImplementedAggregateRootTypeCodeProvider : AbstractTypeCodeProvider<IAggregateRoot>, ITypeCodeProvider<IAggregateRoot>
+    public class NotImplementedAggregateRootTypeCodeProvider : DefaultTypeCodeProvider<IAggregateRoot>, ITypeCodeProvider<IAggregateRoot>
     {
     }
 }

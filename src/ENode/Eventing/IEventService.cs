@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using ENode.Commanding;
+﻿using ENode.Commanding;
 
 namespace ENode.Eventing
 {

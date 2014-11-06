@@ -9,10 +9,11 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 
 namespace ENode.Exceptions.Impl
 {
-    public class DefaultExceptionProcessor : IMessageProcessor<IPublishableException>
+    public class DefaultExceptionProcessor : IMessageProcessor<IPublishableException, bool>
     {
         #region Private Variables
 
@@ -24,8 +25,9 @@ namespace ENode.Exceptions.Impl
         private readonly IRepository _repository;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
-        private readonly IList<BlockingCollection<ExceptionProcessingContext>> _queueList;
+        private readonly IList<BlockingCollection<IProcessingContext>> _queueList;
         private readonly IList<Worker> _workerList;
+        private bool _isStarted;
 
         #endregion
 
@@ -50,14 +52,21 @@ namespace ENode.Exceptions.Impl
             _repository = repository;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
-            _queueList = new List<BlockingCollection<ExceptionProcessingContext>>();
+            _queueList = new List<BlockingCollection<IProcessingContext>>();
             _workerCount = ENodeConfiguration.Instance.Setting.ExceptionProcessorParallelThreadCount;
+            _workerList = new List<Worker>();
             for (var index = 0; index < _workerCount; index++)
             {
-                _queueList.Add(new BlockingCollection<ExceptionProcessingContext>(new ConcurrentQueue<ExceptionProcessingContext>()));
+                _queueList.Add(new BlockingCollection<IProcessingContext>());
             }
+        }
 
-            _workerList = new List<Worker>();
+        #endregion
+
+        public void Start()
+        {
+            if (_isStarted) return;
+
             for (var index = 0; index < _workerCount; index++)
             {
                 var queue = _queueList[index];
@@ -68,51 +77,27 @@ namespace ENode.Exceptions.Impl
                 _workerList.Add(worker);
                 worker.Start();
             }
+            _isStarted = true;
+        }
+        public void Process(IPublishableException publishableException, IMessageProcessContext<IPublishableException, bool> context)
+        {
+            QueueProcessingContext(publishableException.UniqueId, new PublishableExceptionProcessingContext(this, publishableException, context));
         }
 
-        #endregion
+        #region Private Methods
 
-        public void Process(IPublishableException exception, IMessageProcessContext<IPublishableException> context)
+        private void QueueProcessingContext(object hashKey, IProcessingContext processingContext)
         {
-            var processingContext = new ExceptionProcessingContext(exception, context);
-            var queueIndex = processingContext.Exception.UniqueId.GetHashCode() % _workerCount;
+            var queueIndex = hashKey.GetHashCode() % _workerCount;
             if (queueIndex < 0)
             {
                 queueIndex = Math.Abs(queueIndex);
             }
             _queueList[queueIndex].Add(processingContext);
         }
-
-        #region Private Methods
-
-        private void ProcessException(ExceptionProcessingContext context)
+        private void ProcessException(IProcessingContext context)
         {
-            _actionExecutionService.TryAction(
-                "DispatchException",
-                () => DispatchException(context),
-                3,
-                new ActionInfo("DispatchExceptionCallback", DispatchExceptionCallback, context, null));
-        }
-        private bool DispatchException(ExceptionProcessingContext context)
-        {
-            var exception = context.Exception;
-            var success = true;
-
-            foreach (var exceptionHandler in _exceptionHandlerProvider.GetMessageHandlers(exception.GetType()))
-            {
-                if (!DispatchExceptionToHandler(context.Exception, exceptionHandler))
-                {
-                    success = false;
-                }
-            }
-
-            return success;
-        }
-        private bool DispatchExceptionCallback(object obj)
-        {
-            var processingContext = obj as ExceptionProcessingContext;
-            processingContext.Context.OnMessageProcessed(processingContext.Exception);
-            return true;
+            _actionExecutionService.TryAction(context.ProcessName, context.Process, 3, new ActionInfo(context.ProcessName + "Callback", context.ProcessCallback, null, null));
         }
         private bool DispatchExceptionToHandler(IPublishableException exception, IExceptionHandler exceptionHandler)
         {
@@ -160,15 +145,29 @@ namespace ENode.Exceptions.Impl
 
         #endregion
 
-        class ExceptionProcessingContext
+        class PublishableExceptionProcessingContext : ProcessingContext<IPublishableException, bool>
         {
-            public IPublishableException Exception { get; private set; }
-            public IMessageProcessContext<IPublishableException> Context { get; private set; }
+            private DefaultExceptionProcessor _processor;
 
-            public ExceptionProcessingContext(IPublishableException exception, IMessageProcessContext<IPublishableException> context)
+            public PublishableExceptionProcessingContext(DefaultExceptionProcessor processor, IPublishableException publishableException, IMessageProcessContext<IPublishableException, bool> exceptionProcessContext)
+                : base("ProcessPublishableException", publishableException, exceptionProcessContext)
             {
-                Exception = exception;
-                Context = context;
+                _processor = processor;
+            }
+            public override bool Process()
+            {
+                var publishableException = Message;
+                var success = true;
+
+                foreach (var exceptionHandler in _processor._exceptionHandlerProvider.GetMessageHandlers(publishableException.GetType()))
+                {
+                    if (!_processor.DispatchExceptionToHandler(publishableException, exceptionHandler))
+                    {
+                        success = false;
+                    }
+                }
+
+                return success;
             }
         }
         class ExceptionHandlingContext : IExceptionHandlingContext

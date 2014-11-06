@@ -2,7 +2,6 @@
 using BankTransferSample.Domain;
 using BankTransferSample.DomainEvents;
 using ECommon.Components;
-using ENode.Commanding;
 using ENode.Eventing;
 
 namespace BankTransferSample.ProcessManagers
