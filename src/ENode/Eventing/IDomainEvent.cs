@@ -1,4 +1,5 @@
-﻿
+﻿using System;
+
 namespace ENode.Eventing
 {
     /// <summary>Represents a domain event.
@@ -11,5 +12,8 @@ namespace ENode.Eventing
         /// <summary>Represents the version of the domain event.
         /// </summary>
         int Version { get; set; }
+        /// <summary>Represents the occurred time of the domain event.
+        /// </summary>
+        DateTime Timestamp { get; set; }
     }
 }

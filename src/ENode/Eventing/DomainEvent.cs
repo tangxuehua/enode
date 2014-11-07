@@ -34,6 +34,9 @@ namespace ENode.Eventing
                 return _version == null ? -1 : _version.Value;
             }
         }
+        /// <summary>Represents the occurred time of the domain event.
+        /// </summary>
+        public DateTime Timestamp { get; private set; }
 
         string IDomainEvent.AggregateRootId
         {
@@ -55,6 +58,17 @@ namespace ENode.Eventing
             set
             {
                 _version = value;
+            }
+        }
+        DateTime IDomainEvent.Timestamp
+        {
+            get
+            {
+                return this.Timestamp;
+            }
+            set
+            {
+                Timestamp = value;
             }
         }
     }
