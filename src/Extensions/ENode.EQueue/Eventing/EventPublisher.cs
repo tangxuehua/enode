@@ -45,10 +45,18 @@ namespace ENode.EQueue
             var topic = _eventTopicProvider.GetTopic(evnt);
             var data = _binarySerializer.Serialize(eventMessage);
             var message = new Message(topic, (int)MessageTypeCode.EventMessage, data);
-            var result = _producer.Send(message, evnt.Id);
+            var result = _producer.Send(message, evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id);
             if (result.SendStatus != SendStatus.Success)
             {
-                throw new Exception(string.Format("Publish event failed, event:[id:{0},type:{1}]", evnt.Id, evnt.GetType().FullName));
+                var domainEvent = evnt as IDomainEvent;
+                if (domainEvent != null)
+                {
+                    throw new Exception(string.Format("Publish domain event failed, event:[id:{0},type:{1},aggregateRootId:{2},version:{3}]", domainEvent.Id, domainEvent.GetType().FullName, domainEvent.AggregateRootId, domainEvent.Version));
+                }
+                else
+                {
+                    throw new Exception(string.Format("Publish event failed, event:[id:{0},type:{1}]", evnt.Id, evnt.GetType().FullName));
+                }
             }
         }
         public void Publish(DomainEventStream eventStream)
