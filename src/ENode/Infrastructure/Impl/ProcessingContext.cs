@@ -1,12 +1,12 @@
 ﻿namespace ENode.Infrastructure.Impl
 {
-    public abstract class ProcessingContext<TMessage, TResult> : IProcessingContext where TMessage : class
+    public abstract class ProcessingContext<TMessage> : IProcessingContext where TMessage : class
     {
         public string ProcessName { get; private set; }
         public TMessage Message { get; private set; }
-        public IMessageProcessContext<TMessage, TResult> MessageProcessContext { get; private set; }
+        public IMessageProcessContext<TMessage> MessageProcessContext { get; private set; }
 
-        public ProcessingContext(string processName, TMessage message, IMessageProcessContext<TMessage, TResult> messageProcessContext)
+        public ProcessingContext(string processName, TMessage message, IMessageProcessContext<TMessage> messageProcessContext)
         {
             ProcessName = processName;
             Message = message;
@@ -14,10 +14,14 @@
         }
 
         public abstract bool Process();
-        public virtual bool ProcessCallback(object obj)
+        public bool ProcessCallback(object obj)
         {
-            MessageProcessContext.OnMessageProcessed(Message, default(TResult));
+            OnMessageProcessed();
             return true;
+        }
+        protected virtual void OnMessageProcessed()
+        {
+            MessageProcessContext.OnMessageProcessed(Message);
         }
     }
 }

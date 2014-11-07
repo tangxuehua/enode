@@ -13,7 +13,7 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Exceptions.Impl
 {
-    public class DefaultExceptionProcessor : IMessageProcessor<IPublishableException, bool>
+    public class DefaultExceptionProcessor : IMessageProcessor<IPublishableException>
     {
         #region Private Variables
 
@@ -79,7 +79,7 @@ namespace ENode.Exceptions.Impl
             }
             _isStarted = true;
         }
-        public void Process(IPublishableException publishableException, IMessageProcessContext<IPublishableException, bool> context)
+        public void Process(IPublishableException publishableException, IMessageProcessContext<IPublishableException> context)
         {
             QueueProcessingContext(publishableException.UniqueId, new PublishableExceptionProcessingContext(this, publishableException, context));
         }
@@ -145,11 +145,11 @@ namespace ENode.Exceptions.Impl
 
         #endregion
 
-        class PublishableExceptionProcessingContext : ProcessingContext<IPublishableException, bool>
+        class PublishableExceptionProcessingContext : ProcessingContext<IPublishableException>
         {
             private DefaultExceptionProcessor _processor;
 
-            public PublishableExceptionProcessingContext(DefaultExceptionProcessor processor, IPublishableException publishableException, IMessageProcessContext<IPublishableException, bool> exceptionProcessContext)
+            public PublishableExceptionProcessingContext(DefaultExceptionProcessor processor, IPublishableException publishableException, IMessageProcessContext<IPublishableException> exceptionProcessContext)
                 : base("ProcessPublishableException", publishableException, exceptionProcessContext)
             {
                 _processor = processor;

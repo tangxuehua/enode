@@ -13,7 +13,7 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventProcessor : IMessageProcessor<IDomainEventStream, bool>, IMessageProcessor<IEventStream, bool>, IMessageProcessor<IEvent, bool>
+    public class DefaultEventProcessor : IMessageProcessor<IDomainEventStream>, IMessageProcessor<IEventStream>, IMessageProcessor<IEvent>
     {
         #region Private Variables
 
@@ -91,15 +91,15 @@ namespace ENode.Eventing.Impl
             }
             _isStarted = true;
         }
-        public void Process(IDomainEventStream domainEventStream, IMessageProcessContext<IDomainEventStream, bool> context)
+        public void Process(IDomainEventStream domainEventStream, IMessageProcessContext<IDomainEventStream> context)
         {
             QueueProcessingContext(domainEventStream.AggregateRootId, new DomainEventStreamProcessingContext(this, domainEventStream, context));
         }
-        public void Process(IEventStream eventStream, IMessageProcessContext<IEventStream, bool> context)
+        public void Process(IEventStream eventStream, IMessageProcessContext<IEventStream> context)
         {
             QueueProcessingContext(eventStream.CommandId, new EventStreamProcessingContext(this, eventStream, context));
         }
-        public void Process(IEvent evnt, IMessageProcessContext<IEvent, bool> context)
+        public void Process(IEvent evnt, IMessageProcessContext<IEvent> context)
         {
             QueueProcessingContext(evnt.Id, new EventProcessingContext(this, evnt, context));
         }
@@ -245,11 +245,11 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        class DomainEventStreamProcessingContext : ProcessingContext<IDomainEventStream, bool>
+        class DomainEventStreamProcessingContext : ProcessingContext<IDomainEventStream>
         {
             private DefaultEventProcessor _processor;
 
-            public DomainEventStreamProcessingContext(DefaultEventProcessor processor, IDomainEventStream domainEventStream, IMessageProcessContext<IDomainEventStream, bool> eventProcessContext)
+            public DomainEventStreamProcessingContext(DefaultEventProcessor processor, IDomainEventStream domainEventStream, IMessageProcessContext<IDomainEventStream> eventProcessContext)
                 : base("ProcessDomainEventStream", domainEventStream, eventProcessContext)
             {
                 _processor = processor;
@@ -271,17 +271,17 @@ namespace ENode.Eventing.Impl
 
                 return true;
             }
-            public override bool ProcessCallback(object obj)
+            protected override void OnMessageProcessed()
             {
                 _processor.UpdatePublishedVersion(Message);
-                return base.ProcessCallback(obj);
+                base.OnMessageProcessed();
             }
         }
-        class EventStreamProcessingContext : ProcessingContext<IEventStream, bool>
+        class EventStreamProcessingContext : ProcessingContext<IEventStream>
         {
             private DefaultEventProcessor _processor;
 
-            public EventStreamProcessingContext(DefaultEventProcessor processor, IEventStream eventStream, IMessageProcessContext<IEventStream, bool> eventProcessContext)
+            public EventStreamProcessingContext(DefaultEventProcessor processor, IEventStream eventStream, IMessageProcessContext<IEventStream> eventProcessContext)
                 : base("ProcessEventStream", eventStream, eventProcessContext)
             {
                 _processor = processor;
@@ -291,11 +291,11 @@ namespace ENode.Eventing.Impl
                 return _processor.DispatchEventsToHandlers(Message);
             }
         }
-        class EventProcessingContext : ProcessingContext<IEvent, bool>
+        class EventProcessingContext : ProcessingContext<IEvent>
         {
             private DefaultEventProcessor _processor;
 
-            public EventProcessingContext(DefaultEventProcessor processor, IEvent evnt, IMessageProcessContext<IEvent, bool> eventProcessContext)
+            public EventProcessingContext(DefaultEventProcessor processor, IEvent evnt, IMessageProcessContext<IEvent> eventProcessContext)
                 : base("ProcessEvent", evnt, eventProcessContext)
             {
                 _processor = processor;

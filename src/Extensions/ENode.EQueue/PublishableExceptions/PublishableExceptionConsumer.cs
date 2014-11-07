@@ -17,7 +17,7 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ITypeCodeProvider<IPublishableException> _publishableExceptionTypeCodeProvider;
-        private readonly IMessageProcessor<IPublishableException, bool> _publishableExceptionProcessor;
+        private readonly IMessageProcessor<IPublishableException> _publishableExceptionProcessor;
         private readonly ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
@@ -30,7 +30,7 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<IPublishableException, bool>>();
+            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<IPublishableException>>();
             _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
@@ -61,7 +61,7 @@ namespace ENode.EQueue
             _publishableExceptionProcessor.Process(publishableException, new PublishableExceptionProcessContext(message, context, publishableException));
         }
 
-        class PublishableExceptionProcessContext : MessageProcessContext<IPublishableException, bool>
+        class PublishableExceptionProcessContext : MessageProcessContext<IPublishableException>
         {
             public PublishableExceptionProcessContext(QueueMessage queueMessage, IMessageContext messageContext, IPublishableException publishableException)
                 : base(queueMessage, messageContext, publishableException)

@@ -4,7 +4,7 @@ using EQueue.Protocols;
 
 namespace ENode.EQueue
 {
-    public abstract class MessageProcessContext<TMessage, TResult> : IMessageProcessContext<TMessage, TResult> where TMessage : class
+    public abstract class MessageProcessContext<TMessage> : IMessageProcessContext<TMessage> where TMessage : class
     {
         protected readonly QueueMessage _queueMessage;
         protected readonly IMessageContext _messageContext;
@@ -17,7 +17,7 @@ namespace ENode.EQueue
             _message = message;
         }
 
-        public virtual void OnMessageProcessed(TMessage message, TResult result)
+        public virtual void OnMessageProcessed(TMessage message)
         {
             _messageContext.OnMessageHandled(_queueMessage);
         }

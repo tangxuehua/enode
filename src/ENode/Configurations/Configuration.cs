@@ -117,14 +117,14 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
-            _configuration.SetDefault<IMessageProcessor<IEvent, bool>, DefaultEventProcessor>();
-            _configuration.SetDefault<IMessageProcessor<IEventStream, bool>, DefaultEventProcessor>();
-            _configuration.SetDefault<IMessageProcessor<IDomainEventStream, bool>, DefaultEventProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IEvent>, DefaultEventProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IEventStream>, DefaultEventProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IDomainEventStream>, DefaultEventProcessor>();
             _configuration.SetDefault<IEventPublisher, NotImplementedEventPublisher>();
             _configuration.SetDefault<IMessagePublisher<EventStream>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IMessagePublisher<DomainEventStream>, NotImplementedEventPublisher>();
 
-            _configuration.SetDefault<IMessageProcessor<IPublishableException, bool>, DefaultExceptionProcessor>();
+            _configuration.SetDefault<IMessageProcessor<IPublishableException>, DefaultExceptionProcessor>();
             _configuration.SetDefault<IMessagePublisher<IPublishableException>, NotImplementedExceptionPublisher>();
 
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
@@ -225,13 +225,13 @@ namespace ENode.Configurations
             }
             if (((int)NodeType.EventProcessor & (int)nodeType) == (int)NodeType.EventProcessor)
             {
-                ObjectContainer.Resolve<IMessageProcessor<IDomainEventStream, bool>>().Start();
-                ObjectContainer.Resolve<IMessageProcessor<IEventStream, bool>>().Start();
-                ObjectContainer.Resolve<IMessageProcessor<IEvent, bool>>().Start();
+                ObjectContainer.Resolve<IMessageProcessor<IDomainEventStream>>().Start();
+                ObjectContainer.Resolve<IMessageProcessor<IEventStream>>().Start();
+                ObjectContainer.Resolve<IMessageProcessor<IEvent>>().Start();
             }
             if (((int)NodeType.ExceptionProcessor & (int)nodeType) == (int)NodeType.ExceptionProcessor)
             {
-                ObjectContainer.Resolve<IMessageProcessor<IPublishableException, bool>>().Start();
+                ObjectContainer.Resolve<IMessageProcessor<IPublishableException>>().Start();
             }
             return this;
         }
