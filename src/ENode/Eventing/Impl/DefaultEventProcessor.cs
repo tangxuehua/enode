@@ -101,7 +101,7 @@ namespace ENode.Eventing.Impl
         }
         public void Process(IEvent evnt, IMessageProcessContext<IEvent> context)
         {
-            QueueProcessingContext(evnt.Id, new EventProcessingContext(this, evnt, context));
+            QueueProcessingContext(evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id, new EventProcessingContext(this, evnt, context));
         }
 
         #region Private Methods
