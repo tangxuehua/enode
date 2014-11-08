@@ -82,6 +82,7 @@
     <Compile Include="Domain\DepositTransaction.cs" />
     <Compile Include="EventHandlers\ConsoleLogger.cs" />
     <Compile Include="EventHandlers\SyncHelper.cs" />
+    <Compile Include="Exceptions\InvalidAccountException.cs" />
     <Compile Include="Exceptions\InsufficientBalanceException.cs" />
     <Compile Include="Providers\AggregateRootTypeCodeProvider.cs" />
     <Compile Include="Providers\ExceptionTypeCodeProvider.cs" />

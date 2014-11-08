@@ -14,6 +14,7 @@ namespace BankTransferSample.ProcessManagers
     public class TransferTransactionProcessManager :
         IEventHandler<TransferTransactionStartedEvent>,                  //转账交易已开始
         IEventHandler<AccountValidatePassedEvent>,                       //账户验证已通过
+        IExceptionHandler<InvalidAccountException>,                      //无效的账户
         IEventHandler<AccountValidatePassedConfirmCompletedEvent>,       //两个账户的验证通过事件都已确认
         IEventHandler<TransactionPreparationAddedEvent>,                 //账户预操作已添加
         IExceptionHandler<InsufficientBalanceException>,                 //账户余额不足
@@ -29,6 +30,10 @@ namespace BankTransferSample.ProcessManagers
         public void Handle(IEventContext context, AccountValidatePassedEvent evnt)
         {
             context.AddCommand(new ConfirmAccountValidatePassedCommand(evnt.TransactionId, evnt.AccountId));
+        }
+        public void Handle(IExceptionHandlingContext context, InvalidAccountException exception)
+        {
+            context.AddCommand(new CancelTransferTransactionCommand(exception.TransactionId));
         }
         public void Handle(IEventContext context, AccountValidatePassedConfirmCompletedEvent evnt)
         {

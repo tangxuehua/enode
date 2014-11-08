@@ -18,6 +18,7 @@ namespace BankTransferSample.EventHandlers
         IEventHandler<TransferOutPreparationConfirmedEvent>,
         IEventHandler<TransferInPreparationConfirmedEvent>,
         IEventHandler<TransferTransactionCompletedEvent>,
+        IExceptionHandler<InvalidAccountException>,
         IExceptionHandler<InsufficientBalanceException>,
         IEventHandler<TransferTransactionCanceledEvent>
     {
@@ -84,7 +85,11 @@ namespace BankTransferSample.EventHandlers
 
         public void Handle(IExceptionHandlingContext context, InsufficientBalanceException exception)
         {
-            Console.WriteLine("账户的余额不足，交易ID：{0}，账号：{1}，可用余额：{2}，转出金额：{3}", exception.TransactionId, exception.AccountId, exception.CurrentAvailableBalance, exception.Amount);
+            Console.WriteLine("账户的余额不足，交易ID：{0}，账户：{1}，可用余额：{2}，转出金额：{3}", exception.TransactionId, exception.AccountId, exception.CurrentAvailableBalance, exception.Amount);
+        }
+        public void Handle(IExceptionHandlingContext context, InvalidAccountException exception)
+        {
+            Console.WriteLine("无效的银行账户，交易ID：{0}，账户：{1}，理由：{2}", exception.TransactionId, exception.AccountId, exception.Description);
         }
         public void Handle(IEventContext context, TransferTransactionCanceledEvent evnt)
         {

@@ -126,10 +126,7 @@ namespace BankTransferSample.Domain
         /// </summary>
         public void Cancel()
         {
-            if (_status == TransactionStatus.AccountValidateCompleted)
-            {
-                ApplyEvent(new TransferTransactionCanceledEvent(Id));
-            }
+            ApplyEvent(new TransferTransactionCanceledEvent(Id));
         }
 
         #endregion

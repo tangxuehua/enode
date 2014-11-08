@@ -7,6 +7,8 @@ namespace ENode.Exceptions
     {
         public string UniqueId { get; set; }
 
+        /// <summary>Default constructor.
+        /// </summary>
         public PublishableException()
         {
             UniqueId = ObjectId.GenerateNewStringId();

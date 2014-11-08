@@ -18,12 +18,12 @@ namespace BankTransferSample.Commands
             TransactionInfo = transactionInfo;
         }
     }
-    /// <summary>确认账号验证已通过
+    /// <summary>确认账户验证已通过
     /// </summary>
     [Serializable]
     public class ConfirmAccountValidatePassedCommand : AggregateCommand<string>
     {
-        /// <summary>账号ID
+        /// <summary>账户ID
         /// </summary>
         public string AccountId { get; set; }
 

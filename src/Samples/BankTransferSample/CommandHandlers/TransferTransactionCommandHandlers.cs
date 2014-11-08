@@ -11,7 +11,7 @@ namespace BankTransferSample.CommandHandlers
     [Component]
     public class TransferTransactionCommandHandlers :
         ICommandHandler<StartTransferTransactionCommand>,                       //开始转账交易
-        ICommandHandler<ConfirmAccountValidatePassedCommand>,                   //确认账号验证已通过
+        ICommandHandler<ConfirmAccountValidatePassedCommand>,                   //确认账户验证已通过
         ICommandHandler<ConfirmTransferOutPreparationCommand>,                  //确认预转出
         ICommandHandler<ConfirmTransferInPreparationCommand>,                   //确认预转入
         ICommandHandler<ConfirmTransferOutCommand>,                             //确认转出

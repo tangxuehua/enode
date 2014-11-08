@@ -40,17 +40,17 @@ namespace BankTransferSample
 
             Console.WriteLine(string.Empty);
 
-            //账户1向账户2转账300元
-            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 300D)));
+            //账户1向账户3转账300元，交易会失败，因为账户3不存在
+            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00003", 300D)));
             syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
-            //账户1向账户2转账800元
-            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 800D)));
+            //账户1向账户2转账1200元，交易会失败，因为余额不足
+            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 1200D)));
             syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
-            //账户2向账户1转账500元
+            //账户2向账户1转账500元，交易成功
             commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00002", "00001", 500D)));
             syncHelper.WaitOne();
             Console.WriteLine(string.Empty);

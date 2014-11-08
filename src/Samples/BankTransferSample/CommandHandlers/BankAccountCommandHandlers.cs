@@ -1,7 +1,7 @@
-﻿using System;
-using BankTransferSample.Commands;
+﻿using BankTransferSample.Commands;
 using BankTransferSample.Domain;
 using BankTransferSample.DomainEvents;
+using BankTransferSample.Exceptions;
 using ECommon.Components;
 using ENode.Commanding;
 
@@ -28,7 +28,7 @@ namespace BankTransferSample.CommandHandlers
             }
             else
             {
-                throw new Exception("Invalid bank account:" + command.AccountId);
+                throw new InvalidAccountException(command.AccountId, command.TransactionId, "账户必须是00001或00002.");
             }
         }
         public void Handle(ICommandContext context, AddTransactionPreparationCommand command)

@@ -11,6 +11,7 @@ namespace BankTransferSample.Providers
         public ExceptionTypeCodeProvider()
         {
             RegisterType<InsufficientBalanceException>(100);
+            RegisterType<InvalidAccountException>(101);
         }
     }
 }
