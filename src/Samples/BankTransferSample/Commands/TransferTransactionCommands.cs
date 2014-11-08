@@ -11,7 +11,7 @@ namespace BankTransferSample.Commands
     {
         /// <summary>转账交易信息
         /// </summary>
-        public TransferTransactionInfo TransactionInfo { get; private set; }
+        public TransferTransactionInfo TransactionInfo { get; set; }
 
         public StartTransferTransactionCommand(TransferTransactionInfo transactionInfo)
         {
@@ -25,7 +25,7 @@ namespace BankTransferSample.Commands
     {
         /// <summary>账号ID
         /// </summary>
-        public string AccountId { get; private set; }
+        public string AccountId { get; set; }
 
         public ConfirmAccountValidatePassedCommand(string transactionId, string accountId)
             : base(transactionId)

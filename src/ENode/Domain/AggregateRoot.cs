@@ -4,35 +4,24 @@ using ENode.Eventing;
 
 namespace ENode.Domain
 {
-    /// <summary>Represents the base aggregate root.
+    /// <summary>Represents an abstract base aggregate root.
     /// </summary>
     /// <typeparam name="TAggregateRootId"></typeparam>
     [Serializable]
     public abstract class AggregateRoot<TAggregateRootId> : IAggregateRoot
     {
-        private TAggregateRootId _id;
-        private string _uniqueId;
-        private int _version;
         private Queue<IDomainEvent> _uncommittedEvents;
+        protected TAggregateRootId _id;
 
-        /// <summary>The id of aggregate root.
+        /// <summary>Represents the unique identifier of the aggregate root.
         /// </summary>
         public TAggregateRootId Id
         {
-            get
-            {
-                return _id;
-            }
-            protected set
-            {
-                if (value == null)
-                {
-                    throw new ArgumentNullException("id");
-                }
-                _id = value;
-                _uniqueId = value.ToString();
-            }
+            get { return _id; }
         }
+        /// <summary>Represents the version of the aggregate root.
+        /// </summary>
+        public int Version { get; private set; }
 
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -43,13 +32,12 @@ namespace ENode.Domain
                 throw new ArgumentNullException("id");
             }
             _id = id;
-            _uniqueId = id.ToString();
             _uncommittedEvents = new Queue<IDomainEvent>();
         }
 
-        /// <summary>Act the current aggregate to the given type of role.
+        /// <summary>Act the current aggregate as the given type of role.
         /// <remarks>
-        /// Note：the current aggregate must implement the role interface, otherwise this method will throw exception.
+        /// Rhe current aggregate must implement the role interface, otherwise this method will throw exception.
         /// </remarks>
         /// </summary>
         /// <typeparam name="TRole">The role interface type.</typeparam>
@@ -61,60 +49,52 @@ namespace ENode.Domain
                 throw new Exception(string.Format("'{0}' is not an interface type.", typeof(TRole).Name));
             }
 
-            var role = this as TRole;
+            var actor = this as TRole;
 
-            if (role == null)
+            if (actor == null)
             {
                 throw new Exception(string.Format("'{0}' can not act as role '{1}'.", this.GetType().FullName, typeof(TRole).Name));
             }
 
-            return role;
+            return actor;
         }
-
-        /// <summary>Apply a domain event, the event will just be added into the local uncommitted event queue by default.
+        /// <summary>Apply a domain event, the event will be appended to the local uncommitted event queue of the current aggregate root.
         /// </summary>
-        /// <param name="evnt"></param>
-        protected void ApplyEvent(IDomainEvent evnt)
+        /// <param name="domainEvent"></param>
+        protected void ApplyEvent(IDomainEvent domainEvent)
         {
-            _uncommittedEvents.Enqueue(evnt);
+            _uncommittedEvents.Enqueue(domainEvent);
         }
 
         string IAggregateRoot.UniqueId
         {
             get
             {
-                if (_uniqueId == null && _id != null)
+                if (this.Id != null)
                 {
-                    _uniqueId = _id.ToString();
+                    return this.Id.ToString();
                 }
-                return _uniqueId;
+                return null;
             }
         }
-        int IAggregateRoot.Version
+        void IAggregateRoot.ClearUncommittedEvents()
         {
-            get
+            if (this._uncommittedEvents == null)
             {
-                return _version;
-            }
-        }
-        void IAggregateRoot.ResetChanges()
-        {
-            if (_uncommittedEvents == null)
-            {
-                _uncommittedEvents = new Queue<IDomainEvent>();
+                this._uncommittedEvents = new Queue<IDomainEvent>();
             }
             else
             {
-                _uncommittedEvents.Clear();
+                this._uncommittedEvents.Clear();
             }
         }
-        IEnumerable<IDomainEvent> IAggregateRoot.GetChanges()
+        IEnumerable<IDomainEvent> IAggregateRoot.GetUncommittedEvents()
         {
-            return _uncommittedEvents;
+            return this._uncommittedEvents;
         }
         void IAggregateRoot.IncreaseVersion()
         {
-            _version++;
+            this.Version++;
         }
     }
 }

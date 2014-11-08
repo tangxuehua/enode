@@ -9,56 +9,24 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class Command : ICommand
     {
-        #region Private Variables
-
-        private int _retryCount;
-        public const int DefaultRetryCount = 3;
-        public const int MaxRetryCount = 10;
-
-        #endregion
-
-        #region Public Properties
-
         /// <summary>Represents the unique identifier of the command.
         /// </summary>
         public string Id { get; set; }
-        /// <summary>Get or set the count which the command should be retry. The retry count must small than the MaxRetryCount;
+        /// <summary>Represents the retry count of the command.
         /// </summary>
-        public int RetryCount
-        {
-            get
-            {
-                return _retryCount;
-            }
-            set
-            {
-                if (value > MaxRetryCount)
-                {
-                    throw new Exception(string.Format("Command retry count cannot exceed {0}.", MaxRetryCount));
-                }
-                _retryCount = value;
-            }
-        }
-        /// <summary>Represents the extension information of the command.
+        public int RetryCount { get; set; }
+        /// <summary>Represents the additional information of the command.
         /// </summary>
-        public IDictionary<string, string> Items { get; private set; }
-
-        #endregion
-
-        #region Constructors
+        public IDictionary<string, string> Items { get; set; }
 
         /// <summary>Default constructor.
         /// </summary>
         protected Command()
         {
             Id = ObjectId.GenerateNewStringId();
-            RetryCount = DefaultRetryCount;
+            RetryCount = 3;
             Items = new Dictionary<string, string>();
         }
-
-        #endregion
-
-        #region Public Methods
 
         /// <summary>Returns string.Empty by default.
         /// </summary>
@@ -67,7 +35,5 @@ namespace ENode.Commanding
         {
             return string.Empty;
         }
-
-        #endregion
     }
 }

@@ -10,8 +10,8 @@ namespace NoteSample.Providers
     {
         public EventTypeCodeProvider()
         {
-            RegisterType<NoteCreatedEvent>(100);
-            RegisterType<NoteTitleChangedEvent>(101);
+            RegisterType<NoteCreated>(100);
+            RegisterType<NoteTitleChanged>(101);
         }
     }
 }

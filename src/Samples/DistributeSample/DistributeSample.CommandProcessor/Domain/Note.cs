@@ -7,17 +7,17 @@ namespace DistributeSample.CommandProcessor.Domain
     [Serializable]
     public class Note : AggregateRoot<string>
     {
-        public string Title { get; private set; }
+        private string _title;
 
         public Note(string id, string title) : base(id)
         {
-            ApplyEvent(new NoteCreatedEvent(Id, title));
+            ApplyEvent(new NoteCreatedEvent(id, title));
         }
 
         private void Handle(NoteCreatedEvent evnt)
         {
-            Id = evnt.AggregateRootId;
-            Title = evnt.Title;
+            _id = evnt.AggregateRootId;
+            _title = evnt.Title;
         }
     }
 }

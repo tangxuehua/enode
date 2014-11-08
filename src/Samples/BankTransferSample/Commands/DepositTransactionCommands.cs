@@ -10,10 +10,10 @@ namespace BankTransferSample.Commands
     {
         /// <summary>账户ID
         /// </summary>
-        public string AccountId { get; private set; }
+        public string AccountId { get; set; }
         /// <summary>存款金额
         /// </summary>
-        public double Amount { get; private set; }
+        public double Amount { get; set; }
 
         public StartDepositTransactionCommand(string accountId, double amount)
         {

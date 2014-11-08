@@ -369,7 +369,7 @@ namespace ENode.Eventing.Impl
             try
             {
                 _eventSourcingService.ReplayEvents(context.AggregateRoot, context.EventStream);
-                context.AggregateRoot.ResetChanges();
+                context.AggregateRoot.ClearUncommittedEvents();
                 _memoryCache.Set(context.AggregateRoot);
                 _logger.DebugFormat("Accepted aggregate changes, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", context.EventStream.CommandId, context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
             }

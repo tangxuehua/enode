@@ -7,9 +7,19 @@ namespace ENode.Eventing
     [Serializable]
     public abstract class DomainEvent<TAggregateRootId> : Event, IDomainEvent
     {
-        private string _aggregateRootId;
-        private int? _version;
+        /// <summary>Represents the source aggregate root id of the domain event.
+        /// </summary>
+        public TAggregateRootId AggregateRootId { get; set; }
+        /// <summary>Represents the version of the domain event.
+        /// </summary>
+        public int Version { get; set; }
+        /// <summary>Represents the occurred time of the domain event.
+        /// </summary>
+        public DateTime Timestamp { get; set; }
 
+        /// <summary>Default constructor.
+        /// </summary>
+        public DomainEvent() : base() { }
         /// <summary>Parameterized constructor.
         /// </summary>
         public DomainEvent(TAggregateRootId aggregateRootId) : base()
@@ -19,56 +29,17 @@ namespace ENode.Eventing
                 throw new ArgumentNullException("aggregateRootId");
             }
             AggregateRootId = aggregateRootId;
-            _aggregateRootId = aggregateRootId.ToString();
         }
-
-        /// <summary>Represents the aggregate root id of the domain event.
-        /// </summary>
-        public TAggregateRootId AggregateRootId { get; private set; }
-        /// <summary>Represents the version of the domain event.
-        /// </summary>
-        public int Version
-        {
-            get
-            {
-                return _version == null ? -1 : _version.Value;
-            }
-        }
-        /// <summary>Represents the occurred time of the domain event.
-        /// </summary>
-        public DateTime Timestamp { get; private set; }
 
         string IDomainEvent.AggregateRootId
         {
             get
             {
-                if (_aggregateRootId == null && AggregateRootId != null)
+                if (this.AggregateRootId != null)
                 {
-                    _aggregateRootId = AggregateRootId.ToString();
+                    return this.AggregateRootId.ToString();
                 }
-                return _aggregateRootId;
-            }
-        }
-        int IDomainEvent.Version
-        {
-            get
-            {
-                return Version;
-            }
-            set
-            {
-                _version = value;
-            }
-        }
-        DateTime IDomainEvent.Timestamp
-        {
-            get
-            {
-                return this.Timestamp;
-            }
-            set
-            {
-                Timestamp = value;
+                return null;
             }
         }
     }

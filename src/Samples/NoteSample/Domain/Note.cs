@@ -7,26 +7,26 @@ namespace NoteSample.Domain
     [Serializable]
     public class Note : AggregateRoot<string>
     {
-        public string Title { get; private set; }
+        private string _title;
 
         public Note(string id, string title) : base(id)
         {
-            ApplyEvent(new NoteCreatedEvent(Id, title));
+            ApplyEvent(new NoteCreated(id, title));
         }
 
         public void ChangeTitle(string title)
         {
-            ApplyEvent(new NoteTitleChangedEvent(Id, title));
+            ApplyEvent(new NoteTitleChanged(Id, title));
         }
 
-        private void Handle(NoteCreatedEvent evnt)
+        private void Handle(NoteCreated evnt)
         {
-            Id = evnt.AggregateRootId;
-            Title = evnt.Title;
+            _id = evnt.AggregateRootId;
+            _title = evnt.Title;
         }
-        private void Handle(NoteTitleChangedEvent evnt)
+        private void Handle(NoteTitleChanged evnt)
         {
-            Title = evnt.Title;
+            _title = evnt.Title;
         }
     }
 }

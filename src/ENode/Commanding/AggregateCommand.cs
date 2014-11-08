@@ -7,67 +7,42 @@ namespace ENode.Commanding
     [Serializable]
     public abstract class AggregateCommand<TAggregateRootId> : Command, IAggregateCommand
     {
-        #region Private Variables
-
-        private TAggregateRootId _aggregateRootId;
-        private string _aggregateRootStringId;
-
-        #endregion
-
-        #region Public Properties
-
-        /// <summary>Represents the aggregate root id associated with the command.
+        /// <summary>Represents the source aggregate root id of the aggregate command.
         /// </summary>
-        public TAggregateRootId AggregateRootId
-        {
-            get
-            {
-                return _aggregateRootId;
-            }
-        }
-
-        #endregion
-
-        #region Constructors
+        public TAggregateRootId AggregateRootId { get; set; }
 
         /// <summary>Default constructor.
         /// </summary>
-        protected AggregateCommand() : this(default(TAggregateRootId)) { }
+        protected AggregateCommand() : base() { }
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="aggregateRootId"></param>
         protected AggregateCommand(TAggregateRootId aggregateRootId) : base()
         {
-            _aggregateRootId = aggregateRootId;
-            if (aggregateRootId != null)
+            if (aggregateRootId == null)
             {
-                _aggregateRootStringId = aggregateRootId.ToString();
+                throw new ArgumentNullException("aggregateRootId");
             }
+            AggregateRootId = aggregateRootId;
         }
-
-        #endregion
-
-        #region Public Methods
 
         /// <summary>Returns the aggregate root id as the key.
         /// </summary>
         /// <returns></returns>
         public override object GetKey()
         {
-            return _aggregateRootId;
+            return AggregateRootId;
         }
-
-        #endregion
 
         string IAggregateCommand.AggregateRootId
         {
             get
             {
-                if (_aggregateRootStringId == null && _aggregateRootId != null)
+                if (this.AggregateRootId != null)
                 {
-                    _aggregateRootStringId = _aggregateRootId.ToString();
+                    return this.AggregateRootId.ToString();
                 }
-                return _aggregateRootStringId;
+                return null;
             }
         }
     }

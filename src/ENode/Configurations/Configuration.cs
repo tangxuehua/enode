@@ -212,7 +212,7 @@ namespace ENode.Configurations
             return this;
         }
 
-        /// <summary>Start enode.
+        /// <summary>Start ENode.
         /// </summary>
         /// <returns></returns>
         public ENodeConfiguration StartENode(NodeType nodeType)

@@ -15,17 +15,8 @@ namespace BankTransferSample.Domain
         #region Private Variables
 
         private IDictionary<string, TransactionPreparation> _transactionPreparations;
-
-        #endregion
-
-        #region Public Properties
-
-        /// <summary>拥有者
-        /// </summary>
-        public string Owner { get; private set; }
-        /// <summary>当前余额
-        /// </summary>
-        public double Balance { get; private set; }
+        private string _owner;
+        private double _balance;
 
         #endregion
 
@@ -49,7 +40,7 @@ namespace BankTransferSample.Domain
             var availableBalance = GetAvailableBalance();
             if (preparationType == PreparationType.DebitPreparation && availableBalance < amount)
             {
-                throw new InsufficientBalanceException(Id, transactionId, transactionType, amount, Balance, availableBalance);
+                throw new InsufficientBalanceException(Id, transactionId, transactionType, amount, _balance, availableBalance);
             }
 
             ApplyEvent(new TransactionPreparationAddedEvent(new TransactionPreparation(Id, transactionId, transactionType, preparationType, amount)));
@@ -59,7 +50,7 @@ namespace BankTransferSample.Domain
         public void CommitTransactionPreparation(string transactionId)
         {
             var transactionPreparation = GetTransactionPreparation(transactionId);
-            var currentBalance = Balance;
+            var currentBalance = _balance;
             if (transactionPreparation.PreparationType == PreparationType.DebitPreparation)
             {
                 currentBalance -= transactionPreparation.Amount;
@@ -102,7 +93,7 @@ namespace BankTransferSample.Domain
         {
             if (_transactionPreparations == null || _transactionPreparations.Count == 0)
             {
-                return Balance;
+                return _balance;
             }
 
             var totalDebitTransactionPreparationAmount = 0D;
@@ -111,7 +102,7 @@ namespace BankTransferSample.Domain
                 totalDebitTransactionPreparationAmount += debitTransactionPreparation.Amount;
             }
 
-            return Balance - totalDebitTransactionPreparationAmount;
+            return _balance - totalDebitTransactionPreparationAmount;
         }
 
         #endregion
@@ -120,9 +111,9 @@ namespace BankTransferSample.Domain
 
         private void Handle(AccountCreatedEvent evnt)
         {
+            _id = evnt.AggregateRootId;
+            _owner = evnt.Owner;
             _transactionPreparations = new Dictionary<string, TransactionPreparation>();
-            Id = evnt.AggregateRootId;
-            Owner = evnt.Owner;
         }
         private void Handle(TransactionPreparationAddedEvent evnt)
         {
@@ -131,7 +122,7 @@ namespace BankTransferSample.Domain
         private void Handle(TransactionPreparationCommittedEvent evnt)
         {
             _transactionPreparations.Remove(evnt.TransactionPreparation.TransactionId);
-            Balance = evnt.CurrentBalance;
+            _balance = evnt.CurrentBalance;
         }
         private void Handle(TransactionPreparationCanceledEvent evnt)
         {

@@ -17,7 +17,7 @@ namespace ENode.Domain.Impl
                 {
                     throw new Exception(string.Format("Incorrect aggregate root type, found aggregateRoot's id:{0}, type:{1}, expecting aggregateRoot's type:{2}", aggregateRootId, aggregateRoot.GetType(), aggregateRootType));
                 }
-                aggregateRoot.ResetChanges();
+                aggregateRoot.ClearUncommittedEvents();
                 return aggregateRoot;
             }
             return null;

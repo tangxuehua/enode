@@ -9,20 +9,11 @@ namespace BankTransferSample.Domain
     [Serializable]
     public class DepositTransaction : AggregateRoot<string>
     {
-        #region Public Properties
+        #region Private Variables
 
-        /// <summary>账户ID
-        /// </summary>
-        public string AccountId { get; private set; }
-        /// <summary>存款金额
-        /// </summary>
-        public double Amount { get; private set; }
-        /// <summary>交易开始时间
-        /// </summary>
-        public DateTime StartedTime { get; private set; }
-        /// <summary>交易状态
-        /// </summary>
-        public TransactionStatus Status { get; private set; }
+        private string _accountId;
+        private double _amount;
+        private TransactionStatus _status;
 
         #endregion
 
@@ -44,18 +35,18 @@ namespace BankTransferSample.Domain
         /// </summary>
         public void ConfirmDepositPreparation()
         {
-            if (Status == TransactionStatus.Started)
+            if (_status == TransactionStatus.Started)
             {
-                ApplyEvent(new DepositTransactionPreparationCompletedEvent(Id, AccountId));
+                ApplyEvent(new DepositTransactionPreparationCompletedEvent(Id, _accountId));
             }
         }
         /// <summary>确认存款
         /// </summary>
         public void ConfirmDeposit()
         {
-            if (Status == TransactionStatus.PreparationCompleted)
+            if (_status == TransactionStatus.PreparationCompleted)
             {
-                ApplyEvent(new DepositTransactionCompletedEvent(Id, AccountId));
+                ApplyEvent(new DepositTransactionCompletedEvent(Id, _accountId));
             }
         }
 
@@ -65,18 +56,18 @@ namespace BankTransferSample.Domain
 
         private void Handle(DepositTransactionStartedEvent evnt)
         {
-            Id = evnt.AggregateRootId;
-            AccountId = evnt.AccountId;
-            Amount = evnt.Amount;
-            Status = TransactionStatus.Started;
+            _id = evnt.AggregateRootId;
+            _accountId = evnt.AccountId;
+            _amount = evnt.Amount;
+            _status = TransactionStatus.Started;
         }
         private void Handle(DepositTransactionPreparationCompletedEvent evnt)
         {
-            Status = TransactionStatus.PreparationCompleted;
+            _status = TransactionStatus.PreparationCompleted;
         }
         private void Handle(DepositTransactionCompletedEvent evnt)
         {
-            Status = TransactionStatus.Completed;
+            _status = TransactionStatus.Completed;
         }
 
         #endregion
