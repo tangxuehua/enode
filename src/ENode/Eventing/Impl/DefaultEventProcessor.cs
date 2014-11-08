@@ -161,7 +161,7 @@ namespace ENode.Eventing.Impl
                 if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
                 if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
-                var eventContext = new EventContext(_repository);
+                var eventContext = new MessageHandlerContext(_repository);
                 eventHandler.Handle(eventContext, evnt);
                 var commands = eventContext.GetCommands();
                 if (commands.Any())
@@ -308,31 +308,6 @@ namespace ENode.Eventing.Impl
                     _processor._eventHandleInfoCache.RemoveEventHandleInfo(Message.Id);
                 }
                 return success;
-            }
-        }
-        class EventContext : IEventContext
-        {
-            private readonly List<ICommand> _commands = new List<ICommand>();
-            private readonly IRepository _repository;
-
-            public EventContext(IRepository repository)
-            {
-                _repository = repository;
-            }
-
-            public IDictionary<string, string> Items { get; private set; }
-
-            public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
-            {
-                return _repository.Get<T>(aggregateRootId);
-            }
-            public void AddCommand(ICommand command)
-            {
-                _commands.Add(command);
-            }
-            public IEnumerable<ICommand> GetCommands()
-            {
-                return _commands;
             }
         }
     }

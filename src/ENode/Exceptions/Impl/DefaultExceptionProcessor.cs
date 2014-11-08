@@ -103,7 +103,7 @@ namespace ENode.Exceptions.Impl
         {
             var exceptionHandlerType = exceptionHandler.GetInnerHandler().GetType();
             var exceptionHandlerTypeCode = _exceptionHandlerTypeCodeProvider.GetTypeCode(exceptionHandlerType);
-            var exceptionHandlingContext = new ExceptionHandlingContext(_repository);
+            var exceptionHandlingContext = new MessageHandlerContext(_repository);
 
             try
             {
@@ -168,29 +168,6 @@ namespace ENode.Exceptions.Impl
                 }
 
                 return success;
-            }
-        }
-        class ExceptionHandlingContext : IExceptionHandlingContext
-        {
-            private readonly List<ICommand> _commands = new List<ICommand>();
-            private readonly IRepository _repository;
-
-            public ExceptionHandlingContext(IRepository repository)
-            {
-                _repository = repository;
-            }
-
-            public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
-            {
-                return _repository.Get<T>(aggregateRootId);
-            }
-            public void AddCommand(ICommand command)
-            {
-                _commands.Add(command);
-            }
-            public IEnumerable<ICommand> GetCommands()
-            {
-                return _commands;
             }
         }
     }
