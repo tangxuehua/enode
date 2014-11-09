@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ECommon.Components;
 using ENode.Eventing;
 
 namespace ENode.Domain
@@ -10,6 +11,7 @@ namespace ENode.Domain
     [Serializable]
     public abstract class AggregateRoot<TAggregateRootId> : IAggregateRoot
     {
+        private static IAggregateRootInternalHandlerProvider _eventHandlerProvider;
         private Queue<IDomainEvent> _uncommittedEvents;
         protected TAggregateRootId _id;
 
@@ -53,48 +55,93 @@ namespace ENode.Domain
 
             if (actor == null)
             {
-                throw new Exception(string.Format("'{0}' can not act as role '{1}'.", this.GetType().FullName, typeof(TRole).Name));
+                throw new Exception(string.Format("'{0}' can not act as role '{1}'.", GetType().FullName, typeof(TRole).Name));
             }
 
             return actor;
         }
-        /// <summary>Apply a domain event, the event will be appended to the local uncommitted event queue of the current aggregate root.
+        /// <summary>Apply a domain event to the current aggregate root.
         /// </summary>
         /// <param name="domainEvent"></param>
         protected void ApplyEvent(IDomainEvent domainEvent)
         {
+            HandleEvent(domainEvent);
+            AppendUncommittedEvent(domainEvent);
+        }
+
+        private void HandleEvent(IDomainEvent domainEvent)
+        {
+            if (_eventHandlerProvider == null)
+            {
+                _eventHandlerProvider = ObjectContainer.Resolve<IAggregateRootInternalHandlerProvider>();
+            }
+            var handler = _eventHandlerProvider.GetInternalEventHandler(GetType(), domainEvent.GetType());
+            if (handler == null)
+            {
+                throw new Exception(string.Format("Could not find event handler for [{0}] of [{1}]", domainEvent.GetType().FullName, GetType().FullName));
+            }
+            handler(this, domainEvent);
+        }
+        private void AppendUncommittedEvent(IDomainEvent domainEvent)
+        {
+            if (_uncommittedEvents == null)
+            {
+                _uncommittedEvents = new Queue<IDomainEvent>();
+            }
             _uncommittedEvents.Enqueue(domainEvent);
+        }
+        private void VerifyEvent(DomainEventStream eventStream)
+        {
+            var current = this as IAggregateRoot;
+            if (eventStream.Version > 1 && eventStream.AggregateRootId != current.UniqueId)
+            {
+                throw new Exception(string.Format("Invalid domain event stream, aggregateRootId:{0}, expected aggregateRootId:{1}", eventStream.AggregateRootId, current.UniqueId));
+            }
+            if (eventStream.Version != current.Version + 1)
+            {
+                throw new Exception(string.Format("Invalid domain event stream, version:{0}, expected version:{1}", eventStream.Version, current.Version));
+            }
         }
 
         string IAggregateRoot.UniqueId
         {
             get
             {
-                if (this.Id != null)
+                if (Id != null)
                 {
-                    return this.Id.ToString();
+                    return Id.ToString();
                 }
                 return null;
             }
         }
-        void IAggregateRoot.ClearUncommittedEvents()
+        IEnumerable<IDomainEvent> IAggregateRoot.CommitChanges()
         {
-            if (this._uncommittedEvents == null)
+            if (_uncommittedEvents == null)
             {
-                this._uncommittedEvents = new Queue<IDomainEvent>();
+                return new IDomainEvent[0];
             }
-            else
+            else if (_uncommittedEvents.Count == 0)
             {
-                this._uncommittedEvents.Clear();
+                return _uncommittedEvents;
             }
+            var events = _uncommittedEvents.ToArray();
+            _uncommittedEvents.Clear();
+            Version++;
+            return events;
         }
-        IEnumerable<IDomainEvent> IAggregateRoot.GetUncommittedEvents()
+        void IAggregateRoot.ReplayEvents(IEnumerable<DomainEventStream> eventStreams)
         {
-            return this._uncommittedEvents;
-        }
-        void IAggregateRoot.IncreaseVersion()
-        {
-            this.Version++;
+            if (eventStreams == null) return;
+
+            foreach (var eventStream in eventStreams)
+            {
+                VerifyEvent(eventStream);
+                foreach (var domainEvent in eventStream.DomainEvents)
+                {
+                    HandleEvent(domainEvent);
+                }
+                Version = eventStream.Version;
+            }
         }
     }
 }

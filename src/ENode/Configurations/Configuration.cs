@@ -78,6 +78,8 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
+            _configuration.SetDefault<IAggregateRootSerializer, DefaultAggregateRootSerializer>();
+
             _configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, DefaultTypeCodeProvider<IAggregateRoot>>();
             _configuration.SetDefault<ITypeCodeProvider<ICommand>, DefaultTypeCodeProvider<ICommand>>();
             _configuration.SetDefault<ITypeCodeProvider<IEventHandler>, DefaultTypeCodeProvider<IEventHandler>>();
@@ -94,7 +96,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<ITypeCodeProvider<IEvent>, NotImplementedEventTypeCodeProvider>();
             _configuration.SetDefault<ITypeCodeProvider<IEventHandler>, NotImplementedEventHandlerTypeCodeProvider>();
 
-            _configuration.SetDefault<IEventSourcingService, DefaultEventSourcingService>();
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
             _configuration.SetDefault<IAggregateStorage, EventSourcingAggregateStorage>();
@@ -131,7 +132,6 @@ namespace ENode.Configurations
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<ICommandHandler>));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<IEventHandler>));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<IExceptionHandler>));
-            _assemblyInitializerServiceTypes.Add(typeof(IEventSourcingService));
 
             return this;
         }

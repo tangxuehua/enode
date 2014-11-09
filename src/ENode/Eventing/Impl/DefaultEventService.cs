@@ -29,7 +29,6 @@ namespace ENode.Eventing.Impl
         private readonly IScheduleService _scheduleService;
         private readonly IExecutedCommandService _executedCommandService;
         private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
-        private readonly IEventSourcingService _eventSourcingService;
         private readonly IMemoryCache _memoryCache;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IAggregateStorage _aggregateStorage;
@@ -51,7 +50,6 @@ namespace ENode.Eventing.Impl
             IScheduleService scheduleService,
             IExecutedCommandService executedCommandService,
             ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider,
-            IEventSourcingService eventSourcingService,
             IMemoryCache memoryCache,
             IAggregateRootFactory aggregateRootFactory,
             IAggregateStorage aggregateStorage,
@@ -77,7 +75,6 @@ namespace ENode.Eventing.Impl
             _scheduleService = scheduleService;
             _executedCommandService = executedCommandService;
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
-            _eventSourcingService = eventSourcingService;
             _memoryCache = memoryCache;
             _aggregateRootFactory = aggregateRootFactory;
             _aggregateStorage = aggregateStorage;
@@ -245,7 +242,7 @@ namespace ENode.Eventing.Impl
             var eventCommittingContextList = _successPersistedEventsQueue.Take();
             foreach (var context in eventCommittingContextList)
             {
-                AcceptAggregateChanges(context);
+                RefreshAggregateMemoryCache(context);
                 _actionExecutionService.TryAction("PublishDomainEvent", () =>
                 {
                     PublishDomainEvent(context.ProcessingCommand, context.EventStream);
@@ -291,7 +288,7 @@ namespace ENode.Eventing.Impl
             if (context.EventAppendResult == EventAppendResult.Success)
             {
                 //刷新内存缓存并发布事件
-                AcceptAggregateChanges(context);
+                RefreshAggregateMemoryCache(context);
                 PublishDomainEvent(context.ProcessingCommand, eventStream);
             }
             //如果事件持久化遇到重复的情况
@@ -309,7 +306,7 @@ namespace ENode.Eventing.Impl
                         //有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
                         if (context.ProcessingCommand.Command.Id == firstEventStream.CommandId)
                         {
-                            AddAggregateToMemory(firstEventStream);
+                            RefreshAggregateMemoryCache(firstEventStream);
                             PublishDomainEvent(context.ProcessingCommand, firstEventStream);
                         }
                         else
@@ -338,14 +335,14 @@ namespace ENode.Eventing.Impl
                 //那么我们需要先将聚合根的最新状态更新到内存，然后重试command；
                 else
                 {
-                    UpdateAggregateToLatestVersion(eventStream);
-                    RetryCommand(context);
+                    UpdateAggregateToLatestVersion(eventStream.AggregateRootTypeCode, eventStream.AggregateRootId);
+                    RetryConcurrentCommand(context);
                 }
             }
 
             return true;
         }
-        private void AddAggregateToMemory(DomainEventStream aggregateFirstEventStream)
+        private void RefreshAggregateMemoryCache(DomainEventStream aggregateFirstEventStream)
         {
             try
             {
@@ -354,7 +351,7 @@ namespace ENode.Eventing.Impl
                 if (aggregateRoot == null)
                 {
                     aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
-                    _eventSourcingService.ReplayEvents(aggregateRoot, aggregateFirstEventStream);
+                    aggregateRoot.ReplayEvents(new DomainEventStream[] { aggregateFirstEventStream });
                     _memoryCache.Set(aggregateRoot);
                     _logger.DebugFormat("Aggregate added into memory, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", aggregateFirstEventStream.CommandId, aggregateRootType.Name, aggregateRoot.UniqueId, aggregateRoot.Version);
                 }
@@ -364,31 +361,29 @@ namespace ENode.Eventing.Impl
                 _logger.Error(string.Format("Exception raised when adding aggregate to memory, the first event stream info of the aggregate:{0}", aggregateFirstEventStream), ex);
             }
         }
-        private void AcceptAggregateChanges(EventCommittingContext context)
+        private void RefreshAggregateMemoryCache(EventCommittingContext context)
         {
             try
             {
-                _eventSourcingService.ReplayEvents(context.AggregateRoot, context.EventStream);
-                context.AggregateRoot.ClearUncommittedEvents();
                 _memoryCache.Set(context.AggregateRoot);
-                _logger.DebugFormat("Accepted aggregate changes, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", context.EventStream.CommandId, context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
+                _logger.DebugFormat("Refreshed aggregate memory cache, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", context.EventStream.CommandId, context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
             }
             catch (Exception ex)
             {
                 _logger.Error(string.Format("Exception raised when refreshing memory cache, current event stream:{0}", context.EventStream), ex);
             }
         }
-        private void UpdateAggregateToLatestVersion(DomainEventStream eventStream)
+        private void UpdateAggregateToLatestVersion(int aggregateRootTypeCode, string aggregateRootId)
         {
             try
             {
-                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(eventStream.AggregateRootTypeCode);
+                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(aggregateRootTypeCode);
                 if (aggregateRootType == null)
                 {
-                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root type code [{0}].", eventStream.AggregateRootTypeCode);
+                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root type code [{0}].", aggregateRootTypeCode);
                     return;
                 }
-                var aggregateRoot = _aggregateStorage.Get(aggregateRootType, eventStream.AggregateRootId);
+                var aggregateRoot = _aggregateStorage.Get(aggregateRootType, aggregateRootId);
                 if (aggregateRoot != null)
                 {
                     _memoryCache.Set(aggregateRoot);
@@ -396,10 +391,10 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when update aggregate to latest version, current event stream info:{0}", eventStream), ex);
+                _logger.Error(string.Format("Exception raised when update aggregate to latest version, aggregateRootTypeCode:{0}, aggregateRootId:{1}", aggregateRootTypeCode, aggregateRootId), ex);
             }
         }
-        private void RetryCommand(EventCommittingContext context)
+        private void RetryConcurrentCommand(EventCommittingContext context)
         {
             if (!_retryCommandService.RetryConcurrentCommand(context.ProcessingCommand))
             {

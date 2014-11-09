@@ -5,20 +5,21 @@ namespace ENode.Domain.Impl
 {
     public class DefaultMemoryCache : IMemoryCache
     {
-        private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRootDict = new ConcurrentDictionary<string, IAggregateRoot>();
+        private readonly IAggregateRootSerializer _serializer;
+        private readonly ConcurrentDictionary<string, byte[]> _aggregateRootDict = new ConcurrentDictionary<string, byte[]>();
+
+        public DefaultMemoryCache(IAggregateRootSerializer serializer)
+        {
+            _serializer = serializer;
+        }
 
         public IAggregateRoot Get(object aggregateRootId, Type aggregateRootType)
         {
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
-            IAggregateRoot aggregateRoot;
-            if (_aggregateRootDict.TryGetValue(aggregateRootId.ToString(), out aggregateRoot))
+            byte[] data;
+            if (_aggregateRootDict.TryGetValue(aggregateRootId.ToString(), out data))
             {
-                if (aggregateRoot.GetType() != aggregateRootType)
-                {
-                    throw new Exception(string.Format("Incorrect aggregate root type, found aggregateRoot's id:{0}, type:{1}, expecting aggregateRoot's type:{2}", aggregateRootId, aggregateRoot.GetType(), aggregateRootType));
-                }
-                aggregateRoot.ClearUncommittedEvents();
-                return aggregateRoot;
+                return _serializer.Deserialize(data, aggregateRootType);
             }
             return null;
         }
@@ -32,7 +33,7 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRoot");
             }
-            _aggregateRootDict[aggregateRoot.UniqueId] = aggregateRoot;
+            _aggregateRootDict[aggregateRoot.UniqueId] = _serializer.Serialize(aggregateRoot);
         }
     }
 }

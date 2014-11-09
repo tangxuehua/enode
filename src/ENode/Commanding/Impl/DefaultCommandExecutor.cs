@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ECommon.Logging;
 using ENode.Domain;
@@ -147,8 +148,8 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Command;
             var context = processingCommand.CommandExecuteContext;
             var trackedAggregateRoots = context.GetTrackedAggregateRoots();
-            var dirtyAggregateRoots = trackedAggregateRoots.Where(x => x.GetUncommittedEvents().Any()).ToList();
-            var dirtyAggregateRootCount = dirtyAggregateRoots.Count();
+            var dirtyAggregateRootChanges = trackedAggregateRoots.ToDictionary(x => x, x => x.CommitChanges()).Where(x => x.Value.Any());
+            var dirtyAggregateRootCount = dirtyAggregateRootChanges.Count();
 
             //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
             if (dirtyAggregateRootCount == 0)
@@ -162,7 +163,7 @@ namespace ENode.Commanding.Impl
             //如果被创建或修改的聚合根多于一个，则认为当前command处理失败，一个command只能创建或修改一个聚合根；
             else if (dirtyAggregateRootCount > 1)
             {
-                var dirtyAggregateTypes = string.Join("|", dirtyAggregateRoots.Select(x => x.GetType().Name));
+                var dirtyAggregateTypes = string.Join("|", dirtyAggregateRootChanges.Select(x => x.Key.GetType().Name));
                 var errorMessage = string.Format("Detected more than one aggregate created or modified by command. commandType:{0}, commandId:{1}, dirty aggregate types:{2}",
                     command.GetType().Name,
                     command.Id,
@@ -173,15 +174,17 @@ namespace ENode.Commanding.Impl
             }
 
             //获取当前被修改的聚合根
-            var dirtyAggregate = dirtyAggregateRoots.Single();
+            var dirtyAggregateRootChange = dirtyAggregateRootChanges.Single();
+            var dirtyAggregateRoot = dirtyAggregateRootChange.Key;
+            var changedEvents = dirtyAggregateRootChange.Value;
 
-            //从该聚合根获取所有产生的领域事件，构造出一个EventStream对象
-            var eventStream = BuildDomainEventStream(dirtyAggregate, processingCommand);
+            //构造出一个事件流对象
+            var eventStream = BuildDomainEventStream(dirtyAggregateRoot, changedEvents, processingCommand);
 
             //如果是重试中的command，则直接提交该command产生的事件，因为该command肯定已经在command store中了
             if (processingCommand.RetriedCount > 0)
             {
-                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
                 return;
             }
 
@@ -195,7 +198,7 @@ namespace ENode.Commanding.Impl
             //如果command添加成功，则提交该command产生的事件
             if (commandAddResult == CommandAddResult.Success)
             {
-                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                _eventService.CommitEvent(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
             }
             //如果添加的结果是command重复，则做如下处理
             else if (commandAddResult == CommandAddResult.DuplicateCommand)
@@ -212,7 +215,7 @@ namespace ENode.Commanding.Impl
                     else
                     {
                         //如果当前command已经被持久化过了，但事件没有被持久化，则需要重新提交当前command所产生的事件；
-                        _eventService.CommitEvent(new EventCommittingContext(dirtyAggregate, eventStream, processingCommand));
+                        _eventService.CommitEvent(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
                     }
                 }
                 else
@@ -227,19 +230,18 @@ namespace ENode.Commanding.Impl
                 }
             }
         }
-        private DomainEventStream BuildDomainEventStream(IAggregateRoot aggregateRoot, ProcessingCommand processingCommand)
+        private DomainEventStream BuildDomainEventStream(IAggregateRoot aggregateRoot, IEnumerable<IDomainEvent> changedEvents, ProcessingCommand processingCommand)
         {
             var command = processingCommand.Command;
-            var uncommittedEvents = aggregateRoot.GetUncommittedEvents().ToList();
             var aggregateRootTypeCode = _aggregateRootTypeProvider.GetTypeCode(aggregateRoot.GetType());
 
             return new DomainEventStream(
                 command.Id,
                 aggregateRoot.UniqueId,
                 aggregateRootTypeCode,
-                aggregateRoot.Version + 1,
+                aggregateRoot.Version,
                 DateTime.Now,
-                uncommittedEvents,
+                changedEvents,
                 command.Items);
         }
         private void HandleCommandException(ProcessingCommand processingCommand, ICommandHandler commandHandler, Exception exception)
