@@ -56,7 +56,7 @@ namespace ENode.Eventing.Impl.SQL
                         var record = ConvertTo(eventStream);
                         try
                         {
-                            connection.Insert(record, _eventTable);
+                            connection.Insert(record, _eventTable, transaction);
                         }
                         catch (SqlException ex)
                         {
