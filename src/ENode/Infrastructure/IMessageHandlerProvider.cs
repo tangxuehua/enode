@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace ENode.Infrastructure
 {
-    /// <summary>Represents a provider to provide the message handler information.
+    /// <summary>Represents a provider to provide the message handlers.
     /// </summary>
-    public interface IMessageHandlerProvider<TMessageHandlerInterface> where TMessageHandlerInterface : class
+    public interface IMessageHandlerProvider
     {
         /// <summary>Get all the message handlers for the given message type.
         /// </summary>
         /// <param name="messageType"></param>
         /// <returns></returns>
-        IEnumerable<TMessageHandlerInterface> GetMessageHandlers(Type messageType);
+        IEnumerable<IMessageHandler> GetMessageHandlers(Type messageType);
         /// <summary>Check whether a given type is a message handler type.
         /// </summary>
         /// <param name="type"></param>

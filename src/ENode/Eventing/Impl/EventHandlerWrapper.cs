@@ -1,11 +1,23 @@
 ﻿using ENode.Infrastructure;
+
 namespace ENode.Eventing.Impl
 {
-    public class EventHandlerWrapper<TEvent> : MessageHandlerWrapper<IEventContext, TEvent, IEvent>, IEventHandler
-        where TEvent : class, IEvent
+    public class EventHandlerWrapper<TEvent> : IEventHandler where TEvent : class, IEvent
     {
-        public EventHandlerWrapper(IMessageHandler<IEventContext, TEvent> eventHandler) : base(eventHandler)
+        private readonly IEventHandler<TEvent> _eventHandler;
+
+        public EventHandlerWrapper(IEventHandler<TEvent> eventHandler)
         {
+            _eventHandler = eventHandler;
+        }
+
+        public void Handle(IEventContext context, object evnt)
+        {
+            _eventHandler.Handle(context, evnt as TEvent);
+        }
+        public object GetInnerHandler()
+        {
+            return _eventHandler;
         }
     }
 }

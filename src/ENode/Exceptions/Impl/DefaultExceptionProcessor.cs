@@ -20,7 +20,7 @@ namespace ENode.Exceptions.Impl
         private int _workerCount = 1;
         private readonly ITypeCodeProvider<IExceptionHandler> _exceptionHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
-        private readonly IMessageHandlerProvider<IExceptionHandler> _exceptionHandlerProvider;
+        private readonly IHandlerProvider<IExceptionHandler> _exceptionHandlerProvider;
         private readonly ICommandService _commandService;
         private readonly IRepository _repository;
         private readonly IActionExecutionService _actionExecutionService;
@@ -38,7 +38,7 @@ namespace ENode.Exceptions.Impl
         public DefaultExceptionProcessor(
             ITypeCodeProvider<IExceptionHandler> exceptionHandlerTypeCodeProvider,
             ITypeCodeProvider<ICommand> commandTypeCodeProvider,
-            IMessageHandlerProvider<IExceptionHandler> exceptionHandlerProvider,
+            IHandlerProvider<IExceptionHandler> exceptionHandlerProvider,
             ICommandService commandService,
             IRepository repository,
             IActionExecutionService actionExecutionService,
@@ -159,7 +159,7 @@ namespace ENode.Exceptions.Impl
                 var publishableException = Message;
                 var success = true;
 
-                foreach (var exceptionHandler in _processor._exceptionHandlerProvider.GetMessageHandlers(publishableException.GetType()))
+                foreach (var exceptionHandler in _processor._exceptionHandlerProvider.GetHandlers(publishableException.GetType()))
                 {
                     if (!_processor.DispatchExceptionToHandler(publishableException, exceptionHandler))
                     {

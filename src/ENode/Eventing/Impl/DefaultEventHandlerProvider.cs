@@ -4,13 +4,13 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventHandlerProvider : BaseHandlerProvider<IEventHandler>, IMessageHandlerProvider<IEventHandler>, IAssemblyInitializer
+    public class DefaultEventHandlerProvider : BaseHandlerProvider<IEventHandler>, IHandlerProvider<IEventHandler>
     {
-        protected override Type GetMessageHandlerGenericInterfaceType()
+        protected override Type GetHandlerGenericInterfaceType()
         {
             return typeof(IEventHandler<>);
         }
-        protected override Type GetMessageHandlerWrapperType()
+        protected override Type GetHandlerProxyType()
         {
             return typeof(EventHandlerWrapper<>);
         }

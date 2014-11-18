@@ -88,9 +88,9 @@ namespace ENode.Configurations
             _configuration.SetDefault<ITypeCodeProvider<IPublishableException>, DefaultTypeCodeProvider<IPublishableException>>();
 
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
-            _configuration.SetDefault<IMessageHandlerProvider<ICommandHandler>, DefaultCommandHandlerProvider>();
-            _configuration.SetDefault<IMessageHandlerProvider<IEventHandler>, DefaultEventHandlerProvider>();
-            _configuration.SetDefault<IMessageHandlerProvider<IExceptionHandler>, DefaultExceptionHandlerProvider>();
+            _configuration.SetDefault<IHandlerProvider<ICommandHandler>, DefaultCommandHandlerProvider>();
+            _configuration.SetDefault<IHandlerProvider<IEventHandler>, DefaultEventHandlerProvider>();
+            _configuration.SetDefault<IHandlerProvider<IExceptionHandler>, DefaultExceptionHandlerProvider>();
             _configuration.SetDefault<ITypeCodeProvider<ICommand>, NotImplementedCommandTypeCodeProvider>();
             _configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, NotImplementedAggregateRootTypeCodeProvider>();
             _configuration.SetDefault<ITypeCodeProvider<IEvent>, NotImplementedEventTypeCodeProvider>();
@@ -129,9 +129,9 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMessagePublisher<IPublishableException>, NotImplementedExceptionPublisher>();
 
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<ICommandHandler>));
-            _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<IEventHandler>));
-            _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider<IExceptionHandler>));
+            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<ICommandHandler>));
+            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<IEventHandler>));
+            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<IExceptionHandler>));
 
             return this;
         }

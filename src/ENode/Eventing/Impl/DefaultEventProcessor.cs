@@ -21,7 +21,7 @@ namespace ENode.Eventing.Impl
         private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
         private readonly ITypeCodeProvider<IEventHandler> _eventHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
-        private readonly IMessageHandlerProvider<IEventHandler> _eventHandlerProvider;
+        private readonly IHandlerProvider<IEventHandler> _eventHandlerProvider;
         private readonly ICommandService _commandService;
         private readonly IRepository _repository;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
@@ -43,7 +43,7 @@ namespace ENode.Eventing.Impl
             ITypeCodeProvider<IEvent> eventTypeCodeProvider,
             ITypeCodeProvider<IEventHandler> eventHandlerTypeCodeProvider,
             ITypeCodeProvider<ICommand> commandTypeCodeProvider,
-            IMessageHandlerProvider<IEventHandler> eventHandlerProvider,
+            IHandlerProvider<IEventHandler> eventHandlerProvider,
             ICommandService commandService,
             IRepository repository,
             IEventPublishInfoStore eventPublishInfoStore,
@@ -141,7 +141,7 @@ namespace ENode.Eventing.Impl
         private bool DispatchEventToHandlers(IEvent evnt)
         {
             var success = true;
-            foreach (var handler in _eventHandlerProvider.GetMessageHandlers(evnt.GetType()))
+            foreach (var handler in _eventHandlerProvider.GetHandlers(evnt.GetType()))
             {
                 if (!DispatchEventToHandler(evnt, handler))
                 {
@@ -152,16 +152,17 @@ namespace ENode.Eventing.Impl
         }
         private bool DispatchEventToHandler(IEvent evnt, IEventHandler eventHandler)
         {
+            var domainEvent = evnt as IDomainEvent;
+            var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
+            var eventHandlerType = eventHandler.GetInnerHandler().GetType();
+            var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(eventHandlerType);
+            if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
+            if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
+            var eventContext = new MessageHandlerContext(_repository);
+
             try
             {
-                var domainEvent = evnt as IDomainEvent;
-                var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
-                var eventHandlerType = eventHandler.GetInnerHandler().GetType();
-                var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(eventHandlerType);
-                if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
-                if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
 
-                var eventContext = new MessageHandlerContext(_repository);
                 eventHandler.Handle(eventContext, evnt);
                 var commands = eventContext.GetCommands();
                 if (commands.Any())
@@ -220,7 +221,7 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", eventHandler.GetInnerHandler().GetType().Name, evnt.GetType().Name), ex);
+                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", eventHandlerType.Name, evnt.GetType().Name), ex);
                 return false;
             }
         }

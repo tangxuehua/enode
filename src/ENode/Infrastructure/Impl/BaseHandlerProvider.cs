@@ -6,62 +6,74 @@ using ECommon.Components;
 
 namespace ENode.Infrastructure.Impl
 {
-    public abstract class BaseHandlerProvider<TMessageHandlerInterface> : IMessageHandlerProvider<TMessageHandlerInterface>, IAssemblyInitializer
-        where TMessageHandlerInterface : class, IMessageHandler
+    public abstract class BaseHandlerProvider<THandlerInterface> : IAssemblyInitializer where THandlerInterface : class
     {
-        private readonly IDictionary<Type, IList<TMessageHandlerInterface>> _messageHandlerDict = new Dictionary<Type, IList<TMessageHandlerInterface>>();
-
-        protected abstract Type GetMessageHandlerGenericInterfaceType();
-        protected abstract Type GetMessageHandlerWrapperType();
+        private readonly IDictionary<Type, IList<object>> _handlerDict = new Dictionary<Type, IList<object>>();
 
         public void Initialize(params Assembly[] assemblies)
         {
-            foreach (var handlerType in assemblies.SelectMany(assembly => assembly.GetTypes().Where(IsMessageHandler)))
+            foreach (var handlerType in assemblies.SelectMany(assembly => assembly.GetTypes().Where(IsHandler)))
             {
                 if (!TypeUtils.IsComponent(handlerType))
                 {
-                    throw new Exception(string.Format("Message handler [type={0}] should be marked as component.", handlerType.FullName));
+                    throw new Exception(string.Format("Handler [type={0}] should be marked as component.", handlerType.FullName));
                 }
-                RegisterMessageHandler(handlerType);
+                RegisterHandler(handlerType);
             }
         }
-        public IEnumerable<TMessageHandlerInterface> GetMessageHandlers(Type type)
+
+        public IEnumerable<THandlerInterface> GetHandlers(Type type)
         {
-            var messageHandlers = new List<TMessageHandlerInterface>();
-            foreach (var key in _messageHandlerDict.Keys.Where(key => key.IsAssignableFrom(type)))
+            var handlers = new List<object>();
+            foreach (var key in _handlerDict.Keys.Where(key => key.IsAssignableFrom(type)))
             {
-                messageHandlers.AddRange(_messageHandlerDict[key]);
+                handlers.AddRange(_handlerDict[key]);
             }
-            return messageHandlers;
+            return handlers.Cast<THandlerInterface>();
         }
-        public bool IsMessageHandler(Type type)
+        public bool IsHandler(Type type)
         {
             return type != null && type.IsClass && !type.IsAbstract && ScanHandlerInterfaces(type).Any();
         }
 
-        private void RegisterMessageHandler(Type messageHandlerType)
+        protected abstract Type GetHandlerGenericInterfaceType();
+        protected abstract Type GetHandlerProxyType();
+
+        private void RegisterHandler(Type handlerType)
         {
-            foreach (var handlerInterfaceType in ScanHandlerInterfaces(messageHandlerType))
+            foreach (var handlerInterfaceType in ScanHandlerInterfaces(handlerType))
             {
                 var argumentType = handlerInterfaceType.GetGenericArguments().Single();
-                var handlerWrapperType = GetMessageHandlerWrapperType().MakeGenericType(argumentType);
-                IList<TMessageHandlerInterface> messageHandlers;
-                if (!_messageHandlerDict.TryGetValue(argumentType, out messageHandlers))
+                var handlerProxyType = GetHandlerProxyType().MakeGenericType(argumentType);
+                IList<object> handlers;
+                if (!_handlerDict.TryGetValue(argumentType, out handlers))
                 {
-                    messageHandlers = new List<TMessageHandlerInterface>();
-                    _messageHandlerDict.Add(argumentType, messageHandlers);
+                    handlers = new List<object>();
+                    _handlerDict.Add(argumentType, handlers);
                 }
 
-                if (messageHandlers.Any(x => x.GetInnerHandler().GetType() == messageHandlerType)) continue;
+                if (handlers.Any(x =>
+                    {
+                        var handlerProxy = x as IProxyHandler;
+                        if (handlerProxy != null)
+                        {
+                            return handlerProxy.GetInnerHandler().GetType() == handlerType;
+                        }
+                        else
+                        {
+                            return x.GetType() == handlerType;
+                        }
+                    }))
+                {
+                    continue;
+                }
 
-                var messageHandler = ObjectContainer.Resolve(messageHandlerType);
-                var messageHandlerWrapper = Activator.CreateInstance(handlerWrapperType, new[] { messageHandler }) as TMessageHandlerInterface;
-                messageHandlers.Add(messageHandlerWrapper);
+                handlers.Add(Activator.CreateInstance(handlerProxyType, new[] { ObjectContainer.Resolve(handlerType) }));
             }
         }
         private IEnumerable<Type> ScanHandlerInterfaces(Type type)
         {
-            return type.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == GetMessageHandlerGenericInterfaceType());
+            return type.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == GetHandlerGenericInterfaceType());
         }
     }
 }

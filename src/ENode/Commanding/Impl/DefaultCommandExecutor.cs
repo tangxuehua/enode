@@ -17,7 +17,7 @@ namespace ENode.Commanding.Impl
         private readonly IEventStore _eventStore;
         private readonly IWaitingCommandService _waitingCommandService;
         private readonly IExecutedCommandService _executedCommandService;
-        private readonly IMessageHandlerProvider<ICommandHandler> _commandHandlerProvider;
+        private readonly IHandlerProvider<ICommandHandler> _commandHandlerProvider;
         private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeProvider;
         private readonly IEventService _eventService;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
@@ -34,7 +34,7 @@ namespace ENode.Commanding.Impl
             IEventStore eventStore,
             IWaitingCommandService waitingCommandService,
             IExecutedCommandService executedCommandService,
-            IMessageHandlerProvider<ICommandHandler> commandHandlerProvider,
+            IHandlerProvider<ICommandHandler> commandHandlerProvider,
             ITypeCodeProvider<IAggregateRoot> aggregateRootTypeProvider,
             IEventService eventService,
             IEventPublishInfoStore eventPublishInfoStore,
@@ -76,7 +76,7 @@ namespace ENode.Commanding.Impl
             //首先验证command handler是否存在
             try
             {
-                var commandHandlers = _commandHandlerProvider.GetMessageHandlers(command.GetType());
+                var commandHandlers = _commandHandlerProvider.GetHandlers(command.GetType());
                 if (!commandHandlers.Any())
                 {
                     throw new CommandHandlerNotFoundException(command);

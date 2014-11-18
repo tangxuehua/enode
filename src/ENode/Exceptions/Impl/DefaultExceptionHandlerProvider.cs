@@ -4,13 +4,13 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Exceptions.Impl
 {
-    public class DefaultExceptionHandlerProvider : BaseHandlerProvider<IExceptionHandler>, IMessageHandlerProvider<IExceptionHandler>, IAssemblyInitializer
+    public class DefaultExceptionHandlerProvider : BaseHandlerProvider<IExceptionHandler>, IHandlerProvider<IExceptionHandler>
     {
-        protected override Type GetMessageHandlerGenericInterfaceType()
+        protected override Type GetHandlerGenericInterfaceType()
         {
             return typeof(IExceptionHandler<>);
         }
-        protected override Type GetMessageHandlerWrapperType()
+        protected override Type GetHandlerProxyType()
         {
             return typeof(ExceptionHandlerWrapper<>);
         }

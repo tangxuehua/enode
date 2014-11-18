@@ -4,13 +4,13 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Commanding.Impl
 {
-    public class DefaultCommandHandlerProvider : BaseHandlerProvider<ICommandHandler>, IMessageHandlerProvider<ICommandHandler>, IAssemblyInitializer
+    public class DefaultCommandHandlerProvider : BaseHandlerProvider<ICommandHandler>, IHandlerProvider<ICommandHandler>
     {
-        protected override Type GetMessageHandlerGenericInterfaceType()
+        protected override Type GetHandlerGenericInterfaceType()
         {
             return typeof(ICommandHandler<>);
         }
-        protected override Type GetMessageHandlerWrapperType()
+        protected override Type GetHandlerProxyType()
         {
             return typeof(CommandHandlerWrapper<>);
         }

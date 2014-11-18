@@ -103,12 +103,13 @@
     <Compile Include="Exceptions\Impl\PublishableException.cs" />
     <Compile Include="Exceptions\Impl\NotImplementedExceptionHandlerTypeCodeProvider.cs" />
     <Compile Include="Exceptions\Impl\NotImplementedExceptionPublisher.cs" />
+    <Compile Include="Infrastructure\IHandlerProvider.cs" />
+    <Compile Include="Infrastructure\IProxyHandler.cs" />
     <Compile Include="Infrastructure\MessageHandlerContext.cs" />
     <Compile Include="Infrastructure\Impl\ProcessingContext.cs" />
     <Compile Include="Infrastructure\IOException.cs" />
     <Compile Include="Infrastructure\Impl\BaseHandlerProvider.cs" />
     <Compile Include="Infrastructure\IProcessingContext.cs" />
-    <Compile Include="Infrastructure\MessageHandlerWrapper.cs" />
     <Compile Include="Infrastructure\IMessageHandlerProvider.cs" />
     <Compile Include="Infrastructure\IMessageHandler.cs" />
     <Compile Include="Infrastructure\IMessageProcessContext.cs" />
