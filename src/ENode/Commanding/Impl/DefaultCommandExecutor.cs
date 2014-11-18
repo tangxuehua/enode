@@ -21,7 +21,7 @@ namespace ENode.Commanding.Impl
         private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeProvider;
         private readonly IEventService _eventService;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
-        private readonly IMessagePublisher<IPublishableException> _exceptionPublisher;
+        private readonly IPublisher<IPublishableException> _exceptionPublisher;
         private readonly IRetryCommandService _retryCommandService;
         private readonly ILogger _logger;
 
@@ -38,7 +38,7 @@ namespace ENode.Commanding.Impl
             ITypeCodeProvider<IAggregateRoot> aggregateRootTypeProvider,
             IEventService eventService,
             IEventPublishInfoStore eventPublishInfoStore,
-            IMessagePublisher<IPublishableException> exceptionPublisher,
+            IPublisher<IPublishableException> exceptionPublisher,
             IRetryCommandService retryCommandService,
             ILoggerFactory loggerFactory)
         {
@@ -189,11 +189,11 @@ namespace ENode.Commanding.Impl
             }
 
             //尝试将当前已执行的command添加到commandStore
-            string sourceEventId;
-            string sourceExceptionId;
-            command.Items.TryGetValue("SourceEventId", out sourceEventId);
-            command.Items.TryGetValue("SourceExceptionId", out sourceExceptionId);
-            var commandAddResult = _commandStore.Add(new HandledAggregateCommand(command, sourceEventId, sourceExceptionId, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode));
+            string sourceId;
+            string sourceType;
+            command.Items.TryGetValue("SourceId", out sourceId);
+            command.Items.TryGetValue("SourceType", out sourceType);
+            var commandAddResult = _commandStore.Add(new HandledAggregateCommand(command, sourceId, sourceType, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode));
 
             //如果command添加成功，则提交该command产生的事件
             if (commandAddResult == CommandAddResult.Success)
@@ -336,12 +336,12 @@ namespace ENode.Commanding.Impl
         private void CommitChanges(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Command;
-            string sourceEventId;
-            string sourceExceptionId;
-            command.Items.TryGetValue("SourceEventId", out sourceEventId);
-            command.Items.TryGetValue("SourceExceptionId", out sourceExceptionId);
+            string sourceId;
+            string sourceType;
+            command.Items.TryGetValue("SourceId", out sourceId);
+            command.Items.TryGetValue("SourceType", out sourceType);
             var evnts = processingCommand.CommandExecuteContext.GetEvents().ToList();
-            var commandAddResult = _commandStore.Add(new HandledCommand(command, sourceEventId, sourceExceptionId, evnts));
+            var commandAddResult = _commandStore.Add(new HandledCommand(command, sourceId, sourceType, evnts));
 
             if (commandAddResult == CommandAddResult.Success)
             {

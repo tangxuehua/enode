@@ -11,7 +11,7 @@ namespace ENode.Exceptions.Impl
             _exceptionHandler = exceptionHandler;
         }
 
-        public void Handle(IExceptionHandlingContext context, object exception)
+        public void Handle(IHandlingContext context, object exception)
         {
             _exceptionHandler.Handle(context, exception as TException);
         }

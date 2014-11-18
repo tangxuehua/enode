@@ -5,6 +5,7 @@ using BankTransferSample.Exceptions;
 using ECommon.Components;
 using ENode.Eventing;
 using ENode.Exceptions;
+using ENode.Infrastructure;
 
 namespace BankTransferSample.ProcessManagers
 {
@@ -22,20 +23,20 @@ namespace BankTransferSample.ProcessManagers
         IEventHandler<TransferInPreparationConfirmedEvent>,              //转账交易预转入已确认
         IEventHandler<TransactionPreparationCommittedEvent>              //账户预操作已提交
     {
-        public void Handle(IEventContext context, TransferTransactionStartedEvent evnt)
+        public void Handle(IHandlingContext context, TransferTransactionStartedEvent evnt)
         {
             context.AddCommand(new ValidateAccountCommand(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId));
             context.AddCommand(new ValidateAccountCommand(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId));
         }
-        public void Handle(IEventContext context, AccountValidatePassedEvent evnt)
+        public void Handle(IHandlingContext context, AccountValidatePassedEvent evnt)
         {
             context.AddCommand(new ConfirmAccountValidatePassedCommand(evnt.TransactionId, evnt.AccountId));
         }
-        public void Handle(IExceptionHandlingContext context, InvalidAccountException exception)
+        public void Handle(IHandlingContext context, InvalidAccountException exception)
         {
             context.AddCommand(new CancelTransferTransactionCommand(exception.TransactionId));
         }
-        public void Handle(IEventContext context, AccountValidatePassedConfirmCompletedEvent evnt)
+        public void Handle(IHandlingContext context, AccountValidatePassedConfirmCompletedEvent evnt)
         {
             context.AddCommand(new AddTransactionPreparationCommand(
                 evnt.TransactionInfo.SourceAccountId,
@@ -44,7 +45,7 @@ namespace BankTransferSample.ProcessManagers
                 PreparationType.DebitPreparation,
                 evnt.TransactionInfo.Amount));
         }
-        public void Handle(IEventContext context, TransactionPreparationAddedEvent evnt)
+        public void Handle(IHandlingContext context, TransactionPreparationAddedEvent evnt)
         {
             if (evnt.TransactionPreparation.TransactionType == TransactionType.TransferTransaction)
             {
@@ -58,14 +59,14 @@ namespace BankTransferSample.ProcessManagers
                 }
             }
         }
-        public void Handle(IExceptionHandlingContext context, InsufficientBalanceException exception)
+        public void Handle(IHandlingContext context, InsufficientBalanceException exception)
         {
             if (exception.TransactionType == TransactionType.TransferTransaction)
             {
                 context.AddCommand(new CancelTransferTransactionCommand(exception.TransactionId));
             }
         }
-        public void Handle(IEventContext context, TransferOutPreparationConfirmedEvent evnt)
+        public void Handle(IHandlingContext context, TransferOutPreparationConfirmedEvent evnt)
         {
             context.AddCommand(new AddTransactionPreparationCommand(
                 evnt.TransactionInfo.TargetAccountId,
@@ -74,12 +75,12 @@ namespace BankTransferSample.ProcessManagers
                 PreparationType.CreditPreparation,
                 evnt.TransactionInfo.Amount));
         }
-        public void Handle(IEventContext context, TransferInPreparationConfirmedEvent evnt)
+        public void Handle(IHandlingContext context, TransferInPreparationConfirmedEvent evnt)
         {
             context.AddCommand(new CommitTransactionPreparationCommand(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId));
             context.AddCommand(new CommitTransactionPreparationCommand(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId));
         }
-        public void Handle(IEventContext context, TransactionPreparationCommittedEvent evnt)
+        public void Handle(IHandlingContext context, TransactionPreparationCommittedEvent evnt)
         {
             if (evnt.TransactionPreparation.TransactionType == TransactionType.TransferTransaction)
             {

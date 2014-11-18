@@ -7,7 +7,7 @@ namespace ENode.EQueue
 {
     public class DomainEventHandledMessageSender
     {
-        private const string DefaultDomainEventHandledMessageSenderProcuderId = "sys_dehmsp";
+        private const string DefaultDomainEventHandledMessageSenderProcuderId = "DomainEventHandledMessageSender";
         private readonly Producer _producer;
         private readonly IBinarySerializer _binarySerializer;
 
@@ -31,7 +31,7 @@ namespace ENode.EQueue
         }
         public void Send(DomainEventHandledMessage message, string topic)
         {
-            _producer.SendAsync(new Message(topic, (int)MessageTypeCode.DomainEventHandledMessage, _binarySerializer.Serialize(message)), message.CommandId);
+            _producer.SendAsync(new Message(topic, (int)EQueueMessageTypeCode.DomainEventHandledMessage, _binarySerializer.Serialize(message)), message.CommandId);
         }
     }
 }

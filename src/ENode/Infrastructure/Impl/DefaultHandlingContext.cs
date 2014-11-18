@@ -1,30 +1,28 @@
 ﻿using System.Collections.Generic;
 using ENode.Commanding;
 using ENode.Domain;
-using ENode.Eventing;
-using ENode.Exceptions;
 
-namespace ENode.Infrastructure
+namespace ENode.Infrastructure.Impl
 {
-    public class MessageHandlerContext : IEventContext, IExceptionHandlingContext
+    public class DefaultHandlingContext : IHandlingContext
     {
         private readonly List<ICommand> _commands = new List<ICommand>();
         private readonly IRepository _repository;
 
-        public MessageHandlerContext(IRepository repository)
+        public DefaultHandlingContext(IRepository repository)
         {
             _repository = repository;
         }
 
-        public virtual T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
+        public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
         {
             return _repository.Get<T>(aggregateRootId);
         }
-        public virtual void AddCommand(ICommand command)
+        public void AddCommand(ICommand command)
         {
             _commands.Add(command);
         }
-        public virtual IEnumerable<ICommand> GetCommands()
+        public IEnumerable<ICommand> GetCommands()
         {
             return _commands;
         }

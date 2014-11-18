@@ -1,6 +1,6 @@
 ﻿namespace ENode.EQueue
 {
-    public enum MessageTypeCode
+    public enum EQueueMessageTypeCode
     {
         CommandMessage = 1,
         CommandExecutedMessage = 2,

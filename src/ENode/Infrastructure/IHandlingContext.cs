@@ -2,11 +2,11 @@
 using ENode.Commanding;
 using ENode.Domain;
 
-namespace ENode.Exceptions
+namespace ENode.Infrastructure
 {
-    /// <summary>Represents a context for exception handler handling exception.
+    /// <summary>Represents a data handling context.
     /// </summary>
-    public interface IExceptionHandlingContext
+    public interface IHandlingContext
     {
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
@@ -14,11 +14,11 @@ namespace ENode.Exceptions
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
         T Get<T>(object aggregateRootId) where T : class, IAggregateRoot;
-        /// <summary>Add a to be execute process command in the context.
+        /// <summary>Add a command into the context, and the command will be send later.
         /// </summary>
-        /// <param name="command">The process command to execute.</param>
+        /// <param name="command">The command.</param>
         void AddCommand(ICommand command);
-        /// <summary>Get all the to be execute process commands from the context.
+        /// <summary>Get all the commands in the context.
         /// </summary>
         /// <returns></returns>
         IEnumerable<ICommand> GetCommands();

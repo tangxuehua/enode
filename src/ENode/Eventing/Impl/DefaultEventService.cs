@@ -34,8 +34,8 @@ namespace ENode.Eventing.Impl
         private readonly IAggregateStorage _aggregateStorage;
         private readonly IRetryCommandService _retryCommandService;
         private readonly IEventStore _eventStore;
-        private readonly IMessagePublisher<DomainEventStream> _domainEventPublisher;
-        private readonly IMessagePublisher<EventStream> _eventPublisher;
+        private readonly IPublisher<DomainEventStream> _domainEventPublisher;
+        private readonly IPublisher<EventStream> _eventPublisher;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
@@ -55,8 +55,8 @@ namespace ENode.Eventing.Impl
             IAggregateStorage aggregateStorage,
             IRetryCommandService retryCommandService,
             IEventStore eventStore,
-            IMessagePublisher<DomainEventStream> domainEventPublisher,
-            IMessagePublisher<EventStream> eventPublisher,
+            IPublisher<DomainEventStream> domainEventPublisher,
+            IPublisher<EventStream> eventPublisher,
             IActionExecutionService actionExecutionService,
             IEventPublishInfoStore eventPublishInfoStore,
             ILoggerFactory loggerFactory)

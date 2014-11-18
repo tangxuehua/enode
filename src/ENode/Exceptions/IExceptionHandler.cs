@@ -10,7 +10,7 @@ namespace ENode.Exceptions
         /// </summary>
         /// <param name="context"></param>
         /// <param name="exception"></param>
-        void Handle(IExceptionHandlingContext context, object exception);
+        void Handle(IHandlingContext context, object exception);
     }
     /// <summary>Represents an exception handler.
     /// </summary>
@@ -21,6 +21,6 @@ namespace ENode.Exceptions
         /// </summary>
         /// <param name="context"></param>
         /// <param name="exception"></param>
-        void Handle(IExceptionHandlingContext context, TException exception);
+        void Handle(IHandlingContext context, TException exception);
     }
 }

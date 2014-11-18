@@ -1,8 +1,10 @@
-﻿namespace ENode.Infrastructure
+﻿using ENode.Infrastructure;
+
+namespace ENode.Messaging
 {
     /// <summary>Represents a message handler.
     /// </summary>
-    public interface IMessageHandler
+    public interface IMessageHandler : IProxyHandler
     {
         /// <summary>Handle the given message.
         /// </summary>
@@ -12,7 +14,7 @@
     /// <summary>Represents a message handler.
     /// </summary>
     /// <typeparam name="TMessage"></typeparam>
-    public interface IMessageHandler<in TMessage> where TMessage : class
+    public interface IMessageHandler<in TMessage> where TMessage : class, IMessage
     {
         /// <summary>Handle the given message.
         /// </summary>

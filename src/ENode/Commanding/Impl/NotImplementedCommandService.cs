@@ -9,7 +9,7 @@ namespace ENode.Commanding.Impl
         {
             throw new NotImplementedException();
         }
-        public void Send(ICommand command, string sourceEventId, string sourceExceptionId)
+        public void Send(ICommand command, string sourceId, string sourceType)
         {
             throw new NotImplementedException();
         }

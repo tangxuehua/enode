@@ -3,6 +3,7 @@ using BankTransferSample.Domain;
 using BankTransferSample.DomainEvents;
 using ECommon.Components;
 using ENode.Eventing;
+using ENode.Infrastructure;
 
 namespace BankTransferSample.ProcessManagers
 {
@@ -15,7 +16,7 @@ namespace BankTransferSample.ProcessManagers
         IEventHandler<TransactionPreparationAddedEvent>,                  //账户预操作已添加
         IEventHandler<TransactionPreparationCommittedEvent>               //账户预操作已提交
     {
-        public void Handle(IEventContext context, DepositTransactionStartedEvent evnt)
+        public void Handle(IHandlingContext context, DepositTransactionStartedEvent evnt)
         {
             context.AddCommand(new AddTransactionPreparationCommand(
                 evnt.AccountId,
@@ -24,7 +25,7 @@ namespace BankTransferSample.ProcessManagers
                 PreparationType.CreditPreparation,
                 evnt.Amount));
         }
-        public void Handle(IEventContext context, TransactionPreparationAddedEvent evnt)
+        public void Handle(IHandlingContext context, TransactionPreparationAddedEvent evnt)
         {
             if (evnt.TransactionPreparation.TransactionType == TransactionType.DepositTransaction &&
                 evnt.TransactionPreparation.PreparationType == PreparationType.CreditPreparation)
@@ -32,11 +33,11 @@ namespace BankTransferSample.ProcessManagers
                 context.AddCommand(new ConfirmDepositPreparationCommand(evnt.TransactionPreparation.TransactionId));
             }
         }
-        public void Handle(IEventContext context, DepositTransactionPreparationCompletedEvent evnt)
+        public void Handle(IHandlingContext context, DepositTransactionPreparationCompletedEvent evnt)
         {
             context.AddCommand(new CommitTransactionPreparationCommand(evnt.AccountId, evnt.AggregateRootId));
         }
-        public void Handle(IEventContext context, TransactionPreparationCommittedEvent evnt)
+        public void Handle(IHandlingContext context, TransactionPreparationCommittedEvent evnt)
         {
             if (evnt.TransactionPreparation.TransactionType == TransactionType.DepositTransaction &&
                 evnt.TransactionPreparation.PreparationType == PreparationType.CreditPreparation)

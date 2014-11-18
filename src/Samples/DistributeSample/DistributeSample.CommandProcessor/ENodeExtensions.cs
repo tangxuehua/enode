@@ -24,7 +24,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
 
             _eventPublisher = new EventPublisher();
 
-            configuration.SetDefault<IMessagePublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IPublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer();
 

@@ -10,7 +10,7 @@ namespace ENode.Eventing
         /// </summary>
         /// <param name="context"></param>
         /// <param name="evnt"></param>
-        void Handle(IEventContext context, object evnt);
+        void Handle(IHandlingContext context, object evnt);
     }
     /// <summary>Represents an event handler.
     /// </summary>
@@ -21,6 +21,6 @@ namespace ENode.Eventing
         /// </summary>
         /// <param name="context"></param>
         /// <param name="evnt"></param>
-        void Handle(IEventContext context, TEvent evnt);
+        void Handle(IHandlingContext context, TEvent evnt);
     }
 }

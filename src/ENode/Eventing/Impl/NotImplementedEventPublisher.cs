@@ -3,7 +3,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
-    public class NotImplementedEventPublisher : IMessagePublisher<EventStream>, IMessagePublisher<DomainEventStream>, IEventPublisher
+    public class NotImplementedEventPublisher : IPublisher<EventStream>, IPublisher<DomainEventStream>, IPublisher<IEvent>
     {
         public void Publish(EventStream eventStream)
         {

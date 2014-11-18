@@ -11,7 +11,7 @@ namespace ENode.Eventing.Impl
             _eventHandler = eventHandler;
         }
 
-        public void Handle(IEventContext context, object evnt)
+        public void Handle(IHandlingContext context, object evnt)
         {
             _eventHandler.Handle(context, evnt as TEvent);
         }

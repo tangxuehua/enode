@@ -36,7 +36,7 @@ namespace NoteSample.EQueueIntegrations
             _eventPublisher = new EventPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
-            configuration.SetDefault<IMessagePublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IPublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer();
             _eventConsumer = new EventConsumer();

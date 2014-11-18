@@ -18,9 +18,9 @@ namespace ENode.Commanding
         /// <summary>Send a command synchronously.
         /// </summary>
         /// <param name="command">The command to send.</param>
-        /// <param name="sourceEventId">The source event id.</param>
-        /// <param name="sourceExceptionId">The source exception id.</param>
-        void Send(ICommand command, string sourceEventId, string sourceExceptionId);
+        /// <param name="sourceId">The identifier of the source.</param>
+        /// <param name="sourceExceptionId">The type of the source.</param>
+        void Send(ICommand command, string sourceId, string sourceType);
         /// <summary>Execute a command asynchronously with the default command return type.
         /// </summary>
         /// <param name="command">The command to execute.</param>

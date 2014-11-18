@@ -54,12 +54,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Eventing\EventMessage.cs" />
+    <Compile Include="Messaging\MessageConsumer.cs" />
+    <Compile Include="Messaging\MessagePublisher.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionMessage.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionConsumer.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionPublisher.cs" />
-    <Compile Include="MessageProcessContext.cs" />
+    <Compile Include="EQueueProcessContext.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="MessageTypeCode.cs" />
+    <Compile Include="EQueueMessageTypeCode.cs" />
     <Compile Include="AbstractTopicProvider.cs" />
     <Compile Include="Commanding\CommandConsumer.cs" />
     <Compile Include="Commanding\CommandMessage.cs" />

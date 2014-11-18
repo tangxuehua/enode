@@ -7,7 +7,7 @@ namespace ENode.EQueue
 {
     public class CommandExecutedMessageSender
     {
-        private const string DefaultCommandExecutedMessageSenderProcuderId = "sys_cemsp";
+        private const string DefaultCommandExecutedMessageSenderProcuderId = "CommandExecutedMessageSender";
         private readonly Producer _producer;
         private readonly IBinarySerializer _binarySerializer;
 
@@ -31,7 +31,7 @@ namespace ENode.EQueue
         }
         public void Send(CommandExecutedMessage message, string topic)
         {
-            _producer.SendAsync(new Message(topic, (int)MessageTypeCode.CommandExecutedMessage, _binarySerializer.Serialize(message)), message.CommandId);
+            _producer.SendAsync(new Message(topic, (int)EQueueMessageTypeCode.CommandExecutedMessage, _binarySerializer.Serialize(message)), message.CommandId);
         }
     }
 }

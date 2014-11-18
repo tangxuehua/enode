@@ -16,7 +16,7 @@ namespace ENode.EQueue
     {
         private const string DefaultCommandExecutedMessageTopic = "sys_ecmt";
         private const string DefaultDomainEventHandledMessageTopic = "sys_dehmt";
-        private const string DefaultCommandServiceProcuderId = "sys_csp";
+        private const string DefaultCommandServiceProcuderId = "CommandService";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ITopicProvider<ICommand> _commandTopicProvider;
@@ -68,14 +68,18 @@ namespace ENode.EQueue
                 throw new CommandSendException(result.ErrorMessage);
             }
         }
-        public void Send(ICommand command, string sourceEventId, string sourceExceptionId)
+        public void Send(ICommand command, string sourceId, string sourceType)
         {
             ValidateCommand(command);
-            if (string.IsNullOrEmpty(sourceEventId) && string.IsNullOrEmpty(sourceExceptionId))
+            if (string.IsNullOrEmpty(sourceId))
             {
-                throw new ArgumentException("sourceEventId and sourceExceptionId can not both be null or empty.");
+                throw new ArgumentNullException("sourceId.");
             }
-            var result = _producer.Send(BuildCommandMessage(command, sourceEventId, sourceExceptionId), _commandRouteKeyProvider.GetRouteKey(command));
+            if (string.IsNullOrEmpty(sourceType))
+            {
+                throw new ArgumentNullException("sourceType.");
+            }
+            var result = _producer.Send(BuildCommandMessage(command, sourceId, sourceType), _commandRouteKeyProvider.GetRouteKey(command));
             if (result.SendStatus == SendStatus.Failed)
             {
                 throw new CommandSendException(result.ErrorMessage);
@@ -138,7 +142,7 @@ namespace ENode.EQueue
                 throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
             }
         }
-        private Message BuildCommandMessage(ICommand command, string sourceEventId = null, string sourceExceptionId = null)
+        private Message BuildCommandMessage(ICommand command, string sourceId = null, string sourceType = null)
         {
             var raw = _binarySerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
@@ -149,10 +153,10 @@ namespace ENode.EQueue
                 CommandData = commandData,
                 CommandExecutedMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.CommandExecutedMessageTopic : CommandExecutedMessageTopic,
                 DomainEventHandledMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.DomainEventHandledMessageTopic : DomainEventHandledMessageTopic,
-                SourceEventId = sourceEventId,
-                SourceExceptionId = sourceExceptionId
+                SourceId = sourceId,
+                SourceType = sourceType
             });
-            return new Message(topic, (int)MessageTypeCode.CommandMessage, messageData);
+            return new Message(topic, (int)EQueueMessageTypeCode.CommandMessage, messageData);
         }
     }
 }

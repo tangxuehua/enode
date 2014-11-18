@@ -17,12 +17,12 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ITypeCodeProvider<IPublishableException> _publishableExceptionTypeCodeProvider;
-        private readonly IMessageProcessor<IPublishableException> _publishableExceptionProcessor;
+        private readonly IProcessor<IPublishableException> _publishableExceptionProcessor;
         private readonly ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public PublishableExceptionConsumer(string id = null, string groupName = null, ConsumerSetting setting = null, DomainEventHandledMessageSender domainEventHandledMessageSender = null, bool sendEventHandledMessage = true)
+        public PublishableExceptionConsumer(string id = null, string groupName = null, ConsumerSetting setting = null)
         {
             var consumerId = id ?? DefaultExceptionConsumerId;
             _consumer = new Consumer(consumerId, groupName ?? DefaultExceptionConsumerGroup, setting ?? new ConsumerSetting
@@ -30,7 +30,7 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<IPublishableException>>();
+            _publishableExceptionProcessor = ObjectContainer.Resolve<IProcessor<IPublishableException>>();
             _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
@@ -51,17 +51,17 @@ namespace ENode.EQueue
             return this;
         }
 
-        void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
+        void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var publishableExceptionMessage = _binarySerializer.Deserialize<PublishableExceptionMessage>(message.Body);
+            var publishableExceptionMessage = _binarySerializer.Deserialize<PublishableExceptionMessage>(queueMessage.Body);
             var publishableExceptionType = _publishableExceptionTypeCodeProvider.GetType(publishableExceptionMessage.ExceptionTypeCode);
             var publishableException = FormatterServices.GetUninitializedObject(publishableExceptionType) as IPublishableException;
             publishableException.UniqueId = publishableExceptionMessage.UniqueId;
             publishableException.RestoreFrom(publishableExceptionMessage.SerializableInfo);
-            _publishableExceptionProcessor.Process(publishableException, new PublishableExceptionProcessContext(message, context, publishableException));
+            _publishableExceptionProcessor.Process(publishableException, new PublishableExceptionProcessContext(queueMessage, context, publishableException));
         }
 
-        class PublishableExceptionProcessContext : MessageProcessContext<IPublishableException>
+        class PublishableExceptionProcessContext : EQueueProcessContext<IPublishableException>
         {
             public PublishableExceptionProcessContext(QueueMessage queueMessage, IMessageContext messageContext, IPublishableException publishableException)
                 : base(queueMessage, messageContext, publishableException)

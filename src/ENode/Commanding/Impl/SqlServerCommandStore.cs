@@ -111,8 +111,8 @@ namespace ENode.Commanding.Impl
                 CommandTypeCode = _commandTypeCodeProvider.GetTypeCode(handledCommand.Command.GetType()),
                 AggregateRootId = handledAggregateCommand != null ? handledAggregateCommand.AggregateRootId : null,
                 AggregateRootTypeCode = handledAggregateCommand != null ? handledAggregateCommand.AggregateRootTypeCode : 0,
-                SourceEventId = handledCommand.SourceEventId,
-                SourceExceptionId = handledCommand.SourceExceptionId,
+                SourceId = handledCommand.SourceId,
+                SourceType = handledCommand.SourceType,
                 Timestamp = DateTime.Now,
                 Payload = _binarySerializer.Serialize(handledCommand.Command),
                 Events = _binarySerializer.Serialize(handledCommand.Events)
@@ -125,8 +125,8 @@ namespace ENode.Commanding.Impl
             {
                 return new HandledAggregateCommand(
                     _binarySerializer.Deserialize<ICommand>(record.Payload),
-                    record.SourceEventId,
-                    record.SourceExceptionId,
+                    record.SourceId,
+                    record.SourceType,
                     record.AggregateRootId,
                     record.AggregateRootTypeCode);
             }
@@ -134,8 +134,8 @@ namespace ENode.Commanding.Impl
             {
                 return new HandledCommand(
                     _binarySerializer.Deserialize<ICommand>(record.Payload),
-                    record.SourceEventId,
-                    record.SourceExceptionId,
+                    record.SourceId,
+                    record.SourceType,
                     _binarySerializer.Deserialize<IEnumerable<IEvent>>(record.Events));
             }
         }
@@ -148,8 +148,8 @@ namespace ENode.Commanding.Impl
             public int CommandTypeCode { get; set; }
             public int AggregateRootTypeCode { get; set; }
             public string AggregateRootId { get; set; }
-            public string SourceEventId { get; set; }
-            public string SourceExceptionId { get; set; }
+            public string SourceId { get; set; }
+            public string SourceType { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Payload { get; set; }
             public byte[] Events { get; set; }

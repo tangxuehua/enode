@@ -2,6 +2,7 @@
 using ECommon.Components;
 using ECommon.Logging;
 using ENode.Eventing;
+using ENode.Infrastructure;
 
 namespace DistributeSample.EventProcessor.EventHandlers
 {
@@ -15,7 +16,7 @@ namespace DistributeSample.EventProcessor.EventHandlers
             _logger = loggerFactory.Create(typeof(NoteEventHandler).Name);
         }
 
-        public void Handle(IEventContext context, NoteCreatedEvent evnt)
+        public void Handle(IHandlingContext context, NoteCreatedEvent evnt)
         {
             _logger.InfoFormat("Note created, Title：{0}", evnt.Title);
         }

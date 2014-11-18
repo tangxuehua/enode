@@ -13,7 +13,7 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventProcessor : IMessageProcessor<IDomainEventStream>, IMessageProcessor<IEventStream>, IMessageProcessor<IEvent>
+    public class DefaultEventProcessor : IProcessor<IDomainEventStream>, IProcessor<IEventStream>, IProcessor<IEvent>
     {
         #region Private Variables
 
@@ -91,15 +91,15 @@ namespace ENode.Eventing.Impl
             }
             _isStarted = true;
         }
-        public void Process(IDomainEventStream domainEventStream, IMessageProcessContext<IDomainEventStream> context)
+        public void Process(IDomainEventStream domainEventStream, IProcessContext<IDomainEventStream> context)
         {
             QueueProcessingContext(domainEventStream.AggregateRootId, new DomainEventStreamProcessingContext(this, domainEventStream, context));
         }
-        public void Process(IEventStream eventStream, IMessageProcessContext<IEventStream> context)
+        public void Process(IEventStream eventStream, IProcessContext<IEventStream> context)
         {
             QueueProcessingContext(eventStream.CommandId, new EventStreamProcessingContext(this, eventStream, context));
         }
-        public void Process(IEvent evnt, IMessageProcessContext<IEvent> context)
+        public void Process(IEvent evnt, IProcessContext<IEvent> context)
         {
             QueueProcessingContext(evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id, new EventProcessingContext(this, evnt, context));
         }
@@ -117,7 +117,7 @@ namespace ENode.Eventing.Impl
         }
         private void ProcessEvents(IProcessingContext context)
         {
-            _actionExecutionService.TryAction(context.ProcessName, context.Process, 3, new ActionInfo(context.ProcessName + "Callback", context.ProcessCallback, null, null));
+            _actionExecutionService.TryAction(context.Name, context.Process, 3, new ActionInfo(context.Name + "Callback", context.Callback, null, null));
         }
         private bool DispatchEventsToHandlers(IEventStream eventStream)
         {
@@ -154,30 +154,29 @@ namespace ENode.Eventing.Impl
         {
             var domainEvent = evnt as IDomainEvent;
             var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
-            var eventHandlerType = eventHandler.GetInnerHandler().GetType();
-            var eventHandlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(eventHandlerType);
-            if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
-            if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, eventHandlerTypeCode)) return true;
-            var eventContext = new MessageHandlerContext(_repository);
+            var handlerType = eventHandler.GetInnerHandler().GetType();
+            var handlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(handlerType);
+            if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, handlerTypeCode)) return true;
+            if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, handlerTypeCode)) return true;
+            var handlingContext = new DefaultHandlingContext(_repository);
 
             try
             {
-
-                eventHandler.Handle(eventContext, evnt);
-                var commands = eventContext.GetCommands();
+                eventHandler.Handle(handlingContext, evnt);
+                var commands = handlingContext.GetCommands();
                 if (commands.Any())
                 {
                     foreach (var command in commands)
                     {
-                        command.Id = BuildCommandId(command, evnt, eventHandlerTypeCode);
-                        _commandService.Send(command, evnt.Id, null);
+                        command.Id = BuildCommandId(command, evnt, handlerTypeCode);
+                        _commandService.Send(command, evnt.Id, "Event");
 
                         if (domainEvent != null)
                         {
                             _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}",
                                 command.GetType().Name,
                                 command.Id,
-                                eventHandlerType.Name,
+                                handlerType.Name,
                                 domainEvent.GetType().Name,
                                 domainEvent.Id,
                                 domainEvent.Version,
@@ -188,7 +187,7 @@ namespace ENode.Eventing.Impl
                             _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}",
                                 command.GetType().Name,
                                 command.Id,
-                                eventHandlerType.Name,
+                                handlerType.Name,
                                 evnt.GetType().Name,
                                 evnt.Id);
                         }
@@ -198,30 +197,30 @@ namespace ENode.Eventing.Impl
                 if (domainEvent != null)
                 {
                     _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
-                        eventHandlerType.Name,
+                        handlerType.Name,
                         domainEvent.GetType().Name,
                         domainEvent.Id,
                         domainEvent.Version,
                         domainEvent.AggregateRootId);
-                    _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, domainEvent.AggregateRootId, domainEvent.Version);
-                    _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, domainEvent.AggregateRootId, domainEvent.Version);
+                    _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, handlerTypeCode, eventTypeCode, domainEvent.AggregateRootId, domainEvent.Version);
+                    _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, handlerTypeCode, eventTypeCode, domainEvent.AggregateRootId, domainEvent.Version);
                 
                 }
                 else
                 {
                     _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}",
-                        eventHandlerType.Name,
+                        handlerType.Name,
                         evnt.GetType().Name,
                         evnt.Id);
-                    _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, string.Empty, 0);
-                    _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, eventHandlerTypeCode, eventTypeCode, string.Empty, 0);
+                    _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, handlerTypeCode, eventTypeCode, string.Empty, 0);
+                    _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, handlerTypeCode, eventTypeCode, string.Empty, 0);
                 }
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", eventHandlerType.Name, evnt.GetType().Name), ex);
+                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", handlerType.Name, evnt.GetType().Name), ex);
                 return false;
             }
         }
@@ -250,7 +249,7 @@ namespace ENode.Eventing.Impl
         {
             private DefaultEventProcessor _processor;
 
-            public DomainEventStreamProcessingContext(DefaultEventProcessor processor, IDomainEventStream domainEventStream, IMessageProcessContext<IDomainEventStream> eventProcessContext)
+            public DomainEventStreamProcessingContext(DefaultEventProcessor processor, IDomainEventStream domainEventStream, IProcessContext<IDomainEventStream> eventProcessContext)
                 : base("ProcessDomainEventStream", domainEventStream, eventProcessContext)
             {
                 _processor = processor;
@@ -282,7 +281,7 @@ namespace ENode.Eventing.Impl
         {
             private DefaultEventProcessor _processor;
 
-            public EventStreamProcessingContext(DefaultEventProcessor processor, IEventStream eventStream, IMessageProcessContext<IEventStream> eventProcessContext)
+            public EventStreamProcessingContext(DefaultEventProcessor processor, IEventStream eventStream, IProcessContext<IEventStream> eventProcessContext)
                 : base("ProcessEventStream", eventStream, eventProcessContext)
             {
                 _processor = processor;
@@ -296,7 +295,7 @@ namespace ENode.Eventing.Impl
         {
             private DefaultEventProcessor _processor;
 
-            public EventProcessingContext(DefaultEventProcessor processor, IEvent evnt, IMessageProcessContext<IEvent> eventProcessContext)
+            public EventProcessingContext(DefaultEventProcessor processor, IEvent evnt, IProcessContext<IEvent> eventProcessContext)
                 : base("ProcessEvent", evnt, eventProcessContext)
             {
                 _processor = processor;

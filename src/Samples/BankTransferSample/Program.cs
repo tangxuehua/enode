@@ -27,8 +27,8 @@ namespace BankTransferSample
             Console.WriteLine(string.Empty);
 
             //创建两个银行账户
-            commandService.Execute(new CreateAccountCommand("00001", "雪华")).Wait();
-            commandService.Execute(new CreateAccountCommand("00002", "凯锋")).Wait();
+            commandService.Execute(new CreateAccountCommand("00001", "雪华"), CommandReturnType.EventHandled).Wait();
+            commandService.Execute(new CreateAccountCommand("00002", "凯锋"), CommandReturnType.EventHandled).Wait();
 
             Console.WriteLine(string.Empty);
 

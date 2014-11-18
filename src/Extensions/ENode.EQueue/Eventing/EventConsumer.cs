@@ -17,9 +17,9 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly IMessageProcessor<IDomainEventStream> _domainEventStreamProcessor;
-        private readonly IMessageProcessor<IEventStream> _eventStreamProcessor;
-        private readonly IMessageProcessor<IEvent> _eventProcessor;
+        private readonly IProcessor<IDomainEventStream> _domainEventStreamProcessor;
+        private readonly IProcessor<IEventStream> _eventStreamProcessor;
+        private readonly IProcessor<IEvent> _eventProcessor;
         private readonly ILogger _logger;
         private readonly bool _sendEventHandledMessage;
 
@@ -33,9 +33,9 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _domainEventStreamProcessor = ObjectContainer.Resolve<IMessageProcessor<IDomainEventStream>>();
-            _eventStreamProcessor = ObjectContainer.Resolve<IMessageProcessor<IEventStream>>();
-            _eventProcessor = ObjectContainer.Resolve<IMessageProcessor<IEvent>>();
+            _domainEventStreamProcessor = ObjectContainer.Resolve<IProcessor<IDomainEventStream>>();
+            _eventStreamProcessor = ObjectContainer.Resolve<IProcessor<IEventStream>>();
+            _eventProcessor = ObjectContainer.Resolve<IProcessor<IEvent>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
             _eventStreamProcessor.Name = consumerId;
@@ -60,29 +60,29 @@ namespace ENode.EQueue
             return this;
         }
 
-        void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
+        void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            if (message.Code == (int)MessageTypeCode.DomainEventStreamMessage)
+            if (queueMessage.Code == (int)EQueueMessageTypeCode.DomainEventStreamMessage)
             {
-                var domainEventStreamMessage = _binarySerializer.Deserialize(message.Body, typeof(DomainEventStreamMessage)) as DomainEventStreamMessage;
+                var domainEventStreamMessage = _binarySerializer.Deserialize(queueMessage.Body, typeof(DomainEventStreamMessage)) as DomainEventStreamMessage;
                 var domainEventStream = ConvertToDomainEventStream(domainEventStreamMessage);
-                _domainEventStreamProcessor.Process(domainEventStream, new DomainEventStreamProcessContext(this, domainEventStreamMessage, message, context, domainEventStream));
+                _domainEventStreamProcessor.Process(domainEventStream, new DomainEventStreamProcessContext(this, domainEventStreamMessage, queueMessage, context, domainEventStream));
             }
-            else if (message.Code == (int)MessageTypeCode.EventStreamMessage)
+            else if (queueMessage.Code == (int)EQueueMessageTypeCode.EventStreamMessage)
             {
-                var eventStreamMessage = _binarySerializer.Deserialize(message.Body, typeof(EventStreamMessage)) as EventStreamMessage;
+                var eventStreamMessage = _binarySerializer.Deserialize(queueMessage.Body, typeof(EventStreamMessage)) as EventStreamMessage;
                 var eventStream = ConvertToEventStream(eventStreamMessage);
-                _eventStreamProcessor.Process(eventStream, new EventStreamProcessContext(message, context, eventStream));
+                _eventStreamProcessor.Process(eventStream, new EventStreamProcessContext(queueMessage, context, eventStream));
             }
-            else if (message.Code == (int)MessageTypeCode.EventMessage)
+            else if (queueMessage.Code == (int)EQueueMessageTypeCode.EventMessage)
             {
-                var eventMessage = _binarySerializer.Deserialize(message.Body, typeof(EventMessage)) as EventMessage;
-                _eventProcessor.Process(eventMessage.Event, new EventProcessContext(message, context, eventMessage.Event));
+                var eventMessage = _binarySerializer.Deserialize(queueMessage.Body, typeof(EventMessage)) as EventMessage;
+                _eventProcessor.Process(eventMessage.Event, new EventProcessContext(queueMessage, context, eventMessage.Event));
             }
             else
             {
-                _logger.ErrorFormat("Invalid message code:{0}", message.Code);
-                context.OnMessageHandled(message);
+                _logger.ErrorFormat("Invalid message code:{0}", queueMessage.Code);
+                context.OnMessageHandled(queueMessage);
                 return;
             }
         }
@@ -107,21 +107,21 @@ namespace ENode.EQueue
             return message.Event;
         }
 
-        class EventProcessContext : MessageProcessContext<IEvent>
+        class EventProcessContext : EQueueProcessContext<IEvent>
         {
             public EventProcessContext(QueueMessage queueMessage, IMessageContext messageContext, IEvent evnt)
                 : base(queueMessage, messageContext, evnt)
             {
             }
         }
-        class EventStreamProcessContext : MessageProcessContext<IEventStream>
+        class EventStreamProcessContext : EQueueProcessContext<IEventStream>
         {
             public EventStreamProcessContext(QueueMessage queueMessage, IMessageContext messageContext, IEventStream eventStream)
                 : base(queueMessage, messageContext, eventStream)
             {
             }
         }
-        class DomainEventStreamProcessContext : MessageProcessContext<IDomainEventStream>
+        class DomainEventStreamProcessContext : EQueueProcessContext<IDomainEventStream>
         {
             private readonly EventConsumer _eventConsumer;
             private readonly DomainEventStreamMessage _domainEventStreamMessage;
@@ -133,9 +133,9 @@ namespace ENode.EQueue
                 _domainEventStreamMessage = domainEventStreamMessage;
             }
 
-            public override void OnMessageProcessed(IDomainEventStream message)
+            public override void OnProcessed(IDomainEventStream message)
             {
-                base.OnMessageProcessed(message);
+                base.OnProcessed(message);
 
                 if (!_eventConsumer._sendEventHandledMessage)
                 {

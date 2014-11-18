@@ -2,26 +2,26 @@
 {
     public abstract class ProcessingContext<TMessage> : IProcessingContext where TMessage : class
     {
-        public string ProcessName { get; private set; }
+        public string Name { get; private set; }
         public TMessage Message { get; private set; }
-        public IMessageProcessContext<TMessage> MessageProcessContext { get; private set; }
+        public IProcessContext<TMessage> MessageProcessContext { get; private set; }
 
-        public ProcessingContext(string processName, TMessage message, IMessageProcessContext<TMessage> messageProcessContext)
+        public ProcessingContext(string processName, TMessage message, IProcessContext<TMessage> messageProcessContext)
         {
-            ProcessName = processName;
+            Name = processName;
             Message = message;
             MessageProcessContext = messageProcessContext;
         }
 
         public abstract bool Process();
-        public bool ProcessCallback(object obj)
+        public bool Callback(object obj)
         {
             OnMessageProcessed();
             return true;
         }
         protected virtual void OnMessageProcessed()
         {
-            MessageProcessContext.OnMessageProcessed(Message);
+            MessageProcessContext.OnProcessed(Message);
         }
     }
 }

@@ -2,8 +2,8 @@
 {
     public interface IProcessingContext
     {
-        string ProcessName { get; }
+        string Name { get; }
         bool Process();
-        bool ProcessCallback(object obj);
+        bool Callback(object obj);
     }
 }

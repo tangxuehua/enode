@@ -9,12 +9,12 @@ namespace ENode.Commanding
         /// <summary>Parameterized constructor.
         /// </summary>
         /// <param name="command"></param>
-        /// <param name="sourceEventId"></param>
-        /// <param name="sourceExceptionId"></param>
+        /// <param name="sourceId"></param>
+        /// <param name="sourceType"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootTypeCode"></param>
-        public HandledAggregateCommand(ICommand command, string sourceEventId, string sourceExceptionId, string aggregateRootId, int aggregateRootTypeCode)
-            : base(command, sourceEventId, sourceExceptionId, null)
+        public HandledAggregateCommand(ICommand command, string sourceId, string sourceType, string aggregateRootId, int aggregateRootTypeCode)
+            : base(command, sourceId, sourceType, null)
         {
             AggregateRootId = aggregateRootId;
             AggregateRootTypeCode = aggregateRootTypeCode;
@@ -32,12 +32,12 @@ namespace ENode.Commanding
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandType={0},CommandId={1},SourceEventId={2},SourceExceptionId={3},AggregateRootTypeCode={4},AggregateRootId={5},Items={6}]";
+            var format = "[CommandType={0},CommandId={1},SourceId={2},SourceType={3},AggregateRootTypeCode={4},AggregateRootId={5},Items={6}]";
             return string.Format(format,
                 Command.GetType().Name,
                 Command.Id,
-                SourceEventId,
-                SourceExceptionId,
+                SourceId,
+                SourceType,
                 AggregateRootTypeCode,
                 AggregateRootId,
                 string.Join("|", Command.Items.Select(x => x.Key + ":" + x.Value)));

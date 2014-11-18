@@ -62,17 +62,17 @@ namespace ENode.EQueue
             return this;
         }
 
-        void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
+        void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var commandMessage = _binarySerializer.Deserialize<CommandMessage>(message.Body);
+            var commandMessage = _binarySerializer.Deserialize<CommandMessage>(queueMessage.Body);
             var payload = ByteTypeDataUtils.Decode(commandMessage.CommandData);
             var type = _commandTypeCodeProvider.GetType(payload.TypeCode);
             var command = _binarySerializer.Deserialize(payload.Data, type) as ICommand;
 
             command.Items["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
-            command.Items["SourceEventId"] = commandMessage.SourceEventId;
-            command.Items["SourceExceptionId"] = commandMessage.SourceExceptionId;
-            _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, message, context, commandMessage, _commandExecutedMessageSender)));
+            command.Items["SourceId"] = commandMessage.SourceId;
+            command.Items["SourceType"] = commandMessage.SourceType;
+            _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, queueMessage, context, commandMessage, _commandExecutedMessageSender)));
         }
 
         class CommandExecuteContext : ICommandExecuteContext

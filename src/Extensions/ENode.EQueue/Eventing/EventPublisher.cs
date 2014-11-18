@@ -10,9 +10,9 @@ using EQueue.Protocols;
 
 namespace ENode.EQueue
 {
-    public class EventPublisher : IMessagePublisher<EventStream>, IMessagePublisher<DomainEventStream>, IEventPublisher
+    public class EventPublisher : IPublisher<EventStream>, IPublisher<DomainEventStream>, IPublisher<IEvent>
     {
-        private const string DefaultEventPublisherProcuderId = "sys_epp";
+        private const string DefaultEventPublisherProcuderId = "EventPublisher";
         private readonly ILogger _logger;
         private readonly IBinarySerializer _binarySerializer;
         private readonly ITopicProvider<IEvent> _eventTopicProvider;
@@ -44,7 +44,7 @@ namespace ENode.EQueue
             var eventMessage = CreateEventMessage(evnt);
             var topic = _eventTopicProvider.GetTopic(evnt);
             var data = _binarySerializer.Serialize(eventMessage);
-            var message = new Message(topic, (int)MessageTypeCode.EventMessage, data);
+            var message = new Message(topic, (int)EQueueMessageTypeCode.EventMessage, data);
             var result = _producer.Send(message, evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id);
             if (result.SendStatus != SendStatus.Success)
             {
@@ -64,7 +64,7 @@ namespace ENode.EQueue
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _binarySerializer.Serialize(eventMessage);
-            var message = new Message(topic, (int)MessageTypeCode.DomainEventStreamMessage, data);
+            var message = new Message(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, data);
             var result = _producer.Send(message, eventStream.AggregateRootId);
             if (result.SendStatus != SendStatus.Success)
             {
@@ -76,7 +76,7 @@ namespace ENode.EQueue
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _binarySerializer.Serialize(eventMessage);
-            var message = new Message(topic, (int)MessageTypeCode.EventStreamMessage, data);
+            var message = new Message(topic, (int)EQueueMessageTypeCode.EventStreamMessage, data);
             var result = _producer.Send(message, eventMessage.CommandId);
             if (result.SendStatus != SendStatus.Success)
             {

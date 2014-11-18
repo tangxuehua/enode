@@ -11,7 +11,7 @@ using EQueue.Protocols;
 
 namespace ENode.EQueue
 {
-    public class PublishableExceptionPublisher : IMessagePublisher<IPublishableException>
+    public class PublishableExceptionPublisher : IPublisher<IPublishableException>
     {
         private const string DefaultExceptionPublisherProcuderId = "ExceptionPublisher";
         private readonly ILogger _logger;
@@ -55,7 +55,7 @@ namespace ENode.EQueue
                 SerializableInfo = serializableInfo
             };
             var data = _binarySerializer.Serialize(exceptionMessage);
-            var message = new Message(topic, (int)MessageTypeCode.ExceptionMessage, data);
+            var message = new Message(topic, (int)EQueueMessageTypeCode.ExceptionMessage, data);
             var result = _producer.Send(message, exception.UniqueId);
             if (result.SendStatus != SendStatus.Success)
             {
