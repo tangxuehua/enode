@@ -13,7 +13,7 @@ namespace ENode.Infrastructure
         /// </summary>
         public static bool IsComponent(Type type)
         {
-            return type != null && type.IsClass && type.GetCustomAttributes(typeof(ComponentAttribute), false).Any();
+            return type.IsClass && !type.IsAbstract && type.GetCustomAttributes(typeof(ComponentAttribute), false).Any();
         }
         /// <summary>Check whether a type is an aggregate root type.
         /// </summary>

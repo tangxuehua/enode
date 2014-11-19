@@ -136,6 +136,7 @@ namespace ENode.Configurations
             _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<ICommandHandler>));
             _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<IEventHandler>));
             _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<IExceptionHandler>));
+            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<IMessageHandler>));
 
             return this;
         }
@@ -147,7 +148,7 @@ namespace ENode.Configurations
             {
                 foreach (var type in assembly.GetTypes().Where(ENode.Infrastructure.TypeUtils.IsComponent))
                 {
-                    var life = ParseLife(type);
+                    var life = ParseComponentLife(type);
                     ObjectContainer.RegisterType(type, life);
                     foreach (var interfaceType in type.GetInterfaces())
                     {
@@ -216,7 +217,7 @@ namespace ENode.Configurations
             return this;
         }
 
-        /// <summary>Start ENode.
+        /// <summary>Start ENode with node type option.
         /// </summary>
         /// <returns></returns>
         public ENodeConfiguration StartENode(NodeType nodeType)
@@ -237,6 +238,10 @@ namespace ENode.Configurations
             {
                 ObjectContainer.Resolve<IProcessor<IPublishableException>>().Start();
             }
+            if (((int)NodeType.MessageProcessor & (int)nodeType) == (int)NodeType.MessageProcessor)
+            {
+                ObjectContainer.Resolve<IProcessor<IMessage>>().Start();
+            }
             return this;
         }
 
@@ -250,6 +255,7 @@ namespace ENode.Configurations
                     x => x.IsClass && (
                         typeof(ICommand).IsAssignableFrom(x) ||
                         typeof(IEvent).IsAssignableFrom(x) ||
+                        typeof(IMessage).IsAssignableFrom(x) ||
                         typeof(IAggregateRoot).IsAssignableFrom(x))))
                 {
                     if (!type.IsSerializable)
@@ -259,10 +265,9 @@ namespace ENode.Configurations
                 }
             }
         }
-        private static LifeStyle ParseLife(Type type)
+        private static LifeStyle ParseComponentLife(Type type)
         {
-            var componentAttributes = type.GetCustomAttributes(typeof(ComponentAttribute), false);
-            return !componentAttributes.Any() ? LifeStyle.Transient : ((ComponentAttribute) componentAttributes[0]).LifeStyle;
+            return ((ComponentAttribute)type.GetCustomAttributes(typeof(ComponentAttribute), false)[0]).LifeStyle;
         }
         private static bool IsAssemblyInitializer<T>()
         {
@@ -272,10 +277,6 @@ namespace ENode.Configurations
         {
             return type.IsClass && !type.IsAbstract && typeof(IAssemblyInitializer).IsAssignableFrom(type);
         }
-        private static bool IsAssemblyInitializer(object instance)
-        {
-            return instance is IAssemblyInitializer;
-        }
 
         #endregion
     }
@@ -283,7 +284,8 @@ namespace ENode.Configurations
     {
         CommandProcessor = 1,
         EventProcessor = 2,
-        ExceptionProcessor = 4
+        ExceptionProcessor = 4,
+        MessageProcessor = 8
     }
 
     public static class ConfigurationExtensions
