@@ -8,8 +8,9 @@ namespace ENode.Messaging
     {
         /// <summary>Handle the given message.
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="message"></param>
-        void Handle(object message);
+        void Handle(IHandlingContext context, object message);
     }
     /// <summary>Represents a message handler.
     /// </summary>
@@ -18,7 +19,8 @@ namespace ENode.Messaging
     {
         /// <summary>Handle the given message.
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="message"></param>
-        void Handle(TMessage message);
+        void Handle(IHandlingContext context, TMessage message);
     }
 }

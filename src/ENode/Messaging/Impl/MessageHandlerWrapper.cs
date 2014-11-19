@@ -11,9 +11,9 @@ namespace ENode.Messaging.Impl
             _messageHandler = messageHandler;
         }
 
-        public void Handle(object message)
+        public void Handle(IHandlingContext context, object message)
         {
-            _messageHandler.Handle(message as TMessage);
+            _messageHandler.Handle(context, message as TMessage);
         }
         public object GetInnerHandler()
         {

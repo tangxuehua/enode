@@ -107,7 +107,7 @@ namespace ENode.Messaging.Impl
 
             try
             {
-                messageHandler.Handle(message);
+                messageHandler.Handle(handlingContext, message);
                 var commands = handlingContext.GetCommands();
                 if (commands.Any())
                 {
