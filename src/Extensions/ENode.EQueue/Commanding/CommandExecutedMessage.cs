@@ -29,8 +29,5 @@ namespace ENode.EQueue
         /// <summary>Represents the error message if the command status is failed.
         /// </summary>
         public string ErrorMessage { get; set; }
-        /// <summary>Represents the extension information of the command.
-        /// </summary>
-        public IDictionary<string, string> Items { get; set; }
     }
 }

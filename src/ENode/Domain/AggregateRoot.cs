@@ -12,6 +12,7 @@ namespace ENode.Domain
     public abstract class AggregateRoot<TAggregateRootId> : IAggregateRoot
     {
         private static IAggregateRootInternalHandlerProvider _eventHandlerProvider;
+        private int _version;
         private Queue<IDomainEvent> _uncommittedEvents;
         protected TAggregateRootId _id;
 
@@ -21,9 +22,6 @@ namespace ENode.Domain
         {
             get { return _id; }
         }
-        /// <summary>Represents the version of the aggregate root.
-        /// </summary>
-        public int Version { get; private set; }
 
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -114,20 +112,26 @@ namespace ENode.Domain
                 return null;
             }
         }
-        IEnumerable<IDomainEvent> IAggregateRoot.CommitChanges()
+        int IAggregateRoot.Version
+        {
+            get { return _version; }
+        }
+        IEnumerable<IDomainEvent> IAggregateRoot.GetChanges()
         {
             if (_uncommittedEvents == null)
             {
                 return new IDomainEvent[0];
             }
-            else if (_uncommittedEvents.Count == 0)
+            return _uncommittedEvents.ToArray();
+        }
+        void IAggregateRoot.AcceptChanges(int newVersion)
+        {
+            if (_version + 1 != newVersion)
             {
-                return _uncommittedEvents;
+                throw new Exception(string.Format("Cannot accept invalid version: {0}, expect version: {1}", newVersion, _version + 1));
             }
-            var events = _uncommittedEvents.ToArray();
+            _version = newVersion;
             _uncommittedEvents.Clear();
-            Version++;
-            return events;
         }
         void IAggregateRoot.ReplayEvents(IEnumerable<DomainEventStream> eventStreams)
         {
@@ -140,7 +144,7 @@ namespace ENode.Domain
                 {
                     HandleEvent(domainEvent);
                 }
-                Version = eventStream.Version;
+                _version = eventStream.Version;
             }
         }
     }

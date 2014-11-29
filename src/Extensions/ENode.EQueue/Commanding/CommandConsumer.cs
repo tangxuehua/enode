@@ -68,11 +68,14 @@ namespace ENode.EQueue
             var payload = ByteTypeDataUtils.Decode(commandMessage.CommandData);
             var type = _commandTypeCodeProvider.GetType(payload.TypeCode);
             var command = _binarySerializer.Deserialize(payload.Data, type) as ICommand;
+            var commandExecuteContext = new CommandExecuteContext(_repository, queueMessage, context, commandMessage, _commandExecutedMessageSender);
+            var commandItems = new Dictionary<string, string>();
 
-            command.Items["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
-            command.Items["SourceId"] = commandMessage.SourceId;
-            command.Items["SourceType"] = commandMessage.SourceType;
-            _commandExecutor.Execute(new ProcessingCommand(command, new CommandExecuteContext(_repository, queueMessage, context, commandMessage, _commandExecutedMessageSender)));
+            commandItems["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
+            commandItems["SourceId"] = commandMessage.SourceId;
+            commandItems["SourceType"] = commandMessage.SourceType;
+
+            _commandExecutor.Execute(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
 
         class CommandExecuteContext : ICommandExecuteContext
@@ -115,7 +118,6 @@ namespace ENode.EQueue
                     CommandStatus = commandStatus,
                     ExceptionTypeName = exceptionTypeName,
                     ErrorMessage = errorMessage,
-                    Items = command.Items ?? new Dictionary<string, string>()
                 }, _commandMessage.CommandExecutedMessageTopic);
             }
             public void Add(IAggregateRoot aggregateRoot)

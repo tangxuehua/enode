@@ -32,15 +32,14 @@ namespace ENode.Commanding
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandType={0},CommandId={1},SourceId={2},SourceType={3},AggregateRootTypeCode={4},AggregateRootId={5},Items={6}]";
+            var format = "[CommandType={0},CommandId={1},SourceId={2},SourceType={3},AggregateRootTypeCode={4},AggregateRootId={5}]";
             return string.Format(format,
                 Command.GetType().Name,
                 Command.Id,
                 SourceId,
                 SourceType,
                 AggregateRootTypeCode,
-                AggregateRootId,
-                string.Join("|", Command.Items.Select(x => x.Key + ":" + x.Value)));
+                AggregateRootId);
         }
     }
 }

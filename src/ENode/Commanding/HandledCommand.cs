@@ -45,14 +45,13 @@ namespace ENode.Commanding
         /// <returns></returns>
         public override string ToString()
         {
-            var format = "[CommandType={0},CommandId={1},SourceId={2},SourceType={3},Events={4},Items={5}]";
+            var format = "[CommandType={0},CommandId={1},SourceId={2},SourceType={3},Events={4}]";
             return string.Format(format,
                 Command.GetType().Name,
                 Command.Id,
                 SourceId,
                 SourceType,
-                string.Join("|", Events.Select(x => x.GetType().Name)),
-                string.Join("|", Command.Items.Select(x => x.Key + ":" + x.Value)));
+                string.Join("|", Events.Select(x => x.GetType().Name)));
         }
     }
 }

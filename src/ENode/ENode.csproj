@@ -74,9 +74,7 @@
     <Compile Include="Configurations\DbTableSetting.cs" />
     <Compile Include="Configurations\ConfigurationSetting.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
-    <Compile Include="Domain\IAggregateRootSerializer.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
-    <Compile Include="Domain\Impl\DefaultAggregateRootSerializer.cs" />
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Eventing\Event.cs" />

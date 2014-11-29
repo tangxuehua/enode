@@ -124,7 +124,6 @@ namespace ENode.Eventing.Impl
                 {
                     try
                     {
-                        eventStream.Items["DomainEventHandledMessageTopic"] = processingCommand.Command.Items["DomainEventHandledMessageTopic"];
                         _domainEventPublisher.Publish(eventStream);
                         _logger.DebugFormat("Publish domain event success, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, events:{3}",
                             processingCommand.Command.Id,
@@ -242,12 +241,9 @@ namespace ENode.Eventing.Impl
             var eventCommittingContextList = _successPersistedEventsQueue.Take();
             foreach (var context in eventCommittingContextList)
             {
+                //刷新内存并发布事件
                 RefreshAggregateMemoryCache(context);
-                _actionExecutionService.TryAction("PublishDomainEvent", () =>
-                {
-                    PublishDomainEvent(context.ProcessingCommand, context.EventStream);
-                    return true;
-                }, 3, null);
+                PublishDomainEvent(context.ProcessingCommand, context.EventStream);
             }
         }
         private void ProcessFailedPersistedEvents()
@@ -365,6 +361,7 @@ namespace ENode.Eventing.Impl
         {
             try
             {
+                context.AggregateRoot.AcceptChanges(context.EventStream.Version);
                 _memoryCache.Set(context.AggregateRoot);
                 _logger.DebugFormat("Refreshed aggregate memory cache, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", context.EventStream.CommandId, context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
             }
@@ -375,24 +372,7 @@ namespace ENode.Eventing.Impl
         }
         private void UpdateAggregateToLatestVersion(int aggregateRootTypeCode, string aggregateRootId)
         {
-            try
-            {
-                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(aggregateRootTypeCode);
-                if (aggregateRootType == null)
-                {
-                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root type code [{0}].", aggregateRootTypeCode);
-                    return;
-                }
-                var aggregateRoot = _aggregateStorage.Get(aggregateRootType, aggregateRootId);
-                if (aggregateRoot != null)
-                {
-                    _memoryCache.Set(aggregateRoot);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("Exception raised when update aggregate to latest version, aggregateRootTypeCode:{0}, aggregateRootId:{1}", aggregateRootTypeCode, aggregateRootId), ex);
-            }
+            _memoryCache.RefreshAggregateFromEventStore(aggregateRootTypeCode, aggregateRootId);
         }
         private void RetryConcurrentCommand(EventCommittingContext context)
         {

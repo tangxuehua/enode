@@ -1,25 +1,44 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
+using ECommon.Logging;
+using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
     public class DefaultMemoryCache : IMemoryCache
     {
-        private readonly IAggregateRootSerializer _serializer;
-        private readonly ConcurrentDictionary<string, byte[]> _aggregateRootDict = new ConcurrentDictionary<string, byte[]>();
+        private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRootDict = new ConcurrentDictionary<string, IAggregateRoot>();
+        private readonly IAggregateStorage _aggregateStorage;
+        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
+        private readonly ILogger _logger;
 
-        public DefaultMemoryCache(IAggregateRootSerializer serializer)
+        public DefaultMemoryCache(ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider, IAggregateStorage aggregateStorage, ILoggerFactory loggerFactory)
         {
-            _serializer = serializer;
+            _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
+            _aggregateStorage = aggregateStorage;
+            _logger = loggerFactory.Create(GetType().FullName);
         }
 
         public IAggregateRoot Get(object aggregateRootId, Type aggregateRootType)
         {
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
-            byte[] data;
-            if (_aggregateRootDict.TryGetValue(aggregateRootId.ToString(), out data))
+            IAggregateRoot aggregateRoot;
+            if (_aggregateRootDict.TryGetValue(aggregateRootId.ToString(), out aggregateRoot))
             {
-                return _serializer.Deserialize(data, aggregateRootType);
+                if (aggregateRoot.GetType() != aggregateRootType)
+                {
+                    throw new Exception(string.Format("Incorrect aggregate root type, current aggregateRootId:{0}, type:{1}, expecting type:{2}", aggregateRootId, aggregateRoot.GetType(), aggregateRootType));
+                }
+                if (aggregateRoot.GetChanges().Count() > 0)
+                {
+                    var lastestAggregateRoot = _aggregateStorage.Get(aggregateRootType, aggregateRootId.ToString());
+                    if (lastestAggregateRoot != null)
+                    {
+                        _aggregateRootDict[aggregateRoot.UniqueId] = lastestAggregateRoot;
+                    }
+                }
+                return aggregateRoot;
             }
             return null;
         }
@@ -33,7 +52,28 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRoot");
             }
-            _aggregateRootDict[aggregateRoot.UniqueId] = _serializer.Serialize(aggregateRoot);
+            _aggregateRootDict[aggregateRoot.UniqueId] = aggregateRoot;
+        }
+        public void RefreshAggregateFromEventStore(int aggregateRootTypeCode, string aggregateRootId)
+        {
+            try
+            {
+                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(aggregateRootTypeCode);
+                if (aggregateRootType == null)
+                {
+                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root type code [{0}].", aggregateRootTypeCode);
+                    return;
+                }
+                var aggregateRoot = _aggregateStorage.Get(aggregateRootType, aggregateRootId);
+                if (aggregateRoot != null)
+                {
+                    _aggregateRootDict[aggregateRoot.UniqueId] = aggregateRoot;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Exception raised when refreshing aggregate from event store, aggregateRootTypeCode:{0}, aggregateRootId:{1}", aggregateRootTypeCode, aggregateRootId), ex);
+            }
         }
     }
 }

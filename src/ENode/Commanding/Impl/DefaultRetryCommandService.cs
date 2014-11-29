@@ -37,12 +37,12 @@ namespace ENode.Commanding.Impl
             {
                 processingCommand.IncreaseRetriedCount();
                 RetryCommand(processingCommand);
-                _logger.DebugFormat("{0} [id:{1}, aggregateId:{2}] was added into the retry queue, current retry count:{3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, processingCommand.RetriedCount);
+                _logger.DebugFormat("{0} [id:{1}, aggregateId:{2}] was added into the retry queue, current retried count:{3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, processingCommand.RetriedCount);
                 return true;
             }
             else
             {
-                _logger.DebugFormat("{0} [id:{1}, aggregateId:{2}] retried count reached to its max retry count {3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, command.RetryCount);
+                _logger.DebugFormat("{0} [id:{1}, aggregateId:{2}] retried count reached to its max retry count {3}, stop to retry again.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, command.RetryCount);
                 return false;
             }
         }

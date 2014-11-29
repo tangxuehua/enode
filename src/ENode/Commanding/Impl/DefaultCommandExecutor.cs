@@ -23,6 +23,7 @@ namespace ENode.Commanding.Impl
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly IPublisher<IPublishableException> _exceptionPublisher;
         private readonly IRetryCommandService _retryCommandService;
+        private readonly IMemoryCache _memoryCache;
         private readonly ILogger _logger;
 
         #endregion
@@ -40,6 +41,7 @@ namespace ENode.Commanding.Impl
             IEventPublishInfoStore eventPublishInfoStore,
             IPublisher<IPublishableException> exceptionPublisher,
             IRetryCommandService retryCommandService,
+            IMemoryCache memoryCache,
             ILoggerFactory loggerFactory)
         {
             _commandStore = commandStore;
@@ -52,6 +54,7 @@ namespace ENode.Commanding.Impl
             _eventPublishInfoStore = eventPublishInfoStore;
             _exceptionPublisher = exceptionPublisher;
             _retryCommandService = retryCommandService;
+            _memoryCache = memoryCache;
             _logger = loggerFactory.Create(GetType().FullName);
             _waitingCommandService.SetCommandExecutor(this);
             _retryCommandService.SetCommandExecutor(this);
@@ -96,7 +99,8 @@ namespace ENode.Commanding.Impl
 
             //判断当前command是否需要排队，如果需要排队，则会先排队；
             //框架会对每个被执行的command按照聚合根id为分组进行必要的排队，如果发现一个聚合根有两个或以上的command要执行，
-            //那会将第二个command以及之后的command全部排队；这样的设计可以确保对同一个聚合根的执行不会导致eventStore的并发冲突而导致不必要的重试；
+            //那会将第二个command以及之后的command全部排队；
+            //这样的设计可以确保同一个聚合根不会有两个command在执行，从而可以确保EventStore不会产生并发冲突；
             if (context.CheckCommandWaiting && _waitingCommandService.RegisterCommand(processingCommand))
             {
                 return;
@@ -148,7 +152,7 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Command;
             var context = processingCommand.CommandExecuteContext;
             var trackedAggregateRoots = context.GetTrackedAggregateRoots();
-            var dirtyAggregateRootChanges = trackedAggregateRoots.ToDictionary(x => x, x => x.CommitChanges()).Where(x => x.Value.Any());
+            var dirtyAggregateRootChanges = trackedAggregateRoots.ToDictionary(x => x, x => x.GetChanges()).Where(x => x.Value.Any());
             var dirtyAggregateRootCount = dirtyAggregateRootChanges.Count();
 
             //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
@@ -191,8 +195,8 @@ namespace ENode.Commanding.Impl
             //尝试将当前已执行的command添加到commandStore
             string sourceId;
             string sourceType;
-            command.Items.TryGetValue("SourceId", out sourceId);
-            command.Items.TryGetValue("SourceType", out sourceType);
+            processingCommand.Items.TryGetValue("SourceId", out sourceId);
+            processingCommand.Items.TryGetValue("SourceType", out sourceType);
             var commandAddResult = _commandStore.Add(new HandledAggregateCommand(command, sourceId, sourceType, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode));
 
             //如果command添加成功，则提交该command产生的事件
@@ -239,35 +243,42 @@ namespace ENode.Commanding.Impl
                 command.Id,
                 aggregateRoot.UniqueId,
                 aggregateRootTypeCode,
-                aggregateRoot.Version,
+                aggregateRoot.Version + 1,
                 DateTime.Now,
                 changedEvents,
-                command.Items);
+                processingCommand.Items);
         }
         private void HandleCommandException(ProcessingCommand processingCommand, ICommandHandler commandHandler, Exception exception)
         {
+            //判断当前command之前有没有被执行过。
+            //如果有执行过，则继续判断是否后续所有的步骤都执行成功了，对每一种情况做相应的处理；
+            //如果未执行过，则也做相应处理。
+            var command = processingCommand.Command;
+
             try
             {
-                //判断当前command之前有没有被执行过。
-                //如果有执行过，则继续判断是否后续所有的步骤都执行成功了，对每一种情况做相应的处理；
-                //如果未执行过，则也做相应处理。
-                var command = processingCommand.Command;
                 var existingHandledCommand = _commandStore.Get(command.Id);
                 if (existingHandledCommand != null)
                 {
                     if (command is IAggregateCommand)
                     {
-                        var existingEventStream = _eventStore.Find(((HandledAggregateCommand)existingHandledCommand).AggregateRootId, command.Id);
+                        var existingHandledAggregateCommand = (HandledAggregateCommand)existingHandledCommand;
+                        var existingEventStream = _eventStore.Find(existingHandledAggregateCommand.AggregateRootId, command.Id);
                         if (existingEventStream != null)
                         {
                             _eventService.PublishDomainEvent(processingCommand, existingEventStream);
                         }
                         else
                         {
-                            //到这里，说明当前command遇到异常，然后该command在commandStore中存在，
-                            //但是在eventStore中不存在，此时可以理解为该command还没被执行。
-                            //所以先将其从commandStore中移除，然后再重拾该command即可。
+                            //到这里，说明当前command执行遇到异常，然后该command在commandStore中存在，
+                            //但是在eventStore中不存在，此时可以理解为该command还没被执行，此时做如下操作：
+                            //1.将command从commandStore中移除
+                            //2.记录command执行的错误日志
+                            //3.根据EventStore里的事件刷新缓存，目的是为了还原聚合根状态，因为该聚合根的状态有可能已经被污染
+                            //4.重试该command
                             _commandStore.Remove(command.Id);
+                            LogCommandExecuteException(processingCommand, commandHandler, exception);
+                            _memoryCache.RefreshAggregateFromEventStore(existingHandledAggregateCommand.AggregateRootTypeCode, existingHandledAggregateCommand.AggregateRootId);
                             _retryCommandService.RetryCommand(processingCommand);
                         }
                     }
@@ -284,14 +295,7 @@ namespace ENode.Commanding.Impl
                     }
                     else
                     {
-                        var commandHandlerType = commandHandler.GetInnerHandler().GetType();
-                        var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}",
-                            exception.GetType().Name,
-                            commandHandlerType.Name,
-                            command.GetType().Name,
-                            command.Id,
-                            processingCommand.AggregateRootId);
-                        _logger.Error(errorMessage, exception);
+                        LogCommandExecuteException(processingCommand, commandHandler, exception);
                         NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
                     }
                 }
@@ -302,8 +306,8 @@ namespace ENode.Commanding.Impl
                 var errorMessage = string.Format("{0} raised when {1} handling the exception of {2}. commandId:{3}, aggregateRootId:{4}, originalExceptionMessage:{5}",
                     ex.GetType().Name,
                     commandHandlerType.Name,
-                    processingCommand.Command.GetType().Name,
-                    processingCommand.Command.Id,
+                    command.GetType().Name,
+                    command.Id,
                     processingCommand.AggregateRootId,
                     exception.Message);
                 _logger.Error(errorMessage, ex);
@@ -338,21 +342,21 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Command;
             string sourceId;
             string sourceType;
-            command.Items.TryGetValue("SourceId", out sourceId);
-            command.Items.TryGetValue("SourceType", out sourceType);
+            processingCommand.Items.TryGetValue("SourceId", out sourceId);
+            processingCommand.Items.TryGetValue("SourceType", out sourceType);
             var evnts = processingCommand.CommandExecuteContext.GetEvents().ToList();
             var commandAddResult = _commandStore.Add(new HandledCommand(command, sourceId, sourceType, evnts));
 
             if (commandAddResult == CommandAddResult.Success)
             {
-                _eventService.PublishEvent(processingCommand, new EventStream(command.Id, evnts, command.Items));
+                _eventService.PublishEvent(processingCommand, new EventStream(command.Id, evnts, processingCommand.Items));
             }
             else if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
                 var existingHandledCommand = _commandStore.Get(command.Id);
                 if (existingHandledCommand != null)
                 {
-                    _eventService.PublishEvent(processingCommand, new EventStream(command.Id, existingHandledCommand.Events, command.Items));
+                    _eventService.PublishEvent(processingCommand, new EventStream(command.Id, existingHandledCommand.Events, processingCommand.Items));
                 }
                 else
                 {
@@ -365,6 +369,16 @@ namespace ENode.Commanding.Impl
                     NotifyCommandExecuteFailedOrNothingChanged(processingCommand, CommandStatus.Failed, null, errorMessage);
                 }
             }
+        }
+        private void LogCommandExecuteException(ProcessingCommand processingCommand, ICommandHandler commandHandler, Exception exception)
+        {
+            var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}",
+                exception.GetType().Name,
+                commandHandler.GetInnerHandler().GetType().Name,
+                processingCommand.Command.GetType().Name,
+                processingCommand.Command.Id,
+                processingCommand.AggregateRootId);
+            _logger.Error(errorMessage, exception);
         }
 
         #endregion

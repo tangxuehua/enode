@@ -80,8 +80,7 @@ namespace ENode.EQueue.Commanding
                         command.Id,
                         command is IAggregateCommand ? ((IAggregateCommand)command).AggregateRootId : null,
                         "CommandSendFailed",
-                        "Failed to send the command.",
-                        command.Items));
+                        "Failed to send the command."));
             }
             return this;
         }
@@ -134,8 +133,7 @@ namespace ENode.EQueue.Commanding
                             message.CommandId,
                             message.AggregateRootId,
                             message.ExceptionTypeName,
-                            message.ErrorMessage,
-                            message.Items));
+                            message.ErrorMessage));
                     _commandTaskDict.Remove(message.CommandId);
                     _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}",
                         message.CommandId,
@@ -153,8 +151,7 @@ namespace ENode.EQueue.Commanding
                                 message.CommandId,
                                 message.AggregateRootId,
                                 message.ExceptionTypeName,
-                                message.ErrorMessage,
-                                message.Items));
+                                message.ErrorMessage));
                         _commandTaskDict.Remove(message.CommandId);
                         _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}, exceptionTypeName:{3}, errorMessage:{4}",
                             message.CommandId,
@@ -177,8 +174,7 @@ namespace ENode.EQueue.Commanding
                         message.CommandId,
                         message.AggregateRootId,
                         null,
-                        null,
-                        message.Items));
+                        null));
                 _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}",
                     message.CommandId,
                     CommandStatus.Success,

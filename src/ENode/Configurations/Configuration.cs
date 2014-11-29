@@ -80,8 +80,6 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
-            _configuration.SetDefault<IAggregateRootSerializer, DefaultAggregateRootSerializer>();
-
             _configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, DefaultTypeCodeProvider<IAggregateRoot>>();
             _configuration.SetDefault<ITypeCodeProvider<ICommand>, DefaultTypeCodeProvider<ICommand>>();
             _configuration.SetDefault<ITypeCodeProvider<IEvent>, DefaultTypeCodeProvider<IEvent>>();

@@ -1,4 +1,5 @@
-﻿namespace ENode.Commanding
+﻿using System.Collections.Generic;
+namespace ENode.Commanding
 {
     public class ProcessingCommand
     {
@@ -6,11 +7,13 @@
         public ICommand Command { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }
         public int RetriedCount { get; private set; }
+        public IDictionary<string, string> Items { get; private set; }
 
-        public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext)
+        public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, IDictionary<string, string> items)
         {
             Command = command;
             CommandExecuteContext = commandExecuteContext;
+            Items = items ?? new Dictionary<string, string>();
 
             if (command is IAggregateCommand)
             {

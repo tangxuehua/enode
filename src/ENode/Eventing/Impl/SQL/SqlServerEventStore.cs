@@ -195,8 +195,7 @@ namespace ENode.Eventing.Impl.SQL
                 record.AggregateRootTypeCode,
                 record.Version,
                 record.Timestamp,
-                _binarySerializer.Deserialize<IEnumerable<IDomainEvent>>(record.Events),
-                _binarySerializer.Deserialize<IDictionary<string, string>>(record.Items));
+                _binarySerializer.Deserialize<IEnumerable<IDomainEvent>>(record.Events));
         }
         private StreamRecord ConvertTo(DomainEventStream eventStream)
         {
@@ -207,8 +206,7 @@ namespace ENode.Eventing.Impl.SQL
                 AggregateRootTypeCode = eventStream.AggregateRootTypeCode,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
-                Events = _binarySerializer.Serialize(eventStream.Events),
-                Items = _binarySerializer.Serialize(eventStream.Items)
+                Events = _binarySerializer.Serialize(eventStream.Events)
             };
         }
 
@@ -222,7 +220,6 @@ namespace ENode.Eventing.Impl.SQL
             public string CommandId { get; set; }
             public DateTime Timestamp { get; set; }
             public byte[] Events { get; set; }
-            public byte[] Items { get; set; }
         }
     }
 }

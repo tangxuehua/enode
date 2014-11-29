@@ -13,10 +13,14 @@ namespace ENode.Domain
         /// <summary>Represents the current version of the aggregate root.
         /// </summary>
         int Version { get; }
-        /// <summary>Upgrade the version of the aggregate root, pop and return all the uncommitted events.
+        /// <summary>Get all the changes of the aggregate root.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IDomainEvent> CommitChanges();
+        IEnumerable<IDomainEvent> GetChanges();
+        /// <summary>Accept changes with new version.
+        /// </summary>
+        /// <param name="newVersion"></param>
+        void AcceptChanges(int newVersion);
         /// <summary>Replay the given event streams.
         /// </summary>
         /// <param name="eventStreams"></param>
