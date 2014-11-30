@@ -17,8 +17,8 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IBinarySerializer _binarySerializer;
-        private readonly IProcessor<IDomainEventStream> _domainEventStreamProcessor;
-        private readonly IProcessor<IEventStream> _eventStreamProcessor;
+        private readonly IProcessor<DomainEventStream> _domainEventStreamProcessor;
+        private readonly IProcessor<EventStream> _eventStreamProcessor;
         private readonly IProcessor<IEvent> _eventProcessor;
         private readonly ILogger _logger;
         private readonly bool _sendEventHandledMessage;
@@ -33,8 +33,8 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
-            _domainEventStreamProcessor = ObjectContainer.Resolve<IProcessor<IDomainEventStream>>();
-            _eventStreamProcessor = ObjectContainer.Resolve<IProcessor<IEventStream>>();
+            _domainEventStreamProcessor = ObjectContainer.Resolve<IProcessor<DomainEventStream>>();
+            _eventStreamProcessor = ObjectContainer.Resolve<IProcessor<EventStream>>();
             _eventProcessor = ObjectContainer.Resolve<IProcessor<IEvent>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
@@ -114,26 +114,26 @@ namespace ENode.EQueue
             {
             }
         }
-        class EventStreamProcessContext : EQueueProcessContext<IEventStream>
+        class EventStreamProcessContext : EQueueProcessContext<EventStream>
         {
-            public EventStreamProcessContext(QueueMessage queueMessage, IMessageContext messageContext, IEventStream eventStream)
+            public EventStreamProcessContext(QueueMessage queueMessage, IMessageContext messageContext, EventStream eventStream)
                 : base(queueMessage, messageContext, eventStream)
             {
             }
         }
-        class DomainEventStreamProcessContext : EQueueProcessContext<IDomainEventStream>
+        class DomainEventStreamProcessContext : EQueueProcessContext<DomainEventStream>
         {
             private readonly EventConsumer _eventConsumer;
             private readonly DomainEventStreamMessage _domainEventStreamMessage;
 
-            public DomainEventStreamProcessContext(EventConsumer eventConsumer, DomainEventStreamMessage domainEventStreamMessage, QueueMessage queueMessage, IMessageContext messageContext, IDomainEventStream domainEventStream)
+            public DomainEventStreamProcessContext(EventConsumer eventConsumer, DomainEventStreamMessage domainEventStreamMessage, QueueMessage queueMessage, IMessageContext messageContext, DomainEventStream domainEventStream)
                 : base(queueMessage, messageContext, domainEventStream)
             {
                 _eventConsumer = eventConsumer;
                 _domainEventStreamMessage = domainEventStreamMessage;
             }
 
-            public override void OnProcessed(IDomainEventStream message)
+            public override void OnProcessed(DomainEventStream message)
             {
                 base.OnProcessed(message);
 

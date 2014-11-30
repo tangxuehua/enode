@@ -5,7 +5,7 @@ using System.Linq;
 namespace ENode.Eventing
 {
     [Serializable]
-    public class EventStream : IEventStream
+    public class EventStream
     {
         public EventStream(string commandId, IEnumerable<IEvent> events, IDictionary<string, string> items)
         {

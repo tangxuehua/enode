@@ -5,7 +5,7 @@ using System.Linq;
 namespace ENode.Eventing
 {
     [Serializable]
-    public class DomainEventStream : EventStream, IDomainEventStream
+    public class DomainEventStream : EventStream
     {
         public DomainEventStream(string commandId, string aggregateRootId, int aggregateRootTypeCode, int version, DateTime timestamp, IEnumerable<IDomainEvent> events, IDictionary<string, string> items = null)
             : base(commandId, events, items)

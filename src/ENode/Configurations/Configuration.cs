@@ -118,8 +118,8 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
             _configuration.SetDefault<IProcessor<IEvent>, DefaultEventProcessor>();
-            _configuration.SetDefault<IProcessor<IEventStream>, DefaultEventProcessor>();
-            _configuration.SetDefault<IProcessor<IDomainEventStream>, DefaultEventProcessor>();
+            _configuration.SetDefault<IProcessor<EventStream>, DefaultEventProcessor>();
+            _configuration.SetDefault<IProcessor<DomainEventStream>, DefaultEventProcessor>();
             _configuration.SetDefault<IPublisher<IEvent>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IPublisher<EventStream>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IPublisher<DomainEventStream>, NotImplementedEventPublisher>();
@@ -228,8 +228,8 @@ namespace ENode.Configurations
             }
             if (((int)NodeType.EventProcessor & (int)nodeType) == (int)NodeType.EventProcessor)
             {
-                ObjectContainer.Resolve<IProcessor<IDomainEventStream>>().Start();
-                ObjectContainer.Resolve<IProcessor<IEventStream>>().Start();
+                ObjectContainer.Resolve<IProcessor<DomainEventStream>>().Start();
+                ObjectContainer.Resolve<IProcessor<EventStream>>().Start();
                 ObjectContainer.Resolve<IProcessor<IEvent>>().Start();
             }
             if (((int)NodeType.ExceptionProcessor & (int)nodeType) == (int)NodeType.ExceptionProcessor)

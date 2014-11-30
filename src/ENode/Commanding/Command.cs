@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using ECommon.Utilities;
 
 namespace ENode.Commanding
@@ -15,9 +14,6 @@ namespace ENode.Commanding
         /// <summary>Represents the retry count of the command.
         /// </summary>
         public int RetryCount { get; set; }
-        /// <summary>Represents the additional information of the command.
-        /// </summary>
-        public IDictionary<string, string> Items { get; set; }
 
         /// <summary>Default constructor.
         /// </summary>
@@ -25,7 +21,6 @@ namespace ENode.Commanding
         {
             Id = ObjectId.GenerateNewStringId();
             RetryCount = 3;
-            Items = new Dictionary<string, string>();
         }
 
         /// <summary>Returns string.Empty by default.

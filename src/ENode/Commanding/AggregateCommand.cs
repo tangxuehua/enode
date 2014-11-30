@@ -2,12 +2,12 @@
 
 namespace ENode.Commanding
 {
-    /// <summary>Represents an abstract command.
+    /// <summary>Represents an abstract aggregate command.
     /// </summary>
     [Serializable]
     public abstract class AggregateCommand<TAggregateRootId> : Command, IAggregateCommand
     {
-        /// <summary>Represents the source aggregate root id of the aggregate command.
+        /// <summary>Represents the aggregate root which is related with the command.
         /// </summary>
         public TAggregateRootId AggregateRootId { get; set; }
 

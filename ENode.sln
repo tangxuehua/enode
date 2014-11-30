@@ -21,9 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DistributeSample", "Distrib
 		src\Samples\DistributeSample\README.txt = src\Samples\DistributeSample\README.txt
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{C0DE6060-8F08-4822-A75E-3C9F227F8F56}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.EQueue", "src\Extensions\ENode.EQueue\ENode.EQueue.csproj", "{8B5368E5-8518-4684-90EB-048DCBF76E9A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.EQueue", "src\ENode.EQueue\ENode.EQueue.csproj", "{8B5368E5-8518-4684-90EB-048DCBF76E9A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankTransferSample", "src\Samples\BankTransferSample\BankTransferSample.csproj", "{63EAC41D-65DA-4E14-95B0-BEAE86442F4F}"
 EndProject
@@ -163,7 +161,6 @@ Global
 		{F03DFFC7-1017-4EC1-AB90-300EB2CD52DD} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{909A442C-A134-444E-BDDB-5C4B7F333BC4} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{70916DF5-FADC-4517-9185-3ECFE1D43109} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
-		{8B5368E5-8518-4684-90EB-048DCBF76E9A} = {C0DE6060-8F08-4822-A75E-3C9F227F8F56}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.2\lib\NET35

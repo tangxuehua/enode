@@ -79,9 +79,7 @@
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Eventing\Event.cs" />
     <Compile Include="Eventing\EventStream.cs" />
-    <Compile Include="Eventing\IDomainEventStream.cs" />
     <Compile Include="Eventing\IEvent.cs" />
-    <Compile Include="Eventing\IEventStream.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventCommittingContext.cs" />
@@ -92,7 +90,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Exceptions\Impl\ExceptionHandlerWrapper.cs" />
-    <Compile Include="Exceptions\Impl\PublishableException.cs" />
+    <Compile Include="Exceptions\PublishableException.cs" />
     <Compile Include="Exceptions\Impl\NotImplementedExceptionPublisher.cs" />
     <Compile Include="Infrastructure\IHandlingContext.cs" />
     <Compile Include="Infrastructure\IHandlerProvider.cs" />

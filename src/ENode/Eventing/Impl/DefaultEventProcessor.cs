@@ -13,7 +13,7 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventProcessor : IProcessor<IDomainEventStream>, IProcessor<IEventStream>, IProcessor<IEvent>
+    public class DefaultEventProcessor : IProcessor<DomainEventStream>, IProcessor<EventStream>, IProcessor<IEvent>
     {
         #region Private Variables
 
@@ -91,11 +91,11 @@ namespace ENode.Eventing.Impl
             }
             _isStarted = true;
         }
-        public void Process(IDomainEventStream domainEventStream, IProcessContext<IDomainEventStream> context)
+        public void Process(DomainEventStream domainEventStream, IProcessContext<DomainEventStream> context)
         {
             QueueProcessingContext(domainEventStream.AggregateRootId, new DomainEventStreamProcessingContext(this, domainEventStream, context));
         }
-        public void Process(IEventStream eventStream, IProcessContext<IEventStream> context)
+        public void Process(EventStream eventStream, IProcessContext<EventStream> context)
         {
             QueueProcessingContext(eventStream.CommandId, new EventStreamProcessingContext(this, eventStream, context));
         }
@@ -119,7 +119,7 @@ namespace ENode.Eventing.Impl
         {
             _actionExecutionService.TryAction(context.Name, context.Process, 3, new ActionInfo(context.Name + "Callback", context.Callback, null, null));
         }
-        private bool DispatchEventsToHandlers(IEventStream eventStream)
+        private bool DispatchEventsToHandlers(EventStream eventStream)
         {
             var success = true;
             foreach (var evnt in eventStream.Events)
@@ -224,7 +224,7 @@ namespace ENode.Eventing.Impl
                 return false;
             }
         }
-        private void UpdatePublishedVersion(IDomainEventStream stream)
+        private void UpdatePublishedVersion(DomainEventStream stream)
         {
             if (stream.Version == 1)
             {
@@ -245,11 +245,11 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        class DomainEventStreamProcessingContext : ProcessingContext<IDomainEventStream>
+        class DomainEventStreamProcessingContext : ProcessingContext<DomainEventStream>
         {
             private DefaultEventProcessor _processor;
 
-            public DomainEventStreamProcessingContext(DefaultEventProcessor processor, IDomainEventStream domainEventStream, IProcessContext<IDomainEventStream> eventProcessContext)
+            public DomainEventStreamProcessingContext(DefaultEventProcessor processor, DomainEventStream domainEventStream, IProcessContext<DomainEventStream> eventProcessContext)
                 : base("ProcessDomainEventStream", domainEventStream, eventProcessContext)
             {
                 _processor = processor;
@@ -277,11 +277,11 @@ namespace ENode.Eventing.Impl
                 base.OnMessageProcessed();
             }
         }
-        class EventStreamProcessingContext : ProcessingContext<IEventStream>
+        class EventStreamProcessingContext : ProcessingContext<EventStream>
         {
             private DefaultEventProcessor _processor;
 
-            public EventStreamProcessingContext(DefaultEventProcessor processor, IEventStream eventStream, IProcessContext<IEventStream> eventProcessContext)
+            public EventStreamProcessingContext(DefaultEventProcessor processor, EventStream eventStream, IProcessContext<EventStream> eventProcessContext)
                 : base("ProcessEventStream", eventStream, eventProcessContext)
             {
                 _processor = processor;
