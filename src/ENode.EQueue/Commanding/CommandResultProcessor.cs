@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Extensions;
@@ -15,12 +16,12 @@ namespace ENode.EQueue.Commanding
 {
     public class CommandResultProcessor
     {
-        private const string DefaultCommandExecutedMessageConsumerId = "sys_cemc";
-        private const string DefaultCommandExecutedMessageConsumerGroup = "sys_cemcg";
-        private const string DefaultDomainEventHandledMessageConsumerId = "sys_dehmc";
-        private const string DefaultDomainEventHandledMessageConsumerGroup = "sys_dehmcg";
-        private const string DefaultCommandExecutedMessageTopic = "sys_ecmt";
-        private const string DefaultDomainEventHandledMessageTopic = "sys_dehmt";
+        private const string DefaultCommandExecutedMessageConsumerId = "CommandExecutedMessageConsumer";
+        private const string DefaultCommandExecutedMessageConsumerGroup = "CommandExecutedMessageConsumerGroup";
+        private const string DefaultDomainEventHandledMessageConsumerId = "DomainEventHandledMessageConsumer";
+        private const string DefaultDomainEventHandledMessageConsumerGroup = "DomainEventHandledMessageConsumerGroup";
+        private const string DefaultCommandExecutedMessageTopic = "CommandExecutedMessageTopic";
+        private const string DefaultDomainEventHandledMessageTopic = "DomainEventHandledMessageTopic";
 
         private readonly Consumer _commandExecutedMessageConsumer;
         private readonly Consumer _domainEventHandledMessageConsumer;
@@ -29,7 +30,7 @@ namespace ENode.EQueue.Commanding
         private readonly BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
         private readonly Worker _commandExecutedMessageWorker;
         private readonly Worker _domainEventHandledMessageWorker;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
         private bool _started;
 
@@ -47,7 +48,7 @@ namespace ENode.EQueue.Commanding
             _domainEventHandledMessageLocalQueue = new BlockingCollection<DomainEventHandledMessage>(new ConcurrentQueue<DomainEventHandledMessage>());
             _commandExecutedMessageWorker = new Worker("ProcessExecutedCommandMessage", () => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
             _domainEventHandledMessageWorker = new Worker("ProcessDomainEventHandledMessage", () => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;
             DomainEventHandledMessageTopic = DefaultDomainEventHandledMessageTopic;
@@ -198,7 +199,7 @@ namespace ENode.EQueue.Commanding
 
             void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
             {
-                _processor._commandExecutedMessageLocalQueue.Add(_processor._binarySerializer.Deserialize(message.Body, typeof(CommandExecutedMessage)) as CommandExecutedMessage);
+                _processor._commandExecutedMessageLocalQueue.Add(_processor._jsonSerializer.Deserialize(Encoding.UTF8.GetString(message.Body), typeof(CommandExecutedMessage)) as CommandExecutedMessage);
                 context.OnMessageHandled(message);
             }
         }
@@ -213,7 +214,7 @@ namespace ENode.EQueue.Commanding
 
             void IQueueMessageHandler.Handle(QueueMessage message, IMessageContext context)
             {
-                _processor._domainEventHandledMessageLocalQueue.Add(_processor._binarySerializer.Deserialize(message.Body, typeof(DomainEventHandledMessage)) as DomainEventHandledMessage);
+                _processor._domainEventHandledMessageLocalQueue.Add(_processor._jsonSerializer.Deserialize(Encoding.UTF8.GetString(message.Body), typeof(DomainEventHandledMessage)) as DomainEventHandledMessage);
                 context.OnMessageHandled(message);
             }
         }

@@ -95,6 +95,8 @@ namespace ENode.Configurations
             _configuration.SetDefault<IHandlerProvider<IExceptionHandler>, DefaultExceptionHandlerProvider>();
             _configuration.SetDefault<IHandlerProvider<IMessageHandler>, DefaultMessageHandlerProvider>();
 
+            _configuration.SetDefault<IEventSerializer, DefaultEventSerializer>();
+
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
             _configuration.SetDefault<IAggregateStorage, EventSourcingAggregateStorage>();

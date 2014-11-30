@@ -1,4 +1,5 @@
-﻿using ECommon.Components;
+﻿using System.Text;
+using ECommon.Components;
 using ECommon.Serializing;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
@@ -9,14 +10,14 @@ namespace ENode.EQueue
     {
         private const string DefaultCommandExecutedMessageSenderProcuderId = "CommandExecutedMessageSender";
         private readonly Producer _producer;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
 
         public Producer Producer { get { return _producer; } }
 
         public CommandExecutedMessageSender(string id = null, ProducerSetting setting = null)
         {
             _producer = new Producer(id ?? DefaultCommandExecutedMessageSenderProcuderId, setting ?? new ProducerSetting());
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
         }
 
         public CommandExecutedMessageSender Start()
@@ -31,7 +32,7 @@ namespace ENode.EQueue
         }
         public void Send(CommandExecutedMessage message, string topic)
         {
-            _producer.SendAsync(new Message(topic, (int)EQueueMessageTypeCode.CommandExecutedMessage, _binarySerializer.Serialize(message)), message.CommandId);
+            _producer.SendAsync(new Message(topic, (int)EQueueMessageTypeCode.CommandExecutedMessage, Encoding.UTF8.GetBytes(_jsonSerializer.Serialize(message))), message.CommandId);
         }
     }
 }

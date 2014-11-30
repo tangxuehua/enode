@@ -13,6 +13,7 @@ namespace BankTransferSample.DomainEvents
         /// </summary>
         public string Owner { get; private set; }
 
+        public AccountCreatedEvent() { }
         public AccountCreatedEvent(string accountId, string owner)
             : base(accountId)
         {
@@ -27,6 +28,7 @@ namespace BankTransferSample.DomainEvents
         public string AccountId { get; set; }
         public string TransactionId { get; set; }
 
+        public AccountValidatePassedEvent() { }
         public AccountValidatePassedEvent(string accountId, string transactionId)
         {
             AccountId = accountId;
@@ -40,6 +42,7 @@ namespace BankTransferSample.DomainEvents
     {
         public TransactionPreparation TransactionPreparation { get; private set; }
 
+        public TransactionPreparationAddedEvent() { }
         public TransactionPreparationAddedEvent(TransactionPreparation transactionPreparation)
             : base(transactionPreparation.AccountId)
         {
@@ -54,6 +57,7 @@ namespace BankTransferSample.DomainEvents
         public double CurrentBalance { get; private set; }
         public TransactionPreparation TransactionPreparation { get; private set; }
 
+        public TransactionPreparationCommittedEvent() { }
         public TransactionPreparationCommittedEvent(double currentBalance, TransactionPreparation transactionPreparation)
             : base(transactionPreparation.AccountId)
         {
@@ -68,6 +72,7 @@ namespace BankTransferSample.DomainEvents
     {
         public TransactionPreparation TransactionPreparation { get; private set; }
 
+        public TransactionPreparationCanceledEvent() { }
         public TransactionPreparationCanceledEvent(TransactionPreparation transactionPreparation)
             : base(transactionPreparation.AccountId)
         {

@@ -19,8 +19,9 @@ namespace ENode.Commanding.Impl
         private readonly string _connectionString;
         private readonly string _commandTable;
         private readonly string _primaryKeyName;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
+        private readonly IEventSerializer _eventSerializer;
 
         #region Constructors
 
@@ -37,8 +38,9 @@ namespace ENode.Commanding.Impl
             _connectionString = setting.ConnectionString;
             _commandTable = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
+            _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
         }
 
         #endregion
@@ -114,8 +116,8 @@ namespace ENode.Commanding.Impl
                 SourceId = handledCommand.SourceId,
                 SourceType = handledCommand.SourceType,
                 Timestamp = DateTime.Now,
-                Payload = _binarySerializer.Serialize(handledCommand.Command),
-                Events = _binarySerializer.Serialize(handledCommand.Events)
+                CommandData = _jsonSerializer.Serialize(handledCommand.Command),
+                Events = _jsonSerializer.Serialize(_eventSerializer.Serialize(handledCommand.Events))
             };
         }
         private HandledCommand ConvertFrom(CommandRecord record)
@@ -124,7 +126,7 @@ namespace ENode.Commanding.Impl
             if (commandType == typeof(HandledAggregateCommand))
             {
                 return new HandledAggregateCommand(
-                    _binarySerializer.Deserialize<ICommand>(record.Payload),
+                    _jsonSerializer.Deserialize(record.CommandData, commandType) as ICommand,
                     record.SourceId,
                     record.SourceType,
                     record.AggregateRootId,
@@ -133,10 +135,10 @@ namespace ENode.Commanding.Impl
             else
             {
                 return new HandledCommand(
-                    _binarySerializer.Deserialize<ICommand>(record.Payload),
+                    _jsonSerializer.Deserialize(record.CommandData, commandType) as ICommand,
                     record.SourceId,
                     record.SourceType,
-                    _binarySerializer.Deserialize<IEnumerable<IEvent>>(record.Events));
+                    _eventSerializer.Deserialize<IEvent>(_jsonSerializer.Deserialize<IDictionary<int, string>>(record.Events)));
             }
         }
 
@@ -151,8 +153,8 @@ namespace ENode.Commanding.Impl
             public string SourceId { get; set; }
             public string SourceType { get; set; }
             public DateTime Timestamp { get; set; }
-            public byte[] Payload { get; set; }
-            public byte[] Events { get; set; }
+            public string CommandData { get; set; }
+            public string Events { get; set; }
         }
     }
 }

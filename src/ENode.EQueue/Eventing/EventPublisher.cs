@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -14,8 +16,10 @@ namespace ENode.EQueue
     {
         private const string DefaultEventPublisherProcuderId = "EventPublisher";
         private readonly ILogger _logger;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IEvent> _eventTopicProvider;
+        private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
+        private readonly IEventSerializer _eventSerializer;
         private readonly Producer _producer;
 
         public Producer Producer { get { return _producer; } }
@@ -23,8 +27,10 @@ namespace ENode.EQueue
         public EventPublisher(string id = null, ProducerSetting setting = null)
         {
             _producer = new Producer(id ?? DefaultEventPublisherProcuderId, setting ?? new ProducerSetting());
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IEvent>>();
+            _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IEvent>>();
+            _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
@@ -41,10 +47,11 @@ namespace ENode.EQueue
 
         public void Publish(IEvent evnt)
         {
-            var eventMessage = CreateEventMessage(evnt);
+            var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
+            var eventData = _jsonSerializer.Serialize(evnt);
             var topic = _eventTopicProvider.GetTopic(evnt);
-            var data = _binarySerializer.Serialize(eventMessage);
-            var message = new Message(topic, (int)EQueueMessageTypeCode.EventMessage, data);
+            var data = _jsonSerializer.Serialize(new EventMessage { EventTypeCode = eventTypeCode, EventData = eventData });
+            var message = new Message(topic, (int)EQueueMessageTypeCode.EventMessage, Encoding.UTF8.GetBytes(data));
             var result = _producer.Send(message, evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id);
             if (result.SendStatus != SendStatus.Success)
             {
@@ -63,8 +70,8 @@ namespace ENode.EQueue
         {
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
-            var data = _binarySerializer.Serialize(eventMessage);
-            var message = new Message(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, data);
+            var data = _jsonSerializer.Serialize(eventMessage);
+            var message = new Message(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, Encoding.UTF8.GetBytes(data));
             var result = _producer.Send(message, eventStream.AggregateRootId);
             if (result.SendStatus != SendStatus.Success)
             {
@@ -75,8 +82,8 @@ namespace ENode.EQueue
         {
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
-            var data = _binarySerializer.Serialize(eventMessage);
-            var message = new Message(topic, (int)EQueueMessageTypeCode.EventStreamMessage, data);
+            var data = _jsonSerializer.Serialize(eventMessage);
+            var message = new Message(topic, (int)EQueueMessageTypeCode.EventStreamMessage, Encoding.UTF8.GetBytes(data));
             var result = _producer.Send(message, eventMessage.CommandId);
             if (result.SendStatus != SendStatus.Success)
             {
@@ -93,7 +100,7 @@ namespace ENode.EQueue
             message.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
             message.Timestamp = eventStream.Timestamp;
             message.Version = eventStream.Version;
-            message.DomainEvents = eventStream.DomainEvents;
+            message.Events = _eventSerializer.Serialize(eventStream.DomainEvents);
             message.Items = eventStream.Items;
 
             return message;
@@ -103,14 +110,18 @@ namespace ENode.EQueue
             var message = new EventStreamMessage();
 
             message.CommandId = eventStream.CommandId;
-            message.Events = eventStream.Events;
+            message.Events = _eventSerializer.Serialize(eventStream.Events);
             message.Items = eventStream.Items;
 
             return message;
         }
         private EventMessage CreateEventMessage(IEvent evnt)
         {
-            return new EventMessage { Event = evnt };
+            return new EventMessage
+            {
+                EventData = _jsonSerializer.Serialize(evnt),
+                EventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType())
+            };
         }
     }
 }

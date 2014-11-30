@@ -6,6 +6,7 @@ namespace ENode.EQueue
     [Serializable]
     public class EventMessage
     {
-        public IEvent Event { get; set; }
+        public int EventTypeCode { get; set; }
+        public string EventData { get; set; }
     }
 }

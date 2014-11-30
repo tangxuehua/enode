@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Text;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -14,7 +14,7 @@ namespace ENode.EQueue
     {
         private const string DefaultMessagePublisherProcuderId = "MessagePublisher";
         private readonly ILogger _logger;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IMessage> _messageTopicProvider;
         private readonly ITypeCodeProvider<IMessage> _messageTypeCodeProvider;
         private readonly Producer _producer;
@@ -24,7 +24,7 @@ namespace ENode.EQueue
         public MessagePublisher(string id = null, ProducerSetting setting = null)
         {
             _producer = new Producer(id ?? DefaultMessagePublisherProcuderId, setting ?? new ProducerSetting());
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _messageTopicProvider = ObjectContainer.Resolve<ITopicProvider<IMessage>>();
             _messageTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IMessage>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
@@ -45,9 +45,8 @@ namespace ENode.EQueue
         {
             var messageTypeCode = _messageTypeCodeProvider.GetTypeCode(message.GetType());
             var topic = _messageTopicProvider.GetTopic(message);
-            var serializableInfo = new Dictionary<string, string>();
-            var data = _binarySerializer.Serialize(message);
-            var queueMessage = new EQueueMessage(topic, messageTypeCode, data);
+            var data = _jsonSerializer.Serialize(message);
+            var queueMessage = new EQueueMessage(topic, messageTypeCode, Encoding.UTF8.GetBytes(data));
             var result = _producer.Send(queueMessage, message is IVersionedMessage ? ((IVersionedMessage)message).SourceId : message.Id);
             if (result.SendStatus != SendStatus.Success)
             {

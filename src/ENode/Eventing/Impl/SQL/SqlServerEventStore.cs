@@ -18,7 +18,8 @@ namespace ENode.Eventing.Impl.SQL
         private readonly string _connectionString;
         private readonly string _eventTable;
         private readonly string _primaryKeyName;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly IEventSerializer _eventSerializer;
 
         #endregion
 
@@ -35,7 +36,8 @@ namespace ENode.Eventing.Impl.SQL
             _connectionString = setting.ConnectionString;
             _eventTable = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
+            _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
         }
 
         #endregion
@@ -195,7 +197,7 @@ namespace ENode.Eventing.Impl.SQL
                 record.AggregateRootTypeCode,
                 record.Version,
                 record.Timestamp,
-                _binarySerializer.Deserialize<IEnumerable<IDomainEvent>>(record.Events));
+                _eventSerializer.Deserialize<IDomainEvent>(_jsonSerializer.Deserialize<IDictionary<int, string>>(record.Events)));
         }
         private StreamRecord ConvertTo(DomainEventStream eventStream)
         {
@@ -206,7 +208,7 @@ namespace ENode.Eventing.Impl.SQL
                 AggregateRootTypeCode = eventStream.AggregateRootTypeCode,
                 Version = eventStream.Version,
                 Timestamp = eventStream.Timestamp,
-                Events = _binarySerializer.Serialize(eventStream.Events)
+                Events = _jsonSerializer.Serialize(_eventSerializer.Serialize(eventStream.Events))
             };
         }
 
@@ -219,7 +221,7 @@ namespace ENode.Eventing.Impl.SQL
             public int Version { get; set; }
             public string CommandId { get; set; }
             public DateTime Timestamp { get; set; }
-            public byte[] Events { get; set; }
+            public string Events { get; set; }
         }
     }
 }

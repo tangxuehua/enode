@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Text;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -21,7 +22,7 @@ namespace ENode.EQueue
         private const string DefaultCommandConsumerGroup = "CommandConsumerGroup";
         private readonly Consumer _consumer;
         private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly ICommandExecutor _commandExecutor;
         private readonly IRepository _repository;
@@ -36,7 +37,7 @@ namespace ENode.EQueue
             CommandExecutedMessageSender commandExecutedMessageSender = null)
         {
             _consumer = new Consumer(id ?? DefaultCommandConsumerId, groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting());
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
             _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
             _repository = ObjectContainer.Resolve<IRepository>();
@@ -64,10 +65,9 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var commandMessage = _binarySerializer.Deserialize<CommandMessage>(queueMessage.Body);
-            var payload = ByteTypeDataUtils.Decode(commandMessage.CommandData);
-            var type = _commandTypeCodeProvider.GetType(payload.TypeCode);
-            var command = _binarySerializer.Deserialize(payload.Data, type) as ICommand;
+            var commandMessage = _jsonSerializer.Deserialize<CommandMessage>(Encoding.UTF8.GetString(queueMessage.Body));
+            var commandType = _commandTypeCodeProvider.GetType(commandMessage.CommandTypeCode);
+            var command = _jsonSerializer.Deserialize(commandMessage.CommandData, commandType) as ICommand;
             var commandExecuteContext = new CommandExecuteContext(_repository, queueMessage, context, commandMessage, _commandExecutedMessageSender);
             var commandItems = new Dictionary<string, string>();
 

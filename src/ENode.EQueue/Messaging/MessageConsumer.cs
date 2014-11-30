@@ -1,5 +1,5 @@
-﻿using ECommon.Components;
-using ECommon.Logging;
+﻿using System.Text;
+using ECommon.Components;
 using ECommon.Serializing;
 using ENode.Infrastructure;
 using ENode.Messaging;
@@ -14,7 +14,7 @@ namespace ENode.EQueue
         private const string DefaultMessageConsumerId = "MessageConsumer";
         private const string DefaultMessageConsumerGroup = "MessageConsumerGroup";
         private readonly Consumer _consumer;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider<IMessage> _messageTypeCodeProvider;
         private readonly IProcessor<IMessage> _messageProcessor;
 
@@ -27,7 +27,7 @@ namespace ENode.EQueue
             {
                 MessageHandleMode = MessageHandleMode.Sequential
             });
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _messageProcessor = ObjectContainer.Resolve<IProcessor<IMessage>>();
             _messageTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IMessage>>();
         }
@@ -51,7 +51,7 @@ namespace ENode.EQueue
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
             var messageType = _messageTypeCodeProvider.GetType(queueMessage.Code);
-            var message = _binarySerializer.Deserialize(queueMessage.Body, messageType) as IMessage;
+            var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), messageType) as IMessage;
             _messageProcessor.Process(message, new MessageProcessContext(queueMessage, context, message));
         }
 

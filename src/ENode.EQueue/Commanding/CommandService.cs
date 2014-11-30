@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
@@ -8,17 +9,16 @@ using ENode.EQueue.Commanding;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
-using EQueue.Utils;
 
 namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
-        private const string DefaultCommandExecutedMessageTopic = "sys_ecmt";
-        private const string DefaultDomainEventHandledMessageTopic = "sys_dehmt";
+        private const string DefaultCommandExecutedMessageTopic = "CommandExecutedMessageTopic";
+        private const string DefaultDomainEventHandledMessageTopic = "DomainEventHandledMessageTopic";
         private const string DefaultCommandServiceProcuderId = "CommandService";
         private readonly ILogger _logger;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<ICommand> _commandTopicProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly ICommandRouteKeyProvider _commandRouteKeyProvider;
@@ -32,7 +32,7 @@ namespace ENode.EQueue
         {
             _commandResultProcessor = commandResultProcessor;
             _producer = new Producer(id ?? DefaultCommandServiceProcuderId, setting ?? new ProducerSetting());
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRouteKeyProvider>();
@@ -144,19 +144,21 @@ namespace ENode.EQueue
         }
         private Message BuildCommandMessage(ICommand command, string sourceId = null, string sourceType = null)
         {
-            var raw = _binarySerializer.Serialize(command);
+            var commandData = _jsonSerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
-            var typeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            var commandData = ByteTypeDataUtils.Encode(new ByteTypeData(typeCode, raw));
-            var messageData = _binarySerializer.Serialize(new CommandMessage
+            var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
+            var commandExecutedMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.CommandExecutedMessageTopic : CommandExecutedMessageTopic;
+            var domainEventHandledMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.DomainEventHandledMessageTopic : DomainEventHandledMessageTopic;
+            var messageData = _jsonSerializer.Serialize(new CommandMessage
             {
+                CommandTypeCode = commandTypeCode,
                 CommandData = commandData,
-                CommandExecutedMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.CommandExecutedMessageTopic : CommandExecutedMessageTopic,
-                DomainEventHandledMessageTopic = _commandResultProcessor != null ? _commandResultProcessor.DomainEventHandledMessageTopic : DomainEventHandledMessageTopic,
+                CommandExecutedMessageTopic = commandExecutedMessageTopic,
+                DomainEventHandledMessageTopic = domainEventHandledMessageTopic,
                 SourceId = sourceId,
                 SourceType = sourceType
             });
-            return new Message(topic, (int)EQueueMessageTypeCode.CommandMessage, messageData);
+            return new Message(topic, (int)EQueueMessageTypeCode.CommandMessage, Encoding.UTF8.GetBytes(messageData));
         }
     }
 }

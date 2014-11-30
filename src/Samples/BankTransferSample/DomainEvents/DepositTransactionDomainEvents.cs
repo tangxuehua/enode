@@ -11,6 +11,7 @@ namespace BankTransferSample.DomainEvents
         public string AccountId { get; private set; }
         public double Amount { get; private set; }
 
+        public DepositTransactionStartedEvent() { }
         public DepositTransactionStartedEvent(string transactionId, string accountId, double amount)
             : base(transactionId)
         {
@@ -25,6 +26,7 @@ namespace BankTransferSample.DomainEvents
     {
         public string AccountId { get; private set; }
 
+        public DepositTransactionPreparationCompletedEvent() { }
         public DepositTransactionPreparationCompletedEvent(string transactionId, string accountId)
             : base(transactionId)
         {
@@ -38,6 +40,7 @@ namespace BankTransferSample.DomainEvents
     {
         public string AccountId { get; private set; }
 
+        public DepositTransactionCompletedEvent() { }
         public DepositTransactionCompletedEvent(string transactionId, string accountId)
             : base(transactionId)
         {

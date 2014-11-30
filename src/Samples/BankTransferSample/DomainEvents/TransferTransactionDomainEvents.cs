@@ -11,6 +11,7 @@ namespace BankTransferSample.DomainEvents
     {
         public TransferTransactionInfo TransactionInfo { get; private set; }
 
+        public AbstractTransferTransactionEvent() { }
         public AbstractTransferTransactionEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId)
         {
@@ -22,6 +23,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class TransferTransactionStartedEvent : AbstractTransferTransactionEvent
     {
+        public TransferTransactionStartedEvent() { }
         public TransferTransactionStartedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo) { }
     }
@@ -30,6 +32,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class SourceAccountValidatePassedConfirmedEvent : AbstractTransferTransactionEvent
     {
+        public SourceAccountValidatePassedConfirmedEvent() { }
         public SourceAccountValidatePassedConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo)
         {
@@ -40,6 +43,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class TargetAccountValidatePassedConfirmedEvent : AbstractTransferTransactionEvent
     {
+        public TargetAccountValidatePassedConfirmedEvent() { }
         public TargetAccountValidatePassedConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo)
         {
@@ -50,6 +54,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class AccountValidatePassedConfirmCompletedEvent : AbstractTransferTransactionEvent
     {
+        public AccountValidatePassedConfirmCompletedEvent() { }
         public AccountValidatePassedConfirmCompletedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo)
         {
@@ -60,6 +65,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class TransferOutPreparationConfirmedEvent : AbstractTransferTransactionEvent
     {
+        public TransferOutPreparationConfirmedEvent() { }
         public TransferOutPreparationConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo)
         {
@@ -70,6 +76,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class TransferInPreparationConfirmedEvent : AbstractTransferTransactionEvent
     {
+        public TransferInPreparationConfirmedEvent() { }
         public TransferInPreparationConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo)
         {
@@ -80,6 +87,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class TransferOutConfirmedEvent : AbstractTransferTransactionEvent
     {
+        public TransferOutConfirmedEvent() { }
         public TransferOutConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo) { }
     }
@@ -88,6 +96,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class TransferInConfirmedEvent : AbstractTransferTransactionEvent
     {
+        public TransferInConfirmedEvent() { }
         public TransferInConfirmedEvent(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId, transactionInfo) { }
     }
@@ -96,6 +105,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class TransferTransactionCompletedEvent : DomainEvent<string>
     {
+        public TransferTransactionCompletedEvent() { }
         public TransferTransactionCompletedEvent(string transactionId)
             : base(transactionId) { }
     }
@@ -104,6 +114,7 @@ namespace BankTransferSample.DomainEvents
     [Serializable]
     public class TransferTransactionCanceledEvent : DomainEvent<string>
     {
+        public TransferTransactionCanceledEvent() { }
         public TransferTransactionCanceledEvent(string transactionId)
             : base(transactionId) { }
     }

@@ -13,6 +13,7 @@ namespace BankTransferSample.Commands
         /// </summary>
         public TransferTransactionInfo TransactionInfo { get; set; }
 
+        public StartTransferTransactionCommand() { }
         public StartTransferTransactionCommand(TransferTransactionInfo transactionInfo)
         {
             TransactionInfo = transactionInfo;
@@ -27,6 +28,7 @@ namespace BankTransferSample.Commands
         /// </summary>
         public string AccountId { get; set; }
 
+        public ConfirmAccountValidatePassedCommand() { }
         public ConfirmAccountValidatePassedCommand(string transactionId, string accountId)
             : base(transactionId)
         {
@@ -38,6 +40,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class ConfirmTransferOutPreparationCommand : AggregateCommand<string>
     {
+        public ConfirmTransferOutPreparationCommand() { }
         public ConfirmTransferOutPreparationCommand(string transactionId)
             : base(transactionId)
         {
@@ -48,6 +51,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class ConfirmTransferInPreparationCommand : AggregateCommand<string>
     {
+        public ConfirmTransferInPreparationCommand() { }
         public ConfirmTransferInPreparationCommand(string transactionId)
             : base(transactionId)
         {
@@ -58,6 +62,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class ConfirmTransferOutCommand : AggregateCommand<string>
     {
+        public ConfirmTransferOutCommand() { }
         public ConfirmTransferOutCommand(string transactionId)
             : base(transactionId)
         {
@@ -68,6 +73,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class ConfirmTransferInCommand : AggregateCommand<string>
     {
+        public ConfirmTransferInCommand() { }
         public ConfirmTransferInCommand(string transactionId)
             : base(transactionId)
         {
@@ -78,6 +84,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class CancelTransferTransactionCommand : AggregateCommand<string>
     {
+        public CancelTransferTransactionCommand() { }
         public CancelTransferTransactionCommand(string transactionId)
             : base(transactionId)
         {

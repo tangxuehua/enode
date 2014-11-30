@@ -7,8 +7,8 @@ CREATE TABLE [dbo].[Command] (
     [SourceId]                NVARCHAR (36)          NULL,
     [SourceType]              NVARCHAR (36)          NULL,
     [Timestamp]               DATETIME               NOT NULL,
-    [Payload]                 VARBINARY (MAX)        NOT NULL,
-    [Events]                  VARBINARY (MAX)        NULL,
+    [CommandData]             NVARCHAR (MAX)        NOT NULL,
+    [Events]                  NVARCHAR (MAX)        NULL,
     CONSTRAINT [PK_Command] PRIMARY KEY CLUSTERED ([CommandId] ASC)
 )
 GO
@@ -19,7 +19,7 @@ CREATE TABLE [dbo].[EventStream] (
     [Version]                 INT                    NOT NULL,
     [CommandId]               NVARCHAR (128)         NOT NULL,
     [Timestamp]               DATETIME               NOT NULL,
-    [Events]                  VARBINARY (MAX)        NOT NULL,
+    [Events]                  NVARCHAR (MAX)         NOT NULL,
     CONSTRAINT [PK_EventStream] PRIMARY KEY CLUSTERED ([AggregateRootId] ASC, [Version] ASC)
 )
 GO

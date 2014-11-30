@@ -11,6 +11,7 @@ namespace BankTransferSample.Commands
     {
         public string Owner { get; set; }
 
+        public CreateAccountCommand() { }
         public CreateAccountCommand(string accountId, string owner) : base(accountId)
         {
             Owner = owner;
@@ -24,6 +25,7 @@ namespace BankTransferSample.Commands
         public string AccountId { get; set; }
         public string TransactionId { get; set; }
 
+        public ValidateAccountCommand() { }
         public ValidateAccountCommand(string accountId, string transactionId)
         {
             AccountId = accountId;
@@ -45,6 +47,7 @@ namespace BankTransferSample.Commands
         public PreparationType PreparationType { get; set; }
         public double Amount { get; set; }
 
+        public AddTransactionPreparationCommand() { }
         public AddTransactionPreparationCommand(string accountId, string transactionId, TransactionType transactionType, PreparationType preparationType, double amount)
             : base(accountId)
         {
@@ -61,6 +64,7 @@ namespace BankTransferSample.Commands
     {
         public string TransactionId { get; set; }
 
+        public CommitTransactionPreparationCommand() { }
         public CommitTransactionPreparationCommand(string accountId, string transactionId)
             : base(accountId)
         {

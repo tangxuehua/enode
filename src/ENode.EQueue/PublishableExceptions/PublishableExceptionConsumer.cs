@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using System.Text;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -15,7 +16,7 @@ namespace ENode.EQueue
         private const string DefaultExceptionConsumerId = "ExceptionConsumer";
         private const string DefaultExceptionConsumerGroup = "ExceptionConsumerGroup";
         private readonly Consumer _consumer;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider<IPublishableException> _publishableExceptionTypeCodeProvider;
         private readonly IProcessor<IPublishableException> _publishableExceptionProcessor;
         private readonly ILogger _logger;
@@ -29,7 +30,7 @@ namespace ENode.EQueue
             {
                 MessageHandleMode = MessageHandleMode.Sequential
             });
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _publishableExceptionProcessor = ObjectContainer.Resolve<IProcessor<IPublishableException>>();
             _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
@@ -53,7 +54,7 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var publishableExceptionMessage = _binarySerializer.Deserialize<PublishableExceptionMessage>(queueMessage.Body);
+            var publishableExceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var publishableExceptionType = _publishableExceptionTypeCodeProvider.GetType(publishableExceptionMessage.ExceptionTypeCode);
             var publishableException = FormatterServices.GetUninitializedObject(publishableExceptionType) as IPublishableException;
             publishableException.UniqueId = publishableExceptionMessage.UniqueId;

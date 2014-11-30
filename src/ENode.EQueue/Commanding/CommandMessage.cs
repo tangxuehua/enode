@@ -5,7 +5,8 @@ namespace ENode.EQueue
     [Serializable]
     public class CommandMessage
     {
-        public byte[] CommandData { get; set; }
+        public int CommandTypeCode { get; set; }
+        public string CommandData { get; set; }
         public string CommandExecutedMessageTopic { get; set; }
         public string DomainEventHandledMessageTopic { get; set; }
         public string SourceId { get; set; }

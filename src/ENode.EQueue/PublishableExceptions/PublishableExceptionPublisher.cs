@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -15,7 +16,7 @@ namespace ENode.EQueue
     {
         private const string DefaultExceptionPublisherProcuderId = "ExceptionPublisher";
         private readonly ILogger _logger;
-        private readonly IBinarySerializer _binarySerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IPublishableException> _exceptionTopicProvider;
         private readonly ITypeCodeProvider<IPublishableException> _exceptionTypeCodeProvider;
         private readonly Producer _producer;
@@ -25,7 +26,7 @@ namespace ENode.EQueue
         public PublishableExceptionPublisher(string id = null, ProducerSetting setting = null)
         {
             _producer = new Producer(id ?? DefaultExceptionPublisherProcuderId, setting ?? new ProducerSetting());
-            _binarySerializer = ObjectContainer.Resolve<IBinarySerializer>();
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
             _exceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
@@ -54,8 +55,8 @@ namespace ENode.EQueue
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
             };
-            var data = _binarySerializer.Serialize(exceptionMessage);
-            var message = new Message(topic, (int)EQueueMessageTypeCode.ExceptionMessage, data);
+            var data = _jsonSerializer.Serialize(exceptionMessage);
+            var message = new Message(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
             var result = _producer.Send(message, exception.UniqueId);
             if (result.SendStatus != SendStatus.Success)
             {

@@ -15,6 +15,7 @@ namespace BankTransferSample.Commands
         /// </summary>
         public double Amount { get; set; }
 
+        public StartDepositTransactionCommand() { }
         public StartDepositTransactionCommand(string accountId, double amount)
         {
             AccountId = accountId;
@@ -26,6 +27,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class ConfirmDepositPreparationCommand : AggregateCommand<string>
     {
+        public ConfirmDepositPreparationCommand() { }
         public ConfirmDepositPreparationCommand(string transactionId)
             : base(transactionId)
         {
@@ -36,6 +38,7 @@ namespace BankTransferSample.Commands
     [Serializable]
     public class ConfirmDepositCommand : AggregateCommand<string>
     {
+        public ConfirmDepositCommand() { }
         public ConfirmDepositCommand(string transactionId)
             : base(transactionId)
         {
