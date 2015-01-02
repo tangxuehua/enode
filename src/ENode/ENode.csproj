@@ -39,11 +39,9 @@
     <DocumentationFile>D:\nugetpublish\ENode.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Commanding\CommandHandlerTooManyException.cs" />
     <Compile Include="Commanding\EventAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateCommand.cs" />
-    <Compile Include="Commanding\CommandHandlerNotFoundException.cs" />
     <Compile Include="Commanding\CommandSendException.cs" />
     <Compile Include="Commanding\CommandSendResult.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
@@ -51,24 +49,21 @@
     <Compile Include="Commanding\HandledAggregateCommand.cs" />
     <Compile Include="Commanding\CommandAddResult.cs" />
     <Compile Include="Commanding\IAggregateCommand.cs" />
+    <Compile Include="Commanding\ICommandExecutor.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\ICommandStore.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\CommandAggregateRootIdMissingException.cs" />
-    <Compile Include="Commanding\Impl\DefaultExecutedCommandService.cs" />
     <Compile Include="Commanding\Impl\SqlServerCommandStore.cs" />
     <Compile Include="Commanding\Impl\InMemoryCommandStore.cs" />
-    <Compile Include="Commanding\IExecutedCommandService.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandProcessor.cs" />
     <Compile Include="Commanding\ICreatingAggregateCommand.cs" />
-    <Compile Include="Commanding\ICommandExecutor.cs" />
-    <Compile Include="Commanding\Impl\DefaultWaitingCommandService.cs" />
-    <Compile Include="Commanding\IWaitingCommandService.cs" />
-    <Compile Include="Commanding\Impl\DefaultRetryCommandService.cs" />
+    <Compile Include="Commanding\ICommandProcessor.cs" />
     <Compile Include="Commanding\DuplicatedCommandHandlerException.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Configurations\DbTableSetting.cs" />
@@ -96,12 +91,15 @@
     <Compile Include="Exceptions\Impl\NotImplementedExceptionPublisher.cs" />
     <Compile Include="Infrastructure\IHandlingContext.cs" />
     <Compile Include="Infrastructure\IHandlerProvider.cs" />
+    <Compile Include="Infrastructure\IOHelper.cs" />
     <Compile Include="Infrastructure\IProxyHandler.cs" />
     <Compile Include="Infrastructure\Impl\DefaultHandlingContext.cs" />
     <Compile Include="Infrastructure\Impl\ProcessingContext.cs" />
     <Compile Include="Infrastructure\IOException.cs" />
     <Compile Include="Infrastructure\Impl\BaseHandlerProvider.cs" />
     <Compile Include="Infrastructure\IProcessingContext.cs" />
+    <Compile Include="Infrastructure\MailboxWorker.cs" />
+    <Compile Include="Infrastructure\ParallelProcessor.cs" />
     <Compile Include="Messaging\IMessageHandler.cs" />
     <Compile Include="Infrastructure\IProcessContext.cs" />
     <Compile Include="Infrastructure\IProcessor.cs" />
@@ -132,7 +130,6 @@
     <Compile Include="Eventing\IEventHandleInfoStore.cs" />
     <Compile Include="Infrastructure\Impl\DefaultTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
-    <Compile Include="Commanding\IRetryCommandService.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />
     <Compile Include="Domain\Impl\EventSourcingRepository.cs" />
     <Compile Include="Domain\IRepository.cs" />

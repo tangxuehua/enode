@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 namespace ENode.Commanding
 {
     public class ProcessingCommand
@@ -6,8 +7,9 @@ namespace ENode.Commanding
         public string AggregateRootId { get; private set; }
         public ICommand Command { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }
-        public int RetriedCount { get; private set; }
+        public int ConcurrentRetriedCount { get; private set; }
         public IDictionary<string, string> Items { get; private set; }
+        public ManualResetEvent WaitHandle { get; private set; }
 
         public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, IDictionary<string, string> items)
         {
@@ -23,11 +25,16 @@ namespace ENode.Commanding
                     throw new CommandAggregateRootIdMissingException(command);
                 }
             }
+            WaitHandle = new ManualResetEvent(false);
         }
 
-        public void IncreaseRetriedCount()
+        public object GetRoutingKey()
         {
-            RetriedCount++;
+            return string.IsNullOrEmpty(AggregateRootId) ? Command.Id : AggregateRootId;
+        }
+        public void IncreaseConcurrentRetriedCount()
+        {
+            ConcurrentRetriedCount++;
         }
     }
 }

@@ -25,16 +25,14 @@ namespace NoteSample
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
-            var noteId = ObjectId.GenerateNewStringId();
-            var command1 = new CreateNoteCommand { AggregateRootId = noteId, Title = "Sample Title1" };
-            var command2 = new ChangeNoteTitleCommand { AggregateRootId = noteId, Title = "Sample Title2" };
-
-            Console.WriteLine(string.Empty);
-
-            commandService.Execute(command1, CommandReturnType.EventHandled).Wait();
-            commandService.Execute(command2, CommandReturnType.EventHandled).Wait();
-
-            Console.WriteLine(string.Empty);
+            for (var i = 0; i < 1000; i++)
+            {
+                commandService.SendAsync(new CreateNoteCommand
+                {
+                    AggregateRootId = ObjectId.GenerateNewStringId(),
+                    Title = "Sample Title" + (i + 1).ToString()
+                });
+            }
 
             _logger.Info("Press Enter to exit...");
 
@@ -44,6 +42,13 @@ namespace NoteSample
 
         static void InitializeENodeFramework()
         {
+            var connectionString = @"Server=(local);Initial Catalog=ENode;uid=sa;pwd=howareyou;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100";
+            var setting = new ConfigurationSetting
+            {
+                SqlServerDefaultConnectionString = connectionString,
+                EnableGroupCommitEvent = true,
+                CommandProcessorParallelThreadCount = 100
+            };
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             _configuration = Configuration
                 .Create()
@@ -51,9 +56,10 @@ namespace NoteSample
                 .RegisterCommonComponents()
                 .UseLog4Net()
                 .UseJsonNet()
-                .CreateENode()
+                .CreateENode(setting)
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
+                .UseSqlServerEventStore()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartENode(NodeType.CommandProcessor | NodeType.EventProcessor)

@@ -4,6 +4,10 @@ namespace ENode.Eventing
 {
     public interface IEventService
     {
+        /// <summary>Set the command executor for command retring.
+        /// </summary>
+        /// <param name="commandExecutor"></param>
+        void SetCommandExecutor(ICommandExecutor commandExecutor);
         /// <summary>Start the event service.
         /// </summary>
         void Start();

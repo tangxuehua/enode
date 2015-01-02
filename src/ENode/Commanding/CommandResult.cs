@@ -34,6 +34,19 @@ namespace ENode.Commanding
             ExceptionTypeName = exceptionTypeName;
             ErrorMessage = errorMessage;
         }
+
+        /// <summary>Overrides to return the command result info.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return string.Format("[CommandId={0},Status={1},AggregateRootId={2},ExceptionTypeName={3},ErrorMessage={4}]",
+                CommandId,
+                Status,
+                AggregateRootId,
+                ExceptionTypeName,
+                ErrorMessage);
+        }
     }
     /// <summary>Represents the command result status enum.
     /// </summary>

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,16 +23,9 @@ namespace ENode.Eventing.Impl.InMemory
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        public EventAppendResult BatchAppend(IEnumerable<DomainEventStream> eventStreams)
+        public void BatchAppend(IEnumerable<DomainEventStream> eventStreams)
         {
-            foreach (var eventStream in eventStreams)
-            {
-                if (Append(eventStream) == EventAppendResult.DuplicateEvent)
-                {
-                    return EventAppendResult.DuplicateEvent;
-                }
-            }
-            return EventAppendResult.Success;
+            throw new NotSupportedException();
         }
         public EventAppendResult Append(DomainEventStream eventStream)
         {

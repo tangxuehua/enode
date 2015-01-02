@@ -17,7 +17,7 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private int _workerCount = 4;
+        private readonly ParallelProcessor<IProcessingContext> _parallelProcessor;
         private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
         private readonly ITypeCodeProvider<IEventHandler> _eventHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
@@ -29,9 +29,6 @@ namespace ENode.Eventing.Impl
         private readonly IEventHandleInfoCache _eventHandleInfoCache;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
-        private readonly IList<BlockingCollection<IProcessingContext>> _queueList;
-        private readonly IList<Worker> _workerList;
-        private bool _isStarted;
 
         #endregion
 
@@ -63,58 +60,31 @@ namespace ENode.Eventing.Impl
             _eventHandleInfoStore = eventHandleInfoStore;
             _eventHandleInfoCache = eventHandleInfoCache;
             _actionExecutionService = actionExecutionService;
+            _parallelProcessor = new ParallelProcessor<IProcessingContext>(ENodeConfiguration.Instance.Setting.EventProcessorParallelThreadCount, "ProcessEvents", ProcessEvents);
             _logger = loggerFactory.Create(GetType().FullName);
-            _queueList = new List<BlockingCollection<IProcessingContext>>();
-            _workerCount = ENodeConfiguration.Instance.Setting.EventProcessorParallelThreadCount;
-            _workerList = new List<Worker>();
-            for (var index = 0; index < _workerCount; index++)
-            {
-                _queueList.Add(new BlockingCollection<IProcessingContext>());
-            }
         }
 
         #endregion
 
         public void Start()
         {
-            if (_isStarted) return;
-
-            for (var index = 0; index < _workerCount; index++)
-            {
-                var queue = _queueList[index];
-                var worker = new Worker("ProcessEvents", () =>
-                {
-                    ProcessEvents(queue.Take());
-                });
-                _workerList.Add(worker);
-                worker.Start();
-            }
-            _isStarted = true;
+            _parallelProcessor.Start();
         }
         public void Process(DomainEventStream domainEventStream, IProcessContext<DomainEventStream> context)
         {
-            QueueProcessingContext(domainEventStream.AggregateRootId, new DomainEventStreamProcessingContext(this, domainEventStream, context));
+            _parallelProcessor.EnqueueMessage(domainEventStream.AggregateRootId, new DomainEventStreamProcessingContext(this, domainEventStream, context));
         }
         public void Process(EventStream eventStream, IProcessContext<EventStream> context)
         {
-            QueueProcessingContext(eventStream.CommandId, new EventStreamProcessingContext(this, eventStream, context));
+            _parallelProcessor.EnqueueMessage(eventStream.CommandId, new EventStreamProcessingContext(this, eventStream, context));
         }
         public void Process(IEvent evnt, IProcessContext<IEvent> context)
         {
-            QueueProcessingContext(evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id, new EventProcessingContext(this, evnt, context));
+            _parallelProcessor.EnqueueMessage(evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id, new EventProcessingContext(this, evnt, context));
         }
 
         #region Private Methods
 
-        private void QueueProcessingContext(object hashKey, IProcessingContext processingContext)
-        {
-            var queueIndex = hashKey.GetHashCode() % _workerCount;
-            if (queueIndex < 0)
-            {
-                queueIndex = Math.Abs(queueIndex);
-            }
-            _queueList[queueIndex].Add(processingContext);
-        }
         private void ProcessEvents(IProcessingContext context)
         {
             _actionExecutionService.TryAction(context.Name, context.Process, 3, new ActionInfo(context.Name + "Callback", context.Callback, null, null));

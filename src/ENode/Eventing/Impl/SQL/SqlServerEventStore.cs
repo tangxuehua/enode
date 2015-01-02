@@ -20,6 +20,7 @@ namespace ENode.Eventing.Impl.SQL
         private readonly string _primaryKeyName;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IEventSerializer _eventSerializer;
+        private readonly IOHelper _ioHelper;
 
         #endregion
 
@@ -38,147 +39,141 @@ namespace ENode.Eventing.Impl.SQL
             _primaryKeyName = setting.PrimaryKeyName;
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }
 
         #endregion
 
         #region Public Methods
 
-        public EventAppendResult BatchAppend(IEnumerable<DomainEventStream> eventStreams)
+        public void BatchAppend(IEnumerable<DomainEventStream> eventStreams)
         {
-            var appendResult = EventAppendResult.Success;
-            using (var connection = GetConnection())
+            _ioHelper.TryIOAction(() =>
             {
-                connection.Open();
-                var transaction = connection.BeginTransaction();
-                try
+                using (var connection = GetConnection())
                 {
-                    foreach (var eventStream in eventStreams)
+                    connection.Open();
+                    var transaction = connection.BeginTransaction();
+                    try
                     {
-                        var record = ConvertTo(eventStream);
-                        try
+                        foreach (var eventStream in eventStreams)
                         {
-                            connection.Insert(record, _eventTable, transaction);
+                            connection.Insert(ConvertTo(eventStream), _eventTable, transaction);
                         }
-                        catch (SqlException ex)
-                        {
-                            if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
-                            {
-                                appendResult = EventAppendResult.DuplicateEvent;
-                                break;
-                            }
-                            throw;
-                        }
-                    }
-                    if (appendResult == EventAppendResult.Success)
-                    {
                         transaction.Commit();
                     }
-                    else
+                    catch
                     {
                         transaction.Rollback();
+                        throw;
                     }
                 }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
-            return appendResult;
+            }, "BatchAppendEvents");
         }
         public EventAppendResult Append(DomainEventStream eventStream)
         {
             var record = ConvertTo(eventStream);
 
-            using (var connection = GetConnection())
+            return _ioHelper.TryIOFunc(() =>
             {
-                connection.Open();
-                try
+                using (var connection = GetConnection())
                 {
-                    connection.Insert(record, _eventTable);
-                    return EventAppendResult.Success;
-                }
-                catch (SqlException ex)
-                {
-                    if (ex.Number == 2627)
+                    connection.Open();
+                    try
                     {
-                        if (ex.Message.Contains(_primaryKeyName))
-                        {
-                            return EventAppendResult.DuplicateEvent;
-                        }
+                        connection.Insert(record, _eventTable);
+                        return EventAppendResult.Success;
                     }
-                    throw;
+                    catch (SqlException ex)
+                    {
+                        if (ex.Number == 2627)
+                        {
+                            if (ex.Message.Contains(_primaryKeyName))
+                            {
+                                return EventAppendResult.DuplicateEvent;
+                            }
+                        }
+                        throw;
+                    }
                 }
-            }
+            }, "AppendEvents");
         }
         public DomainEventStream Find(string aggregateRootId, int version)
         {
-            using (var connection = GetConnection())
+            var record = _ioHelper.TryIOFunc(() =>
             {
-                connection.Open();
-                var record = connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _eventTable).SingleOrDefault();
-                if (record != null)
+                using (var connection = GetConnection())
                 {
-                    return ConvertFrom(record);
+                    connection.Open();
+                    return connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _eventTable).SingleOrDefault();
                 }
-                return null;
+            }, "FindEventByVersion");
+
+            if (record != null)
+            {
+                return ConvertFrom(record);
             }
+            return null;
         }
         public DomainEventStream Find(string aggregateRootId, string commandId)
         {
-            using (var connection = GetConnection())
+            var record = _ioHelper.TryIOFunc(() =>
             {
-                connection.Open();
-                var record = connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _eventTable).SingleOrDefault();
-                if (record != null)
+                using (var connection = GetConnection())
                 {
-                    return ConvertFrom(record);
+                    connection.Open();
+                    return connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _eventTable).SingleOrDefault();
                 }
-                return null;
+            }, "FindEventByCommandId");
+
+            if (record != null)
+            {
+                return ConvertFrom(record);
             }
+            return null;
         }
         public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
-            try
+            var records = _ioHelper.TryIOFunc(() =>
             {
                 using (var connection = GetConnection())
                 {
                     connection.Open();
                     var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _eventTable);
-                    var records = connection.Query<StreamRecord>(sql,
+                    return connection.Query<StreamRecord>(sql,
                     new
                     {
                         AggregateRootId = aggregateRootId,
                         MinVersion = minVersion,
                         MaxVersion = maxVersion
                     });
-                    var streams = new List<DomainEventStream>();
-                    foreach (var record in records)
-                    {
-                        streams.Add(ConvertFrom(record));
-                    }
-                    return streams;
                 }
-            }
-            catch (Exception ex)
+            }, "QueryAggregateEvents");
+
+            var streams = new List<DomainEventStream>();
+            foreach (var record in records)
             {
-                throw new IOException("Query events from sql server has exception, aggregateRootTypeCode:{0}, aggregateRootId:{1}", ex, aggregateRootTypeCode, aggregateRootId);
+                streams.Add(ConvertFrom(record));
             }
+            return streams;
         }
         public IEnumerable<DomainEventStream> QueryByPage(int pageIndex, int pageSize)
         {
-            using (var connection = GetConnection())
+            var records = _ioHelper.TryIOFunc(() =>
             {
-                connection.Open();
-                var records = connection.QueryPaged<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
-                var streams = new List<DomainEventStream>();
-                foreach (var record in records)
+                using (var connection = GetConnection())
                 {
-                    streams.Add(ConvertFrom(record));
+                    connection.Open();
+                    return connection.QueryPaged<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
                 }
-                return streams;
+            }, "QueryByPage");
+
+            var streams = new List<DomainEventStream>();
+            foreach (var record in records)
+            {
+                streams.Add(ConvertFrom(record));
             }
+            return streams;
         }
 
         #endregion

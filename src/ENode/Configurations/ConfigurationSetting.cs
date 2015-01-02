@@ -4,7 +4,9 @@
     {
         public bool EnableGroupCommitEvent { get; set; }
         public int GroupCommitEventInterval { get; set; }
-        public int GroupCommitEventMaxCount { get; set; }
+        public int ImmediatelyRetryTimes { get; set; }
+        public int RetryIntervalForIOException { get; set; }
+        public int CommandProcessorParallelThreadCount { get; set; }
         public int EventProcessorParallelThreadCount { get; set; }
         public int ExceptionProcessorParallelThreadCount { get; set; }
         public int MessageProcessorParallelThreadCount { get; set; }
@@ -18,8 +20,10 @@
         public ConfigurationSetting()
         {
             EnableGroupCommitEvent = false;
-            GroupCommitEventInterval = 50;
-            GroupCommitEventMaxCount = 50;
+            GroupCommitEventInterval = 10;
+            ImmediatelyRetryTimes = 3;
+            RetryIntervalForIOException = 1000;
+            CommandProcessorParallelThreadCount = 100;
             EventProcessorParallelThreadCount = 4;
             ExceptionProcessorParallelThreadCount = 1;
             MessageProcessorParallelThreadCount = 1;

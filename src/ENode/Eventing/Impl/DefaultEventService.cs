@@ -18,6 +18,19 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
+        private ICommandExecutor _commandExecutor;
+        private readonly IScheduleService _scheduleService;
+        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
+        private readonly IMemoryCache _memoryCache;
+        private readonly IAggregateRootFactory _aggregateRootFactory;
+        private readonly IAggregateStorage _aggregateStorage;
+        private readonly IEventStore _eventStore;
+        private readonly IPublisher<DomainEventStream> _domainEventPublisher;
+        private readonly IPublisher<EventStream> _eventPublisher;
+        private readonly IEventPublishInfoStore _eventPublishInfoStore;
+        private readonly IActionExecutionService _actionExecutionService;
+        private readonly IOHelper _ioHelper;
+        private readonly ILogger _logger;
         private readonly bool _enableGroupCommit;
         private readonly int _groupCommitInterval;
         private readonly int _groupCommitMaxCount;
@@ -26,21 +39,7 @@ namespace ENode.Eventing.Impl
         private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _failedPersistedEventsQueue;
         private readonly Worker _processSuccessPersistedEventsWorker;
         private readonly Worker _processFailedPersistedEventsWorker;
-        private readonly IScheduleService _scheduleService;
-        private readonly IExecutedCommandService _executedCommandService;
-        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
-        private readonly IMemoryCache _memoryCache;
-        private readonly IAggregateRootFactory _aggregateRootFactory;
-        private readonly IAggregateStorage _aggregateStorage;
-        private readonly IRetryCommandService _retryCommandService;
-        private readonly IEventStore _eventStore;
-        private readonly IPublisher<DomainEventStream> _domainEventPublisher;
-        private readonly IPublisher<EventStream> _eventPublisher;
-        private readonly IEventPublishInfoStore _eventPublishInfoStore;
-        private readonly IActionExecutionService _actionExecutionService;
-        private readonly ILogger _logger;
         private int _isBatchPersistingEvents;
-        private long _toCommittingEventCount;
 
         #endregion
 
@@ -48,37 +47,35 @@ namespace ENode.Eventing.Impl
 
         public DefaultEventService(
             IScheduleService scheduleService,
-            IExecutedCommandService executedCommandService,
             ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider,
             IMemoryCache memoryCache,
             IAggregateRootFactory aggregateRootFactory,
             IAggregateStorage aggregateStorage,
-            IRetryCommandService retryCommandService,
             IEventStore eventStore,
             IPublisher<DomainEventStream> domainEventPublisher,
             IPublisher<EventStream> eventPublisher,
             IActionExecutionService actionExecutionService,
             IEventPublishInfoStore eventPublishInfoStore,
+            IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
             var setting = ENodeConfiguration.Instance.Setting;
             _enableGroupCommit = setting.EnableGroupCommitEvent;
             _groupCommitInterval = setting.GroupCommitEventInterval;
-            _groupCommitMaxCount = setting.GroupCommitEventMaxCount;
-            Ensure.Positive(_groupCommitInterval, "GroupCommitEventInterval");
-            Ensure.Positive(_groupCommitMaxCount, "GroupCommitEventMaxCount");
+            _groupCommitMaxCount = setting.CommandProcessorParallelThreadCount;
+            _ioHelper = ioHelper;
+            Ensure.Positive(_groupCommitInterval, "_groupCommitInterval");
+            Ensure.Positive(_groupCommitMaxCount, "_groupCommitMaxCount");
 
             _toCommittingEventQueue = new ConcurrentQueue<EventCommittingContext>();
             _successPersistedEventsQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
             _failedPersistedEventsQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
 
             _scheduleService = scheduleService;
-            _executedCommandService = executedCommandService;
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
             _memoryCache = memoryCache;
             _aggregateRootFactory = aggregateRootFactory;
             _aggregateStorage = aggregateStorage;
-            _retryCommandService = retryCommandService;
             _eventStore = eventStore;
             _domainEventPublisher = domainEventPublisher;
             _eventPublisher = eventPublisher;
@@ -91,6 +88,12 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
+        #region Public Methods
+
+        public void SetCommandExecutor(ICommandExecutor commandExecutor)
+        {
+            _commandExecutor = commandExecutor;
+        }
         public void Start()
         {
             if (_enableGroupCommit)
@@ -105,81 +108,48 @@ namespace ENode.Eventing.Impl
             if (_enableGroupCommit)
             {
                 _toCommittingEventQueue.Enqueue(context);
-                Interlocked.Increment(ref _toCommittingEventCount);
+                //TryBatchPersistEvents();
+                context.ProcessingCommand.WaitHandle.WaitOne();
             }
             else
             {
-                _actionExecutionService.TryAction(
-                    "PersistEvent",
-                    () => PersistEvent(context),
-                    3,
-                    new ActionInfo("PersistEventCallback", PersistEventCallback, context, null));
+                DoCommitEvent(context);
             }
         }
         public void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
-            _actionExecutionService.TryAction(
-                "PublishDomainEvent",
-                () =>
-                {
-                    try
-                    {
-                        _domainEventPublisher.Publish(eventStream);
-                        _logger.DebugFormat("Publish domain event success, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, events:{3}",
-                            processingCommand.Command.Id,
-                            eventStream.AggregateRootId,
-                            eventStream.AggregateRootTypeCode,
-                            string.Join("|", eventStream.Events.Select(x => x.GetType().Name)));
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(string.Format("Exception raised when publishing domain event, commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}, events:{3}",
-                            processingCommand.Command.Id,
-                            eventStream.AggregateRootId,
-                            eventStream.AggregateRootTypeCode,
-                            string.Join("|", eventStream.Events.Select(x => x.GetType().Name))
-                        ), ex);
-                        return false;
-                    }
-                },
-                3,
-                new ActionInfo("PublishDomainEventCallback", obj =>
-                {
-                    NotifyCommandExecuted(processingCommand, eventStream.AggregateRootId, CommandStatus.Success, null, null);
-                    return true;
-                }, null, null));
+            if (_ioHelper.TryIOActionRecursively("PublishDomainEvent", eventStream.ToString(), () =>
+            {
+                _domainEventPublisher.Publish(eventStream);
+                _logger.DebugFormat("Publish domain events success, {0}", eventStream);
+                return true;
+            },
+            (errorMessage, ex) =>
+            {
+                NotifyCommandExecuted(processingCommand, new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, eventStream.AggregateRootId, ex.GetType().Name, errorMessage));
+            }))
+            {
+                NotifyCommandExecuted(processingCommand, new CommandResult(CommandStatus.Success, processingCommand.Command.Id, eventStream.AggregateRootId, null, null));
+            }
         }
         public void PublishEvent(ProcessingCommand processingCommand, EventStream eventStream)
         {
-            _actionExecutionService.TryAction(
-                "PublishEvent",
-                () =>
-                {
-                    try
-                    {
-                        _eventPublisher.Publish(eventStream);
-                        _logger.DebugFormat("Publish event success, commandId:{0}, events:{1}",
-                            eventStream.CommandId,
-                            string.Join("|", eventStream.Events.Select(x => x.GetType().Name)));
-                        return true;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(string.Format("Exception raised when publishing event, commandId:{0}, events:{1}",
-                            eventStream.CommandId,
-                            string.Join("|", eventStream.Events.Select(x => x.GetType().Name))
-                        ), ex);
-                        return false;
-                    }
-                },
-                3,
-                new ActionInfo("PublishEventCallback", obj =>
-                {
-                    NotifyCommandExecuted(processingCommand, null, CommandStatus.Success, null, null);
-                    return true;
-                }, null, null));
+            if (_ioHelper.TryIOActionRecursively("PublishEvent", eventStream.ToString(), () =>
+            {
+                _eventPublisher.Publish(eventStream);
+                _logger.DebugFormat("Publish events success, {0}", eventStream);
+                return true;
+            },
+            (errorMessage, ex) =>
+            {
+                NotifyCommandExecuted(processingCommand, new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, null, ex.GetType().Name, errorMessage));
+            }))
+            {
+                NotifyCommandExecuted(processingCommand, new CommandResult(CommandStatus.Success, processingCommand.Command.Id, null, null, null));
+            }
         }
+
+        #endregion
 
         #region Private Methods
 
@@ -189,10 +159,10 @@ namespace ENode.Eventing.Impl
             {
                 try
                 {
-                    var hasNextBatch = BatchPersistEvents();
-                    while (hasNextBatch)
+                    var hasMoreEvents = BatchPersistEvents();
+                    while (hasMoreEvents)
                     {
-                        hasNextBatch = BatchPersistEvents();
+                        hasMoreEvents = BatchPersistEvents();
                     }
                 }
                 finally
@@ -203,140 +173,125 @@ namespace ENode.Eventing.Impl
         }
         private bool BatchPersistEvents()
         {
-            var eventCommittingContextList = new List<EventCommittingContext>();
-            var eventContextCount = 0;
+            var currentCommittingContextList = new List<EventCommittingContext>();
+            var currentCommittingContextCount = 0;
             EventCommittingContext context;
 
-            while (eventContextCount < _groupCommitMaxCount && _toCommittingEventQueue.TryDequeue(out context))
+            while (currentCommittingContextCount < _groupCommitMaxCount && _toCommittingEventQueue.TryDequeue(out context))
             {
-                Interlocked.Decrement(ref _toCommittingEventCount);
-                eventCommittingContextList.Add(context);
-                eventContextCount++;
+                currentCommittingContextList.Add(context);
+                currentCommittingContextCount++;
             }
 
-            if (eventContextCount == 0)
+            if (currentCommittingContextCount == 0)
             {
                 return false;
             }
 
             try
             {
-                var appendResult = _eventStore.BatchAppend(eventCommittingContextList.Select(x => x.EventStream));
-                if (appendResult == EventAppendResult.Success)
-                {
-                    _logger.DebugFormat("Batch persist event stream success, persisted event stream count:{0}", eventContextCount);
-                    _successPersistedEventsQueue.Add(eventCommittingContextList);
-                }
+                _eventStore.BatchAppend(currentCommittingContextList.Select(x => x.EventStream));
+                _successPersistedEventsQueue.Add(currentCommittingContextList);
+                _logger.InfoFormat("Batch persist event stream success, persisted event stream count:{0}", currentCommittingContextCount);
             }
             catch (Exception ex)
             {
-                _logger.DebugFormat(string.Format("Batch persist event stream failed, current event stream count:{0}", eventContextCount), ex);
-                _failedPersistedEventsQueue.Add(eventCommittingContextList);
+                _failedPersistedEventsQueue.Add(currentCommittingContextList);
+                _logger.ErrorFormat(string.Format("Batch persist event stream failed, current event stream count:{0}", currentCommittingContextCount), ex);
             }
 
-            return _toCommittingEventCount >= _groupCommitMaxCount;
+            return currentCommittingContextCount >= _groupCommitMaxCount;
         }
         private void ProcessSuccessPersistedEvents()
         {
-            var eventCommittingContextList = _successPersistedEventsQueue.Take();
-            foreach (var context in eventCommittingContextList)
+            foreach (var context in _successPersistedEventsQueue.Take())
             {
-                //刷新内存并发布事件
                 RefreshAggregateMemoryCache(context);
                 PublishDomainEvent(context.ProcessingCommand, context.EventStream);
             }
         }
         private void ProcessFailedPersistedEvents()
         {
-            var eventCommittingContextList = _failedPersistedEventsQueue.Take();
-            foreach (var context in eventCommittingContextList)
+            foreach (var context in _failedPersistedEventsQueue.Take())
             {
-                _actionExecutionService.TryAction(
-                    "PersistEvent",
-                    () => PersistEvent(context),
-                    3,
-                    new ActionInfo("PersistEventCallback", PersistEventCallback, context, null));
+                DoCommitEvent(context);
             }
         }
-        private bool PersistEvent(EventCommittingContext context)
+        private void DoCommitEvent(EventCommittingContext context)
         {
-            try
+            if (_ioHelper.TryIOActionRecursively("PersistEvent", context.EventStream.ToString(), () =>
             {
                 context.EventAppendResult = _eventStore.Append(context.EventStream);
                 if (context.EventAppendResult == EventAppendResult.Success)
                 {
-                    _logger.DebugFormat("Persist event success, {0}", context.EventStream);
+                    _logger.DebugFormat("Persist events success, {0}", context.EventStream);
                 }
                 return true;
-            }
-            catch (Exception ex)
+            },
+            (errorMessage, ex) =>
             {
-                _logger.Error(string.Format("{0} raised when persisting event:{1}", ex.GetType().Name, context.EventStream), ex);
-                return false;
+                NotifyCommandExecuted(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, context.EventStream.AggregateRootId, ex.GetType().Name, errorMessage));
+            }))
+            {
+                if (context.EventAppendResult == EventAppendResult.Success)
+                {
+                    RefreshAggregateMemoryCache(context);
+                    PublishDomainEvent(context.ProcessingCommand, context.EventStream);
+                }
+                else if (context.EventAppendResult == EventAppendResult.DuplicateEvent)
+                {
+                    HandleDuplicateEventResult(context);
+                }
             }
         }
-        private bool PersistEventCallback(object obj)
+        private void HandleDuplicateEventResult(EventCommittingContext context)
         {
-            var context = obj as EventCommittingContext;
             var eventStream = context.EventStream;
 
-            //如果事件持久化成功
-            if (context.EventAppendResult == EventAppendResult.Success)
+            //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
+            if (eventStream.Version == 1)
             {
-                //刷新内存缓存并发布事件
-                RefreshAggregateMemoryCache(context);
-                PublishDomainEvent(context.ProcessingCommand, eventStream);
-            }
-            //如果事件持久化遇到重复的情况
-            else if (context.EventAppendResult == EventAppendResult.DuplicateEvent)
-            {
-                //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
-                if (eventStream.Version == 1)
+                //取出该聚合根版本号为1的事件
+                var firstEventStream = _eventStore.Find(eventStream.AggregateRootId, 1);
+                if (firstEventStream != null)
                 {
-                    //取出该聚合根版本号为1的事件
-                    var firstEventStream = _eventStore.Find(eventStream.AggregateRootId, 1);
-                    if (firstEventStream != null)
+                    //判断是否是同一个command，如果是，则再重新做一遍更新内存缓存以及发布事件这两个操作；
+                    //之所以要这样做，是因为虽然该command产生的事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
+                    //有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
+                    if (context.ProcessingCommand.Command.Id == firstEventStream.CommandId)
                     {
-                        //判断是否是同一个command，如果是，则再重新做一遍更新内存缓存以及发布事件这两个操作；
-                        //之所以要这样做，是因为虽然该command产生的事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
-                        //有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
-                        if (context.ProcessingCommand.Command.Id == firstEventStream.CommandId)
-                        {
-                            RefreshAggregateMemoryCache(firstEventStream);
-                            PublishDomainEvent(context.ProcessingCommand, firstEventStream);
-                        }
-                        else
-                        {
-                            //如果不是同一个command，则认为是两个不同的command重复创建ID相同的聚合根，我们需要记录错误日志，然后通知当前command的处理完成；
-                            var errorMessage = string.Format("Duplicate aggregate creation. current commandId:{0}, existing commandId:{1}, aggregateRootId:{2}, aggregateRootTypeCode:{3}",
-                                context.ProcessingCommand.Command.Id,
-                                eventStream.CommandId,
-                                eventStream.AggregateRootId,
-                                eventStream.AggregateRootTypeCode);
-                            _logger.Error(errorMessage);
-                            NotifyCommandExecuted(context.ProcessingCommand, eventStream.AggregateRootId, CommandStatus.Failed, null, errorMessage);
-                        }
+                        RefreshAggregateMemoryCache(firstEventStream);
+                        PublishDomainEvent(context.ProcessingCommand, firstEventStream);
                     }
                     else
                     {
-                        var errorMessage = string.Format("Duplicate aggregate creation, but cannot find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}",
+                        //如果不是同一个command，则认为是两个不同的command重复创建ID相同的聚合根，我们需要记录错误日志，然后通知当前command的处理完成；
+                        var errorMessage = string.Format("Duplicate aggregate creation. current commandId:{0}, existing commandId:{1}, aggregateRootId:{2}, aggregateRootTypeCode:{3}",
+                            context.ProcessingCommand.Command.Id,
                             eventStream.CommandId,
                             eventStream.AggregateRootId,
                             eventStream.AggregateRootTypeCode);
                         _logger.Error(errorMessage);
-                        NotifyCommandExecuted(context.ProcessingCommand, eventStream.AggregateRootId, CommandStatus.Failed, null, errorMessage);
+                        NotifyCommandExecuted(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, null, errorMessage));
                     }
                 }
-                //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了；
-                //那么我们需要先将聚合根的最新状态更新到内存，然后重试command；
                 else
                 {
-                    UpdateAggregateToLatestVersion(eventStream.AggregateRootTypeCode, eventStream.AggregateRootId);
-                    RetryConcurrentCommand(context);
+                    var errorMessage = string.Format("Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}",
+                        eventStream.CommandId,
+                        eventStream.AggregateRootId,
+                        eventStream.AggregateRootTypeCode);
+                    _logger.Error(errorMessage);
+                    NotifyCommandExecuted(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, null, errorMessage));
                 }
             }
-
-            return true;
+            //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了；
+            //那么我们需要先将聚合根的最新状态更新到内存，然后重试command；
+            else
+            {
+                UpdateAggregateToLatestVersion(eventStream.AggregateRootTypeCode, eventStream.AggregateRootId);
+                RetryConcurrentCommand(context);
+            }
         }
         private void RefreshAggregateMemoryCache(DomainEventStream aggregateFirstEventStream)
         {
@@ -354,7 +309,7 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when adding aggregate to memory, the first event stream info of the aggregate:{0}", aggregateFirstEventStream), ex);
+                _logger.Error(string.Format("Refresh memory cache by aggregate first event stream failed, {0}", aggregateFirstEventStream), ex);
             }
         }
         private void RefreshAggregateMemoryCache(EventCommittingContext context)
@@ -367,7 +322,7 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when refreshing memory cache, current event stream:{0}", context.EventStream), ex);
+                _logger.Error(string.Format("Refresh memory cache failed by event stream:{0}", context.EventStream), ex);
             }
         }
         private void UpdateAggregateToLatestVersion(int aggregateRootTypeCode, string aggregateRootId)
@@ -376,34 +331,35 @@ namespace ENode.Eventing.Impl
         }
         private void RetryConcurrentCommand(EventCommittingContext context)
         {
-            if (!_retryCommandService.RetryConcurrentCommand(context.ProcessingCommand))
+            var processingCommand = context.ProcessingCommand;
+            var command = processingCommand.Command;
+
+            if (processingCommand.ConcurrentRetriedCount < command.RetryCount)
             {
-                var command = context.ProcessingCommand.Command;
-                var errorMessage = string.Format("{0} [id:{1}, aggregateId:{2}] retried count reached to its max retry count {3}.", command.GetType().Name, command.Id, context.EventStream.AggregateRootId, command.RetryCount);
-                NotifyCommandExecuted(context.ProcessingCommand, context.EventStream.AggregateRootId, CommandStatus.Failed, null, errorMessage);
-            }
-        }
-        private void NotifyCommandExecuted(ProcessingCommand processingCommand, string aggregateRootId, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
-        {
-            var aggregateCommand = processingCommand.Command as IAggregateCommand;
-            if (aggregateCommand != null)
-            {
-                _executedCommandService.ProcessExecutedCommand(
-                    processingCommand.CommandExecuteContext,
-                    aggregateCommand,
-                    commandStatus,
-                    aggregateRootId,
-                    exceptionTypeName,
-                    errorMessage);
+                processingCommand.IncreaseConcurrentRetriedCount();
+                processingCommand.CommandExecuteContext.Clear();
+                _logger.DebugFormat("Begin to retry command as it meets the concurrent issue. commandType:{0}, commandId:{1}, aggregateRootId:{2}, retried count:{3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, processingCommand.ConcurrentRetriedCount);
+                _commandExecutor.ExecuteCommand(processingCommand);
             }
             else
             {
-                _executedCommandService.ProcessExecutedCommand(
-                    processingCommand.CommandExecuteContext,
-                    processingCommand.Command,
-                    commandStatus,
-                    exceptionTypeName,
-                    errorMessage);
+                _logger.ErrorFormat("Command concurrent retry times reaches to the max retry times. commandType:{0}, commandId:{1}, aggregateRootId:{2}, retried count:{3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, processingCommand.ConcurrentRetriedCount);
+                NotifyCommandExecuted(processingCommand, new CommandResult(CommandStatus.Failed, command.Id, context.EventStream.AggregateRootId, null, "Command concurrent retry times reaches to the max retry times."));
+            }
+        }
+        private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandResult commandResult)
+        {
+            var contextInfo = string.Format("commandType:{0}, commandResult:{1}", processingCommand.Command.GetType().Name, commandResult);
+            if (_ioHelper.TryIOActionRecursively("NotifyCommandExecuted", contextInfo, () =>
+            {
+                processingCommand.CommandExecuteContext.OnCommandExecuted(commandResult);
+                return true;
+            }, null))
+            {
+                if (_enableGroupCommit)
+                {
+                    processingCommand.WaitHandle.Set();
+                }
             }
         }
 

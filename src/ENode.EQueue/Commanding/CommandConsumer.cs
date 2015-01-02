@@ -24,7 +24,7 @@ namespace ENode.EQueue
         private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
-        private readonly ICommandExecutor _commandExecutor;
+        private readonly ICommandProcessor _commandProcessor;
         private readonly IRepository _repository;
         private readonly ILogger _logger;
 
@@ -36,10 +36,13 @@ namespace ENode.EQueue
             ConsumerSetting setting = null,
             CommandExecutedMessageSender commandExecutedMessageSender = null)
         {
-            _consumer = new Consumer(id ?? DefaultCommandConsumerId, groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting());
+            _consumer = new Consumer(id ?? DefaultCommandConsumerId, groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting
+            {
+                MessageHandleMode = MessageHandleMode.Sequential
+            });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
-            _commandExecutor = ObjectContainer.Resolve<ICommandExecutor>();
+            _commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _commandExecutedMessageSender = commandExecutedMessageSender ?? new CommandExecutedMessageSender();
@@ -75,7 +78,7 @@ namespace ENode.EQueue
             commandItems["SourceId"] = commandMessage.SourceId;
             commandItems["SourceType"] = commandMessage.SourceType;
 
-            _commandExecutor.Execute(new ProcessingCommand(command, commandExecuteContext, commandItems));
+            _commandProcessor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
 
         class CommandExecuteContext : ICommandExecuteContext
@@ -88,8 +91,6 @@ namespace ENode.EQueue
             private readonly IMessageContext _messageContext;
             private readonly CommandMessage _commandMessage;
 
-            public bool CheckCommandWaiting { get; set; }
-
             public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, CommandExecutedMessageSender commandExecutedMessageSender)
             {
                 _aggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
@@ -99,10 +100,9 @@ namespace ENode.EQueue
                 _queueMessage = queueMessage;
                 _commandMessage = commandMessage;
                 _messageContext = messageContext;
-                CheckCommandWaiting = true;
             }
 
-            public void OnCommandExecuted(ICommand command, CommandStatus commandStatus, string aggregateRootId, string exceptionTypeName, string errorMessage)
+            public void OnCommandExecuted(CommandResult commandResult)
             {
                 _messageContext.OnMessageHandled(_queueMessage);
 
@@ -113,11 +113,11 @@ namespace ENode.EQueue
 
                 _commandExecutedMessageSender.Send(new CommandExecutedMessage
                 {
-                    CommandId = command.Id,
-                    AggregateRootId = aggregateRootId,
-                    CommandStatus = commandStatus,
-                    ExceptionTypeName = exceptionTypeName,
-                    ErrorMessage = errorMessage,
+                    CommandId = commandResult.CommandId,
+                    AggregateRootId = commandResult.AggregateRootId,
+                    CommandStatus = commandResult.Status,
+                    ExceptionTypeName = commandResult.ExceptionTypeName,
+                    ErrorMessage = commandResult.ErrorMessage,
                 }, _commandMessage.CommandExecutedMessageTopic);
             }
             public void Add(IAggregateRoot aggregateRoot)

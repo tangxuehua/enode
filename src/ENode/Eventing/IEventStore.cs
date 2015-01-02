@@ -8,7 +8,7 @@ namespace ENode.Eventing
     {
         /// <summary>Batch append the given event streams to the event store.
         /// </summary>
-        EventAppendResult BatchAppend(IEnumerable<DomainEventStream> eventStreams);
+        void BatchAppend(IEnumerable<DomainEventStream> eventStreams);
         /// <summary>Append the given event stream to the event store.
         /// </summary>
         EventAppendResult Append(DomainEventStream eventStream);

@@ -80,6 +80,8 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
+            _configuration.SetDefault<IOHelper, IOHelper>();
+
             _configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, DefaultTypeCodeProvider<IAggregateRoot>>();
             _configuration.SetDefault<ITypeCodeProvider<ICommand>, DefaultTypeCodeProvider<ICommand>>();
             _configuration.SetDefault<ITypeCodeProvider<IEvent>, DefaultTypeCodeProvider<IEvent>>();
@@ -107,10 +109,8 @@ namespace ENode.Configurations
             _configuration.SetDefault<ISnapshotStore, EmptySnapshotStore>();
 
             _configuration.SetDefault<ICommandStore, InMemoryCommandStore>();
-            _configuration.SetDefault<IWaitingCommandService, DefaultWaitingCommandService>();
-            _configuration.SetDefault<IRetryCommandService, DefaultRetryCommandService>();
-            _configuration.SetDefault<IExecutedCommandService, DefaultExecutedCommandService>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
+            _configuration.SetDefault<ICommandProcessor, DefaultCommandProcessor>();
             _configuration.SetDefault<ICommandRouteKeyProvider, DefaultCommandRouteKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
 
@@ -224,8 +224,7 @@ namespace ENode.Configurations
         {
             if (((int)NodeType.CommandProcessor & (int)nodeType) == (int)NodeType.CommandProcessor)
             {
-                ObjectContainer.Resolve<IRetryCommandService>().Start();
-                ObjectContainer.Resolve<IWaitingCommandService>().Start();
+                ObjectContainer.Resolve<ICommandProcessor>().Start();
                 ObjectContainer.Resolve<IEventService>().Start();
             }
             if (((int)NodeType.EventProcessor & (int)nodeType) == (int)NodeType.EventProcessor)
