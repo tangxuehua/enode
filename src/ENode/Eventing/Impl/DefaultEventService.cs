@@ -108,7 +108,7 @@ namespace ENode.Eventing.Impl
             if (_enableGroupCommit)
             {
                 _toCommittingEventQueue.Enqueue(context);
-                //TryBatchPersistEvents();
+                TryBatchPersistEvents();
                 context.ProcessingCommand.WaitHandle.WaitOne();
             }
             else

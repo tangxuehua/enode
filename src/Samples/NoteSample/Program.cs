@@ -46,8 +46,8 @@ namespace NoteSample
             var setting = new ConfigurationSetting
             {
                 SqlServerDefaultConnectionString = connectionString,
-                EnableGroupCommitEvent = true,
-                CommandProcessorParallelThreadCount = 100
+                EnableGroupCommitEvent = false,
+                CommandProcessorParallelThreadCount = Environment.ProcessorCount * 2
             };
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             _configuration = Configuration

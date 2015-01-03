@@ -110,6 +110,7 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<ICommandStore, InMemoryCommandStore>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
+            _configuration.SetDefault<ICommandDispatcher, DefaultCommandDispatcher>();
             _configuration.SetDefault<ICommandProcessor, DefaultCommandProcessor>();
             _configuration.SetDefault<ICommandRouteKeyProvider, DefaultCommandRouteKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
@@ -224,7 +225,6 @@ namespace ENode.Configurations
         {
             if (((int)NodeType.CommandProcessor & (int)nodeType) == (int)NodeType.CommandProcessor)
             {
-                ObjectContainer.Resolve<ICommandProcessor>().Start();
                 ObjectContainer.Resolve<IEventService>().Start();
             }
             if (((int)NodeType.EventProcessor & (int)nodeType) == (int)NodeType.EventProcessor)

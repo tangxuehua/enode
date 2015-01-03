@@ -1,8 +1,12 @@
-﻿namespace ENode.Configurations
+﻿using System;
+
+namespace ENode.Configurations
 {
     public class ConfigurationSetting
     {
         public bool EnableGroupCommitEvent { get; set; }
+        public int ExecuteCommandCountOfOneTask { get; set; }
+        public int TaskMaxDeadlineMilliseconds { get; set; }
         public int GroupCommitEventInterval { get; set; }
         public int ImmediatelyRetryTimes { get; set; }
         public int RetryIntervalForIOException { get; set; }
@@ -20,11 +24,13 @@
         public ConfigurationSetting()
         {
             EnableGroupCommitEvent = false;
+            ExecuteCommandCountOfOneTask = 5;
+            TaskMaxDeadlineMilliseconds = 100;
             GroupCommitEventInterval = 10;
             ImmediatelyRetryTimes = 3;
             RetryIntervalForIOException = 1000;
-            CommandProcessorParallelThreadCount = 100;
-            EventProcessorParallelThreadCount = 4;
+            CommandProcessorParallelThreadCount = Environment.ProcessorCount;
+            EventProcessorParallelThreadCount = Environment.ProcessorCount;
             ExceptionProcessorParallelThreadCount = 1;
             MessageProcessorParallelThreadCount = 1;
             SqlServerLockServiceSetting = new DbTableSetting(this) { TableName = "Lock" };

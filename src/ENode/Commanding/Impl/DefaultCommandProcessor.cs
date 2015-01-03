@@ -1,29 +1,35 @@
-﻿using ENode.Configurations;
-using ENode.Infrastructure;
+﻿using System.Collections.Concurrent;
+using ECommon.Logging;
 
 namespace ENode.Commanding.Impl
 {
     public class DefaultCommandProcessor : ICommandProcessor
     {
-        private readonly ParallelProcessor<ProcessingCommand> _parallelProcessor;
+        private readonly ConcurrentDictionary<string, CommandMailbox> _mailboxDict;
+        private readonly ICommandDispatcher _commandDispatcher;
         private readonly ICommandExecutor _commandExecutor;
+        private readonly ILoggerFactory _loggerFactory;
 
-        public DefaultCommandProcessor(ICommandExecutor commandExecutor)
+        public DefaultCommandProcessor(ICommandDispatcher commandDispatcher, ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
         {
+            _mailboxDict = new ConcurrentDictionary<string, CommandMailbox>();
+            _commandDispatcher = commandDispatcher;
             _commandExecutor = commandExecutor;
-            _parallelProcessor = new ParallelProcessor<ProcessingCommand>(
-                ENodeConfiguration.Instance.Setting.CommandProcessorParallelThreadCount,
-                "ProcessCommand",
-                x => _commandExecutor.ExecuteCommand(x));
+            _loggerFactory = loggerFactory;
         }
 
-        public void Start()
-        {
-            _parallelProcessor.Start();
-        }
         public void Process(ProcessingCommand processingCommand)
         {
-            _parallelProcessor.EnqueueMessage(processingCommand.GetRoutingKey(), processingCommand);
+            if (string.IsNullOrEmpty(processingCommand.AggregateRootId))
+            {
+                _commandDispatcher.RegisterCommandForExecution(processingCommand);
+            }
+            else
+            {
+                var commandMailbox = _mailboxDict.GetOrAdd(processingCommand.AggregateRootId, new CommandMailbox(_commandDispatcher, _commandExecutor, _loggerFactory));
+                commandMailbox.EnqueueCommand(processingCommand);
+                _commandDispatcher.RegisterMailboxForExecution(commandMailbox);
+            }
         }
     }
 }

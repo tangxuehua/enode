@@ -4,9 +4,6 @@
     /// </summary>
     public interface ICommandProcessor
     {
-        /// <summary>Start the processor.
-        /// </summary>
-        void Start();
         /// <summary>Process the given command.
         /// </summary>
         /// <param name="processingCommand"></param>
