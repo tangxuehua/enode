@@ -10,14 +10,9 @@ namespace ENode.Commanding.Impl
         private readonly TaskFactory _taskFactory;
         private readonly ICommandExecutor _commandExecutor;
 
-        public int ExecuteCommandCountOfOneTask { get; private set; }
-        public int TaskMaxDeadlineMilliseconds { get; private set; }
-
         public DefaultCommandDispatcher(ICommandExecutor commandExecutor)
         {
             var setting = ENodeConfiguration.Instance.Setting;
-            ExecuteCommandCountOfOneTask = setting.ExecuteCommandCountOfOneTask;
-            TaskMaxDeadlineMilliseconds = setting.TaskMaxDeadlineMilliseconds;
             _taskFactory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(setting.CommandProcessorParallelThreadCount));
             _commandExecutor = commandExecutor;
         }

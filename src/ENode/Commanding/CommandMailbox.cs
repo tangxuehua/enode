@@ -24,38 +24,36 @@ namespace ENode.Commanding
 
         public void EnqueueCommand(ProcessingCommand command)
         {
+            command.SetMailbox(this);
             _commandQueue.Enqueue(command);
         }
         public bool MarkAsRunning()
         {
             return Interlocked.CompareExchange(ref _isRunning, 1, 0) == 0;
         }
+        public void MarkAsNotRunning()
+        {
+            Interlocked.Exchange(ref _isRunning, 0);
+        }
+        public void RegisterForExecution()
+        {
+            _dispatcher.RegisterMailboxForExecution(this);
+        }
         public void Run()
         {
-            var executedCommandCount = 0;
-            var deadline = DateTime.Now.Ticks;
+            ProcessingCommand currentCommand = null;
             try
             {
-                ProcessingCommand currentCommand;
-                while (_commandQueue.TryDequeue(out currentCommand))
+                if (_commandQueue.TryDequeue(out currentCommand))
                 {
                     ExecuteCommand(currentCommand);
-                    executedCommandCount++;
-                    if (ShouldStop(deadline, executedCommandCount))
-                    {
-                        break;
-                    }
                 }
             }
             finally
             {
-                MarkAsNotRunning();
-                if (executedCommandCount > 0)
+                if (currentCommand == null)
                 {
-                    _dispatcher.RegisterMailboxForExecution(this);
-                }
-                else
-                {
+                    MarkAsNotRunning();
                     _dispatcher.RegisterMailboxForDelayExecution(this, 1000);
                 }
             }
@@ -71,15 +69,6 @@ namespace ENode.Commanding
             {
                 _logger.Error("Unknown exception caught when executing command.", ex);
             }
-        }
-        private bool ShouldStop(long deadline, int executedCommandCount)
-        {
-            return executedCommandCount >= _dispatcher.ExecuteCommandCountOfOneTask
-                || (_dispatcher.TaskMaxDeadlineMilliseconds > 0 && ((DateTime.Now.Ticks - deadline) / 10000) >= _dispatcher.TaskMaxDeadlineMilliseconds);
-        }
-        private void MarkAsNotRunning()
-        {
-            Interlocked.Exchange(ref _isRunning, 0);
         }
     }
 }

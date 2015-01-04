@@ -33,7 +33,7 @@ namespace ENode.Eventing.Impl
         private readonly ILogger _logger;
         private readonly bool _enableGroupCommit;
         private readonly int _groupCommitInterval;
-        private readonly int _groupCommitMaxCount;
+        private readonly int _groupCommitMaxSize;
         private readonly ConcurrentQueue<EventCommittingContext> _toCommittingEventQueue;
         private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _successPersistedEventsQueue;
         private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _failedPersistedEventsQueue;
@@ -62,10 +62,10 @@ namespace ENode.Eventing.Impl
             var setting = ENodeConfiguration.Instance.Setting;
             _enableGroupCommit = setting.EnableGroupCommitEvent;
             _groupCommitInterval = setting.GroupCommitEventInterval;
-            _groupCommitMaxCount = setting.CommandProcessorParallelThreadCount;
+            _groupCommitMaxSize = setting.GroupCommitMaxSize;
             _ioHelper = ioHelper;
             Ensure.Positive(_groupCommitInterval, "_groupCommitInterval");
-            Ensure.Positive(_groupCommitMaxCount, "_groupCommitMaxCount");
+            Ensure.Positive(_groupCommitMaxSize, "_groupCommitMaxSize");
 
             _toCommittingEventQueue = new ConcurrentQueue<EventCommittingContext>();
             _successPersistedEventsQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
@@ -108,8 +108,6 @@ namespace ENode.Eventing.Impl
             if (_enableGroupCommit)
             {
                 _toCommittingEventQueue.Enqueue(context);
-                TryBatchPersistEvents();
-                context.ProcessingCommand.WaitHandle.WaitOne();
             }
             else
             {
@@ -120,6 +118,10 @@ namespace ENode.Eventing.Impl
         {
             if (_ioHelper.TryIOActionRecursively("PublishDomainEvent", eventStream.ToString(), () =>
             {
+                if (eventStream.Items.Count == 0)
+                {
+                    eventStream.Items = processingCommand.Items;
+                }
                 _domainEventPublisher.Publish(eventStream);
                 _logger.DebugFormat("Publish domain events success, {0}", eventStream);
                 return true;
@@ -136,6 +138,10 @@ namespace ENode.Eventing.Impl
         {
             if (_ioHelper.TryIOActionRecursively("PublishEvent", eventStream.ToString(), () =>
             {
+                if (eventStream.Items.Count == 0)
+                {
+                    eventStream.Items = processingCommand.Items;
+                }
                 _eventPublisher.Publish(eventStream);
                 _logger.DebugFormat("Publish events success, {0}", eventStream);
                 return true;
@@ -177,7 +183,7 @@ namespace ENode.Eventing.Impl
             var currentCommittingContextCount = 0;
             EventCommittingContext context;
 
-            while (currentCommittingContextCount < _groupCommitMaxCount && _toCommittingEventQueue.TryDequeue(out context))
+            while (currentCommittingContextCount < _groupCommitMaxSize && _toCommittingEventQueue.TryDequeue(out context))
             {
                 currentCommittingContextList.Add(context);
                 currentCommittingContextCount++;
@@ -200,7 +206,7 @@ namespace ENode.Eventing.Impl
                 _logger.ErrorFormat(string.Format("Batch persist event stream failed, current event stream count:{0}", currentCommittingContextCount), ex);
             }
 
-            return currentCommittingContextCount >= _groupCommitMaxCount;
+            return currentCommittingContextCount >= _groupCommitMaxSize;
         }
         private void ProcessSuccessPersistedEvents()
         {
@@ -358,7 +364,7 @@ namespace ENode.Eventing.Impl
             {
                 if (_enableGroupCommit)
                 {
-                    processingCommand.WaitHandle.Set();
+                    processingCommand.Complete();
                 }
             }
         }

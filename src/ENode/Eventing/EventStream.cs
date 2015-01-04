@@ -20,7 +20,7 @@ namespace ENode.Eventing
 
         public string CommandId { get; private set; }
         public IEnumerable<IEvent> Events { get; private set; }
-        public IDictionary<string, string> Items { get; private set; }
+        public IDictionary<string, string> Items { get; internal set; }
 
         public override string ToString()
         {

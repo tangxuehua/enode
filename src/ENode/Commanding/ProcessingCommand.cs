@@ -4,12 +4,13 @@ namespace ENode.Commanding
 {
     public class ProcessingCommand
     {
+        private CommandMailbox _mailbox;
+
         public string AggregateRootId { get; private set; }
         public ICommand Command { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }
         public int ConcurrentRetriedCount { get; private set; }
         public IDictionary<string, string> Items { get; private set; }
-        public ManualResetEvent WaitHandle { get; private set; }
 
         public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, IDictionary<string, string> items)
         {
@@ -25,9 +26,20 @@ namespace ENode.Commanding
                     throw new CommandAggregateRootIdMissingException(command);
                 }
             }
-            WaitHandle = new ManualResetEvent(false);
         }
 
+        public void SetMailbox(CommandMailbox mailbox)
+        {
+            _mailbox = mailbox;
+        }
+        public void Complete()
+        {
+            if (_mailbox != null)
+            {
+                _mailbox.MarkAsNotRunning();
+                _mailbox.RegisterForExecution();
+            }
+        }
         public object GetRoutingKey()
         {
             return string.IsNullOrEmpty(AggregateRootId) ? Command.Id : AggregateRootId;

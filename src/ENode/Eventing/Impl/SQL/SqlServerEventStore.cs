@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using ECommon.Components;
@@ -18,6 +19,8 @@ namespace ENode.Eventing.Impl.SQL
         private readonly string _connectionString;
         private readonly string _eventTable;
         private readonly string _primaryKeyName;
+        private readonly int _bulkCopyBatchSize;
+        private readonly int _bulkCopyTimeout;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IEventSerializer _eventSerializer;
         private readonly IOHelper _ioHelper;
@@ -28,15 +31,20 @@ namespace ENode.Eventing.Impl.SQL
 
         public SqlServerEventStore()
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerEventStoreSetting;
+            var configSetting = ENodeConfiguration.Instance.Setting;
+            var setting = configSetting.SqlServerEventStoreSetting;
             Ensure.NotNull(setting, "SqlServerEventStoreSetting");
             Ensure.NotNull(setting.ConnectionString, "SqlServerEventStoreSetting.ConnectionString");
             Ensure.NotNull(setting.TableName, "SqlServerEventStoreSetting.TableName");
             Ensure.NotNull(setting.PrimaryKeyName, "SqlServerEventStoreSetting.PrimaryKeyName");
+            Ensure.Positive(configSetting.SqlServerBulkCopyBatchSize, "SqlServerBulkCopyBatchSize");
+            Ensure.Positive(configSetting.SqlServerBulkCopyTimeout, "SqlServerBulkCopyTimeout");
 
             _connectionString = setting.ConnectionString;
             _eventTable = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
+            _bulkCopyBatchSize = configSetting.SqlServerBulkCopyBatchSize;
+            _bulkCopyTimeout = configSetting.SqlServerBulkCopyTimeout;
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
@@ -48,24 +56,41 @@ namespace ENode.Eventing.Impl.SQL
 
         public void BatchAppend(IEnumerable<DomainEventStream> eventStreams)
         {
+            var table = BuildEventTable();
+            foreach (var eventStream in eventStreams)
+            {
+                AddDataRow(table, eventStream);
+            }
+
             _ioHelper.TryIOAction(() =>
             {
                 using (var connection = GetConnection())
                 {
                     connection.Open();
                     var transaction = connection.BeginTransaction();
-                    try
+
+                    using (var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
                     {
-                        foreach (var eventStream in eventStreams)
+                        copy.BatchSize = _bulkCopyBatchSize;
+                        copy.BulkCopyTimeout = _bulkCopyTimeout;
+                        copy.DestinationTableName = _eventTable;
+                        copy.ColumnMappings.Add("CommandId", "CommandId");
+                        copy.ColumnMappings.Add("AggregateRootId", "AggregateRootId");
+                        copy.ColumnMappings.Add("AggregateRootTypeCode", "AggregateRootTypeCode");
+                        copy.ColumnMappings.Add("Version", "Version");
+                        copy.ColumnMappings.Add("Timestamp", "Timestamp");
+                        copy.ColumnMappings.Add("Events", "Events");
+
+                        try
                         {
-                            connection.Insert(ConvertTo(eventStream), _eventTable, transaction);
+                            copy.WriteToServer(table);
+                            transaction.Commit();
                         }
-                        transaction.Commit();
-                    }
-                    catch
-                    {
-                        transaction.Rollback();
-                        throw;
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
                     }
                 }
             }, "BatchAppendEvents");
@@ -180,6 +205,17 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Private Methods
 
+        private DataTable BuildEventTable()
+        {
+            var table = new DataTable();
+            table.Columns.Add("CommandId", typeof(string));
+            table.Columns.Add("AggregateRootId", typeof(string));
+            table.Columns.Add("AggregateRootTypeCode", typeof(int));
+            table.Columns.Add("Version", typeof(int));
+            table.Columns.Add("Timestamp", typeof(DateTime));
+            table.Columns.Add("Events", typeof(string));
+            return table;
+        }
         private SqlConnection GetConnection()
         {
             return new SqlConnection(_connectionString);
@@ -205,6 +241,17 @@ namespace ENode.Eventing.Impl.SQL
                 Timestamp = eventStream.Timestamp,
                 Events = _jsonSerializer.Serialize(_eventSerializer.Serialize(eventStream.Events))
             };
+        }
+        private void AddDataRow(DataTable table, DomainEventStream eventStream)
+        {
+            var row = table.NewRow();
+            row["CommandId"] = eventStream.CommandId;
+            row["AggregateRootId"] = eventStream.AggregateRootId;
+            row["AggregateRootTypeCode"] = eventStream.AggregateRootTypeCode;
+            row["Version"] = eventStream.Version;
+            row["Timestamp"] = eventStream.Timestamp;
+            row["Events"] = _jsonSerializer.Serialize(_eventSerializer.Serialize(eventStream.Events));
+            table.Rows.Add(row);
         }
 
         #endregion
