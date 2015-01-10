@@ -153,7 +153,8 @@ namespace ENode.EQueue
                 var items = _domainEventStreamMessage.Items;
                 if (!items.ContainsKey(topic) || string.IsNullOrEmpty(items[topic]))
                 {
-                    _eventConsumer._logger.ErrorFormat("{0} cannot be null or empty.", topic);
+                    //TODO, if the current DomainEventStream is recovered from eventstore, the the items will not contains the topic key.
+                    _eventConsumer._logger.ErrorFormat("{0} cannot be null or empty. current eventStream:{1}", topic, message);
                     return;
                 }
                 var domainEventHandledMessageTopic = items[topic];

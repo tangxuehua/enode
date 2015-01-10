@@ -197,7 +197,7 @@ namespace ENode.Eventing.Impl
             catch (Exception ex)
             {
                 _failedPersistedEventsQueue.Add(currentCommittingContextList);
-                _logger.ErrorFormat(string.Format("Batch persist event stream failed, current event stream count:{0}", currentCommittingContextCount), ex);
+                _logger.Error("Batch persist event stream failed, auto persist them one by one.", ex);
             }
 
             return currentCommittingContextCount >= _groupCommitMaxSize;
@@ -250,7 +250,11 @@ namespace ENode.Eventing.Impl
             if (eventStream.Version == 1)
             {
                 //取出该聚合根版本号为1的事件
-                var firstEventStream = _eventStore.Find(eventStream.AggregateRootId, 1);
+                var firstEventStream = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByVersion", eventStream.ToString(), () =>
+                {
+                    return _eventStore.Find(eventStream.AggregateRootId, 1);
+                });
+
                 if (firstEventStream != null)
                 {
                     //判断是否是同一个command，如果是，则再重新做一遍更新内存缓存以及发布事件这两个操作；

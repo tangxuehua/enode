@@ -31,6 +31,18 @@ namespace ENode.Infrastructure
             TryIOActionRecursivelyInternal(actionName, contextInfo, (x, y, z) => action(), failedAction, 0);
         }
 
+        public T TryIOFuncRecursively<T>(string funcName, string contextInfo, Func<T> func)
+        {
+            return TryIOFuncRecursively<T>(funcName, contextInfo, func, null);
+        }
+        public T TryIOFuncRecursively<T>(string funcName, string contextInfo, Func<T> func, Action<string, Exception> failedAction)
+        {
+            Ensure.NotNull(funcName, "funcName");
+            Ensure.NotNull(contextInfo, "contextInfo");
+            Ensure.NotNull(func, "func");
+            return TryIOFuncRecursivelyInternal(funcName, contextInfo, (x, y, z) => func(), failedAction, 0);
+        }
+
         public void TryIOAction(Action action, string actionName)
         {
             Ensure.NotNull(action, "action");
@@ -96,6 +108,39 @@ namespace ENode.Infrastructure
                         _logger.Error("Execute failedAction has exception.", e);
                     }
                 }
+            }
+        }
+        private T TryIOFuncRecursivelyInternal<T>(string funcName, string contextInfo, Func<string, string, long, T> func, Action<string, Exception> failedAction, long retryTimes)
+        {
+            try
+            {
+                return func(funcName, contextInfo, retryTimes);
+            }
+            catch (IOException ex)
+            {
+                _logger.Error(string.Format("IOException raised when executing func '{0}', current retryTimes:{1}, contextInfo:{2}", funcName, retryTimes, contextInfo), ex);
+                if (retryTimes > _immediatelyRetryTimes)
+                {
+                    Thread.Sleep(_retryIntervalForIOException);
+                }
+                return TryIOFuncRecursivelyInternal(funcName, contextInfo, func, failedAction, retryTimes++);
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = string.Format("Unknown exception raised when executing func '{0}', current retryTimes:{1}, contextInfo:{2}", funcName, retryTimes, contextInfo);
+                _logger.Error(errorMessage, ex);
+                if (failedAction != null)
+                {
+                    try
+                    {
+                        failedAction(errorMessage, ex);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error("Execute failedAction has exception.", e);
+                    }
+                }
+                return default(T);
             }
         }
     }

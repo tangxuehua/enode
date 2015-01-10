@@ -21,6 +21,7 @@ namespace ENode.Commanding.Impl
         private readonly IEventService _eventService;
         private readonly IPublisher<IPublishableException> _exceptionPublisher;
         private readonly IMemoryCache _memoryCache;
+        private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
 
         #endregion
@@ -35,6 +36,7 @@ namespace ENode.Commanding.Impl
             IEventService eventService,
             IPublisher<IPublishableException> exceptionPublisher,
             IMemoryCache memoryCache,
+            IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
             _commandStore = commandStore;
@@ -44,6 +46,7 @@ namespace ENode.Commanding.Impl
             _eventService = eventService;
             _exceptionPublisher = exceptionPublisher;
             _memoryCache = memoryCache;
+            _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
             _eventService.SetCommandExecutor(this);
         }
@@ -202,7 +205,12 @@ namespace ENode.Commanding.Impl
                 var existingHandledCommand = _commandStore.Get(command.Id) as HandledAggregateCommand;
                 if (existingHandledCommand != null)
                 {
-                    var existingEventStream = _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
+                    var contextInfo = string.Format("[aggregateRootId:{0},commandId:{1},commandType:{2}]", existingHandledCommand.AggregateRootId, command.Id, command.GetType().Name);
+                    var existingEventStream = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByCommandId", contextInfo, () =>
+                    {
+                        return _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
+                    });
+
                     if (existingEventStream != null)
                     {
                         //如果当前command已经被持久化过了，且该command产生的事件也已经被持久化了，则只要再做一遍发布事件的操作
