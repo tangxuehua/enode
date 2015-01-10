@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using ECommon.Logging;
 using ENode.Domain;
 using ENode.Eventing;
@@ -206,11 +205,18 @@ namespace ENode.Commanding.Impl
                 if (existingHandledCommand != null)
                 {
                     var contextInfo = string.Format("[aggregateRootId:{0},commandId:{1},commandType:{2}]", existingHandledCommand.AggregateRootId, command.Id, command.GetType().Name);
-                    var existingEventStream = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByCommandId", contextInfo, () =>
+                    var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByCommandId", contextInfo, () =>
                     {
                         return _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
                     });
 
+                    if (!result.Success)
+                    {
+                        NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Command persist duplicated, but try to find domain event from event store by commandId failed.");
+                        return;
+                    }
+
+                    var existingEventStream = result.Data;
                     if (existingEventStream != null)
                     {
                         //如果当前command已经被持久化过了，且该command产生的事件也已经被持久化了，则只要再做一遍发布事件的操作
@@ -281,7 +287,6 @@ namespace ENode.Commanding.Impl
         private void HandleException(ProcessingCommand processingCommand, ICommandHandler commandHandler, Exception exception)
         {
             var command = processingCommand.Command;
-
             try
             {
                 var existingHandledCommand = _commandStore.Get(command.Id);
@@ -290,7 +295,20 @@ namespace ENode.Commanding.Impl
                     if (command is IAggregateCommand)
                     {
                         var existingHandledAggregateCommand = (HandledAggregateCommand)existingHandledCommand;
-                        var existingEventStream = _eventStore.Find(existingHandledAggregateCommand.AggregateRootId, command.Id);
+                        var aggregateRootId = existingHandledAggregateCommand.AggregateRootId;
+                        var contextInfo = string.Format("[aggregateRootId:{0},commandId:{1},commandType:{2}]", aggregateRootId, command.Id, command.GetType().Name);
+                        var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByCommandId", contextInfo, () =>
+                        {
+                            return _eventStore.Find(aggregateRootId, command.Id);
+                        });
+
+                        if (!result.Success)
+                        {
+                            NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Command handling has exception, and the command is persisted previously, but try to find event from event store by commandId failed.");
+                            return;
+                        }
+
+                        var existingEventStream = result.Data;
                         if (existingEventStream != null)
                         {
                             _eventService.PublishDomainEvent(processingCommand, existingEventStream);
@@ -298,10 +316,10 @@ namespace ENode.Commanding.Impl
                         else
                         {
                             //到这里，说明当前command执行遇到异常，然后该command在commandStore中存在，
-                            //但是在eventStore中不存在，此时可以理解为该command还没被执行，此时做如下操作：
+                            //但是在eventStore中不存在，此时可以理解为该command还未被成功执行，此时做如下操作：
                             //1.记录command执行的错误日志
                             //2.将command从commandStore中移除
-                            //3.根据EventStore里的事件刷新缓存，目的是为了还原聚合根到最新状态，因为该聚合根的状态有可能已经被污染
+                            //3.根据eventStore里的事件刷新缓存，目的是为了还原聚合根到最新状态，因为该聚合根的状态有可能已经被污染
                             //4.重试该command
                             LogCommandExecuteException(processingCommand, commandHandler, exception);
                             _commandStore.Remove(command.Id);
@@ -317,7 +335,8 @@ namespace ENode.Commanding.Impl
                 else
                 {
                     //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行。
-                    //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；否则，就记录错误日志，然后认为该command处理失败即可。
+                    //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；否则，就记录错误日志；
+                    //然后，认为该command处理失败即可；
                     var publishableException = exception as IPublishableException;
                     if (publishableException != null)
                     {

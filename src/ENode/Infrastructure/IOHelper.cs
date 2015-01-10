@@ -19,28 +19,19 @@ namespace ENode.Infrastructure
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        public void TryIOActionRecursively(string actionName, string contextInfo, Action action)
-        {
-            TryIOActionRecursively(actionName, contextInfo, action, null);
-        }
-        public void TryIOActionRecursively(string actionName, string contextInfo, Action action, Action<string, Exception> failedAction)
+        public IOActionResult TryIOActionRecursively(string actionName, string contextInfo, Action action)
         {
             Ensure.NotNull(actionName, "actionName");
             Ensure.NotNull(contextInfo, "contextInfo");
             Ensure.NotNull(action, "action");
-            TryIOActionRecursivelyInternal(actionName, contextInfo, (x, y, z) => action(), failedAction, 0);
+            return TryIOActionRecursivelyInternal(actionName, contextInfo, (x, y, z) => action(), 0);
         }
-
-        public T TryIOFuncRecursively<T>(string funcName, string contextInfo, Func<T> func)
-        {
-            return TryIOFuncRecursively<T>(funcName, contextInfo, func, null);
-        }
-        public T TryIOFuncRecursively<T>(string funcName, string contextInfo, Func<T> func, Action<string, Exception> failedAction)
+        public IOFuncResult<T> TryIOFuncRecursively<T>(string funcName, string contextInfo, Func<T> func)
         {
             Ensure.NotNull(funcName, "funcName");
             Ensure.NotNull(contextInfo, "contextInfo");
             Ensure.NotNull(func, "func");
-            return TryIOFuncRecursivelyInternal(funcName, contextInfo, (x, y, z) => func(), failedAction, 0);
+            return TryIOFuncRecursivelyInternal(funcName, contextInfo, (x, y, z) => func(), 0);
         }
 
         public void TryIOAction(Action action, string actionName)
@@ -78,11 +69,12 @@ namespace ENode.Infrastructure
             }
         }
 
-        private void TryIOActionRecursivelyInternal(string actionName, string contextInfo, Action<string, string, long> action, Action<string, Exception> failedAction, long retryTimes)
+        private IOActionResult TryIOActionRecursivelyInternal(string actionName, string contextInfo, Action<string, string, long> action, long retryTimes)
         {
             try
             {
                 action(actionName, contextInfo, retryTimes);
+                return IOActionResult.SuccessResult;
             }
             catch (IOException ex)
             {
@@ -91,30 +83,21 @@ namespace ENode.Infrastructure
                 {
                     Thread.Sleep(_retryIntervalForIOException);
                 }
-                TryIOActionRecursivelyInternal(actionName, contextInfo, action, failedAction, retryTimes++);
+                return TryIOActionRecursivelyInternal(actionName, contextInfo, action, retryTimes++);
             }
             catch (Exception ex)
             {
                 var errorMessage = string.Format("Unknown exception raised when executing action '{0}', current retryTimes:{1}, contextInfo:{2}", actionName, retryTimes, contextInfo);
                 _logger.Error(errorMessage, ex);
-                if (failedAction != null)
-                {
-                    try
-                    {
-                        failedAction(errorMessage, ex);
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error("Execute failedAction has exception.", e);
-                    }
-                }
+                return new IOActionResult(false, ex);
             }
         }
-        private T TryIOFuncRecursivelyInternal<T>(string funcName, string contextInfo, Func<string, string, long, T> func, Action<string, Exception> failedAction, long retryTimes)
+        private IOFuncResult<T> TryIOFuncRecursivelyInternal<T>(string funcName, string contextInfo, Func<string, string, long, T> func, long retryTimes)
         {
             try
             {
-                return func(funcName, contextInfo, retryTimes);
+                var data = func(funcName, contextInfo, retryTimes);
+                return new IOFuncResult<T>(true, null, data);
             }
             catch (IOException ex)
             {
@@ -123,25 +106,39 @@ namespace ENode.Infrastructure
                 {
                     Thread.Sleep(_retryIntervalForIOException);
                 }
-                return TryIOFuncRecursivelyInternal(funcName, contextInfo, func, failedAction, retryTimes++);
+                return TryIOFuncRecursivelyInternal(funcName, contextInfo, func, retryTimes++);
             }
             catch (Exception ex)
             {
                 var errorMessage = string.Format("Unknown exception raised when executing func '{0}', current retryTimes:{1}, contextInfo:{2}", funcName, retryTimes, contextInfo);
                 _logger.Error(errorMessage, ex);
-                if (failedAction != null)
-                {
-                    try
-                    {
-                        failedAction(errorMessage, ex);
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.Error("Execute failedAction has exception.", e);
-                    }
-                }
-                return default(T);
+                return new IOFuncResult<T>(false, ex, default(T));
             }
+        }
+    }
+    public class IOActionResult
+    {
+        public bool Success { get; private set; }
+        public Exception Exception { get; private set; }
+        public static IOActionResult SuccessResult = new IOActionResult(true, null);
+
+        public IOActionResult(bool success, Exception exception)
+        {
+            Success = success;
+            if (!success)
+            {
+                Ensure.NotNull(exception, "exception");
+            }
+            Exception = exception;
+        }
+    }
+    public class IOFuncResult<T> : IOActionResult
+    {
+        public T Data { get; private set; }
+
+        public IOFuncResult(bool success, Exception exception, T data) : base(success, exception)
+        {
+            Data = data;
         }
     }
 }

@@ -116,37 +116,48 @@ namespace ENode.Eventing.Impl
         }
         public void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
-            _ioHelper.TryIOActionRecursively("PublishDomainEvent", eventStream.ToString(), () =>
+            if (eventStream.Items.Count == 0)
             {
-                if (eventStream.Items.Count == 0)
-                {
-                    eventStream.Items = processingCommand.Items;
-                }
+                eventStream.Items = processingCommand.Items;
+            }
+
+            var result = _ioHelper.TryIOActionRecursively("PublishDomainEvent", eventStream.ToString(), () =>
+            {
                 _domainEventPublisher.Publish(eventStream);
-                _logger.DebugFormat("Publish domain events success, {0}", eventStream);
-            },
-            (errorMessage, ex) =>
-            {
-                processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, eventStream.AggregateRootId, ex.GetType().Name, errorMessage));
             });
-            processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, eventStream.AggregateRootId, null, null));
+
+            if (result.Success)
+            {
+                _logger.DebugFormat("Publish domain events success, {0}", eventStream);
+                processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, eventStream.AggregateRootId, null, null));
+            }
+            else
+            {
+                processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, eventStream.AggregateRootId, result.Exception.GetType().Name, "Publish domain events failed."));
+            }
         }
         public void PublishEvent(ProcessingCommand processingCommand, EventStream eventStream)
         {
-            _ioHelper.TryIOActionRecursively("PublishEvent", eventStream.ToString(), () =>
+            if (eventStream.Items.Count == 0)
             {
-                if (eventStream.Items.Count == 0)
-                {
-                    eventStream.Items = processingCommand.Items;
-                }
+                eventStream.Items = processingCommand.Items;
+            }
+
+            var result = _ioHelper.TryIOActionRecursively("PublishEvent", eventStream.ToString(), () =>
+            {
                 _eventPublisher.Publish(eventStream);
-                _logger.DebugFormat("Publish events success, {0}", eventStream);
-            },
-            (errorMessage, ex) =>
-            {
-                processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, null, ex.GetType().Name, errorMessage));
             });
-            processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, null, null, null));
+
+
+            if (result.Success)
+            {
+                _logger.DebugFormat("Publish events success, {0}", eventStream);
+                processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, null, null, null));
+            }
+            else
+            {
+                processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, null, result.Exception.GetType().Name, "Publish events failed."));
+            }
         }
 
         #endregion
@@ -219,27 +230,27 @@ namespace ENode.Eventing.Impl
         }
         private void DoCommitEvent(EventCommittingContext context)
         {
-            _ioHelper.TryIOActionRecursively("PersistEvent", context.EventStream.ToString(), () =>
+            var result = _ioHelper.TryIOFuncRecursively<EventAppendResult>("PersistEvent", context.EventStream.ToString(), () =>
             {
-                context.EventAppendResult = _eventStore.Append(context.EventStream);
-                if (context.EventAppendResult == EventAppendResult.Success)
-                {
-                    _logger.DebugFormat("Persist events success, {0}", context.EventStream);
-                }
-            },
-            (errorMessage, ex) =>
-            {
-                context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, context.EventStream.AggregateRootId, ex.GetType().Name, errorMessage));
+                return _eventStore.Append(context.EventStream);
             });
 
-            if (context.EventAppendResult == EventAppendResult.Success)
+            if (result.Success)
             {
-                RefreshAggregateMemoryCache(context);
-                PublishDomainEvent(context.ProcessingCommand, context.EventStream);
+                if (result.Data == EventAppendResult.Success)
+                {
+                    _logger.DebugFormat("Persist events success, {0}", context.EventStream);
+                    RefreshAggregateMemoryCache(context);
+                    PublishDomainEvent(context.ProcessingCommand, context.EventStream);
+                }
+                else if (result.Data == EventAppendResult.DuplicateEvent)
+                {
+                    HandleDuplicateEventResult(context);
+                }
             }
-            else if (context.EventAppendResult == EventAppendResult.DuplicateEvent)
+            else
             {
-                HandleDuplicateEventResult(context);
+                context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, context.EventStream.AggregateRootId, result.Exception.GetType().Name, "Persist events failed."));
             }
         }
         private void HandleDuplicateEventResult(EventCommittingContext context)
@@ -250,11 +261,18 @@ namespace ENode.Eventing.Impl
             if (eventStream.Version == 1)
             {
                 //取出该聚合根版本号为1的事件
-                var firstEventStream = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByVersion", eventStream.ToString(), () =>
+                var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByVersion", eventStream.ToString(), () =>
                 {
                     return _eventStore.Find(eventStream.AggregateRootId, 1);
                 });
 
+                if (!result.Success)
+                {
+                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, result.Exception.GetType().Name, "Persist the first version of event duplicated, but try to get the first version of domain event failed."));
+                    return;
+                }
+
+                var firstEventStream = result.Data;
                 if (firstEventStream != null)
                 {
                     //判断是否是同一个command，如果是，则再重新做一遍更新内存缓存以及发布事件这两个操作；
@@ -274,7 +292,7 @@ namespace ENode.Eventing.Impl
                             eventStream.AggregateRootId,
                             eventStream.AggregateRootTypeCode);
                         _logger.Error(errorMessage);
-                        context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, null, errorMessage));
+                        context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, null, "Duplicate aggregate creation."));
                     }
                 }
                 else
@@ -284,7 +302,7 @@ namespace ENode.Eventing.Impl
                         eventStream.AggregateRootId,
                         eventStream.AggregateRootTypeCode);
                     _logger.Error(errorMessage);
-                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, null, errorMessage));
+                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, null, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore."));
                 }
             }
             //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了；

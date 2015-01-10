@@ -8,7 +8,6 @@ namespace ENode.Eventing
         public IAggregateRoot AggregateRoot { get; private set; }
         public DomainEventStream EventStream { get; private set; }
         public ProcessingCommand ProcessingCommand { get; private set; }
-        public EventAppendResult EventAppendResult { get; set; }
 
         public EventCommittingContext(IAggregateRoot aggregateRoot, DomainEventStream eventStream, ProcessingCommand processingCommand)
         {
