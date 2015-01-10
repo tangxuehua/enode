@@ -11,10 +11,10 @@ namespace DistributeSample.CommandProcessor.Domain
 
         public Note(string id, string title) : base(id)
         {
-            ApplyEvent(new NoteCreatedEvent(id, title));
+            ApplyEvent(new NoteCreated(id, title));
         }
 
-        private void Handle(NoteCreatedEvent evnt)
+        private void Handle(NoteCreated evnt)
         {
             _id = evnt.AggregateRootId;
             _title = evnt.Title;

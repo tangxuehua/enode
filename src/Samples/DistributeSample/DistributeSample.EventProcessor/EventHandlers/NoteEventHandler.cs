@@ -7,7 +7,7 @@ using ENode.Infrastructure;
 namespace DistributeSample.EventProcessor.EventHandlers
 {
     [Component]
-    public class NoteEventHandler : IEventHandler<NoteCreatedEvent>
+    public class NoteEventHandler : IEventHandler<NoteCreated>
     {
         private ILogger _logger;
 
@@ -16,7 +16,7 @@ namespace DistributeSample.EventProcessor.EventHandlers
             _logger = loggerFactory.Create(typeof(NoteEventHandler).Name);
         }
 
-        public void Handle(IHandlingContext context, NoteCreatedEvent evnt)
+        public void Handle(IHandlingContext context, NoteCreated evnt)
         {
             _logger.InfoFormat("Note created, Title：{0}", evnt.Title);
         }

@@ -28,7 +28,7 @@ namespace DistributeSample.CommandProducer
 
             for (var index = 1; index <= 10; index++)
             {
-                commandService.SendAsync(new CreateNoteCommand(ObjectId.GenerateNewStringId(), "Sample Note" + index)).ContinueWith(task =>
+                commandService.SendAsync(new CreateNoteCommand { AggregateRootId = ObjectId.GenerateNewStringId(), Title = "Sample Note" + index }).ContinueWith(task =>
                 {
                     if (task.Result.Status == CommandSendStatus.Success)
                     {
