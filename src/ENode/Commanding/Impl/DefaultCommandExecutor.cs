@@ -56,9 +56,10 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Command;
 
-            //如果是非操作聚合根的command，且该command已检测到被处理过，则直接忽略。
+            //如果是非操作聚合根的command，且该command已检测到被处理过，则直接认为command已成功处理。
             if (!(command is IAggregateCommand) && _commandStore.Get(command.Id) != null)
             {
+                NotifyCommandExecuted(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
             }
 
@@ -96,13 +97,21 @@ namespace ENode.Commanding.Impl
             //如果command执行成功，则提交执行后的结果
             if (handleSuccess)
             {
-                if (command is IAggregateCommand)
+                try
                 {
-                    CommitAggregateChanges(processingCommand);
+                    if (command is IAggregateCommand)
+                    {
+                        CommitAggregateChanges(processingCommand);
+                    }
+                    else
+                    {
+                        CommitChanges(processingCommand);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    CommitChanges(processingCommand);
+                    LogCommandExecuteException(processingCommand, commandHandler, ex);
+                    NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, "Unknown exception caught when committing changes of command.");
                 }
             }
         }
@@ -328,15 +337,7 @@ namespace ENode.Commanding.Impl
         }
         private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {
-            var aggregateCommand = processingCommand.Command as IAggregateCommand;
-            if (aggregateCommand != null)
-            {
-                processingCommand.CommandExecuteContext.OnCommandExecuted(new CommandResult(commandStatus, aggregateCommand.Id, processingCommand.AggregateRootId, exceptionTypeName, errorMessage));
-            }
-            else
-            {
-                processingCommand.CommandExecuteContext.OnCommandExecuted(new CommandResult(commandStatus, processingCommand.Command.Id, null, exceptionTypeName, errorMessage));
-            }
+            processingCommand.Complete(new CommandResult(commandStatus, processingCommand.Command.Id, processingCommand.AggregateRootId, exceptionTypeName, errorMessage));
         }
         private void RetryCommand(ProcessingCommand processingCommand)
         {

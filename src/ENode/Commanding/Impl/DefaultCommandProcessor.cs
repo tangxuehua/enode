@@ -26,7 +26,8 @@ namespace ENode.Commanding.Impl
             }
             else
             {
-                var commandMailbox = _mailboxDict.GetOrAdd(processingCommand.AggregateRootId, new CommandMailbox(_commandDispatcher, _commandExecutor, _loggerFactory));
+                var commandMailbox = _mailboxDict.GetOrAdd(processingCommand.AggregateRootId,
+                    new CommandMailbox(processingCommand.AggregateRootId, _commandDispatcher, _commandExecutor, _loggerFactory));
                 commandMailbox.EnqueueCommand(processingCommand);
                 _commandDispatcher.RegisterMailboxForExecution(commandMailbox);
             }

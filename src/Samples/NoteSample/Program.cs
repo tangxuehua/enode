@@ -25,14 +25,16 @@ namespace NoteSample
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
 
-            for (var i = 0; i < 1000; i++)
-            {
-                commandService.SendAsync(new CreateNoteCommand
-                {
-                    AggregateRootId = ObjectId.GenerateNewStringId(),
-                    Title = "Sample Title" + (i + 1).ToString()
-                });
-            }
+            var noteId = ObjectId.GenerateNewStringId();
+            var command1 = new CreateNoteCommand { AggregateRootId = noteId, Title = "Sample Title1" };
+            var command2 = new ChangeNoteTitleCommand { AggregateRootId = noteId, Title = "Sample Title2" };
+
+            Console.WriteLine(string.Empty);
+
+            commandService.Execute(command1, CommandReturnType.EventHandled).Wait();
+            commandService.Execute(command2, CommandReturnType.EventHandled).Wait();
+
+            Console.WriteLine(string.Empty);
 
             _logger.Info("Press Enter to exit...");
 
@@ -46,8 +48,9 @@ namespace NoteSample
             var setting = new ConfigurationSetting
             {
                 SqlServerDefaultConnectionString = connectionString,
-                EnableGroupCommitEvent = false,
-                CommandProcessorParallelThreadCount = Environment.ProcessorCount * 2
+                EnableGroupCommitEvent = true,
+                GroupCommitEventInterval = 20,
+                CommandProcessorParallelThreadCount = Environment.ProcessorCount * 10
             };
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             _configuration = Configuration

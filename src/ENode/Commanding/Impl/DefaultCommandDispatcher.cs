@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
+using ECommon.Components;
 using ECommon.Extensions;
+using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Configurations;
 
@@ -24,10 +26,6 @@ namespace ENode.Commanding.Impl
         public void RegisterMailboxForExecution(CommandMailbox mailbox)
         {
             _taskFactory.StartNew(() => TryRunMailbox(mailbox));
-        }
-        public void RegisterMailboxForDelayExecution(CommandMailbox mailbox, int delayMilliseconds)
-        {
-            _taskFactory.StartDelayedTask(delayMilliseconds, () => TryRunMailbox(mailbox));
         }
 
         private void TryRunMailbox(CommandMailbox mailbox)

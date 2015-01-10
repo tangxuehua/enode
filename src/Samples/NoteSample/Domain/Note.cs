@@ -9,6 +9,8 @@ namespace NoteSample.Domain
     {
         private string _title;
 
+        public string Title { get { return _title; } }
+
         public Note(string id, string title) : base(id)
         {
             ApplyEvent(new NoteCreated(id, title));

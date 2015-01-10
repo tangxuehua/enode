@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using ECommon.Logging;
+using ECommon.Utilities;
 using ENode.Configurations;
 
 namespace ENode.Infrastructure
@@ -18,13 +19,22 @@ namespace ENode.Infrastructure
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        public bool TryIOActionRecursively(string actionName, string contextInfo, Func<bool> action, Action<string, Exception> failedAction)
+        public void TryIOActionRecursively(string actionName, string contextInfo, Action action)
         {
-            return TryIOActionRecursively(actionName, contextInfo, (x, y, z) => action(), failedAction, 0);
+            TryIOActionRecursively(actionName, contextInfo, action, null);
+        }
+        public void TryIOActionRecursively(string actionName, string contextInfo, Action action, Action<string, Exception> failedAction)
+        {
+            Ensure.NotNull(actionName, "actionName");
+            Ensure.NotNull(contextInfo, "contextInfo");
+            Ensure.NotNull(action, "action");
+            TryIOActionRecursivelyInternal(actionName, contextInfo, (x, y, z) => action(), failedAction, 0);
         }
 
         public void TryIOAction(Action action, string actionName)
         {
+            Ensure.NotNull(action, "action");
+            Ensure.NotNull(actionName, "actionName");
             try
             {
                 action();
@@ -40,6 +50,8 @@ namespace ENode.Infrastructure
         }
         public T TryIOFunc<T>(Func<T> func, string funcName)
         {
+            Ensure.NotNull(func, "func");
+            Ensure.NotNull(funcName, "funcName");
             try
             {
                 return func();
@@ -54,11 +66,11 @@ namespace ENode.Infrastructure
             }
         }
 
-        private bool TryIOActionRecursively(string actionName, string contextInfo, Func<string, string, long, bool> action, Action<string, Exception> failedAction, long retryTimes)
+        private void TryIOActionRecursivelyInternal(string actionName, string contextInfo, Action<string, string, long> action, Action<string, Exception> failedAction, long retryTimes)
         {
             try
             {
-                return action(actionName, contextInfo, retryTimes);
+                action(actionName, contextInfo, retryTimes);
             }
             catch (IOException ex)
             {
@@ -67,7 +79,7 @@ namespace ENode.Infrastructure
                 {
                     Thread.Sleep(_retryIntervalForIOException);
                 }
-                return TryIOActionRecursively(actionName, contextInfo, action, failedAction, retryTimes++);
+                TryIOActionRecursivelyInternal(actionName, contextInfo, action, failedAction, retryTimes++);
             }
             catch (Exception ex)
             {
@@ -84,7 +96,6 @@ namespace ENode.Infrastructure
                         _logger.Error("Execute failedAction has exception.", e);
                     }
                 }
-                return false;
             }
         }
     }

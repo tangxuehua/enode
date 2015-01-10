@@ -24,7 +24,7 @@ namespace ENode.Configurations
 
         public ConfigurationSetting()
         {
-            EnableGroupCommitEvent = true;
+            EnableGroupCommitEvent = false;
             GroupCommitEventInterval = 20;
             GroupCommitMaxSize = 2000;
             ImmediatelyRetryTimes = 3;

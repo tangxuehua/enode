@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using ECommon.Components;
+﻿using ECommon.Components;
 using ECommon.Logging;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -20,10 +19,7 @@ namespace NoteSample.EventHandlers
 
         public void Handle(IHandlingContext context, NoteCreated evnt)
         {
-            if (Interlocked.Increment(ref _count) % 100 == 0)
-            {
-                _logger.InfoFormat("Note Created, Id:{0}, Title：{1}, Version: {2}", evnt.AggregateRootId, evnt.Title, evnt.Version);
-            }
+            _logger.InfoFormat("Note Created, Id:{0}, Title：{1}, Version: {2}", evnt.AggregateRootId, evnt.Title, evnt.Version);
         }
         public void Handle(IHandlingContext context, NoteTitleChanged evnt)
         {
