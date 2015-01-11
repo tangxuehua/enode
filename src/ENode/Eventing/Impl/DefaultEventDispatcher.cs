@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using ECommon.Logging;
-using ECommon.Retring;
+﻿using ECommon.Logging;
 using ENode.Commanding;
 using ENode.Domain;
 using ENode.Infrastructure;
@@ -10,179 +6,48 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventDispatcher : IEventDispatcher
+    public class DefaultEventDispatcher : AbstractDispatcher<IEvent, IEventHandler>
     {
-        #region Private Variables
-
-        private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
-        private readonly ITypeCodeProvider<IEventHandler> _eventHandlerTypeCodeProvider;
-        private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
-        private readonly IHandlerProvider<IEventHandler> _eventHandlerProvider;
-        private readonly ICommandService _commandService;
-        private readonly IRepository _repository;
-        private readonly IEventHandleInfoStore _eventHandleInfoStore;
-        private readonly IEventHandleInfoCache _eventHandleInfoCache;
-        private readonly IActionExecutionService _actionExecutionService;
-        private readonly ILogger _logger;
-
-        #endregion
-
-        #region Constructors
-
         public DefaultEventDispatcher(
-            ITypeCodeProvider<IEvent> eventTypeCodeProvider,
-            ITypeCodeProvider<IEventHandler> eventHandlerTypeCodeProvider,
+            ITypeCodeProvider<IEvent> messageTypeCodeProvider,
+            ITypeCodeProvider<IEventHandler> handlerTypeCodeProvider,
             ITypeCodeProvider<ICommand> commandTypeCodeProvider,
-            IHandlerProvider<IEventHandler> eventHandlerProvider,
+            IHandlerProvider<IEventHandler> handlerProvider,
             ICommandService commandService,
             IRepository repository,
-            IEventHandleInfoStore eventHandleInfoStore,
-            IEventHandleInfoCache eventHandleInfoCache,
-            IActionExecutionService actionExecutionService,
+            IMessageHandleRecordStore messageHandleRecordStore,
+            IMessageHandleRecordCache messageHandleRecordCache,
             ILoggerFactory loggerFactory)
+            : base(
+            messageTypeCodeProvider,
+            handlerTypeCodeProvider,
+            commandTypeCodeProvider,
+            handlerProvider,
+            commandService,
+            repository,
+            messageHandleRecordStore,
+            messageHandleRecordCache,
+            loggerFactory)
         {
-            _eventTypeCodeProvider = eventTypeCodeProvider;
-            _eventHandlerTypeCodeProvider = eventHandlerTypeCodeProvider;
-            _commandTypeCodeProvider = commandTypeCodeProvider;
-            _eventHandlerProvider = eventHandlerProvider;
-            _commandService = commandService;
-            _repository = repository;
-            _eventHandleInfoStore = eventHandleInfoStore;
-            _eventHandleInfoCache = eventHandleInfoCache;
-            _actionExecutionService = actionExecutionService;
-            _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        #endregion
-
-        #region Public Methods
-
-        public bool DispatchEvents(IEnumerable<IEvent> evnts)
+        protected override MessageHandleRecordType GetHandleRecordType(IEvent evnt)
         {
-            var success = true;
-            foreach (var evnt in evnts)
-            {
-                if (!DispatchEventToHandlers(evnt, false))
-                {
-                    success = false;
-                }
-            }
-            if (success)
-            {
-                foreach (var evnt in evnts)
-                {
-                    _eventHandleInfoCache.RemoveEventHandleInfo(evnt.Id);
-                }
-            }
-            return success;
+            return evnt is IDomainEvent ? MessageHandleRecordType.DomainEvent : MessageHandleRecordType.Event;
         }
-        public bool DispatchEvent(IEvent evnt)
+        protected override void HandleMessage(IEvent evnt, IEventHandler eventHandler, IHandlingContext handlingContext)
         {
-            return DispatchEventToHandlers(evnt, true);
+            eventHandler.Handle(handlingContext, evnt);
         }
-
-        #endregion
-
-        #region Private Methods
-
-        private bool DispatchEventToHandlers(IEvent evnt, bool autoRemoveEventHandleCache)
+        protected override void OnMessageHandleRecordCreated(IEvent evnt, MessageHandleRecord record)
         {
-            var success = true;
-            foreach (var handler in _eventHandlerProvider.GetHandlers(evnt.GetType()))
-            {
-                if (!DispatchEventToHandler(evnt, handler))
-                {
-                    success = false;
-                }
-            }
-            if (autoRemoveEventHandleCache)
-            {
-                _eventHandleInfoCache.RemoveEventHandleInfo(evnt.Id);
-            }
-            return success;
-        }
-        private bool DispatchEventToHandler(IEvent evnt, IEventHandler eventHandler)
-        {
+            base.OnMessageHandleRecordCreated(evnt, record);
             var domainEvent = evnt as IDomainEvent;
-            var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
-            var handlerType = eventHandler.GetInnerHandler().GetType();
-            var handlerTypeCode = _eventHandlerTypeCodeProvider.GetTypeCode(handlerType);
-            if (_eventHandleInfoCache.IsEventHandleInfoExist(evnt.Id, handlerTypeCode)) return true;
-            if (_eventHandleInfoStore.IsEventHandleInfoExist(evnt.Id, handlerTypeCode)) return true;
-            var handlingContext = new DefaultHandlingContext(_repository);
-
-            try
+            if (domainEvent != null)
             {
-                eventHandler.Handle(handlingContext, evnt);
-                var commands = handlingContext.GetCommands();
-                if (commands.Any())
-                {
-                    foreach (var command in commands)
-                    {
-                        command.Id = BuildCommandId(command, evnt, handlerTypeCode);
-                        _commandService.Send(command, evnt.Id, "Event");
-
-                        if (domainEvent != null)
-                        {
-                            _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}, eventVersion:{5}, sourceAggregateRootId:{6}",
-                                command.GetType().Name,
-                                command.Id,
-                                handlerType.Name,
-                                domainEvent.GetType().Name,
-                                domainEvent.Id,
-                                domainEvent.Version,
-                                domainEvent.AggregateRootId);
-                        }
-                        else
-                        {
-                            _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, eventHandlerType:{2}, eventType:{3}, eventId:{4}",
-                                command.GetType().Name,
-                                command.Id,
-                                handlerType.Name,
-                                evnt.GetType().Name,
-                                evnt.Id);
-                        }
-                    }
-                }
-
-                if (domainEvent != null)
-                {
-                    _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}, eventVersion:{3}, sourceAggregateRootId:{4}",
-                        handlerType.Name,
-                        domainEvent.GetType().Name,
-                        domainEvent.Id,
-                        domainEvent.Version,
-                        domainEvent.AggregateRootId);
-                    _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, handlerTypeCode, eventTypeCode, domainEvent.AggregateRootId, domainEvent.Version);
-                    _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, handlerTypeCode, eventTypeCode, domainEvent.AggregateRootId, domainEvent.Version);
-
-                }
-                else
-                {
-                    _logger.DebugFormat("Handle event success. eventHandlerType:{0}, eventType:{1}, eventId:{2}",
-                        handlerType.Name,
-                        evnt.GetType().Name,
-                        evnt.Id);
-                    _eventHandleInfoStore.AddEventHandleInfo(evnt.Id, handlerTypeCode, eventTypeCode, string.Empty, 0);
-                    _eventHandleInfoCache.AddEventHandleInfo(evnt.Id, handlerTypeCode, eventTypeCode, string.Empty, 0);
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("Exception raised when [{0}] handling [{1}].", handlerType.Name, evnt.GetType().Name), ex);
-                return false;
+                record.AggregateRootId = domainEvent.AggregateRootId;
+                record.AggregateRootVersion = domainEvent.Version;
             }
         }
-        private string BuildCommandId(ICommand command, IEvent evnt, int eventHandlerTypeCode)
-        {
-            var key = command.GetKey();
-            var commandKey = key == null ? string.Empty : key.ToString();
-            var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            return string.Format("{0}{1}{2}{3}", evnt.Id, commandKey, eventHandlerTypeCode, commandTypeCode);
-        }
-
-        #endregion
     }
 }

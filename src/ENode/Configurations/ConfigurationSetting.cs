@@ -22,7 +22,7 @@ namespace ENode.Configurations
         public DbTableSetting SqlServerCommandStoreSetting { get; set; }
         public DbTableSetting SqlServerEventStoreSetting { get; set; }
         public DbTableSetting SqlServerEventPublishInfoStoreSetting { get; set; }
-        public DbTableSetting SqlServerEventHandleInfoStoreSetting { get; set; }
+        public DbTableSetting SqlServerMessageHandleRecordStoreSetting { get; set; }
 
         public ConfigurationSetting()
         {
@@ -43,7 +43,7 @@ namespace ENode.Configurations
             SqlServerCommandStoreSetting = new DbTableSetting(this) { TableName = "Command", PrimaryKeyName = "PK_Command" };
             SqlServerEventStoreSetting = new DbTableSetting(this) { TableName = "EventStream", PrimaryKeyName = "PK_EventStream" };
             SqlServerEventPublishInfoStoreSetting = new DbTableSetting(this) { TableName = "EventPublishInfo", PrimaryKeyName = "PK_EventPublishInfo" };
-            SqlServerEventHandleInfoStoreSetting = new DbTableSetting(this) { TableName = "EventHandleInfo" };
+            SqlServerMessageHandleRecordStoreSetting = new DbTableSetting(this) { TableName = "MessageHandleRecord" };
         }
     }
 }

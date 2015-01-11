@@ -1,13 +1,10 @@
-﻿using System;
+﻿using ENode.Infrastructure;
 
 namespace ENode.Messaging
 {
     /// <summary>Represents a message.
     /// </summary>
-    public interface IMessage
+    public interface IMessage : IDispatchableMessage
     {
-        /// <summary>Represents the identifier of the message.
-        /// </summary>
-        string Id { get; }
     }
 }

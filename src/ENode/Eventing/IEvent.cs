@@ -1,13 +1,10 @@
-﻿using System;
+﻿using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
     /// <summary>Represents an event.
     /// </summary>
-    public interface IEvent
+    public interface IEvent : IDispatchableMessage
     {
-        /// <summary>Represents the unique identifier of the event.
-        /// </summary>
-        string Id { get; }
     }
 }

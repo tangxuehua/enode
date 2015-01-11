@@ -9,7 +9,7 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private readonly IEventDispatcher _eventDispatcher;
+        private readonly IDispatcher<IEvent> _eventDispatcher;
         private readonly IEventPublishInfoStore _eventPublishInfoStore;
         private readonly ILogger _logger;
 
@@ -17,7 +17,7 @@ namespace ENode.Eventing.Impl
 
         #region Constructors
 
-        public DefaultDomainEventStreamProcessor(IEventPublishInfoStore eventPublishInfoStore, IEventDispatcher eventDispatcher, ILoggerFactory loggerFactory)
+        public DefaultDomainEventStreamProcessor(IEventPublishInfoStore eventPublishInfoStore, IDispatcher<IEvent> eventDispatcher, ILoggerFactory loggerFactory)
             : base(ENodeConfiguration.Instance.Setting.DomainEventStreamProcessorParallelThreadCount, "ProcessDomainEventStream")
         {
             _eventPublishInfoStore = eventPublishInfoStore;
@@ -39,7 +39,7 @@ namespace ENode.Eventing.Impl
 
             if (lastPublishedVersion + 1 == domainEventStream.Version)
             {
-                success = _eventDispatcher.DispatchEvents(domainEventStream.Events);
+                success = _eventDispatcher.DispatchMessages(domainEventStream.Events);
                 if (success)
                 {
                     UpdatePublishedVersion(domainEventStream);

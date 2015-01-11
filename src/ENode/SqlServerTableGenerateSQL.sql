@@ -7,8 +7,8 @@ CREATE TABLE [dbo].[Command] (
     [SourceId]                NVARCHAR (36)          NULL,
     [SourceType]              NVARCHAR (36)          NULL,
     [Timestamp]               DATETIME               NOT NULL,
-    [CommandData]             NVARCHAR (MAX)        NOT NULL,
-    [Events]                  NVARCHAR (MAX)        NULL,
+    [CommandData]             NVARCHAR (MAX)         NOT NULL,
+    [Events]                  NVARCHAR (MAX)         NULL,
     CONSTRAINT [PK_Command] PRIMARY KEY CLUSTERED ([CommandId] ASC)
 )
 GO
@@ -24,22 +24,26 @@ CREATE TABLE [dbo].[EventStream] (
 )
 GO
 CREATE TABLE [dbo].[EventPublishInfo] (
+    [Sequence]                BIGINT IDENTITY (1, 1) NOT NULL,
     [EventProcessorName]      NVARCHAR (128)         NOT NULL,
     [AggregateRootId]         NVARCHAR (36)          NOT NULL,
     [PublishedVersion]        INT                    NOT NULL,
     CONSTRAINT [PK_EventPublishInfo] PRIMARY KEY CLUSTERED ([EventProcessorName] ASC, [AggregateRootId] ASC)
 )
 GO
-CREATE TABLE [dbo].[EventHandleInfo] (
-    [EventId]                 NVARCHAR (36)          NOT NULL,
-    [EventHandlerTypeCode]    INT                    NOT NULL,
-    [EventTypeCode]           INT                    NOT NULL,
-    [AggregateRootId]         NVARCHAR (36)          NULL,
-    [AggregateRootVersion]    INT                    NULL,
-    CONSTRAINT [PK_EventHandleInfo] PRIMARY KEY CLUSTERED ([EventId] ASC, [EventHandlerTypeCode] ASC)
+CREATE TABLE [dbo].[MessageHandleRecord] (
+    [Sequence]                  BIGINT IDENTITY (1, 1) NOT NULL,
+    [MessageId]                 NVARCHAR (36)          NOT NULL,
+    [HandlerTypeCode]           INT                    NOT NULL,
+    [MessageTypeCode]           INT                    NOT NULL,
+    [Type]                      INT                    NOT NULL,
+    [AggregateRootId]           NVARCHAR (36)          NULL,
+    [AggregateRootVersion]      INT                    NULL,
+    CONSTRAINT [PK_MessageHandleRecord] PRIMARY KEY CLUSTERED ([MessageId] ASC, [HandlerTypeCode] ASC)
 )
 GO
 CREATE TABLE [dbo].[Snapshot] (
+    [Sequence]               BIGINT IDENTITY (1, 1)  NOT NULL,
     [AggregateRootId]        NVARCHAR (36)           NOT NULL,
     [Version]                INT                     NOT NULL,
     [AggregateRootTypeCode]  INT                     NOT NULL,

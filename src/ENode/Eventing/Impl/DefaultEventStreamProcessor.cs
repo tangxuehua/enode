@@ -9,14 +9,14 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private readonly IEventDispatcher _eventDispatcher;
+        private readonly IDispatcher<IEvent> _eventDispatcher;
         private readonly ILogger _logger;
 
         #endregion
 
         #region Constructors
 
-        public DefaultEventStreamProcessor(IEventDispatcher eventDispatcher, ILoggerFactory loggerFactory)
+        public DefaultEventStreamProcessor(IDispatcher<IEvent> eventDispatcher, ILoggerFactory loggerFactory)
             : base(ENodeConfiguration.Instance.Setting.EventStreamProcessorParallelThreadCount, "ProcessEventStream")
         {
             _eventDispatcher = eventDispatcher;
@@ -32,7 +32,7 @@ namespace ENode.Eventing.Impl
         protected override void HandleQueueMessage(QueueMessage<EventStream> queueMessage)
         {
             var eventStream = queueMessage.Payload;
-            var success = _eventDispatcher.DispatchEvents(eventStream.Events);
+            var success = _eventDispatcher.DispatchMessages(eventStream.Events);
 
             if (!success)
             {

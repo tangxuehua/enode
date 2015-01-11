@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
+using ENode.Infrastructure;
 
 namespace ENode.Exceptions
 {
     /// <summary>Represents an exception which can be published.
     /// </summary>
-    public interface IPublishableException
+    public interface IPublishableException : IDispatchableMessage
     {
-        string Id { get; set; }
+        string UniqueId { get; set; }
         void SerializeTo(IDictionary<string, string> serializableInfo);
         void RestoreFrom(IDictionary<string, string> serializableInfo);
     }

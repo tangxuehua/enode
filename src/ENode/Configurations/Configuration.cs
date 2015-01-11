@@ -17,6 +17,7 @@ using ENode.Exceptions;
 using ENode.Exceptions.Impl;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
+using ENode.Infrastructure.Impl.InMemory;
 using ENode.Infrastructure.Impl.SQL;
 using ENode.Messaging;
 using ENode.Messaging.Impl;
@@ -117,10 +118,10 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
             _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
-            _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
-            _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
+            _configuration.SetDefault<IMessageHandleRecordStore, InMemoryMessageHandleRecordStore>();
+            _configuration.SetDefault<IMessageHandleRecordCache, InMemoryMessageHandleRecordCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
-            _configuration.SetDefault<IEventDispatcher, DefaultEventDispatcher>();
+            _configuration.SetDefault<IDispatcher<IEvent>, DefaultEventDispatcher>();
             _configuration.SetDefault<IProcessor<IEvent>, DefaultEventProcessor>();
             _configuration.SetDefault<IProcessor<EventStream>, DefaultEventStreamProcessor>();
             _configuration.SetDefault<IProcessor<DomainEventStream>, DefaultDomainEventStreamProcessor>();
@@ -128,9 +129,11 @@ namespace ENode.Configurations
             _configuration.SetDefault<IPublisher<EventStream>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IPublisher<DomainEventStream>, NotImplementedEventPublisher>();
 
+            _configuration.SetDefault<IDispatcher<IPublishableException>, DefaultExceptionDispatcher>();
             _configuration.SetDefault<IProcessor<IPublishableException>, DefaultExceptionProcessor>();
             _configuration.SetDefault<IPublisher<IPublishableException>, NotImplementedExceptionPublisher>();
 
+            _configuration.SetDefault<IDispatcher<IMessage>, DefaultMessageDispatcher>();
             _configuration.SetDefault<IProcessor<IMessage>, DefaultMessageProcessor>();
             _configuration.SetDefault<IPublisher<IMessage>, NotImplementedMessagePublisher>();
 
@@ -197,12 +200,12 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventPublishInfoStore, SqlServerEventPublishInfoStore>();
             return this;
         }
-        /// <summary>Use the SqlServerEventHandleInfoStore as the IEventHandleInfoStore.
+        /// <summary>Use the SqlServerMessageHandleRecordStore as the IMessageHandleRecordStore.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventHandleInfoStore()
+        public ENodeConfiguration UseSqlServerMessageHandleRecordStore()
         {
-            _configuration.SetDefault<IEventHandleInfoStore, SqlServerEventHandleInfoStore>();
+            _configuration.SetDefault<IMessageHandleRecordStore, SqlServerMessageHandleRecordStore>();
             return this;
         }
 

@@ -54,7 +54,7 @@ namespace ENode.EQueue
             var publishableExceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var publishableExceptionType = _publishableExceptionTypeCodeProvider.GetType(publishableExceptionMessage.ExceptionTypeCode);
             var publishableException = FormatterServices.GetUninitializedObject(publishableExceptionType) as IPublishableException;
-            publishableException.Id = publishableExceptionMessage.UniqueId;
+            publishableException.UniqueId = publishableExceptionMessage.UniqueId;
             publishableException.RestoreFrom(publishableExceptionMessage.SerializableInfo);
             _publishableExceptionProcessor.Process(publishableException, new EQueueProcessContext<IPublishableException>(queueMessage, context, publishableException));
         }
