@@ -1,10 +1,11 @@
 ﻿using ECommon.Logging;
+using ENode.Configurations;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultDomainEventStreamProcessor : IProcessor<DomainEventStream>
+    public class DefaultDomainEventStreamProcessor : AbstractParallelProcessor<DomainEventStream>
     {
         #region Private Variables
 
@@ -14,13 +15,11 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        public string Name { get; set; }
-
         #region Constructors
 
         public DefaultDomainEventStreamProcessor(IEventPublishInfoStore eventPublishInfoStore, IEventDispatcher eventDispatcher, ILoggerFactory loggerFactory)
+            : base(ENodeConfiguration.Instance.Setting.DomainEventStreamProcessorParallelThreadCount, "ProcessDomainEventStream")
         {
-            Name = GetType().Name;
             _eventPublishInfoStore = eventPublishInfoStore;
             _eventDispatcher = eventDispatcher;
             _logger = loggerFactory.Create(GetType().FullName);
@@ -28,16 +27,36 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        public void Start()
+        protected override QueueMessage<DomainEventStream> CreateQueueMessage(DomainEventStream message, IProcessContext<DomainEventStream> processContext)
         {
-            _eventDispatcher.Start();
+            return new QueueMessage<DomainEventStream>(message.AggregateRootId, message, processContext);
         }
-        public void Process(DomainEventStream domainEventStream, IProcessContext<DomainEventStream> context)
+        protected override void HandleQueueMessage(QueueMessage<DomainEventStream> queueMessage)
         {
-            _eventDispatcher.EnqueueProcessingContext(new DomainEventStreamProcessingContext(this, domainEventStream, context));
-        }
+            var domainEventStream = queueMessage.Payload;
+            var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(Name, domainEventStream.AggregateRootId);
+            var success = true;
 
-        #region Private Methods
+            if (lastPublishedVersion + 1 == domainEventStream.Version)
+            {
+                success = _eventDispatcher.DispatchEvents(domainEventStream.Events);
+                if (success)
+                {
+                    UpdatePublishedVersion(domainEventStream);
+                }
+                else
+                {
+                    _logger.ErrorFormat("Process domain event stream failed, domainEventStream:{0}, retryTimes:{1}", domainEventStream, queueMessage.RetryTimes);
+                }
+            }
+            else if (lastPublishedVersion + 1 < domainEventStream.Version)
+            {
+                _logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", domainEventStream.AggregateRootId, lastPublishedVersion, domainEventStream.Version);
+                success = false;
+            }
+
+            OnMessageHandled(success, queueMessage);
+        }
 
         private void UpdatePublishedVersion(DomainEventStream stream)
         {
@@ -48,45 +67,6 @@ namespace ENode.Eventing.Impl
             else
             {
                 _eventPublishInfoStore.UpdatePublishedVersion(Name, stream.AggregateRootId, stream.Version);
-            }
-        }
-
-        #endregion
-
-        class DomainEventStreamProcessingContext : ProcessingContext<DomainEventStream>
-        {
-            private DefaultDomainEventStreamProcessor _processor;
-
-            public DomainEventStreamProcessingContext(DefaultDomainEventStreamProcessor processor, DomainEventStream domainEventStream, IProcessContext<DomainEventStream> eventProcessContext)
-                : base("ProcessDomainEventStream", domainEventStream, eventProcessContext)
-            {
-                _processor = processor;
-            }
-            public override object GetHashKey()
-            {
-                return Message.AggregateRootId;
-            }
-            public override bool Process()
-            {
-                var domainEventStream = Message;
-                var lastPublishedVersion = _processor._eventPublishInfoStore.GetEventPublishedVersion(_processor.Name, domainEventStream.AggregateRootId);
-
-                if (lastPublishedVersion + 1 == domainEventStream.Version)
-                {
-                    return _processor._eventDispatcher.DispatchEventsToHandlers(domainEventStream);
-                }
-                else if (lastPublishedVersion + 1 < domainEventStream.Version)
-                {
-                    _processor._logger.DebugFormat("Wait to publish, [aggregateRootId={0},lastPublishedVersion={1},currentVersion={2}]", domainEventStream.AggregateRootId, lastPublishedVersion, domainEventStream.Version);
-                    return false;
-                }
-
-                return true;
-            }
-            protected override void OnMessageProcessed()
-            {
-                _processor.UpdatePublishedVersion(Message);
-                base.OnMessageProcessed();
             }
         }
     }

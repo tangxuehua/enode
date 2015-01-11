@@ -1,26 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using ECommon.Extensions;
 
 namespace ENode.Infrastructure
 {
-    public class ParallelProcessor<T>
+    public class ParallelProcessor<T> where T : class
     {
+        private readonly TaskFactory _taskFactory;
         private readonly int _parallelThreadCount = 1;
-        private readonly IList<MailboxWorker<T>> _mailboxWorkerList;
+        private readonly IList<MailboxWorker<QueueMessage<T>>> _mailboxWorkerList;
         private bool _isStarted;
 
-        public ParallelProcessor(int parallelThreadCount, string actionName, Action<T> action)
+        public ParallelProcessor(int parallelThreadCount, string actionName, Action<QueueMessage<T>> action)
         {
             if (parallelThreadCount <= 0)
             {
-                throw new NotSupportedException("parallelThreadCount must > 0");
+                throw new ArgumentException("parallelThreadCount must > 0");
             }
 
+            _taskFactory = new TaskFactory();
             _parallelThreadCount = parallelThreadCount;
-            _mailboxWorkerList = new List<MailboxWorker<T>>();
+            _mailboxWorkerList = new List<MailboxWorker<QueueMessage<T>>>();
             for (var index = 0; index < _parallelThreadCount; index++)
             {
-                _mailboxWorkerList.Add(new MailboxWorker<T>(actionName, action));
+                _mailboxWorkerList.Add(new MailboxWorker<QueueMessage<T>>(actionName, action));
             }
         }
 
@@ -46,14 +50,18 @@ namespace ENode.Infrastructure
                 }
             }
         }
-        public void EnqueueMessage(object hashKey, T message)
+        public void EnqueueMessage(QueueMessage<T> queueMessage)
         {
-            var queueIndex = hashKey.GetHashCode() % _parallelThreadCount;
+            var queueIndex = queueMessage.HashKey.GetHashCode() % _parallelThreadCount;
             if (queueIndex < 0)
             {
                 queueIndex = Math.Abs(queueIndex);
             }
-            _mailboxWorkerList[queueIndex].EnqueueMessage(message);
+            _mailboxWorkerList[queueIndex].EnqueueMessage(queueMessage);
+        }
+        public void RetryMessage(QueueMessage<T> queueMessage)
+        {
+            _taskFactory.StartDelayedTask(1000, () => EnqueueMessage(queueMessage));
         }
     }
 }

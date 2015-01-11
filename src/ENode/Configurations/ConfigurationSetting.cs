@@ -10,6 +10,8 @@ namespace ENode.Configurations
         public int ImmediatelyRetryTimes { get; set; }
         public int RetryIntervalForIOException { get; set; }
         public int CommandProcessorParallelThreadCount { get; set; }
+        public int DomainEventStreamProcessorParallelThreadCount { get; set; }
+        public int EventStreamProcessorParallelThreadCount { get; set; }
         public int EventProcessorParallelThreadCount { get; set; }
         public int ExceptionProcessorParallelThreadCount { get; set; }
         public int MessageProcessorParallelThreadCount { get; set; }
@@ -30,7 +32,9 @@ namespace ENode.Configurations
             ImmediatelyRetryTimes = 3;
             RetryIntervalForIOException = 1000;
             CommandProcessorParallelThreadCount = Environment.ProcessorCount;
-            EventProcessorParallelThreadCount = Environment.ProcessorCount;
+            DomainEventStreamProcessorParallelThreadCount = Environment.ProcessorCount;
+            EventStreamProcessorParallelThreadCount = 1;
+            EventProcessorParallelThreadCount = 1;
             ExceptionProcessorParallelThreadCount = 1;
             MessageProcessorParallelThreadCount = 1;
             SqlServerBulkCopyBatchSize = 1000;

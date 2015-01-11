@@ -51,17 +51,17 @@ namespace ENode.EQueue
             exception.SerializeTo(serializableInfo);
             var exceptionMessage = new PublishableExceptionMessage
             {
-                UniqueId = exception.UniqueId,
+                UniqueId = exception.Id,
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
             };
             var data = _jsonSerializer.Serialize(exceptionMessage);
             var message = new Message(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
-            var result = _producer.Send(message, exception.UniqueId);
+            var result = _producer.Send(message, exception.Id);
             if (result.SendStatus != SendStatus.Success)
             {
                 throw new Exception(string.Format("Publish exception failed, exceptionId:{0}, exceptionType:{1}, exceptionData:{2}",
-                    exception.UniqueId,
+                    exception.Id,
                     exception.GetType().Name,
                     string.Join("|", serializableInfo.Select(x => x.Key + ":" + x.Value))));
             }

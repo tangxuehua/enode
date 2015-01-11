@@ -10,22 +10,18 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Messaging.Impl
 {
-    public class DefaultMessageProcessor : IProcessor<IMessage>
+    public class DefaultMessageProcessor : AbstractParallelProcessor<IMessage>
     {
         #region Private Variables
 
-        private readonly ParallelProcessor<IProcessingContext> _parallelProcessor;
         private readonly ITypeCodeProvider<IMessageHandler> _messageHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly IHandlerProvider<IMessageHandler> _messageHandlerProvider;
         private readonly ICommandService _commandService;
         private readonly IRepository _repository;
-        private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
 
         #endregion
-
-        public string Name { get; set; }
 
         #region Constructors
 
@@ -37,6 +33,7 @@ namespace ENode.Messaging.Impl
             IRepository repository,
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
+            : base(ENodeConfiguration.Instance.Setting.MessageProcessorParallelThreadCount, "ProcessMessage")
         {
             Name = GetType().Name;
             _messageHandlerTypeCodeProvider = messageHandlerTypeCodeProvider;
@@ -44,29 +41,39 @@ namespace ENode.Messaging.Impl
             _messageHandlerProvider = messageHandlerProvider;
             _commandService = commandService;
             _repository = repository;
-            _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
-            _parallelProcessor = new ParallelProcessor<IProcessingContext>(ENodeConfiguration.Instance.Setting.MessageProcessorParallelThreadCount, "ProcessMessage", ProcessMessage);
         }
 
         #endregion
 
-        public void Start()
+        protected override QueueMessage<IMessage> CreateQueueMessage(IMessage message, IProcessContext<IMessage> processContext)
         {
-            _parallelProcessor.Start();
+            var hashKey = message is IVersionedMessage ? ((IVersionedMessage)message).SourceId : message.Id;
+            return new QueueMessage<IMessage>(hashKey, message, processContext);
         }
-        public void Process(IMessage message, IProcessContext<IMessage> context)
+        protected override void HandleQueueMessage(QueueMessage<IMessage> queueMessage)
         {
-            var processingContext = new MessageProcessingContext(this, message, context);
-            _parallelProcessor.EnqueueMessage(processingContext.GetHashKey(), processingContext);
+            var success = true;
+            var message = queueMessage.Payload;
+
+            foreach (var messageHandler in _messageHandlerProvider.GetHandlers(message.GetType()))
+            {
+                if (!DispatchMessageToHandler(message, messageHandler))
+                {
+                    success = false;
+                }
+            }
+
+            if (!success)
+            {
+                _logger.ErrorFormat("Process message failed, messageId:{0}, messageType:{1}, retryTimes:{2}", message.Id, message.GetType().Name, queueMessage.RetryTimes);
+            }
+
+            OnMessageHandled(success, queueMessage);
         }
 
         #region Private Methods
 
-        private void ProcessMessage(IProcessingContext context)
-        {
-            _actionExecutionService.TryAction(context.Name, context.Process, 3, new ActionInfo(context.Name + "Callback", context.Callback, null, null));
-        }
         private bool DispatchMessageToHandler(IMessage message, IMessageHandler messageHandler)
         {
             var handlerType = messageHandler.GetInnerHandler().GetType();
@@ -112,35 +119,5 @@ namespace ENode.Messaging.Impl
         }
 
         #endregion
-
-        class MessageProcessingContext : ProcessingContext<IMessage>
-        {
-            private DefaultMessageProcessor _processor;
-
-            public MessageProcessingContext(DefaultMessageProcessor processor, IMessage message, IProcessContext<IMessage> processContext)
-                : base("ProcessMessage", message, processContext)
-            {
-                _processor = processor;
-            }
-            public override object GetHashKey()
-            {
-                return Message is IVersionedMessage ? ((IVersionedMessage)Message).SourceId : Message.Id;
-            }
-            public override bool Process()
-            {
-                var message = Message;
-                var success = true;
-
-                foreach (var messageHandler in _processor._messageHandlerProvider.GetHandlers(message.GetType()))
-                {
-                    if (!_processor.DispatchMessageToHandler(message, messageHandler))
-                    {
-                        success = false;
-                    }
-                }
-
-                return success;
-            }
-        }
     }
 }

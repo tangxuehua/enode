@@ -1,6 +1,6 @@
 ﻿namespace ENode.Infrastructure
 {
-    /// <summary>Represents a data processor.
+    /// <summary>Represents a message processor.
     /// </summary>
     public interface IProcessor<T> where T : class
     {
@@ -10,10 +10,10 @@
         /// <summary>Start the processor.
         /// </summary>
         void Start();
-        /// <summary>Process the given data.
+        /// <summary>Process the given message.
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="context"></param>
-        void Process(T data, IProcessContext<T> context);
+        /// <param name="message"></param>
+        /// <param name="processContext"></param>
+        void Process(T message, IProcessContext<T> processContext);
     }
 }

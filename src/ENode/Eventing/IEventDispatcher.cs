@@ -1,12 +1,10 @@
-﻿using ENode.Infrastructure;
+﻿using System.Collections.Generic;
 
 namespace ENode.Eventing
 {
     public interface IEventDispatcher
     {
-        void Start();
-        void EnqueueProcessingContext(IProcessingContext processingContext);
-        bool DispatchEventsToHandlers(EventStream eventStream);
-        bool DispatchEventToHandlers(IEvent evnt);
+        bool DispatchEvents(IEnumerable<IEvent> evnts);
+        bool DispatchEvent(IEvent evnt);
     }
 }

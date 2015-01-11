@@ -11,7 +11,6 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
-using EQueue.Utils;
 using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
 
 namespace ENode.EQueue

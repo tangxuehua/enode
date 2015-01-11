@@ -1,54 +1,45 @@
-﻿using ENode.Infrastructure;
+﻿using ECommon.Logging;
+using ENode.Configurations;
+using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventStreamProcessor : IProcessor<EventStream>
+    public class DefaultEventStreamProcessor : AbstractParallelProcessor<EventStream>
     {
         #region Private Variables
 
         private readonly IEventDispatcher _eventDispatcher;
+        private readonly ILogger _logger;
 
         #endregion
-
-        public string Name { get; set; }
 
         #region Constructors
 
-        public DefaultEventStreamProcessor(IEventDispatcher eventDispatcher)
+        public DefaultEventStreamProcessor(IEventDispatcher eventDispatcher, ILoggerFactory loggerFactory)
+            : base(ENodeConfiguration.Instance.Setting.EventStreamProcessorParallelThreadCount, "ProcessEventStream")
         {
-            Name = GetType().Name;
             _eventDispatcher = eventDispatcher;
+            _logger = loggerFactory.Create(GetType().FullName);
         }
 
         #endregion
 
-        public void Start()
+        protected override QueueMessage<EventStream> CreateQueueMessage(EventStream message, IProcessContext<EventStream> processContext)
         {
-            _eventDispatcher.Start();
+            return new QueueMessage<EventStream>(message.CommandId, message, processContext);
         }
-        public void Process(EventStream eventStream, IProcessContext<EventStream> context)
+        protected override void HandleQueueMessage(QueueMessage<EventStream> queueMessage)
         {
-            _eventDispatcher.EnqueueProcessingContext(new EventStreamProcessingContext(this, eventStream, context));
-        }
+            var eventStream = queueMessage.Payload;
+            var success = _eventDispatcher.DispatchEvents(eventStream.Events);
 
-        class EventStreamProcessingContext : ProcessingContext<EventStream>
-        {
-            private DefaultEventStreamProcessor _processor;
+            if (!success)
+            {
+                _logger.ErrorFormat("Process event stream failed, eventStream:{0}, retryTimes:{1}", eventStream, queueMessage.RetryTimes);
+            }
 
-            public EventStreamProcessingContext(DefaultEventStreamProcessor processor, EventStream eventStream, IProcessContext<EventStream> eventProcessContext)
-                : base("ProcessEventStream", eventStream, eventProcessContext)
-            {
-                _processor = processor;
-            }
-            public override object GetHashKey()
-            {
-                return Message.CommandId;
-            }
-            public override bool Process()
-            {
-                return _processor._eventDispatcher.DispatchEventsToHandlers(Message);
-            }
+            OnMessageHandled(success, queueMessage);
         }
     }
 }

@@ -98,15 +98,15 @@
     <Compile Include="Exceptions\Impl\NotImplementedExceptionPublisher.cs" />
     <Compile Include="Infrastructure\IHandlingContext.cs" />
     <Compile Include="Infrastructure\IHandlerProvider.cs" />
+    <Compile Include="Infrastructure\Impl\AbstractParallelProcessor.cs" />
     <Compile Include="Infrastructure\IOHelper.cs" />
     <Compile Include="Infrastructure\IProxyHandler.cs" />
     <Compile Include="Infrastructure\Impl\DefaultHandlingContext.cs" />
-    <Compile Include="Infrastructure\Impl\ProcessingContext.cs" />
     <Compile Include="Infrastructure\IOException.cs" />
     <Compile Include="Infrastructure\Impl\BaseHandlerProvider.cs" />
-    <Compile Include="Infrastructure\IProcessingContext.cs" />
     <Compile Include="Infrastructure\MailboxWorker.cs" />
     <Compile Include="Infrastructure\ParallelProcessor.cs" />
+    <Compile Include="Infrastructure\QueueMessage.cs" />
     <Compile Include="Messaging\IMessageHandler.cs" />
     <Compile Include="Infrastructure\IProcessContext.cs" />
     <Compile Include="Infrastructure\IProcessor.cs" />

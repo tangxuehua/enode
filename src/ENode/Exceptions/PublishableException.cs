@@ -5,13 +5,13 @@ namespace ENode.Exceptions
 {
     public class PublishableException : Exception
     {
-        public string UniqueId { get; set; }
+        public string Id { get; set; }
 
         /// <summary>Default constructor.
         /// </summary>
         public PublishableException()
         {
-            UniqueId = ObjectId.GenerateNewStringId();
+            Id = ObjectId.GenerateNewStringId();
         }
     }
 }

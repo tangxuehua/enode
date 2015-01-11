@@ -6,7 +6,7 @@ namespace ENode.Infrastructure.Impl
 {
     public class DefaultHandlingContext : IHandlingContext
     {
-        private readonly List<ICommand> _commands = new List<ICommand>();
+        private readonly IList<ICommand> _commands = new List<ICommand>();
         private readonly IRepository _repository;
 
         public DefaultHandlingContext(IRepository repository)

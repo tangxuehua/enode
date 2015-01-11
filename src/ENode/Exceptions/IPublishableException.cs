@@ -6,7 +6,7 @@ namespace ENode.Exceptions
     /// </summary>
     public interface IPublishableException
     {
-        string UniqueId { get; set; }
+        string Id { get; set; }
         void SerializeTo(IDictionary<string, string> serializableInfo);
         void RestoreFrom(IDictionary<string, string> serializableInfo);
     }

@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ECommon.Logging;
 using ECommon.Retring;
 using ENode.Commanding;
-using ENode.Configurations;
 using ENode.Domain;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
@@ -14,7 +14,6 @@ namespace ENode.Eventing.Impl
     {
         #region Private Variables
 
-        private readonly ParallelProcessor<IProcessingContext> _parallelProcessor;
         private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
         private readonly ITypeCodeProvider<IEventHandler> _eventHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
@@ -42,7 +41,6 @@ namespace ENode.Eventing.Impl
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
         {
-            _parallelProcessor = new ParallelProcessor<IProcessingContext>(ENodeConfiguration.Instance.Setting.EventProcessorParallelThreadCount, "ProcessEvents", ProcessEvents);
             _eventTypeCodeProvider = eventTypeCodeProvider;
             _eventHandlerTypeCodeProvider = eventHandlerTypeCodeProvider;
             _commandTypeCodeProvider = commandTypeCodeProvider;
@@ -59,18 +57,10 @@ namespace ENode.Eventing.Impl
 
         #region Public Methods
 
-        public void Start()
-        {
-            _parallelProcessor.Start();
-        }
-        public void EnqueueProcessingContext(IProcessingContext processingContext)
-        {
-            _parallelProcessor.EnqueueMessage(processingContext.GetHashKey(), processingContext);
-        }
-        public bool DispatchEventsToHandlers(EventStream eventStream)
+        public bool DispatchEvents(IEnumerable<IEvent> evnts)
         {
             var success = true;
-            foreach (var evnt in eventStream.Events)
+            foreach (var evnt in evnts)
             {
                 if (!DispatchEventToHandlers(evnt, false))
                 {
@@ -79,14 +69,14 @@ namespace ENode.Eventing.Impl
             }
             if (success)
             {
-                foreach (var evnt in eventStream.Events)
+                foreach (var evnt in evnts)
                 {
                     _eventHandleInfoCache.RemoveEventHandleInfo(evnt.Id);
                 }
             }
             return success;
         }
-        public bool DispatchEventToHandlers(IEvent evnt)
+        public bool DispatchEvent(IEvent evnt)
         {
             return DispatchEventToHandlers(evnt, true);
         }
@@ -95,10 +85,6 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
-        private void ProcessEvents(IProcessingContext context)
-        {
-            _actionExecutionService.TryAction(context.Name, context.Process, 3, new ActionInfo(context.Name + "Callback", context.Callback, null, null));
-        }
         private bool DispatchEventToHandlers(IEvent evnt, bool autoRemoveEventHandleCache)
         {
             var success = true;

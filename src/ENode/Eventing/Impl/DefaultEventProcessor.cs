@@ -1,54 +1,46 @@
-﻿using ENode.Infrastructure;
+﻿using ECommon.Logging;
+using ENode.Configurations;
+using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventProcessor : IProcessor<IEvent>
+    public class DefaultEventProcessor : AbstractParallelProcessor<IEvent>
     {
         #region Private Variables
 
         private readonly IEventDispatcher _eventDispatcher;
+        private readonly ILogger _logger;
 
         #endregion
-
-        public string Name { get; set; }
 
         #region Constructors
 
-        public DefaultEventProcessor(IEventDispatcher eventDispatcher)
+        public DefaultEventProcessor(IEventDispatcher eventDispatcher, ILoggerFactory loggerFactory)
+            : base(ENodeConfiguration.Instance.Setting.EventProcessorParallelThreadCount, "ProcessEvent")
         {
-            Name = GetType().Name;
             _eventDispatcher = eventDispatcher;
+            _logger = loggerFactory.Create(GetType().FullName);
         }
 
         #endregion
 
-        public void Start()
+        protected override QueueMessage<IEvent> CreateQueueMessage(IEvent message, IProcessContext<IEvent> processContext)
         {
-            _eventDispatcher.Start();
+            var hashKey = message is IDomainEvent ? ((IDomainEvent)message).AggregateRootId : message.Id; ;
+            return new QueueMessage<IEvent>(hashKey, message, processContext);
         }
-        public void Process(IEvent evnt, IProcessContext<IEvent> context)
+        protected override void HandleQueueMessage(QueueMessage<IEvent> queueMessage)
         {
-            _eventDispatcher.EnqueueProcessingContext(new EventProcessingContext(this, evnt, context));
-        }
+            var evnt = queueMessage.Payload;
+            var success = _eventDispatcher.DispatchEvent(evnt);
 
-        class EventProcessingContext : ProcessingContext<IEvent>
-        {
-            private DefaultEventProcessor _processor;
+            if (!success)
+            {
+                _logger.ErrorFormat("Process event failed, eventId:{0}, eventType:{1}, retryTimes:{2}", evnt.Id, evnt.GetType().Name, queueMessage.RetryTimes);
+            }
 
-            public EventProcessingContext(DefaultEventProcessor processor, IEvent evnt, IProcessContext<IEvent> eventProcessContext)
-                : base("ProcessEvent", evnt, eventProcessContext)
-            {
-                _processor = processor;
-            }
-            public override object GetHashKey()
-            {
-                return Message is IDomainEvent ? ((IDomainEvent)Message).AggregateRootId : Message.Id;
-            }
-            public override bool Process()
-            {
-                return _processor._eventDispatcher.DispatchEventToHandlers(Message);
-            }
+            OnMessageHandled(success, queueMessage);
         }
     }
 }

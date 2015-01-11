@@ -10,22 +10,18 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Exceptions.Impl
 {
-    public class DefaultExceptionProcessor : IProcessor<IPublishableException>
+    public class DefaultExceptionProcessor : AbstractParallelProcessor<IPublishableException>
     {
         #region Private Variables
 
-        private readonly ParallelProcessor<IProcessingContext> _parallelProcessor;
         private readonly ITypeCodeProvider<IExceptionHandler> _exceptionHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly IHandlerProvider<IExceptionHandler> _exceptionHandlerProvider;
         private readonly ICommandService _commandService;
         private readonly IRepository _repository;
-        private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
 
         #endregion
-
-        public string Name { get; set; }
 
         #region Constructors
 
@@ -37,6 +33,7 @@ namespace ENode.Exceptions.Impl
             IRepository repository,
             IActionExecutionService actionExecutionService,
             ILoggerFactory loggerFactory)
+            : base(ENodeConfiguration.Instance.Setting.ExceptionProcessorParallelThreadCount, "ProcessPublishableException")
         {
             Name = GetType().Name;
             _exceptionHandlerTypeCodeProvider = exceptionHandlerTypeCodeProvider;
@@ -44,29 +41,38 @@ namespace ENode.Exceptions.Impl
             _exceptionHandlerProvider = exceptionHandlerProvider;
             _commandService = commandService;
             _repository = repository;
-            _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
-            _parallelProcessor = new ParallelProcessor<IProcessingContext>(ENodeConfiguration.Instance.Setting.ExceptionProcessorParallelThreadCount, "ProcessException", ProcessException);
         }
 
         #endregion
 
-        public void Start()
+        protected override QueueMessage<IPublishableException> CreateQueueMessage(IPublishableException message, IProcessContext<IPublishableException> processContext)
         {
-            _parallelProcessor.Start();
+            return new QueueMessage<IPublishableException>(message.Id, message, processContext);
         }
-        public void Process(IPublishableException publishableException, IProcessContext<IPublishableException> context)
+        protected override void HandleQueueMessage(QueueMessage<IPublishableException> queueMessage)
         {
-            var processingContext = new PublishableExceptionProcessingContext(this, publishableException, context);
-            _parallelProcessor.EnqueueMessage(processingContext.GetHashKey(), processingContext);
+            var success = true;
+            var publishableException = queueMessage.Payload;
+
+            foreach (var exceptionHandler in _exceptionHandlerProvider.GetHandlers(publishableException.GetType()))
+            {
+                if (!DispatchExceptionToHandler(publishableException, exceptionHandler))
+                {
+                    success = false;
+                }
+            }
+
+            if (!success)
+            {
+                _logger.ErrorFormat("Process publishable exception failed, exceptionId:{0}, exceptionType:{1}, retryTimes:{2}", publishableException.Id, publishableException.GetType().Name, queueMessage.RetryTimes);
+            }
+
+            OnMessageHandled(success, queueMessage);
         }
 
         #region Private Methods
 
-        private void ProcessException(IProcessingContext context)
-        {
-            _actionExecutionService.TryAction(context.Name, context.Process, 3, new ActionInfo(context.Name + "Callback", context.Callback, null, null));
-        }
         private bool DispatchExceptionToHandler(IPublishableException exception, IExceptionHandler exceptionHandler)
         {
             var handlerType = exceptionHandler.GetInnerHandler().GetType();
@@ -82,17 +88,17 @@ namespace ENode.Exceptions.Impl
                     foreach (var command in commands)
                     {
                         command.Id = BuildCommandId(command, exception, handlerTypeCode);
-                        _commandService.Send(command, exception.UniqueId, "Exception");
+                        _commandService.Send(command, exception.Id, "Exception");
                         _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, exceptionHandlerType:{2}, exceptionType:{3}, exceptionId:{4}",
                             command.GetType().Name,
                             command.Id,
                             handlerType.Name,
                             exception.GetType().Name,
-                            exception.UniqueId);
+                            exception.Id);
                     }
                 }
                 _logger.DebugFormat("Handle exception success. exceptionId:{0}, exceptionType:{1}, handlerType:{2}",
-                    exception.UniqueId,
+                    exception.Id,
                     exception.GetType().Name,
                     handlerType.Name);
                 return true;
@@ -108,39 +114,9 @@ namespace ENode.Exceptions.Impl
             var key = command.GetKey();
             var commandKey = key == null ? string.Empty : key.ToString();
             var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            return string.Format("{0}{1}{2}{3}", exception.UniqueId, commandKey, exceptionHandlerTypeCode, commandTypeCode);
+            return string.Format("{0}{1}{2}{3}", exception.Id, commandKey, exceptionHandlerTypeCode, commandTypeCode);
         }
 
         #endregion
-
-        class PublishableExceptionProcessingContext : ProcessingContext<IPublishableException>
-        {
-            private DefaultExceptionProcessor _processor;
-
-            public PublishableExceptionProcessingContext(DefaultExceptionProcessor processor, IPublishableException publishableException, IProcessContext<IPublishableException> exceptionProcessContext)
-                : base("ProcessPublishableException", publishableException, exceptionProcessContext)
-            {
-                _processor = processor;
-            }
-            public override object GetHashKey()
-            {
-                return Message.UniqueId;
-            }
-            public override bool Process()
-            {
-                var publishableException = Message;
-                var success = true;
-
-                foreach (var exceptionHandler in _processor._exceptionHandlerProvider.GetHandlers(publishableException.GetType()))
-                {
-                    if (!_processor.DispatchExceptionToHandler(publishableException, exceptionHandler))
-                    {
-                        success = false;
-                    }
-                }
-
-                return success;
-            }
-        }
     }
 }
