@@ -8,23 +8,20 @@ namespace ENode.Commanding
 {
     public class CommandMailbox
     {
-        private readonly string _aggregateRootId;
         private readonly ConcurrentQueue<ProcessingCommand> _commandQueue;
         private readonly ICommandDispatcher _dispatcher;
         private readonly ICommandExecutor _commandExecutor;
         private readonly ILogger _logger;
         private int _isRunning;
 
-        public CommandMailbox(string aggregateRootId, ICommandDispatcher dispatcher, ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
+        public CommandMailbox(ICommandDispatcher dispatcher, ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
         {
-            _aggregateRootId = aggregateRootId;
             _commandQueue = new ConcurrentQueue<ProcessingCommand>();
             _dispatcher = dispatcher;
             _commandExecutor = commandExecutor;
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        public string AggregateRootId { get { return _aggregateRootId; } }
         public void EnqueueCommand(ProcessingCommand command)
         {
             command.SetMailbox(this);
@@ -43,7 +40,7 @@ namespace ENode.Commanding
             _logger.DebugFormat("Command execution completed. cmdType:{0}, cmdId:{1}, aggId:{2}",
                 processingCommand.Command.GetType().Name,
                 processingCommand.Command.Id,
-                _aggregateRootId);
+                processingCommand.AggregateRootId);
             MarkAsNotRunning();
             RegisterForExecution();
         }
@@ -61,7 +58,7 @@ namespace ENode.Commanding
                     _logger.DebugFormat("Start to execute command. cmdType:{0}, cmdId:{1}, aggId:{2}",
                         currentCommand.Command.GetType().Name,
                         currentCommand.Command.Id,
-                        _aggregateRootId);
+                        currentCommand.AggregateRootId);
                     ExecuteCommand(currentCommand);
                 }
             }

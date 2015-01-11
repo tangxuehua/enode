@@ -50,7 +50,10 @@ namespace ENode.EQueue
         public EventConsumer Start()
         {
             _consumer.SetMessageHandler(this).Start();
-            _domainEventHandledMessageSender.Start();
+            if (_sendEventHandledMessage)
+            {
+                _domainEventHandledMessageSender.Start();
+            }
             return this;
         }
         public EventConsumer Subscribe(string topic)
@@ -61,7 +64,10 @@ namespace ENode.EQueue
         public EventConsumer Shutdown()
         {
             _consumer.Shutdown();
-            _domainEventHandledMessageSender.Shutdown();
+            if (_sendEventHandledMessage)
+            {
+                _domainEventHandledMessageSender.Shutdown();
+            }
             return this;
         }
 
@@ -77,13 +83,13 @@ namespace ENode.EQueue
             {
                 var eventStreamMessage = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), typeof(EventStreamMessage)) as EventStreamMessage;
                 var eventStream = ConvertToEventStream(eventStreamMessage);
-                _eventStreamProcessor.Process(eventStream, new EventStreamProcessContext(queueMessage, context, eventStream));
+                _eventStreamProcessor.Process(eventStream, new EQueueProcessContext<EventStream>(queueMessage, context, eventStream));
             }
             else if (queueMessage.Code == (int)EQueueMessageTypeCode.EventMessage)
             {
                 var eventMessage = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), typeof(EventMessage)) as EventMessage;
                 var evnt = ConvertToEvent(eventMessage);
-                _eventProcessor.Process(evnt, new EventProcessContext(queueMessage, context, evnt));
+                _eventProcessor.Process(evnt, new EQueueProcessContext<IEvent>(queueMessage, context, evnt));
             }
             else
             {
@@ -106,7 +112,10 @@ namespace ENode.EQueue
         }
         private EventStream ConvertToEventStream(EventStreamMessage message)
         {
-            return new EventStream(message.CommandId, _eventSerializer.Deserialize<IEvent>(message.Events), message.Items);
+            return new EventStream(
+                message.CommandId,
+                _eventSerializer.Deserialize<IEvent>(message.Events),
+                message.Items);
         }
         private IEvent ConvertToEvent(EventMessage message)
         {
@@ -114,20 +123,6 @@ namespace ENode.EQueue
             return _jsonSerializer.Deserialize(message.EventData, eventType) as IEvent;
         }
 
-        class EventProcessContext : EQueueProcessContext<IEvent>
-        {
-            public EventProcessContext(QueueMessage queueMessage, IMessageContext messageContext, IEvent evnt)
-                : base(queueMessage, messageContext, evnt)
-            {
-            }
-        }
-        class EventStreamProcessContext : EQueueProcessContext<EventStream>
-        {
-            public EventStreamProcessContext(QueueMessage queueMessage, IMessageContext messageContext, EventStream eventStream)
-                : base(queueMessage, messageContext, eventStream)
-            {
-            }
-        }
         class DomainEventStreamProcessContext : EQueueProcessContext<DomainEventStream>
         {
             private readonly EventConsumer _eventConsumer;

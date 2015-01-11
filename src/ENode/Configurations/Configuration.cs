@@ -120,9 +120,10 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventHandleInfoStore, InMemoryEventHandleInfoStore>();
             _configuration.SetDefault<IEventHandleInfoCache, InMemoryEventHandleInfoCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
+            _configuration.SetDefault<IEventDispatcher, DefaultEventDispatcher>();
             _configuration.SetDefault<IProcessor<IEvent>, DefaultEventProcessor>();
-            _configuration.SetDefault<IProcessor<EventStream>, DefaultEventProcessor>();
-            _configuration.SetDefault<IProcessor<DomainEventStream>, DefaultEventProcessor>();
+            _configuration.SetDefault<IProcessor<EventStream>, DefaultEventStreamProcessor>();
+            _configuration.SetDefault<IProcessor<DomainEventStream>, DefaultDomainEventStreamProcessor>();
             _configuration.SetDefault<IPublisher<IEvent>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IPublisher<EventStream>, NotImplementedEventPublisher>();
             _configuration.SetDefault<IPublisher<DomainEventStream>, NotImplementedEventPublisher>();

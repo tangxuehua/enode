@@ -26,18 +26,24 @@ namespace ENode.Infrastructure
 
         public void Start()
         {
-            if (_isStarted) return;
-            foreach (var mailboxWorker in _mailboxWorkerList)
+            lock (this)
             {
-                mailboxWorker.Start();
+                if (_isStarted) return;
+                foreach (var mailboxWorker in _mailboxWorkerList)
+                {
+                    mailboxWorker.Start();
+                }
+                _isStarted = true;
             }
-            _isStarted = true;
         }
         public void Stop()
         {
-            foreach (var mailboxWorker in _mailboxWorkerList)
+            lock (this)
             {
-                mailboxWorker.Stop();
+                foreach (var mailboxWorker in _mailboxWorkerList)
+                {
+                    mailboxWorker.Stop();
+                }
             }
         }
         public void EnqueueMessage(object hashKey, T message)

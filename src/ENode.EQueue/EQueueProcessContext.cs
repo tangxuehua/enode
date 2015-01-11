@@ -4,7 +4,7 @@ using EQueue.Protocols;
 
 namespace ENode.EQueue
 {
-    public abstract class EQueueProcessContext<TMessage> : IProcessContext<TMessage> where TMessage : class
+    public class EQueueProcessContext<TMessage> : IProcessContext<TMessage> where TMessage : class
     {
         protected readonly QueueMessage _queueMessage;
         protected readonly IMessageContext _messageContext;

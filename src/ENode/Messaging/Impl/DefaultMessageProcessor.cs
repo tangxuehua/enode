@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using ECommon.Logging;
 using ECommon.Retring;
-using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
@@ -17,7 +14,7 @@ namespace ENode.Messaging.Impl
     {
         #region Private Variables
 
-        private int _workerCount = 1;
+        private readonly ParallelProcessor<IProcessingContext> _parallelProcessor;
         private readonly ITypeCodeProvider<IMessageHandler> _messageHandlerTypeCodeProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly IHandlerProvider<IMessageHandler> _messageHandlerProvider;
@@ -25,9 +22,6 @@ namespace ENode.Messaging.Impl
         private readonly IRepository _repository;
         private readonly IActionExecutionService _actionExecutionService;
         private readonly ILogger _logger;
-        private readonly IList<BlockingCollection<IProcessingContext>> _queueList;
-        private readonly IList<Worker> _workerList;
-        private bool _isStarted;
 
         #endregion
 
@@ -52,49 +46,23 @@ namespace ENode.Messaging.Impl
             _repository = repository;
             _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
-            _queueList = new List<BlockingCollection<IProcessingContext>>();
-            _workerCount = ENodeConfiguration.Instance.Setting.MessageProcessorParallelThreadCount;
-            _workerList = new List<Worker>();
-            for (var index = 0; index < _workerCount; index++)
-            {
-                _queueList.Add(new BlockingCollection<IProcessingContext>());
-            }
+            _parallelProcessor = new ParallelProcessor<IProcessingContext>(ENodeConfiguration.Instance.Setting.MessageProcessorParallelThreadCount, "ProcessMessage", ProcessMessage);
         }
 
         #endregion
 
         public void Start()
         {
-            if (_isStarted) return;
-
-            for (var index = 0; index < _workerCount; index++)
-            {
-                var queue = _queueList[index];
-                var worker = new Worker("ProcessMessage", () =>
-                {
-                    ProcessMessage(queue.Take());
-                });
-                _workerList.Add(worker);
-                worker.Start();
-            }
-            _isStarted = true;
+            _parallelProcessor.Start();
         }
         public void Process(IMessage message, IProcessContext<IMessage> context)
         {
-            QueueProcessingContext(message is IVersionedMessage ? ((IVersionedMessage)message).SourceId : message.Id, new MessageProcessingContext(this, message, context));
+            var processingContext = new MessageProcessingContext(this, message, context);
+            _parallelProcessor.EnqueueMessage(processingContext.GetHashKey(), processingContext);
         }
 
         #region Private Methods
 
-        private void QueueProcessingContext(object hashKey, IProcessingContext processingContext)
-        {
-            var queueIndex = hashKey.GetHashCode() % _workerCount;
-            if (queueIndex < 0)
-            {
-                queueIndex = Math.Abs(queueIndex);
-            }
-            _queueList[queueIndex].Add(processingContext);
-        }
         private void ProcessMessage(IProcessingContext context)
         {
             _actionExecutionService.TryAction(context.Name, context.Process, 3, new ActionInfo(context.Name + "Callback", context.Callback, null, null));
@@ -153,6 +121,10 @@ namespace ENode.Messaging.Impl
                 : base("ProcessMessage", message, processContext)
             {
                 _processor = processor;
+            }
+            public override object GetHashKey()
+            {
+                return Message is IVersionedMessage ? ((IVersionedMessage)Message).SourceId : Message.Id;
             }
             public override bool Process()
             {

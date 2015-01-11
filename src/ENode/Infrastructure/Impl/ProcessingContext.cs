@@ -13,6 +13,7 @@
             MessageProcessContext = messageProcessContext;
         }
 
+        public abstract object GetHashKey();
         public abstract bool Process();
         public bool Callback(object obj)
         {

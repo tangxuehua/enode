@@ -52,15 +52,7 @@ namespace ENode.EQueue
         {
             var messageType = _messageTypeCodeProvider.GetType(queueMessage.Code);
             var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), messageType) as IMessage;
-            _messageProcessor.Process(message, new MessageProcessContext(queueMessage, context, message));
-        }
-
-        class MessageProcessContext : EQueueProcessContext<IMessage>
-        {
-            public MessageProcessContext(QueueMessage queueMessage, IMessageContext messageContext, IMessage message)
-                : base(queueMessage, messageContext, message)
-            {
-            }
+            _messageProcessor.Process(message, new EQueueProcessContext<IMessage>(queueMessage, context, message));
         }
     }
 }

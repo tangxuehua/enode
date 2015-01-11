@@ -77,8 +77,12 @@
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="Eventing\Event.cs" />
     <Compile Include="Eventing\EventStream.cs" />
+    <Compile Include="Eventing\IEventDispatcher.cs" />
     <Compile Include="Eventing\IEventSerializer.cs" />
     <Compile Include="Eventing\IEvent.cs" />
+    <Compile Include="Eventing\Impl\DefaultDomainEventStreamProcessor.cs" />
+    <Compile Include="Eventing\Impl\DefaultEventDispatcher.cs" />
+    <Compile Include="Eventing\Impl\DefaultEventStreamProcessor.cs" />
     <Compile Include="Eventing\Impl\DefaultEventSerializer.cs" />
     <Compile Include="Eventing\Impl\DefaultEventProcessor.cs" />
     <Compile Include="Eventing\EventAppendResult.cs" />

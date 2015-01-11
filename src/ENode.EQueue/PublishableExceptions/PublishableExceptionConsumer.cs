@@ -1,7 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using System.Text;
 using ECommon.Components;
-using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Exceptions;
 using ENode.Infrastructure;
@@ -19,7 +18,6 @@ namespace ENode.EQueue
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider<IPublishableException> _publishableExceptionTypeCodeProvider;
         private readonly IProcessor<IPublishableException> _publishableExceptionProcessor;
-        private readonly ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
 
@@ -33,7 +31,6 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _publishableExceptionProcessor = ObjectContainer.Resolve<IProcessor<IPublishableException>>();
             _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         public PublishableExceptionConsumer Start()
@@ -59,15 +56,7 @@ namespace ENode.EQueue
             var publishableException = FormatterServices.GetUninitializedObject(publishableExceptionType) as IPublishableException;
             publishableException.UniqueId = publishableExceptionMessage.UniqueId;
             publishableException.RestoreFrom(publishableExceptionMessage.SerializableInfo);
-            _publishableExceptionProcessor.Process(publishableException, new PublishableExceptionProcessContext(queueMessage, context, publishableException));
-        }
-
-        class PublishableExceptionProcessContext : EQueueProcessContext<IPublishableException>
-        {
-            public PublishableExceptionProcessContext(QueueMessage queueMessage, IMessageContext messageContext, IPublishableException publishableException)
-                : base(queueMessage, messageContext, publishableException)
-            {
-            }
+            _publishableExceptionProcessor.Process(publishableException, new EQueueProcessContext<IPublishableException>(queueMessage, context, publishableException));
         }
     }
 }
