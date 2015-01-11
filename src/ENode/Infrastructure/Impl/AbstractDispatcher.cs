@@ -114,7 +114,7 @@ namespace ENode.Infrastructure.Impl
                     foreach (var command in commands)
                     {
                         command.Id = BuildCommandId(command, message, handlerTypeCode);
-                        _commandService.Send(command, message.Id, "Event");
+                        _commandService.Send(command, message.Id, handleRecordType.ToString());
                         _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, handlerType:{2}, messageType:{3}, messageId:{4}",
                             command.GetType().Name,
                             command.Id,
