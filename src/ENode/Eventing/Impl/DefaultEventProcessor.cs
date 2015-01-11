@@ -27,7 +27,7 @@ namespace ENode.Eventing.Impl
 
         protected override QueueMessage<IEvent> CreateQueueMessage(IEvent message, IProcessContext<IEvent> processContext)
         {
-            var hashKey = message is IDomainEvent ? ((IDomainEvent)message).AggregateRootId : message.Id; ;
+            var hashKey = message is IDomainEvent ? ((IDomainEvent)message).AggregateRootId : message.Id;
             return new QueueMessage<IEvent>(hashKey, message, processContext);
         }
         protected override void HandleQueueMessage(QueueMessage<IEvent> queueMessage)
