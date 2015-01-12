@@ -50,12 +50,12 @@
     <Compile Include="Commanding\HandledAggregateCommand.cs" />
     <Compile Include="Commanding\CommandAddResult.cs" />
     <Compile Include="Commanding\IAggregateCommand.cs" />
-    <Compile Include="Commanding\ICommandDispatcher.cs" />
+    <Compile Include="Commanding\ICommandScheduler.cs" />
     <Compile Include="Commanding\ICommandExecutor.cs" />
     <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\ICommandStore.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandDispatcher.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandScheduler.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
     <Compile Include="Commanding\CommandAggregateRootIdMissingException.cs" />
     <Compile Include="Commanding\Impl\SqlServerCommandStore.cs" />

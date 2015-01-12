@@ -44,14 +44,6 @@ namespace NoteSample
 
         static void InitializeENodeFramework()
         {
-            var connectionString = @"Server=(local);Initial Catalog=ENode;uid=sa;pwd=howareyou;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100";
-            var setting = new ConfigurationSetting
-            {
-                SqlServerDefaultConnectionString = connectionString,
-                EnableGroupCommitEvent = true,
-                GroupCommitEventInterval = 20,
-                CommandProcessorParallelThreadCount = Environment.ProcessorCount * 10
-            };
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             _configuration = Configuration
                 .Create()
@@ -59,10 +51,9 @@ namespace NoteSample
                 .RegisterCommonComponents()
                 .UseLog4Net()
                 .UseJsonNet()
-                .CreateENode(setting)
+                .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .UseSqlServerEventStore()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartENode(NodeType.CommandProcessor | NodeType.EventProcessor)

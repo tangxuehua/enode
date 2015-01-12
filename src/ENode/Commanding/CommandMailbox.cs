@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using ECommon.Components;
 using ECommon.Logging;
 
 namespace ENode.Commanding
@@ -9,15 +8,15 @@ namespace ENode.Commanding
     public class CommandMailbox
     {
         private readonly ConcurrentQueue<ProcessingCommand> _commandQueue;
-        private readonly ICommandDispatcher _dispatcher;
+        private readonly ICommandScheduler _commandScheduler;
         private readonly ICommandExecutor _commandExecutor;
         private readonly ILogger _logger;
         private int _isRunning;
 
-        public CommandMailbox(ICommandDispatcher dispatcher, ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
+        public CommandMailbox(ICommandScheduler commandScheduler, ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
         {
             _commandQueue = new ConcurrentQueue<ProcessingCommand>();
-            _dispatcher = dispatcher;
+            _commandScheduler = commandScheduler;
             _commandExecutor = commandExecutor;
             _logger = loggerFactory.Create(GetType().FullName);
         }
@@ -46,7 +45,7 @@ namespace ENode.Commanding
         }
         public void RegisterForExecution()
         {
-            _dispatcher.RegisterMailboxForExecution(this);
+            _commandScheduler.ScheduleCommandMailbox(this);
         }
         public void Run()
         {
