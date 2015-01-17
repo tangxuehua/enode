@@ -6,14 +6,14 @@ namespace ENode.Commanding.Impl
     public class DefaultCommandProcessor : ICommandProcessor
     {
         private readonly ConcurrentDictionary<string, CommandMailbox> _mailboxDict;
-        private readonly ICommandDispatcher _commandDispatcher;
+        private readonly ICommandScheduler _commandScheduler;
         private readonly ICommandExecutor _commandExecutor;
         private readonly ILoggerFactory _loggerFactory;
 
-        public DefaultCommandProcessor(ICommandDispatcher commandDispatcher, ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
+        public DefaultCommandProcessor(ICommandScheduler commandScheduler, ICommandExecutor commandExecutor, ILoggerFactory loggerFactory)
         {
             _mailboxDict = new ConcurrentDictionary<string, CommandMailbox>();
-            _commandDispatcher = commandDispatcher;
+            _commandScheduler = commandScheduler;
             _commandExecutor = commandExecutor;
             _loggerFactory = loggerFactory;
         }
@@ -22,13 +22,13 @@ namespace ENode.Commanding.Impl
         {
             if (string.IsNullOrEmpty(processingCommand.AggregateRootId))
             {
-                _commandDispatcher.RegisterCommandForExecution(processingCommand);
+                _commandScheduler.ScheduleCommand(processingCommand);
             }
             else
             {
-                var commandMailbox = _mailboxDict.GetOrAdd(processingCommand.AggregateRootId, new CommandMailbox(_commandDispatcher, _commandExecutor, _loggerFactory));
+                var commandMailbox = _mailboxDict.GetOrAdd(processingCommand.AggregateRootId, new CommandMailbox(_commandScheduler, _commandExecutor, _loggerFactory));
                 commandMailbox.EnqueueCommand(processingCommand);
-                _commandDispatcher.RegisterMailboxForExecution(commandMailbox);
+                _commandScheduler.ScheduleCommandMailbox(commandMailbox);
             }
         }
     }

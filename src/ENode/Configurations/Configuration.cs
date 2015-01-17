@@ -111,7 +111,7 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<ICommandStore, InMemoryCommandStore>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
-            _configuration.SetDefault<ICommandDispatcher, DefaultCommandDispatcher>();
+            _configuration.SetDefault<ICommandScheduler, DefaultCommandScheduler>();
             _configuration.SetDefault<ICommandProcessor, DefaultCommandProcessor>();
             _configuration.SetDefault<ICommandRouteKeyProvider, DefaultCommandRouteKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
