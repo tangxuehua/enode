@@ -83,7 +83,8 @@ namespace ENode.Infrastructure
                 {
                     Thread.Sleep(_retryIntervalForIOException);
                 }
-                return TryIOActionRecursivelyInternal(actionName, contextInfo, action, retryTimes++);
+                retryTimes++;
+                return TryIOActionRecursivelyInternal(actionName, contextInfo, action, retryTimes);
             }
             catch (Exception ex)
             {
@@ -106,7 +107,8 @@ namespace ENode.Infrastructure
                 {
                     Thread.Sleep(_retryIntervalForIOException);
                 }
-                return TryIOFuncRecursivelyInternal(funcName, contextInfo, func, retryTimes++);
+                retryTimes++;
+                return TryIOFuncRecursivelyInternal(funcName, contextInfo, func, retryTimes);
             }
             catch (Exception ex)
             {

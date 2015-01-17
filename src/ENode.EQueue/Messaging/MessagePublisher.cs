@@ -18,6 +18,7 @@ namespace ENode.EQueue
         private readonly ITopicProvider<IMessage> _messageTopicProvider;
         private readonly ITypeCodeProvider<IMessage> _messageTypeCodeProvider;
         private readonly Producer _producer;
+        private readonly IOHelper _ioHelper;
 
         public Producer Producer { get { return _producer; } }
 
@@ -27,6 +28,7 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _messageTopicProvider = ObjectContainer.Resolve<ITopicProvider<IMessage>>();
             _messageTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IMessage>>();
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
@@ -47,11 +49,14 @@ namespace ENode.EQueue
             var topic = _messageTopicProvider.GetTopic(message);
             var data = _jsonSerializer.Serialize(message);
             var queueMessage = new EQueueMessage(topic, messageTypeCode, Encoding.UTF8.GetBytes(data));
-            var result = _producer.Send(queueMessage, message is IVersionedMessage ? ((IVersionedMessage)message).SourceId : message.Id);
-            if (result.SendStatus != SendStatus.Success)
+            _ioHelper.TryIOAction(() =>
             {
-                throw new Exception(string.Format("Publish message failed, messageId:{0}, messageType:{1}", message.Id, message.GetType().Name));
-            }
+                var result = _producer.Send(queueMessage, message is IVersionedMessage ? ((IVersionedMessage)message).SourceId : message.Id);
+                if (result.SendStatus != SendStatus.Success)
+                {
+                    throw new Exception(string.Format("Publish message failed, messageId:{0}, messageType:{1}", message.Id, message.GetType().Name));
+                }
+            }, "Send message to broker");
         }
     }
 }

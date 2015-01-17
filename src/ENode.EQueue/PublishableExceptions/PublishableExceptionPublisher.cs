@@ -20,6 +20,7 @@ namespace ENode.EQueue
         private readonly ITopicProvider<IPublishableException> _exceptionTopicProvider;
         private readonly ITypeCodeProvider<IPublishableException> _exceptionTypeCodeProvider;
         private readonly Producer _producer;
+        private readonly IOHelper _ioHelper;
 
         public Producer Producer { get { return _producer; } }
 
@@ -29,6 +30,7 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
             _exceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
@@ -57,14 +59,17 @@ namespace ENode.EQueue
             };
             var data = _jsonSerializer.Serialize(exceptionMessage);
             var message = new Message(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
-            var result = _producer.Send(message, exception.Id);
-            if (result.SendStatus != SendStatus.Success)
+            _ioHelper.TryIOAction(() =>
             {
-                throw new Exception(string.Format("Publish exception failed, exceptionId:{0}, exceptionType:{1}, exceptionData:{2}",
-                    exception.Id,
-                    exception.GetType().Name,
-                    string.Join("|", serializableInfo.Select(x => x.Key + ":" + x.Value))));
-            }
+                var result = _producer.Send(message, exception.Id);
+                if (result.SendStatus != SendStatus.Success)
+                {
+                    throw new Exception(string.Format("Publish exception failed, exceptionId:{0}, exceptionType:{1}, exceptionData:{2}",
+                        exception.Id,
+                        exception.GetType().Name,
+                        string.Join("|", serializableInfo.Select(x => x.Key + ":" + x.Value))));
+                }
+            }, "Send exception message to broker");
         }
     }
 }
