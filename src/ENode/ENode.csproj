@@ -132,11 +132,11 @@
     <Compile Include="Eventing\Impl\DefaultEventHandlerProvider.cs" />
     <Compile Include="Eventing\Impl\EventHandlerWrapper.cs" />
     <Compile Include="Eventing\DomainEvent.cs" />
-    <Compile Include="Eventing\Impl\InMemory\InMemoryEventPublishInfoStore.cs" />
+    <Compile Include="Eventing\Impl\InMemory\InMemoryAggregatePublishVersionStore.cs" />
     <Compile Include="Infrastructure\Impl\SQL\SqlServerMessageHandleRecordStore.cs" />
-    <Compile Include="Eventing\Impl\SQL\SqlServerEventPublishInfoStore.cs" />
+    <Compile Include="Eventing\Impl\SQL\SqlServerAggregatePublishVersionStore.cs" />
     <Compile Include="Infrastructure\Impl\InMemory\InMemoryMessageHandleRecordStore.cs" />
-    <Compile Include="Eventing\IEventPublishInfoStore.cs" />
+    <Compile Include="Eventing\IAggregatePublishVersionStore.cs" />
     <Compile Include="Infrastructure\IMessageHandleRecordStore.cs" />
     <Compile Include="Infrastructure\Impl\DefaultTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />

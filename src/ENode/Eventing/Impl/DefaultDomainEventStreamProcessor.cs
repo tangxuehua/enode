@@ -10,19 +10,21 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private readonly IDispatcher<IEvent> _eventDispatcher;
-        private readonly IEventPublishInfoStore _eventPublishInfoStore;
+        private readonly IAggregatePublishVersionStore _aggregatePublishVersionStore;
         private readonly ILogger _logger;
+        private readonly IOHelper _ioHelper;
 
         #endregion
 
         #region Constructors
 
-        public DefaultDomainEventStreamProcessor(IEventPublishInfoStore eventPublishInfoStore, IDispatcher<IEvent> eventDispatcher, ILoggerFactory loggerFactory)
+        public DefaultDomainEventStreamProcessor(IAggregatePublishVersionStore aggregatePublishVersionStore, IDispatcher<IEvent> eventDispatcher, IOHelper ioHelper, ILoggerFactory loggerFactory)
             : base(ENodeConfiguration.Instance.Setting.DomainEventStreamProcessorParallelThreadCount, "ProcessDomainEventStream")
         {
-            _eventPublishInfoStore = eventPublishInfoStore;
+            _aggregatePublishVersionStore = aggregatePublishVersionStore;
             _eventDispatcher = eventDispatcher;
             _logger = loggerFactory.Create(GetType().FullName);
+            _ioHelper = ioHelper;
         }
 
         #endregion
@@ -34,7 +36,13 @@ namespace ENode.Eventing.Impl
         protected override void HandleQueueMessage(QueueMessage<DomainEventStream> queueMessage)
         {
             var domainEventStream = queueMessage.Payload;
-            var lastPublishedVersion = _eventPublishInfoStore.GetEventPublishedVersion(Name, domainEventStream.AggregateRootId);
+            var lastPublishedVersion = GetPublishVersion(domainEventStream.AggregateRootId);
+            if (lastPublishedVersion == -1)
+            {
+                OnMessageHandled(false, queueMessage);
+                return;
+            }
+
             var success = true;
 
             if (lastPublishedVersion + 1 == domainEventStream.Version)
@@ -58,15 +66,33 @@ namespace ENode.Eventing.Impl
             OnMessageHandled(success, queueMessage);
         }
 
+        private int GetPublishVersion(string aggregateRootId)
+        {
+            var result = _ioHelper.TryIOFuncRecursively<int>("GetPublishVersion", aggregateRootId, () =>
+            {
+                return _aggregatePublishVersionStore.GetVersion(Name, aggregateRootId);
+            });
+            if (!result.Success)
+            {
+                return -1;
+            }
+            return result.Data;
+        }
         private void UpdatePublishedVersion(DomainEventStream stream)
         {
             if (stream.Version == 1)
             {
-                _eventPublishInfoStore.InsertPublishedVersion(Name, stream.AggregateRootId);
+                _ioHelper.TryIOActionRecursively("InsertFirstVersion", stream.AggregateRootId, () =>
+                {
+                    _aggregatePublishVersionStore.InsertFirstVersion(Name, stream.AggregateRootId);
+                });
             }
             else
             {
-                _eventPublishInfoStore.UpdatePublishedVersion(Name, stream.AggregateRootId, stream.Version);
+                _ioHelper.TryIOActionRecursively("UpdateVersion", stream.AggregateRootId, () =>
+                {
+                    _aggregatePublishVersionStore.UpdateVersion(Name, stream.AggregateRootId, stream.Version);
+                });
             }
         }
     }

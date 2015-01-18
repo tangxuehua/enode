@@ -23,12 +23,12 @@ CREATE TABLE [dbo].[EventStream] (
     CONSTRAINT [PK_EventStream] PRIMARY KEY CLUSTERED ([AggregateRootId] ASC, [Version] ASC)
 )
 GO
-CREATE TABLE [dbo].[EventPublishInfo] (
+CREATE TABLE [dbo].[AggregatePublishVersion] (
     [Sequence]                BIGINT IDENTITY (1, 1) NOT NULL,
     [EventProcessorName]      NVARCHAR (128)         NOT NULL,
     [AggregateRootId]         NVARCHAR (36)          NOT NULL,
     [PublishedVersion]        INT                    NOT NULL,
-    CONSTRAINT [PK_EventPublishInfo] PRIMARY KEY CLUSTERED ([EventProcessorName] ASC, [AggregateRootId] ASC)
+    CONSTRAINT [PK_AggregatePublishVersion] PRIMARY KEY CLUSTERED ([EventProcessorName] ASC, [AggregateRootId] ASC)
 )
 GO
 CREATE TABLE [dbo].[MessageHandleRecord] (

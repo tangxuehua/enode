@@ -97,7 +97,7 @@ namespace ENode.Infrastructure.Impl
         }
         private bool DispatchMessageToHandler(TMessage message, TMessageHandler messageHandler)
         {
-            var eventTypeCode = _messageTypeCodeProvider.GetTypeCode(message.GetType());
+            var messageTypeCode = _messageTypeCodeProvider.GetTypeCode(message.GetType());
             var handlerType = messageHandler.GetInnerHandler().GetType();
             var handlerTypeCode = _handlerTypeCodeProvider.GetTypeCode(handlerType);
             var handleRecordType = GetHandleRecordType(message);
@@ -129,23 +129,26 @@ namespace ENode.Infrastructure.Impl
                     Type = handleRecordType,
                     MessageId = message.Id,
                     HandlerTypeCode = handlerTypeCode,
-                    MessageTypeCode = eventTypeCode
+                    MessageTypeCode = messageTypeCode
                 };
                 OnMessageHandleRecordCreated(message, messageHandleRecord);
 
-                _logger.DebugFormat("Handle event success. eventHandlerType:{0}, messageType:{1}, messageId:{2}",
+                _messageHandleRecordStore.AddRecord(messageHandleRecord);
+                _messageHandleRecordCache.AddRecord(messageHandleRecord);
+
+                _logger.DebugFormat("Message handle success, handlerType:{0}, messageType:{1}, messageId:{2}",
                     handlerType.Name,
                     message.GetType().Name,
                     message.Id);
-
-                _messageHandleRecordStore.AddRecord(messageHandleRecord);
-                _messageHandleRecordCache.AddRecord(messageHandleRecord);
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Message handle failed, messageType:{0}, handlerType:{1}.", message.GetType().Name, handlerType.Name), ex);
+                _logger.Error(string.Format("Message handle failed, handlerType:{0}, messageType:{1}, messageId:{2}.",
+                    handlerType.Name,
+                    message.GetType().Name,
+                    message.Id), ex);
                 return false;
             }
         }

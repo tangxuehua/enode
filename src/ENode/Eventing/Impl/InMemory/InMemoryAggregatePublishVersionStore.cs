@@ -2,19 +2,19 @@
 
 namespace ENode.Eventing.Impl.InMemory
 {
-    public class InMemoryEventPublishInfoStore : IEventPublishInfoStore
+    public class InMemoryAggregatePublishVersionStore : IAggregatePublishVersionStore
     {
         private readonly ConcurrentDictionary<string, int> _versionDict = new ConcurrentDictionary<string, int>();
 
-        public void InsertPublishedVersion(string eventProcessorName, string aggregateRootId)
+        public void InsertFirstVersion(string eventProcessorName, string aggregateRootId)
         {
             _versionDict.TryAdd(BuildKey(eventProcessorName, aggregateRootId), 1);
         }
-        public void UpdatePublishedVersion(string eventProcessorName, string aggregateRootId, int version)
+        public void UpdateVersion(string eventProcessorName, string aggregateRootId, int version)
         {
             _versionDict[BuildKey(eventProcessorName, aggregateRootId)] = version;
         }
-        public int GetEventPublishedVersion(string eventProcessorName, string aggregateRootId)
+        public int GetVersion(string eventProcessorName, string aggregateRootId)
         {
             int version;
             return _versionDict.TryGetValue(BuildKey(eventProcessorName, aggregateRootId), out version) ? version : 0;

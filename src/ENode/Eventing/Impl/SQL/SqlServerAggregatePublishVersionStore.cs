@@ -10,7 +10,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl.SQL
 {
-    public class SqlServerEventPublishInfoStore : IEventPublishInfoStore
+    public class SqlServerAggregatePublishVersionStore : IAggregatePublishVersionStore
     {
         #region Private Variables
 
@@ -24,13 +24,13 @@ namespace ENode.Eventing.Impl.SQL
 
         #region Constructors
 
-        public SqlServerEventPublishInfoStore()
+        public SqlServerAggregatePublishVersionStore()
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerEventPublishInfoStoreSetting;
-            Ensure.NotNull(setting, "SqlServerEventPublishInfoStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "SqlServerEventPublishInfoStoreSetting.ConnectionString");
-            Ensure.NotNull(setting.TableName, "SqlServerEventPublishInfoStoreSetting.TableName");
-            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerEventPublishInfoStoreSetting.PrimaryKeyName");
+            var setting = ENodeConfiguration.Instance.Setting.SqlServerAggregatePublishVersionStoreSetting;
+            Ensure.NotNull(setting, "SqlServerAggregatePublishVersionStoreSetting");
+            Ensure.NotNull(setting.ConnectionString, "SqlServerAggregatePublishVersionStoreSetting.ConnectionString");
+            Ensure.NotNull(setting.TableName, "SqlServerAggregatePublishVersionStoreSetting.TableName");
+            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerAggregatePublishVersionStoreSetting.PrimaryKeyName");
 
             _connectionString = setting.ConnectionString;
             _tableName = setting.TableName;
@@ -41,7 +41,7 @@ namespace ENode.Eventing.Impl.SQL
 
         #endregion
 
-        public void InsertPublishedVersion(string eventProcessorName, string aggregateRootId)
+        public void InsertFirstVersion(string eventProcessorName, string aggregateRootId)
         {
             _ioHelper.TryIOAction(() =>
             {
@@ -56,15 +56,15 @@ namespace ENode.Eventing.Impl.SQL
                     {
                         if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
                         {
-                            _logger.Error(string.Format("Failed to insert duplicate aggregate publish record, EventProcessorName:{0}, AggregateRootId:{1}", eventProcessorName, aggregateRootId), ex);
+                            _logger.Error(string.Format("Duplicate aggregate publish version record insert, EventProcessorName:{0}, AggregateRootId:{1}", eventProcessorName, aggregateRootId), ex);
                             return;
                         }
                         throw;
                     }
                 }
-            }, "InsertPublishedVersion");
+            }, "InsertAggregatePublishedVersion");
         }
-        public void UpdatePublishedVersion(string eventProcessorName, string aggregateRootId, int version)
+        public void UpdateVersion(string eventProcessorName, string aggregateRootId, int version)
         {
             _ioHelper.TryIOAction(() =>
             {
@@ -77,9 +77,9 @@ namespace ENode.Eventing.Impl.SQL
                         throw new Exception(string.Format("Update aggregate publish version failed, EventProcessorName:{0}, AggregateRootId:{1}, target version:{2}", eventProcessorName, aggregateRootId, version));
                     }
                 }
-            }, "UpdatePublishedVersion");
+            }, "UpdateAggregatePublishedVersion");
         }
-        public int GetEventPublishedVersion(string eventProcessorName, string aggregateRootId)
+        public int GetVersion(string eventProcessorName, string aggregateRootId)
         {
             return _ioHelper.TryIOFunc(() =>
             {
@@ -88,7 +88,7 @@ namespace ENode.Eventing.Impl.SQL
                     connection.Open();
                     return connection.QueryList<int>(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion").SingleOrDefault();
                 }
-            }, "GetEventPublishedVersion");
+            }, "GetAggregatePublishedVersion");
         }
 
         private SqlConnection GetConnection()

@@ -21,7 +21,7 @@ namespace ENode.Configurations
         public DbTableSetting SqlServerLockServiceSetting { get; set; }
         public DbTableSetting SqlServerCommandStoreSetting { get; set; }
         public DbTableSetting SqlServerEventStoreSetting { get; set; }
-        public DbTableSetting SqlServerEventPublishInfoStoreSetting { get; set; }
+        public DbTableSetting SqlServerAggregatePublishVersionStoreSetting { get; set; }
         public DbTableSetting SqlServerMessageHandleRecordStoreSetting { get; set; }
 
         public ConfigurationSetting()
@@ -42,7 +42,7 @@ namespace ENode.Configurations
             SqlServerLockServiceSetting = new DbTableSetting(this) { TableName = "Lock" };
             SqlServerCommandStoreSetting = new DbTableSetting(this) { TableName = "Command", PrimaryKeyName = "PK_Command" };
             SqlServerEventStoreSetting = new DbTableSetting(this) { TableName = "EventStream", PrimaryKeyName = "PK_EventStream" };
-            SqlServerEventPublishInfoStoreSetting = new DbTableSetting(this) { TableName = "EventPublishInfo", PrimaryKeyName = "PK_EventPublishInfo" };
+            SqlServerAggregatePublishVersionStoreSetting = new DbTableSetting(this) { TableName = "AggregatePublishVersion", PrimaryKeyName = "PK_AggregatePublishVersion" };
             SqlServerMessageHandleRecordStoreSetting = new DbTableSetting(this) { TableName = "MessageHandleRecord" };
         }
     }

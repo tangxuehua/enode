@@ -27,8 +27,6 @@ namespace ENode.Eventing.Impl
         private readonly IEventStore _eventStore;
         private readonly IPublisher<DomainEventStream> _domainEventPublisher;
         private readonly IPublisher<EventStream> _eventPublisher;
-        private readonly IEventPublishInfoStore _eventPublishInfoStore;
-        private readonly IActionExecutionService _actionExecutionService;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
         private readonly bool _enableGroupCommit;
@@ -54,8 +52,6 @@ namespace ENode.Eventing.Impl
             IEventStore eventStore,
             IPublisher<DomainEventStream> domainEventPublisher,
             IPublisher<EventStream> eventPublisher,
-            IActionExecutionService actionExecutionService,
-            IEventPublishInfoStore eventPublishInfoStore,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
@@ -79,8 +75,6 @@ namespace ENode.Eventing.Impl
             _eventStore = eventStore;
             _domainEventPublisher = domainEventPublisher;
             _eventPublisher = eventPublisher;
-            _eventPublishInfoStore = eventPublishInfoStore;
-            _actionExecutionService = actionExecutionService;
             _logger = loggerFactory.Create(GetType().FullName);
             _processSuccessPersistedEventsWorker = new Worker("ProcessSuccessPersistedEvents", ProcessSuccessPersistedEvents);
             _processFailedPersistedEventsWorker = new Worker("ProcessFailedPersistedEvents", ProcessFailedPersistedEvents);

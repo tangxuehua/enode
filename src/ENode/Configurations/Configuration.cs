@@ -117,7 +117,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
 
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
-            _configuration.SetDefault<IEventPublishInfoStore, InMemoryEventPublishInfoStore>();
+            _configuration.SetDefault<IAggregatePublishVersionStore, InMemoryAggregatePublishVersionStore>();
             _configuration.SetDefault<IMessageHandleRecordStore, InMemoryMessageHandleRecordStore>();
             _configuration.SetDefault<IMessageHandleRecordCache, InMemoryMessageHandleRecordCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
@@ -197,7 +197,7 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventPublishInfoStore()
         {
-            _configuration.SetDefault<IEventPublishInfoStore, SqlServerEventPublishInfoStore>();
+            _configuration.SetDefault<IAggregatePublishVersionStore, SqlServerAggregatePublishVersionStore>();
             return this;
         }
         /// <summary>Use the SqlServerMessageHandleRecordStore as the IMessageHandleRecordStore.
