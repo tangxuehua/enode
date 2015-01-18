@@ -22,6 +22,7 @@ namespace ENode.Commanding.Impl
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly IEventSerializer _eventSerializer;
+        private readonly IOHelper _ioHelper;
 
         #region Constructors
 
@@ -41,6 +42,7 @@ namespace ENode.Commanding.Impl
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }
 
         #endregion
@@ -53,47 +55,57 @@ namespace ENode.Commanding.Impl
         {
             var record = ConvertTo(handledCommand);
 
-            using (var connection = GetConnection())
+            return _ioHelper.TryIOFunc(() =>
             {
-                connection.Open();
-                try
+                using (var connection = GetConnection())
                 {
-                    connection.Insert(record, _commandTable);
-                    return CommandAddResult.Success;
-                }
-                catch (SqlException ex)
-                {
-                    if (ex.Number == 2627)
+                    connection.Open();
+                    try
                     {
-                        if (ex.Message.Contains(_primaryKeyName))
-                        {
-                            return CommandAddResult.DuplicateCommand;
-                        }
+                        connection.Insert(record, _commandTable);
+                        return CommandAddResult.Success;
                     }
-                    throw;
+                    catch (SqlException ex)
+                    {
+                        if (ex.Number == 2627)
+                        {
+                            if (ex.Message.Contains(_primaryKeyName))
+                            {
+                                return CommandAddResult.DuplicateCommand;
+                            }
+                        }
+                        throw;
+                    }
                 }
-            }
+            }, "AddCommand");
         }
         public void Remove(string commandId)
         {
-            using (var connection = GetConnection())
+            _ioHelper.TryIOAction(() =>
             {
-                connection.Open();
-                connection.Delete(new { CommandId = commandId }, _commandTable);
-            }
+                using (var connection = GetConnection())
+                {
+                    connection.Open();
+                    connection.Delete(new { CommandId = commandId }, _commandTable);
+                }
+            }, "RemoveCommand");
         }
         public HandledCommand Get(string commandId)
         {
-            using (var connection = GetConnection())
+            var record = _ioHelper.TryIOFunc(() =>
             {
-                connection.Open();
-                var record = connection.QueryList<CommandRecord>(new { CommandId = commandId }, _commandTable).SingleOrDefault();
-                if (record != null)
+                using (var connection = GetConnection())
                 {
-                    return ConvertFrom(record);
+                    connection.Open();
+                    return connection.QueryList<CommandRecord>(new { CommandId = commandId }, _commandTable).SingleOrDefault();
                 }
-                return null;
+            }, "GetCommand");
+
+            if (record != null)
+            {
+                return ConvertFrom(record);
             }
+            return null;
         }
 
         #endregion

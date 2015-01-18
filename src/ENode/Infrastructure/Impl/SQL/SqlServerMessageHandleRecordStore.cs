@@ -1,4 +1,5 @@
 ﻿using System.Data.SqlClient;
+using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.Utilities;
 using ENode.Configurations;
@@ -11,6 +12,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
         private readonly string _connectionString;
         private readonly string _tableName;
+        private readonly IOHelper _ioHelper;
 
         #endregion
 
@@ -25,33 +27,40 @@ namespace ENode.Infrastructure.Impl.SQL
 
             _connectionString = setting.ConnectionString;
             _tableName = setting.TableName;
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }
 
         #endregion
 
         public void AddRecord(MessageHandleRecord record)
         {
-            using (var connection = GetConnection())
+            _ioHelper.TryIOAction(() =>
             {
-                connection.Open();
-                connection.Insert(new
+                using (var connection = GetConnection())
                 {
-                    Type = (int)record.Type,
-                    HandlerTypeCode = record.HandlerTypeCode,
-                    MessageId = record.MessageId,
-                    MessageTypeCode = record.MessageTypeCode,
-                    AggregateRootId = record.AggregateRootId,
-                    AggregateRootVersion = record.AggregateRootVersion
-                }, _tableName);
-            }
+                    connection.Open();
+                    connection.Insert(new
+                    {
+                        Type = (int)record.Type,
+                        HandlerTypeCode = record.HandlerTypeCode,
+                        MessageId = record.MessageId,
+                        MessageTypeCode = record.MessageTypeCode,
+                        AggregateRootId = record.AggregateRootId,
+                        AggregateRootVersion = record.AggregateRootVersion
+                    }, _tableName);
+                }
+            }, "AddMessageHandleRecord");
         }
         public bool IsRecordExist(MessageHandleRecordType type, string messageId, int handlerTypeCode)
         {
-            using (var connection = GetConnection())
+            return _ioHelper.TryIOFunc(() =>
             {
-                connection.Open();
-                return connection.GetCount(new { MessageId = messageId, HandlerTypeCode = handlerTypeCode }, _tableName) > 0;
-            }
+                using (var connection = GetConnection())
+                {
+                    connection.Open();
+                    return connection.GetCount(new { MessageId = messageId, HandlerTypeCode = handlerTypeCode }, _tableName) > 0;
+                }
+            }, "IsMessageHandleRecordExist");
         }
 
         private SqlConnection GetConnection()

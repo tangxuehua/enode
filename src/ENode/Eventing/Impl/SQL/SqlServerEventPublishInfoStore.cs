@@ -6,6 +6,7 @@ using ECommon.Dapper;
 using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Configurations;
+using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl.SQL
 {
@@ -17,6 +18,7 @@ namespace ENode.Eventing.Impl.SQL
         private readonly string _tableName;
         private readonly string _primaryKeyName;
         private readonly ILogger _logger;
+        private readonly IOHelper _ioHelper;
 
         #endregion
 
@@ -34,49 +36,59 @@ namespace ENode.Eventing.Impl.SQL
             _tableName = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }
 
         #endregion
 
         public void InsertPublishedVersion(string eventProcessorName, string aggregateRootId)
         {
-            using (var connection = GetConnection())
+            _ioHelper.TryIOAction(() =>
             {
-                connection.Open();
-                try
+                using (var connection = GetConnection())
                 {
-                    connection.Insert(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
-                }
-                catch (SqlException ex)
-                {
-                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                    connection.Open();
+                    try
                     {
-                        _logger.Error(string.Format("Failed to insert duplicate aggregate publish record, EventProcessorName:{0}, AggregateRootId:{1}", eventProcessorName, aggregateRootId), ex);
-                        return;
+                        connection.Insert(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
                     }
-                    throw;
+                    catch (SqlException ex)
+                    {
+                        if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                        {
+                            _logger.Error(string.Format("Failed to insert duplicate aggregate publish record, EventProcessorName:{0}, AggregateRootId:{1}", eventProcessorName, aggregateRootId), ex);
+                            return;
+                        }
+                        throw;
+                    }
                 }
-            }
+            }, "InsertPublishedVersion");
         }
         public void UpdatePublishedVersion(string eventProcessorName, string aggregateRootId, int version)
         {
-            using (var connection = GetConnection())
+            _ioHelper.TryIOAction(() =>
             {
-                connection.Open();
-                var effectedRows = connection.Update(new { PublishedVersion = version }, new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId, PublishedVersion = version - 1 }, _tableName);
-                if (effectedRows != 1)
+                using (var connection = GetConnection())
                 {
-                    throw new Exception(string.Format("Update aggregate publish version failed, EventProcessorName:{0}, AggregateRootId:{1}, target version:{2}", eventProcessorName, aggregateRootId, version));
+                    connection.Open();
+                    var effectedRows = connection.Update(new { PublishedVersion = version }, new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId, PublishedVersion = version - 1 }, _tableName);
+                    if (effectedRows != 1)
+                    {
+                        throw new Exception(string.Format("Update aggregate publish version failed, EventProcessorName:{0}, AggregateRootId:{1}, target version:{2}", eventProcessorName, aggregateRootId, version));
+                    }
                 }
-            }
+            }, "UpdatePublishedVersion");
         }
         public int GetEventPublishedVersion(string eventProcessorName, string aggregateRootId)
         {
-            using (var connection = GetConnection())
+            return _ioHelper.TryIOFunc(() =>
             {
-                connection.Open();
-                return connection.QueryList<int>(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion").SingleOrDefault();
-            }
+                using (var connection = GetConnection())
+                {
+                    connection.Open();
+                    return connection.QueryList<int>(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion").SingleOrDefault();
+                }
+            }, "GetEventPublishedVersion");
         }
 
         private SqlConnection GetConnection()
