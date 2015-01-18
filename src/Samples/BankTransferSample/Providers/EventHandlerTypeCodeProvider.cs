@@ -15,6 +15,7 @@ namespace BankTransferSample.Providers
             RegisterType<TransferTransactionProcessManager>(101);
             RegisterType<ConsoleLogger>(102);
             RegisterType<SyncHelper>(103);
+            RegisterType<CountSyncHelper>(104);
         }
     }
 }

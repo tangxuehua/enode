@@ -22,14 +22,11 @@ namespace BankTransferSample.CommandHandlers
         }
         public void Handle(ICommandContext context, ValidateAccountCommand command)
         {
-            if (command.AccountId == "00001" || command.AccountId == "00002")
+            if (command.AccountId == "00003")
             {
-                context.Add(new AccountValidatePassedEvent(command.AccountId, command.TransactionId));
+                throw new InvalidAccountException(command.AccountId, command.TransactionId, "账户不可以是00003.");
             }
-            else
-            {
-                throw new InvalidAccountException(command.AccountId, command.TransactionId, "账户必须是00001或00002.");
-            }
+            context.Add(new AccountValidatePassedEvent(command.AccountId, command.TransactionId));
         }
         public void Handle(ICommandContext context, AddTransactionPreparationCommand command)
         {
