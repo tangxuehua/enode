@@ -90,8 +90,8 @@ namespace BankTransferSample
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             var settings = new ConfigurationSetting
             {
-                SqlServerDefaultConnectionString = "Server=(local);Initial Catalog=ENode;uid=sa;pwd=howareyou;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100",
-                EnableGroupCommitEvent = true
+                SqlServerDefaultConnectionString = @"Data Source=(localdb)\Projects;Integrated Security=true;Initial Catalog=ENode;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100",
+                //EnableGroupCommitEvent = true
             };
 
             _configuration = Configuration

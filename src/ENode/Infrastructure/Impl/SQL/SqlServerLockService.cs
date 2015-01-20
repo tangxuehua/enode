@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using Dapper;
 using ECommon.Dapper;
 using ECommon.Utilities;
 using ENode.Configurations;

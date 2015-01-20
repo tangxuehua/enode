@@ -9,7 +9,6 @@ namespace NoteSample.EventHandlers
     [Component]
     public class NoteEventHandler : IEventHandler<NoteCreated>, IEventHandler<NoteTitleChanged>
     {
-        private int _count;
         private ILogger _logger;
 
         public NoteEventHandler(ILoggerFactory loggerFactory)

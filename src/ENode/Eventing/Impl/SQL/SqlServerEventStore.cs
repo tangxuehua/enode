@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using Dapper;
 using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.Serializing;
