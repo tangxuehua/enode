@@ -26,7 +26,8 @@ namespace ENode.Commanding
     /// </summary>
     public enum CommandSendStatus
     {
+        None = 0,
         Success = 1,
-        Failed,
+        Failed = 2
     }
 }

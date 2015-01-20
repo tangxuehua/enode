@@ -4,7 +4,7 @@ using ENode.Exceptions;
 
 namespace BankTransferSample.Exceptions
 {
-    public class InsufficientBalanceException : PublishableException, IPublishableException
+    public class InsufficientBalanceException : PublishableException
     {
         /// <summary>账户ID
         /// </summary>
@@ -35,7 +35,7 @@ namespace BankTransferSample.Exceptions
             CurrentAvailableBalance = currentAvailableBalance;
         }
 
-        public void SerializeTo(IDictionary<string, string> serializableInfo)
+        public override void SerializeTo(IDictionary<string, string> serializableInfo)
         {
             serializableInfo.Add("AccountId", AccountId);
             serializableInfo.Add("TransactionId", TransactionId);
@@ -44,7 +44,7 @@ namespace BankTransferSample.Exceptions
             serializableInfo.Add("CurrentBalance", CurrentBalance.ToString());
             serializableInfo.Add("CurrentAvailableBalance", CurrentAvailableBalance.ToString());
         }
-        public void RestoreFrom(IDictionary<string, string> serializableInfo)
+        public override void RestoreFrom(IDictionary<string, string> serializableInfo)
         {
             AccountId = serializableInfo["AccountId"];
             TransactionId = serializableInfo["TransactionId"];

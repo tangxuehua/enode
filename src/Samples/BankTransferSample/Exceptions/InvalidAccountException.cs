@@ -3,7 +3,7 @@ using ENode.Exceptions;
 
 namespace BankTransferSample.Exceptions
 {
-    public class InvalidAccountException : PublishableException, IPublishableException
+    public class InvalidAccountException : PublishableException
     {
         public string AccountId { get; set; }
         public string TransactionId { get; set; }
@@ -16,13 +16,13 @@ namespace BankTransferSample.Exceptions
             Description = description;
         }
 
-        public void SerializeTo(IDictionary<string, string> serializableInfo)
+        public override void SerializeTo(IDictionary<string, string> serializableInfo)
         {
             serializableInfo.Add("AccountId", AccountId);
             serializableInfo.Add("TransactionId", TransactionId);
             serializableInfo.Add("Description", Description);
         }
-        public void RestoreFrom(IDictionary<string, string> serializableInfo)
+        public override void RestoreFrom(IDictionary<string, string> serializableInfo)
         {
             AccountId = serializableInfo["AccountId"];
             TransactionId = serializableInfo["TransactionId"];
