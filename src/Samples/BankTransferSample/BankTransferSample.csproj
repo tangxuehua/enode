@@ -54,9 +54,9 @@
     <Reference Include="ECommon.Dapper">
       <HintPath>..\..\..\packages\ECommon.Dapper.1.4.0\lib\net45\ECommon.Dapper.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.JsonNet, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ECommon.JsonNet, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ECommon.JsonNet.1.4.0\lib\net45\ECommon.JsonNet.dll</HintPath>
+      <HintPath>..\..\..\packages\ecommon.jsonnet.1.4.1\lib\net45\ECommon.JsonNet.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Log4Net, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
