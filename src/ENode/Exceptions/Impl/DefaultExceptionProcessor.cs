@@ -39,7 +39,7 @@ namespace ENode.Exceptions.Impl
                 _logger.ErrorFormat("Process publishable exception failed, exceptionId:{0}, exceptionType:{1}, retryTimes:{2}", publishableException.Id, publishableException.GetType().Name, queueMessage.RetryTimes);
             }
 
-            OnMessageHandled(success, queueMessage);
+            OnMessageHandled(!success, queueMessage);
         }
     }
 }

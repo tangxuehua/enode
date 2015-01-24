@@ -23,16 +23,16 @@
 
         protected abstract QueueMessage<T> CreateQueueMessage(T message, IProcessContext<T> processContext);
         protected abstract void HandleQueueMessage(QueueMessage<T> queueMessage);
-        protected void OnMessageHandled(bool success, QueueMessage<T> queueMessage)
+        protected void OnMessageHandled(bool needRetry, QueueMessage<T> queueMessage)
         {
-            if (success)
-            {
-                queueMessage.Complete();
-            }
-            else
+            if (needRetry)
             {
                 queueMessage.IncreaseRetryTimes();
                 _parallelProcessor.RetryMessage(queueMessage);
+            }
+            else
+            {
+                queueMessage.Complete();
             }
         }
     }

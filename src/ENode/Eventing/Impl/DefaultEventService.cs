@@ -115,7 +115,7 @@ namespace ENode.Eventing.Impl
                 eventStream.Items = processingCommand.Items;
             }
 
-            var result = _ioHelper.TryIOActionRecursively("PublishDomainEvent", eventStream.ToString(), () =>
+            var result = _ioHelper.TryIOActionRecursively("PublishDomainEvent", () => eventStream.ToString(), () =>
             {
                 _domainEventPublisher.Publish(eventStream);
             });
@@ -137,7 +137,7 @@ namespace ENode.Eventing.Impl
                 eventStream.Items = processingCommand.Items;
             }
 
-            var result = _ioHelper.TryIOActionRecursively("PublishEvent", eventStream.ToString(), () =>
+            var result = _ioHelper.TryIOActionRecursively("PublishEvent", () => eventStream.ToString(), () =>
             {
                 _eventPublisher.Publish(eventStream);
             });
@@ -224,7 +224,7 @@ namespace ENode.Eventing.Impl
         }
         private void DoCommitEvent(EventCommittingContext context)
         {
-            var result = _ioHelper.TryIOFuncRecursively<EventAppendResult>("PersistEvent", context.EventStream.ToString(), () =>
+            var result = _ioHelper.TryIOFuncRecursively<EventAppendResult>("PersistEvent", () => context.EventStream.ToString(), () =>
             {
                 return _eventStore.Append(context.EventStream);
             });
@@ -255,7 +255,7 @@ namespace ENode.Eventing.Impl
             if (eventStream.Version == 1)
             {
                 //取出该聚合根版本号为1的事件
-                var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByVersion", eventStream.ToString(), () =>
+                var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByVersion", () => eventStream.ToString(), () =>
                 {
                     return _eventStore.Find(eventStream.AggregateRootId, 1);
                 });

@@ -61,7 +61,7 @@ namespace ENode.Commanding.Impl
             //如果是非操作聚合根的command，且该command已检测到被处理过，则直接认为command已成功处理。
             if (!(command is IAggregateCommand))
             {
-                var result = _ioHelper.TryIOFuncRecursively<HandledCommand>("GetHandledCommand", command.Id, () =>
+                var result = _ioHelper.TryIOFuncRecursively<HandledCommand>("GetHandledCommand", () => command.Id, () =>
                 {
                     return _commandStore.Get(command.Id);
                 });
@@ -203,7 +203,7 @@ namespace ENode.Commanding.Impl
 
             var handledAggregateCommand = new HandledAggregateCommand(command, sourceId, sourceType, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode);
 
-            var addCommandIoResult = _ioHelper.TryIOFuncRecursively<CommandAddResult>("AddHandledAggregateCommand", handledAggregateCommand.ToString(), () =>
+            var addCommandIoResult = _ioHelper.TryIOFuncRecursively<CommandAddResult>("AddHandledAggregateCommand", () => handledAggregateCommand.ToString(), () =>
             {
                 return _commandStore.Add(handledAggregateCommand);
             });
@@ -217,7 +217,7 @@ namespace ENode.Commanding.Impl
             //如果添加的结果是command重复，则做如下处理
             else if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
-                var getCommandIoResult = _ioHelper.TryIOFuncRecursively<HandledAggregateCommand>("GetHandledAggregateCommand", command.Id, () =>
+                var getCommandIoResult = _ioHelper.TryIOFuncRecursively<HandledAggregateCommand>("GetHandledAggregateCommand", () => command.Id, () =>
                 {
                     return _commandStore.Get(command.Id) as HandledAggregateCommand;
                 });
@@ -225,8 +225,10 @@ namespace ENode.Commanding.Impl
 
                 if (existingHandledCommand != null)
                 {
-                    var contextInfo = string.Format("[aggregateRootId:{0},commandId:{1},commandType:{2}]", existingHandledCommand.AggregateRootId, command.Id, command.GetType().Name);
-                    var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByCommandId", contextInfo, () =>
+                    var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByCommandId", () =>
+                    {
+                        return string.Format("[aggregateRootId:{0},commandId:{1},commandType:{2}]", existingHandledCommand.AggregateRootId, command.Id, command.GetType().Name);
+                    }, () =>
                     {
                         return _eventStore.Find(existingHandledCommand.AggregateRootId, command.Id);
                     });
@@ -271,7 +273,7 @@ namespace ENode.Commanding.Impl
             var evnts = processingCommand.CommandExecuteContext.GetEvents().ToList();
             var handledCommand = new HandledCommand(command, sourceId, sourceType, evnts);
 
-            var addCommandIoResult = _ioHelper.TryIOFuncRecursively<CommandAddResult>("AddHandledCommand", handledCommand.ToString(), () =>
+            var addCommandIoResult = _ioHelper.TryIOFuncRecursively<CommandAddResult>("AddHandledCommand", () => handledCommand.ToString(), () =>
             {
                 return _commandStore.Add(handledCommand);
             });
@@ -283,7 +285,7 @@ namespace ENode.Commanding.Impl
             }
             else if (commandAddResult == CommandAddResult.DuplicateCommand)
             {
-                var getCommandIoResult = _ioHelper.TryIOFuncRecursively<HandledCommand>("GetHandledCommand", command.Id, () =>
+                var getCommandIoResult = _ioHelper.TryIOFuncRecursively<HandledCommand>("GetHandledCommand", () => command.Id, () =>
                 {
                     return _commandStore.Get(command.Id);
                 });
@@ -321,7 +323,7 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Command;
             try
             {
-                var getCommandIoResult = _ioHelper.TryIOFuncRecursively<HandledCommand>("GetHandledCommand", command.Id, () =>
+                var getCommandIoResult = _ioHelper.TryIOFuncRecursively<HandledCommand>("GetHandledCommand", () => command.Id, () =>
                 {
                     return _commandStore.Get(command.Id);
                 });
@@ -333,8 +335,10 @@ namespace ENode.Commanding.Impl
                     {
                         var existingHandledAggregateCommand = (HandledAggregateCommand)existingHandledCommand;
                         var aggregateRootId = existingHandledAggregateCommand.AggregateRootId;
-                        var contextInfo = string.Format("[aggregateRootId:{0},commandId:{1},commandType:{2}]", aggregateRootId, command.Id, command.GetType().Name);
-                        var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByCommandId", contextInfo, () =>
+                        var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByCommandId", () =>
+                        {
+                            return string.Format("[aggregateRootId:{0},commandId:{1},commandType:{2}]", aggregateRootId, command.Id, command.GetType().Name);
+                        }, () =>
                         {
                             return _eventStore.Find(aggregateRootId, command.Id);
                         });
@@ -359,7 +363,7 @@ namespace ENode.Commanding.Impl
                             //3.根据eventStore里的事件刷新缓存，目的是为了还原聚合根到最新状态，因为该聚合根的状态有可能已经被污染
                             //4.重试该command
                             LogCommandExecuteException(processingCommand, commandHandler, exception);
-                            _ioHelper.TryIOActionRecursively("RemoveHandledCommand", command.Id, () =>
+                            _ioHelper.TryIOActionRecursively("RemoveHandledCommand", () => command.Id, () =>
                             {
                                 _commandStore.Remove(command.Id);
                             });

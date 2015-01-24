@@ -39,7 +39,7 @@ namespace ENode.Eventing.Impl
             var lastPublishedVersion = GetPublishVersion(domainEventStream.AggregateRootId);
             if (lastPublishedVersion == -1)
             {
-                OnMessageHandled(false, queueMessage);
+                OnMessageHandled(true, queueMessage);
                 return;
             }
 
@@ -63,12 +63,12 @@ namespace ENode.Eventing.Impl
                 success = false;
             }
 
-            OnMessageHandled(success, queueMessage);
+            OnMessageHandled(!success, queueMessage);
         }
 
         private int GetPublishVersion(string aggregateRootId)
         {
-            var result = _ioHelper.TryIOFuncRecursively<int>("GetPublishVersion", aggregateRootId, () =>
+            var result = _ioHelper.TryIOFuncRecursively<int>("GetAggregatePublishVersion", () => aggregateRootId, () =>
             {
                 return _aggregatePublishVersionStore.GetVersion(Name, aggregateRootId);
             });
@@ -82,14 +82,14 @@ namespace ENode.Eventing.Impl
         {
             if (stream.Version == 1)
             {
-                _ioHelper.TryIOActionRecursively("InsertFirstVersion", stream.AggregateRootId, () =>
+                _ioHelper.TryIOActionRecursively("InsertFirstAggregatePublishVersion", () => stream.AggregateRootId, () =>
                 {
                     _aggregatePublishVersionStore.InsertFirstVersion(Name, stream.AggregateRootId);
                 });
             }
             else
             {
-                _ioHelper.TryIOActionRecursively("UpdateVersion", stream.AggregateRootId, () =>
+                _ioHelper.TryIOActionRecursively("UpdateAggregatePublishVersion", () => stream.AggregateRootId, () =>
                 {
                     _aggregatePublishVersionStore.UpdateVersion(Name, stream.AggregateRootId, stream.Version);
                 });

@@ -17,6 +17,7 @@ namespace ENode.Exceptions.Impl
             IRepository repository,
             IMessageHandleRecordStore messageHandleRecordStore,
             IMessageHandleRecordCache messageHandleRecordCache,
+            IOHelper ioHelper,
             ILoggerFactory loggerFactory)
             : base(
             messageTypeCodeProvider,
@@ -27,6 +28,7 @@ namespace ENode.Exceptions.Impl
             repository,
             messageHandleRecordStore,
             messageHandleRecordCache,
+            ioHelper,
             loggerFactory)
         {
         }

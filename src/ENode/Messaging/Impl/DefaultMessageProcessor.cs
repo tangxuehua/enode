@@ -40,7 +40,7 @@ namespace ENode.Messaging.Impl
                 _logger.ErrorFormat("Process message failed, messageId:{0}, messageType:{1}, retryTimes:{2}", message.Id, message.GetType().Name, queueMessage.RetryTimes);
             }
 
-            OnMessageHandled(success, queueMessage);
+            OnMessageHandled(!success, queueMessage);
         }
     }
 }

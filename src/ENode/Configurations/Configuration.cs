@@ -192,10 +192,10 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventStore, SqlServerEventStore>();
             return this;
         }
-        /// <summary>Use the SqlServerEventPublishInfoStore as the IEventPublishInfoStore.
+        /// <summary>Use the SqlServerAggregatePublishVersionStore as the IAggregatePublishVersionStore.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventPublishInfoStore()
+        public ENodeConfiguration UseSqlServerAggregatePublishVersionStore()
         {
             _configuration.SetDefault<IAggregatePublishVersionStore, SqlServerAggregatePublishVersionStore>();
             return this;

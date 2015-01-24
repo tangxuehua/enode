@@ -39,7 +39,7 @@ namespace ENode.Eventing.Impl
                 _logger.ErrorFormat("Process event stream failed, eventStream:{0}, retryTimes:{1}", eventStream, queueMessage.RetryTimes);
             }
 
-            OnMessageHandled(success, queueMessage);
+            OnMessageHandled(!success, queueMessage);
         }
     }
 }

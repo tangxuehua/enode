@@ -24,6 +24,7 @@ namespace ENode.EQueue
         private readonly ICommandRouteKeyProvider _commandRouteKeyProvider;
         private readonly CommandResultProcessor _commandResultProcessor;
         private readonly Producer _producer;
+        private readonly IOHelper _ioHelper;
 
         public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
@@ -37,6 +38,7 @@ namespace ENode.EQueue
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRouteKeyProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
             CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;
             DomainEventHandledMessageTopic = DefaultDomainEventHandledMessageTopic;
         }
@@ -62,11 +64,14 @@ namespace ENode.EQueue
         public void Send(ICommand command)
         {
             ValidateCommand(command);
-            var result = _producer.Send(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command));
-            if (result.SendStatus == SendStatus.Failed)
+            _ioHelper.TryIOAction(() =>
             {
-                throw new CommandSendException(result.ErrorMessage);
-            }
+                var result = _producer.Send(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command));
+                if (result.SendStatus == SendStatus.Failed)
+                {
+                    throw new CommandSendException(result.ErrorMessage);
+                }
+            }, "SendCommand");
         }
         public void Send(ICommand command, string sourceId, string sourceType)
         {
@@ -79,26 +84,31 @@ namespace ENode.EQueue
             {
                 throw new ArgumentNullException("sourceType.");
             }
-            var result = _producer.Send(BuildCommandMessage(command, sourceId, sourceType), _commandRouteKeyProvider.GetRouteKey(command));
-            if (result.SendStatus == SendStatus.Failed)
+
+            _ioHelper.TryIOAction(() =>
             {
-                throw new CommandSendException(result.ErrorMessage);
-            }
+                var result = _producer.Send(BuildCommandMessage(command, sourceId, sourceType), _commandRouteKeyProvider.GetRouteKey(command));
+                if (result.SendStatus == SendStatus.Failed)
+                {
+                    throw new CommandSendException(result.ErrorMessage);
+                }
+            }, "SendCommandFromSource");
         }
         public Task<CommandSendResult> SendAsync(ICommand command)
         {
             ValidateCommand(command);
-            var taskCompletionSource = new TaskCompletionSource<CommandSendResult>();
+            var message = BuildCommandMessage(command);
+            var routeKey = _commandRouteKeyProvider.GetRouteKey(command);
 
-            _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
+            return _ioHelper.TryIOFunc<Task<CommandSendResult>>(() =>
             {
-                taskCompletionSource.TrySetResult(
-                    new CommandSendResult(
-                        sendTask.Result.SendStatus == SendStatus.Success ? CommandSendStatus.Success : CommandSendStatus.Failed,
-                        sendTask.Result.ErrorMessage));
-            });
-
-            return taskCompletionSource.Task;
+                return _producer.SendAsync(message, routeKey).ContinueWith<CommandSendResult>(sendTask =>
+                {
+                    return new CommandSendResult(
+                            sendTask.Result.SendStatus == SendStatus.Success ? CommandSendStatus.Success : CommandSendStatus.Failed,
+                            sendTask.Result.ErrorMessage);
+                });
+            }, "SendCommandAsync");
         }
         public Task<CommandResult> Execute(ICommand command)
         {
@@ -119,13 +129,19 @@ namespace ENode.EQueue
                 throw new Exception("Duplicate command as there already has a command with the same command id is being executing.");
             }
 
-            _producer.SendAsync(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command)).ContinueWith(sendTask =>
+            var message = BuildCommandMessage(command);
+            var routeKey = _commandRouteKeyProvider.GetRouteKey(command);
+
+            _ioHelper.TryIOAction(() =>
             {
-                if (sendTask.Result.SendStatus == SendStatus.Failed)
+                _producer.SendAsync(message, routeKey).ContinueWith(sendTask =>
                 {
-                    _commandResultProcessor.NotifyCommandSendFailed(command);
-                }
-            });
+                    if (sendTask.Result.SendStatus == SendStatus.Failed)
+                    {
+                        _commandResultProcessor.NotifyCommandSendFailed(command);
+                    }
+                });
+            }, "ExecuteCommand");
 
             return taskCompletionSource.Task;
         }

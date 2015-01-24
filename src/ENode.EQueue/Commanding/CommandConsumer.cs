@@ -25,7 +25,6 @@ namespace ENode.EQueue
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly ICommandProcessor _commandProcessor;
         private readonly IRepository _repository;
-        private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
@@ -44,7 +43,6 @@ namespace ENode.EQueue
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
             _commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
             _repository = ObjectContainer.Resolve<IRepository>();
-            _ioHelper = ObjectContainer.Resolve<IOHelper>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _commandExecutedMessageSender = commandExecutedMessageSender ?? new CommandExecutedMessageSender();
         }
@@ -79,7 +77,7 @@ namespace ENode.EQueue
             commandItems["SourceId"] = commandMessage.SourceId;
             commandItems["SourceType"] = commandMessage.SourceType;
 
-            _commandProcessor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems, _ioHelper));
+            _commandProcessor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
 
         class CommandExecuteContext : ICommandExecuteContext

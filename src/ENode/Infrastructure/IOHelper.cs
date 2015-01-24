@@ -19,19 +19,19 @@ namespace ENode.Infrastructure
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        public IOActionResult TryIOActionRecursively(string actionName, string contextInfo, Action action)
+        public IOActionResult TryIOActionRecursively(string actionName, Func<string> getContextInfo, Action action)
         {
             Ensure.NotNull(actionName, "actionName");
-            Ensure.NotNull(contextInfo, "contextInfo");
+            Ensure.NotNull(getContextInfo, "getContextInfo");
             Ensure.NotNull(action, "action");
-            return TryIOActionRecursivelyInternal(actionName, contextInfo, (x, y, z) => action(), 0);
+            return TryIOActionRecursivelyInternal(actionName, getContextInfo, (x, y, z) => action(), 0);
         }
-        public IOFuncResult<T> TryIOFuncRecursively<T>(string funcName, string contextInfo, Func<T> func)
+        public IOFuncResult<T> TryIOFuncRecursively<T>(string funcName, Func<string> getContextInfo, Func<T> func)
         {
             Ensure.NotNull(funcName, "funcName");
-            Ensure.NotNull(contextInfo, "contextInfo");
+            Ensure.NotNull(getContextInfo, "getContextInfo");
             Ensure.NotNull(func, "func");
-            return TryIOFuncRecursivelyInternal(funcName, contextInfo, (x, y, z) => func(), 0);
+            return TryIOFuncRecursivelyInternal(funcName, getContextInfo, (x, y, z) => func(), 0);
         }
 
         public void TryIOAction(Action action, string actionName)
@@ -69,50 +69,50 @@ namespace ENode.Infrastructure
             }
         }
 
-        private IOActionResult TryIOActionRecursivelyInternal(string actionName, string contextInfo, Action<string, string, long> action, long retryTimes)
+        private IOActionResult TryIOActionRecursivelyInternal(string actionName, Func<string> getContextInfo, Action<string, Func<string>, long> action, long retryTimes)
         {
             try
             {
-                action(actionName, contextInfo, retryTimes);
+                action(actionName, getContextInfo, retryTimes);
                 return IOActionResult.SuccessResult;
             }
             catch (IOException ex)
             {
-                _logger.Error(string.Format("IOException raised when executing action '{0}', current retryTimes:{1}, contextInfo:{2}", actionName, retryTimes, contextInfo), ex);
+                _logger.Error(string.Format("IOException raised when executing action '{0}', current retryTimes:{1}, contextInfo:{2}", actionName, retryTimes, getContextInfo()), ex);
                 if (retryTimes > _immediatelyRetryTimes)
                 {
                     Thread.Sleep(_retryIntervalForIOException);
                 }
                 retryTimes++;
-                return TryIOActionRecursivelyInternal(actionName, contextInfo, action, retryTimes);
+                return TryIOActionRecursivelyInternal(actionName, getContextInfo, action, retryTimes);
             }
             catch (Exception ex)
             {
-                var errorMessage = string.Format("Unknown exception raised when executing action '{0}', current retryTimes:{1}, contextInfo:{2}", actionName, retryTimes, contextInfo);
+                var errorMessage = string.Format("Unknown exception raised when executing action '{0}', current retryTimes:{1}, contextInfo:{2}", actionName, retryTimes, getContextInfo());
                 _logger.Error(errorMessage, ex);
                 return new IOActionResult(false, ex);
             }
         }
-        private IOFuncResult<T> TryIOFuncRecursivelyInternal<T>(string funcName, string contextInfo, Func<string, string, long, T> func, long retryTimes)
+        private IOFuncResult<T> TryIOFuncRecursivelyInternal<T>(string funcName, Func<string> getContextInfo, Func<string, Func<string>, long, T> func, long retryTimes)
         {
             try
             {
-                var data = func(funcName, contextInfo, retryTimes);
+                var data = func(funcName, getContextInfo, retryTimes);
                 return new IOFuncResult<T>(true, null, data);
             }
             catch (IOException ex)
             {
-                _logger.Error(string.Format("IOException raised when executing func '{0}', current retryTimes:{1}, contextInfo:{2}", funcName, retryTimes, contextInfo), ex);
+                _logger.Error(string.Format("IOException raised when executing func '{0}', current retryTimes:{1}, contextInfo:{2}", funcName, retryTimes, getContextInfo()), ex);
                 if (retryTimes > _immediatelyRetryTimes)
                 {
                     Thread.Sleep(_retryIntervalForIOException);
                 }
                 retryTimes++;
-                return TryIOFuncRecursivelyInternal(funcName, contextInfo, func, retryTimes);
+                return TryIOFuncRecursivelyInternal(funcName, getContextInfo, func, retryTimes);
             }
             catch (Exception ex)
             {
-                var errorMessage = string.Format("Unknown exception raised when executing func '{0}', current retryTimes:{1}, contextInfo:{2}", funcName, retryTimes, contextInfo);
+                var errorMessage = string.Format("Unknown exception raised when executing func '{0}', current retryTimes:{1}, contextInfo:{2}", funcName, retryTimes, getContextInfo());
                 _logger.Error(errorMessage, ex);
                 return new IOFuncResult<T>(false, ex, default(T));
             }

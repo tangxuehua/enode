@@ -1,13 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
-using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
     public class ProcessingCommand
     {
         private CommandMailbox _mailbox;
-        private readonly IOHelper _ioHelper;
 
         public string AggregateRootId { get; private set; }
         public ICommand Command { get; private set; }
@@ -15,7 +12,7 @@ namespace ENode.Commanding
         public int ConcurrentRetriedCount { get; private set; }
         public IDictionary<string, string> Items { get; private set; }
 
-        public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, IDictionary<string, string> items, IOHelper ioHelper)
+        public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, IDictionary<string, string> items)
         {
             Command = command;
             CommandExecuteContext = commandExecuteContext;
@@ -29,7 +26,6 @@ namespace ENode.Commanding
                     throw new CommandAggregateRootIdMissingException(command);
                 }
             }
-            _ioHelper = ioHelper;
         }
 
         public void SetMailbox(CommandMailbox mailbox)
@@ -38,12 +34,7 @@ namespace ENode.Commanding
         }
         public void Complete(CommandResult commandResult)
         {
-            var contextInfo = string.Format("commandType:{0}, commandResult:{1}", Command.GetType().Name, commandResult);
-            _ioHelper.TryIOActionRecursively("NotifyCommandExecuted", contextInfo, () =>
-            {
-                NotifyCommandExecuted(commandResult);
-            });
-
+            CommandExecuteContext.OnCommandExecuted(commandResult);
             if (_mailbox != null)
             {
                 _mailbox.CompleteCommand(this);
@@ -56,14 +47,6 @@ namespace ENode.Commanding
         public void IncreaseConcurrentRetriedCount()
         {
             ConcurrentRetriedCount++;
-        }
-
-        private void NotifyCommandExecuted(CommandResult commandResult)
-        {
-            _ioHelper.TryIOAction(() =>
-            {
-                CommandExecuteContext.OnCommandExecuted(commandResult);
-            }, "OnCommandExecuted");
         }
     }
 }

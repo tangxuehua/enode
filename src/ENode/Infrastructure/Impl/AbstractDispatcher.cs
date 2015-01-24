@@ -21,6 +21,7 @@ namespace ENode.Infrastructure.Impl
         private readonly IRepository _repository;
         private readonly IMessageHandleRecordStore _messageHandleRecordStore;
         private readonly IMessageHandleRecordCache _messageHandleRecordCache;
+        private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
 
         #endregion
@@ -36,6 +37,7 @@ namespace ENode.Infrastructure.Impl
             IRepository repository,
             IMessageHandleRecordStore messageHandleRecordStore,
             IMessageHandleRecordCache messageHandleRecordCache,
+            IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
             _messageTypeCodeProvider = messageTypeCodeProvider;
@@ -46,6 +48,7 @@ namespace ENode.Infrastructure.Impl
             _repository = repository;
             _messageHandleRecordStore = messageHandleRecordStore;
             _messageHandleRecordCache = messageHandleRecordCache;
+            _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
@@ -84,7 +87,14 @@ namespace ENode.Infrastructure.Impl
             var success = true;
             foreach (var handler in _handlerProvider.GetHandlers(message.GetType()))
             {
-                if (!DispatchMessageToHandler(message, handler))
+                var result = _ioHelper.TryIOFuncRecursively<bool>("DispatchMessageToHandler", () =>
+                {
+                    return string.Format("[messageType:{0},messageId:{1},handlerType:{2}]", message.GetType().Name, message.Id, handler.GetInnerHandler().GetType().Name);
+                }, () =>
+                {
+                    return DispatchMessageToHandler(message, handler);
+                });
+                if (!result.Data)
                 {
                     success = false;
                 }
@@ -143,13 +153,17 @@ namespace ENode.Infrastructure.Impl
 
                 return true;
             }
+            catch (IOException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.Error(string.Format("Message handle failed, handlerType:{0}, messageType:{1}, messageId:{2}.",
                     handlerType.Name,
                     message.GetType().Name,
                     message.Id), ex);
-                return false;
+                return !(ex is ICanBeRetryException);
             }
         }
         private string BuildCommandId(ICommand command, TMessage message, int handlerTypeCode)

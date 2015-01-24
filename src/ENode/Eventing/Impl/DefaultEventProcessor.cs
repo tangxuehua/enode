@@ -40,7 +40,7 @@ namespace ENode.Eventing.Impl
                 _logger.ErrorFormat("Process event failed, eventId:{0}, eventType:{1}, retryTimes:{2}", evnt.Id, evnt.GetType().Name, queueMessage.RetryTimes);
             }
 
-            OnMessageHandled(success, queueMessage);
+            OnMessageHandled(!success, queueMessage);
         }
     }
 }

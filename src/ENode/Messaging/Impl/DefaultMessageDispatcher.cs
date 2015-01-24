@@ -17,6 +17,7 @@ namespace ENode.Messaging.Impl
             IRepository repository,
             IMessageHandleRecordStore messageHandleRecordStore,
             IMessageHandleRecordCache messageHandleRecordCache,
+            IOHelper ioHelper,
             ILoggerFactory loggerFactory)
             : base(
             messageTypeCodeProvider,
@@ -27,6 +28,7 @@ namespace ENode.Messaging.Impl
             repository,
             messageHandleRecordStore,
             messageHandleRecordCache,
+            ioHelper,
             loggerFactory)
         {
         }
