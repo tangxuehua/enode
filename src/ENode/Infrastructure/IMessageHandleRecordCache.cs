@@ -6,7 +6,6 @@
     {
         /// <summary>Remove all the message handle records from memory cache by messageId.
         /// </summary>
-        /// <param name="messageId"></param>
         void RemoveRecordFromCache(MessageHandleRecordType type, string messageId);
     }
 }

@@ -16,11 +16,12 @@ namespace ENode.Domain
         private Queue<IDomainEvent> _uncommittedEvents;
         protected TAggregateRootId _id;
 
-        /// <summary>Represents the unique identifier of the aggregate root.
+        /// <summary>Gets or sets the unique identifier of the aggregate root.
         /// </summary>
         public TAggregateRootId Id
         {
             get { return _id; }
+            protected set { _id = value; }
         }
 
         /// <summary>Parameterized constructor.

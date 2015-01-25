@@ -222,11 +222,28 @@ namespace ENode.Configurations
             return this;
         }
 
+        /// <summary>Start ENode with default node type option.
+        /// </summary>
+        /// <returns></returns>
+        public ENodeConfiguration StartENode()
+        {
+            return StartENode(NodeType.All);
+        }
         /// <summary>Start ENode with node type option.
         /// </summary>
         /// <returns></returns>
         public ENodeConfiguration StartENode(NodeType nodeType)
         {
+            if (nodeType == NodeType.All)
+            {
+                ObjectContainer.Resolve<IEventService>().Start();
+                ObjectContainer.Resolve<IProcessor<DomainEventStream>>().Start();
+                ObjectContainer.Resolve<IProcessor<EventStream>>().Start();
+                ObjectContainer.Resolve<IProcessor<IEvent>>().Start();
+                ObjectContainer.Resolve<IProcessor<IPublishableException>>().Start();
+                ObjectContainer.Resolve<IProcessor<IMessage>>().Start();
+                return this;
+            }
             if (((int)NodeType.CommandProcessor & (int)nodeType) == (int)NodeType.CommandProcessor)
             {
                 ObjectContainer.Resolve<IEventService>().Start();
@@ -285,6 +302,7 @@ namespace ENode.Configurations
     }
     public enum NodeType
     {
+        All = 0,
         CommandProcessor = 1,
         EventProcessor = 2,
         ExceptionProcessor = 4,

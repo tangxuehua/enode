@@ -2,6 +2,8 @@
 
 namespace ENode.Eventing
 {
+    /// <summary>Represents a service to commit or publish events.
+    /// </summary>
     public interface IEventService
     {
         /// <summary>Set the command executor for command retring.
