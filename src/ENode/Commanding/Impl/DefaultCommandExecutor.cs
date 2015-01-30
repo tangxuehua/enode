@@ -86,7 +86,7 @@ namespace ENode.Commanding.Impl
             try
             {
                 commandHandler.Handle(processingCommand.CommandExecuteContext, command);
-                _logger.DebugFormat("Command was handled. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                _logger.DebugFormat("Handle command success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
                     commandHandler.GetInnerHandler().GetType().Name,
                     command.GetType().Name,
                     command.Id,
