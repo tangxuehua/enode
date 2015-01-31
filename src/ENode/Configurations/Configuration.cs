@@ -125,17 +125,17 @@ namespace ENode.Configurations
             _configuration.SetDefault<IProcessor<IEvent>, DefaultEventProcessor>();
             _configuration.SetDefault<IProcessor<EventStream>, DefaultEventStreamProcessor>();
             _configuration.SetDefault<IProcessor<DomainEventStream>, DefaultDomainEventStreamProcessor>();
-            _configuration.SetDefault<IPublisher<IEvent>, NotImplementedEventPublisher>();
-            _configuration.SetDefault<IPublisher<EventStream>, NotImplementedEventPublisher>();
-            _configuration.SetDefault<IPublisher<DomainEventStream>, NotImplementedEventPublisher>();
+            _configuration.SetDefault<IPublisher<IEvent>, DoNothingPublisher>();
+            _configuration.SetDefault<IPublisher<EventStream>, DoNothingPublisher>();
+            _configuration.SetDefault<IPublisher<DomainEventStream>, DoNothingPublisher>();
 
             _configuration.SetDefault<IDispatcher<IPublishableException>, DefaultExceptionDispatcher>();
             _configuration.SetDefault<IProcessor<IPublishableException>, DefaultExceptionProcessor>();
-            _configuration.SetDefault<IPublisher<IPublishableException>, NotImplementedExceptionPublisher>();
+            _configuration.SetDefault<IPublisher<IPublishableException>, DoNothingPublisher>();
 
             _configuration.SetDefault<IDispatcher<IMessage>, DefaultMessageDispatcher>();
             _configuration.SetDefault<IProcessor<IMessage>, DefaultMessageProcessor>();
-            _configuration.SetDefault<IPublisher<IMessage>, NotImplementedMessagePublisher>();
+            _configuration.SetDefault<IPublisher<IMessage>, DoNothingPublisher>();
 
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<ICommandHandler>));

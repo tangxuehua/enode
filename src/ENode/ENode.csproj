@@ -97,7 +97,6 @@
     </Compile>
     <Compile Include="Exceptions\Impl\ExceptionHandlerWrapper.cs" />
     <Compile Include="Exceptions\PublishableException.cs" />
-    <Compile Include="Exceptions\Impl\NotImplementedExceptionPublisher.cs" />
     <Compile Include="Infrastructure\ICanBeRetryException.cs" />
     <Compile Include="Infrastructure\IDispatcher.cs" />
     <Compile Include="Infrastructure\IDispatchableMessage.cs" />
@@ -105,6 +104,7 @@
     <Compile Include="Infrastructure\IHandlerProvider.cs" />
     <Compile Include="Infrastructure\Impl\AbstractParallelProcessor.cs" />
     <Compile Include="Infrastructure\Impl\AbstractDispatcher.cs" />
+    <Compile Include="Infrastructure\Impl\DoNothingPublisher.cs" />
     <Compile Include="Infrastructure\IOHelper.cs" />
     <Compile Include="Infrastructure\IProxyHandler.cs" />
     <Compile Include="Infrastructure\Impl\DefaultHandlingContext.cs" />
@@ -123,7 +123,6 @@
     <Compile Include="Eventing\IEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventService.cs" />
     <Compile Include="Eventing\Impl\InMemory\InMemoryEventStore.cs" />
-    <Compile Include="Eventing\Impl\NotImplementedEventPublisher.cs" />
     <Compile Include="Eventing\Impl\SQL\SqlServerEventStore.cs" />
     <Compile Include="Infrastructure\Impl\InMemory\InMemoryMessageHandleRecordCache.cs" />
     <Compile Include="Infrastructure\IMessageHandleRecordCache.cs" />
@@ -161,7 +160,6 @@
     <Compile Include="Messaging\Impl\DefaultMessageHandlerProvider.cs" />
     <Compile Include="Messaging\Impl\DefaultMessageDispatcher.cs" />
     <Compile Include="Messaging\Impl\MessageHandlerWrapper.cs" />
-    <Compile Include="Messaging\Impl\NotImplementedMessagePublisher.cs" />
     <Compile Include="Messaging\VersionedMessage.cs" />
     <Compile Include="Messaging\Message.cs" />
     <Compile Include="Messaging\IVersionedMessage.cs" />
