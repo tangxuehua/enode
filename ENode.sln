@@ -43,6 +43,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankTransferSample", "src\B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoteSample.CommandHandlers", "src\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj", "{33A00A93-90BB-40FC-93C4-B35296DA0EA2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.SendCommandPerfTests", "src\ENode.SendCommandPerfTests\ENode.SendCommandPerfTests.csproj", "{69322951-8ABC-4C13-8E0C-D8AEECF62E66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.PublishEventPerfTests", "src\ENode.PublishEventPerfTests\ENode.PublishEventPerfTests.csproj", "{9B71D572-2FDF-41BE-8C38-1317E7632F14}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PerfTests", "PerfTests", "{8A9DF91F-BCE3-48DF-91F5-EFC9EAD43941}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -193,6 +199,26 @@ Global
 		{33A00A93-90BB-40FC-93C4-B35296DA0EA2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{33A00A93-90BB-40FC-93C4-B35296DA0EA2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{33A00A93-90BB-40FC-93C4-B35296DA0EA2}.Release|x86.ActiveCfg = Release|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66}.Release|x86.ActiveCfg = Release|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -204,6 +230,9 @@ Global
 		{F03DFFC7-1017-4EC1-AB90-300EB2CD52DD} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{909A442C-A134-444E-BDDB-5C4B7F333BC4} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
 		{70916DF5-FADC-4517-9185-3ECFE1D43109} = {B46666A1-9210-4DBB-94C7-8D0BF1184174}
+		{9EAF90DD-1B14-4A65-A0AA-37C1E8BBB954} = {8A9DF91F-BCE3-48DF-91F5-EFC9EAD43941}
+		{69322951-8ABC-4C13-8E0C-D8AEECF62E66} = {8A9DF91F-BCE3-48DF-91F5-EFC9EAD43941}
+		{9B71D572-2FDF-41BE-8C38-1317E7632F14} = {8A9DF91F-BCE3-48DF-91F5-EFC9EAD43941}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPath = packages\Unity.2.1.505.2\lib\NET35

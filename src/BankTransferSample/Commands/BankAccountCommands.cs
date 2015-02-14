@@ -32,7 +32,7 @@ namespace BankTransferSample.Commands
             TransactionId = transactionId;
         }
 
-        public override object GetKey()
+        public override object GetTarget()
         {
             return AccountId;
         }

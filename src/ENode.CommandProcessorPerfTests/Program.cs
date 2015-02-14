@@ -8,9 +8,7 @@ using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.JsonNet;
-using ECommon.Log4Net;
 using ECommon.Logging;
-using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
@@ -33,20 +31,25 @@ namespace ENode.CommandProcessorPerfTests
             var commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
             var repository = ObjectContainer.Resolve<IRepository>();
             var watch = Stopwatch.StartNew();
+            var commands = new List<ProcessingCommand>();
 
-            _logger.Info("Start to process commands.");
-            for (var i = 0; i < _totalCount; i++)
+            for (var i = 1; i <= _totalCount; i++)
             {
-                commandProcessor.Process(new ProcessingCommand(
+                commands.Add(new ProcessingCommand(
                     new CreateNoteCommand
                     {
-                        AggregateRootId = ObjectId.GenerateNewStringId(),
+                        AggregateRootId = i.ToString(),
                         Title = "Sample Note"
-                    }, new CommandExecuteContext(_logger, repository), new Dictionary<string, string>()));
+                    }, new CommandExecuteContext(_logger, repository), null, null, new Dictionary<string, string>()));
             }
 
+            Console.WriteLine("Start to process commands.");
+            foreach (var command in commands)
+            {
+                commandProcessor.Process(command);
+            }
             _waitHandle.WaitOne();
-            _logger.InfoFormat("Commands process completed, time spent: {0}ms", watch.ElapsedMilliseconds);
+            Console.WriteLine("Commands process completed, time spent: {0}ms", watch.ElapsedMilliseconds);
             Console.ReadLine();
         }
 
@@ -63,7 +66,6 @@ namespace ENode.CommandProcessorPerfTests
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseLog4Net()
                 .UseJsonNet()
                 .CreateENode()
                 .RegisterENodeComponents()
@@ -98,7 +100,7 @@ namespace ENode.CommandProcessorPerfTests
                 var currentCount = Interlocked.Increment(ref _executedCount);
                 if (currentCount % 1000 == 0)
                 {
-                    _logger.InfoFormat("Executed {0} commands.", currentCount);
+                    Console.WriteLine("Executed {0} commands.", currentCount);
                 }
                 if (currentCount == _totalCount)
                 {

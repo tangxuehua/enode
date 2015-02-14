@@ -123,14 +123,18 @@ namespace ENode.Infrastructure.Impl
                 {
                     foreach (var command in commands)
                     {
-                        command.Id = BuildCommandId(command, message, handlerTypeCode);
-                        _commandService.Send(command, message.Id, handleRecordType.ToString());
-                        _logger.DebugFormat("Send command success, commandType:{0}, commandId:{1}, handlerType:{2}, messageType:{3}, messageId:{4}",
+                        var contextInfo = string.Format("Send command success, commandType:{0}, commandId:{1}, commandTarget:{2}, handlerType:{3}, messageType:{4}, messageId:{5}",
                             command.GetType().Name,
                             command.Id,
+                            command.GetTarget(),
                             handlerType.Name,
                             message.GetType().Name,
                             message.Id);
+                        _ioHelper.TryIOActionRecursively("SendCommandFromHandler", () => contextInfo, () =>
+                        {
+                            _commandService.Send(command, message.Id, handleRecordType.ToString());
+                        });
+                        _logger.Debug(contextInfo);
                     }
                 }
 
@@ -143,7 +147,10 @@ namespace ENode.Infrastructure.Impl
                 };
                 OnMessageHandleRecordCreated(message, messageHandleRecord);
 
-                _messageHandleRecordStore.AddRecord(messageHandleRecord);
+                _ioHelper.TryIOActionRecursively("AddMessageHandleRecord", () => messageHandleRecord.ToString(), () =>
+                {
+                    _messageHandleRecordStore.AddRecord(messageHandleRecord);
+                });
                 _messageHandleRecordCache.AddRecord(messageHandleRecord);
 
                 _logger.DebugFormat("Message handle success, handlerType:{0}, messageType:{1}, messageId:{2}",
@@ -165,13 +172,6 @@ namespace ENode.Infrastructure.Impl
                     message.Id), ex);
                 return !(ex is ICanBeRetryException);
             }
-        }
-        private string BuildCommandId(ICommand command, TMessage message, int handlerTypeCode)
-        {
-            var key = command.GetKey();
-            var commandKey = key == null ? string.Empty : key.ToString();
-            var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            return string.Format("{0}{1}{2}{3}", message.Id, commandKey, handlerTypeCode, commandTypeCode);
         }
     }
 }

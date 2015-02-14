@@ -10,7 +10,7 @@ namespace ENode.Infrastructure.Impl.InMemory
 
         public void AddRecord(MessageHandleRecord record)
         {
-            _dict.GetOrAdd(record.MessageId, new HashSet<int>()).Add(record.HandlerTypeCode);
+            _dict.GetOrAdd(record.MessageId, x => new HashSet<int>()).Add(record.HandlerTypeCode);
         }
         public bool IsRecordExist(MessageHandleRecordType type, string messageId, int handlerTypeCode)
         {

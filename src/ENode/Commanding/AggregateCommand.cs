@@ -26,10 +26,10 @@ namespace ENode.Commanding
             AggregateRootId = aggregateRootId;
         }
 
-        /// <summary>Returns the aggregate root id as the key.
+        /// <summary>Returns the aggregate root id as the command target.
         /// </summary>
         /// <returns></returns>
-        public override object GetKey()
+        public override object GetTarget()
         {
             return AggregateRootId;
         }

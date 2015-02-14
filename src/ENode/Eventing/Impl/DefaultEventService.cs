@@ -347,19 +347,10 @@ namespace ENode.Eventing.Impl
         {
             var processingCommand = context.ProcessingCommand;
             var command = processingCommand.Command;
-
-            if (processingCommand.ConcurrentRetriedCount < command.RetryCount)
-            {
-                processingCommand.IncreaseConcurrentRetriedCount();
-                processingCommand.CommandExecuteContext.Clear();
-                _logger.DebugFormat("Begin to retry command as it meets the concurrent issue. commandType:{0}, commandId:{1}, aggregateRootId:{2}, retried count:{3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, processingCommand.ConcurrentRetriedCount);
-                _commandExecutor.ExecuteCommand(processingCommand);
-            }
-            else
-            {
-                _logger.ErrorFormat("Command concurrent retry times reaches to the max retry times. commandType:{0}, commandId:{1}, aggregateRootId:{2}, retried count:{3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, processingCommand.ConcurrentRetriedCount);
-                processingCommand.Complete(new CommandResult(CommandStatus.Failed, command.Id, context.EventStream.AggregateRootId, null, "Command concurrent retry times reaches to the max retry times."));
-            }
+            processingCommand.IncreaseConcurrentRetriedCount();
+            processingCommand.CommandExecuteContext.Clear();
+            _logger.InfoFormat("Begin to retry command as it meets the concurrent conflict. commandType:{0}, commandId:{1}, aggregateRootId:{2}, retried count:{3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, processingCommand.ConcurrentRetriedCount);
+            _commandExecutor.ExecuteCommand(processingCommand);
         }
 
         #endregion
