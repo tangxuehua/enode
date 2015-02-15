@@ -88,11 +88,6 @@ namespace BankTransferSample
         static void PerformanceTest()
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
-            var settings = new ConfigurationSetting
-            {
-                SqlServerDefaultConnectionString = @"Data Source=(localdb)\Projects;Integrated Security=true;Initial Catalog=ENode;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100",
-                //EnableGroupCommitEvent = true
-            };
 
             _configuration = Configuration
                 .Create()
@@ -100,13 +95,13 @@ namespace BankTransferSample
                 .RegisterCommonComponents()
                 .UseLog4Net()
                 .UseJsonNet()
-                .CreateENode(settings)
+                .RegisterUnhandledExceptionHandler()
+                .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .UseSqlServerEventStore()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode(NodeType.CommandProcessor | NodeType.EventProcessor | NodeType.ExceptionProcessor)
+                .StartENode()
                 .StartEQueue();
 
             Console.WriteLine(string.Empty);
@@ -120,9 +115,9 @@ namespace BankTransferSample
 
             var accountList = new List<string>();
             var accountCount = 100;
-            var total = 100000D;
-            var amount = 1000D;
-            var count = total / amount;
+            var transactionCount = 100;
+            var depositAmount = 100000D;
+            var transferAmount = 1000D;
 
             //创建银行账户
             for (var i = 0; i < accountCount; i++)
@@ -137,26 +132,28 @@ namespace BankTransferSample
             //每个账户都存入初始额度
             foreach (var accountId in accountList)
             {
-                commandService.Send(new StartDepositTransactionCommand(accountId, total));
+                commandService.Send(new StartDepositTransactionCommand(accountId, depositAmount));
                 syncHelper.WaitOne();
             }
 
             Console.WriteLine(string.Empty);
 
-            countSyncHelper.SetExpectedCount((int)count);
+            countSyncHelper.SetExpectedCount((int)transactionCount);
 
             var watch = Stopwatch.StartNew();
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < transactionCount; i++)
             {
-                var account1 = accountList[i % accountCount];
-                var account2 = accountList[(i + 1) % accountCount];
-                commandService.SendAsync(new StartTransferTransactionCommand(new TransferTransactionInfo(account1, account2, amount)));
+                var sourceAccountIndex = new Random().Next(accountCount - 1);
+                var targetAccountIndex = sourceAccountIndex + 1;
+                var sourceAccount = accountList[sourceAccountIndex];
+                var targetAccount = accountList[targetAccountIndex];
+                commandService.SendAsync(new StartTransferTransactionCommand(new TransferTransactionInfo(sourceAccount, targetAccount, transferAmount)));
             }
 
             countSyncHelper.WaitOne();
 
             Console.WriteLine(string.Empty);
-            Console.WriteLine("All transfer transaction completed, time spent: {0}ms", watch.ElapsedMilliseconds);
+            Console.WriteLine("All transfer transactions completed, time spent: {0}ms, speed: {1} transactions per second.", watch.ElapsedMilliseconds, transactionCount * 1000 / watch.ElapsedMilliseconds);
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
             _configuration.ShutdownEQueue();

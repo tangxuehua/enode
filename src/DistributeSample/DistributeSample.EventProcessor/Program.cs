@@ -29,6 +29,7 @@ namespace DistributeSample.EventProcessor
                 .RegisterCommonComponents()
                 .UseLog4Net()
                 .UseJsonNet()
+                .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)

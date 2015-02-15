@@ -7,7 +7,6 @@ using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.JsonNet;
-using ECommon.Logging;
 using ENode.Commanding;
 using ENode.Configurations;
 using NoteSample.Commands;
@@ -16,51 +15,79 @@ namespace ENode.SendCommandPerfTests
 {
     class Program
     {
-        static ILogger _logger;
         static ENodeConfiguration _configuration;
-        static int _totalCount = 10000;
-        static ManualResetEvent _waitHandle = new ManualResetEvent(false);
+        static ICommandService _commandService;
 
         static void Main(string[] args)
         {
             InitializeENodeFramework();
 
-            var commandService = ObjectContainer.Resolve<ICommandService>();
-            var watch = Stopwatch.StartNew();
-            var commands = new List<ICommand>();
+            _commandService = ObjectContainer.Resolve<ICommandService>();
 
-            for (var i = 1; i <= _totalCount; i++)
-            {
-                commands.Add(
-                    new CreateNoteCommand
-                    {
-                        AggregateRootId = i.ToString(),
-                        Title = "Sample Note"
-                    });
-            }
+            SendCommandAsync(100000);
+            SendCommandSync(50000);
 
-            int _current = 0;
-            Console.WriteLine("Start to send commands.");
-            foreach (var command in commands)
-            {
-                commandService.SendAsync(command).ContinueWith(x =>
-                {
-                    var current = Interlocked.Increment(ref _current);
-                    if (current % 1000 == 0)
-                    {
-                        Console.WriteLine(current);
-                    }
-                    if (current == _totalCount)
-                    {
-                        _waitHandle.Set();
-                    }
-                });
-            }
-            _waitHandle.WaitOne();
-            Console.WriteLine("Commands send completed, time spent: {0}ms", watch.ElapsedMilliseconds);
             Console.ReadLine();
         }
 
+        static IEnumerable<ICommand> CreateCommands(int commandCount)
+        {
+            var commands = new List<ICommand>();
+            for (var i = 1; i <= commandCount; i++)
+            {
+                commands.Add(new CreateNoteCommand
+                {
+                    AggregateRootId = i.ToString(),
+                    Title = "Sample Note"
+                });
+            }
+            return commands;
+        }
+        static void SendCommandAsync(int commandCount)
+        {
+            var commands = CreateCommands(commandCount);
+            var watch = Stopwatch.StartNew();
+            var sequence = 0;
+            var printSize = commandCount / 10;
+
+            Console.WriteLine("");
+            Console.WriteLine("--Start to send commands asynchronously, total count: {0}.", commandCount);
+            foreach (var command in commands)
+            {
+                _commandService.SendAsync(command).ContinueWith(x =>
+                {
+                    var current = Interlocked.Increment(ref sequence);
+                    if (current % printSize == 0)
+                    {
+                        Console.WriteLine("----Sent {0} commands, time spent: {1}ms", current, watch.ElapsedMilliseconds);
+                    }
+                    if (current == commandCount)
+                    {
+                        Console.WriteLine("--Commands send completed, average speed: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
+                    }
+                });
+            }
+        }
+        static void SendCommandSync(int commandCount)
+        {
+            var commands = CreateCommands(commandCount);
+            var watch = Stopwatch.StartNew();
+            var sentCount = 0;
+            var printSize = commandCount / 10;
+
+            Console.WriteLine("");
+            Console.WriteLine("--Start to send commands synchronously, total count: {0}.", commandCount);
+            foreach (var command in commands)
+            {
+                _commandService.Send(command);
+                sentCount++;
+                if (sentCount % printSize == 0)
+                {
+                    Console.WriteLine("----Sent {0} commands, time spent: {1}ms", sentCount, watch.ElapsedMilliseconds);
+                }
+            }
+            Console.WriteLine("--Commands send completed, average speed: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
+        }
         static void InitializeENodeFramework()
         {
             var assemblies = new[]
@@ -73,6 +100,7 @@ namespace ENode.SendCommandPerfTests
                 .UseAutofac()
                 .RegisterCommonComponents()
                 .UseJsonNet()
+                .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
@@ -80,7 +108,6 @@ namespace ENode.SendCommandPerfTests
                 .UseEQueue()
                 .StartEQueue();
 
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name);
             Console.WriteLine("ENode started...");
         }
     }

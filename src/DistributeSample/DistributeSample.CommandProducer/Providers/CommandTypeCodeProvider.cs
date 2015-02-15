@@ -1,7 +1,7 @@
-﻿using DistributeSample.Commands;
-using ECommon.Components;
+﻿using ECommon.Components;
 using ENode.Commanding;
 using ENode.Infrastructure.Impl;
+using NoteSample.Commands;
 
 namespace DistributeSample.CommandProducer.Providers
 {

@@ -43,28 +43,23 @@
     <Reference Include="Dapper">
       <HintPath>..\..\..\packages\Dapper.1.38\lib\net45\Dapper.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ECommon.1.4.0\lib\net45\ECommon.dll</HintPath>
+    <Reference Include="ECommon">
+      <HintPath>..\..\..\packages\ECommon.1.4.3\lib\net45\ECommon.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.Autofac, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ECommon.Autofac.1.4.0\lib\net45\ECommon.Autofac.dll</HintPath>
+    <Reference Include="ECommon.Autofac">
+      <HintPath>..\..\..\packages\ECommon.Autofac.1.4.2\lib\net45\ECommon.Autofac.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Dapper">
-      <HintPath>..\..\..\packages\ECommon.Dapper.1.4.0\lib\net45\ECommon.Dapper.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.Dapper.1.4.2\lib\net45\ECommon.Dapper.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.JsonNet, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ECommon.JsonNet.1.4.1\lib\net45\ECommon.JsonNet.dll</HintPath>
+    <Reference Include="ECommon.JsonNet">
+      <HintPath>..\..\..\packages\ECommon.JsonNet.1.4.2\lib\net45\ECommon.JsonNet.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon.Log4Net, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\ECommon.Log4Net.1.4.0\lib\net45\ECommon.Log4Net.dll</HintPath>
+    <Reference Include="ECommon.Log4Net">
+      <HintPath>..\..\..\packages\ECommon.Log4Net.1.4.2\lib\net45\ECommon.Log4Net.dll</HintPath>
     </Reference>
-    <Reference Include="EQueue, Version=1.3.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\EQueue.1.3.8\lib\net45\EQueue.dll</HintPath>
+    <Reference Include="EQueue">
+      <HintPath>..\..\..\packages\EQueue.1.3.9\lib\net45\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -81,8 +76,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandHandlers\CreateNoteCommandHandler.cs" />
-    <Compile Include="Domain\Note.cs" />
     <Compile Include="ENodeExtensions.cs" />
     <Compile Include="Providers\AggregateRootTypeCodeProvider.cs" />
     <Compile Include="Providers\CommandTypeCodeProvider.cs" />
@@ -100,13 +93,17 @@
       <Project>{8b5368e5-8518-4684-90eb-048dcbf76e9a}</Project>
       <Name>ENode.EQueue</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DistributeSample.Commands\DistributeSample.Commands.csproj">
-      <Project>{f03dffc7-1017-4ec1-ab90-300eb2cd52dd}</Project>
-      <Name>DistributeSample.Commands</Name>
+    <ProjectReference Include="..\..\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj">
+      <Project>{33a00a93-90bb-40fc-93c4-b35296da0ea2}</Project>
+      <Name>NoteSample.CommandHandlers</Name>
     </ProjectReference>
-    <ProjectReference Include="..\DistributeSample.Events\DistributeSample.Events.csproj">
-      <Project>{70916df5-fadc-4517-9185-3ecfe1d43109}</Project>
-      <Name>DistributeSample.Events</Name>
+    <ProjectReference Include="..\..\NoteSample.Commands\NoteSample.Commands.csproj">
+      <Project>{4048fe0b-50a6-46ad-b633-0e65883e8c3e}</Project>
+      <Name>NoteSample.Commands</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\NoteSample.Domain\NoteSample.Domain.csproj">
+      <Project>{51c698d5-8ccf-468b-8c4e-db615b4463c1}</Project>
+      <Name>NoteSample.Domain</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

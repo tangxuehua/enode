@@ -19,40 +19,41 @@ namespace ENode.CommandProcessorPerfTests
 {
     class Program
     {
-        static ILogger _logger;
         static ENodeConfiguration _configuration;
-        static int _totalCount = 100000;
         static ManualResetEvent _waitHandle = new ManualResetEvent(false);
 
         static void Main(string[] args)
         {
             InitializeENodeFramework();
+            ProcessCreateAggregateCommands(100000);
+            Console.ReadLine();
+        }
 
+        static void ProcessCreateAggregateCommands(int commandCount)
+        {
             var commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
             var repository = ObjectContainer.Resolve<IRepository>();
             var watch = Stopwatch.StartNew();
             var commands = new List<ProcessingCommand>();
+            var logger = ObjectContainer.Resolve<ILoggerFactory>().Create("main");
 
-            for (var i = 1; i <= _totalCount; i++)
+            for (var i = 1; i <= commandCount; i++)
             {
-                commands.Add(new ProcessingCommand(
-                    new CreateNoteCommand
-                    {
-                        AggregateRootId = i.ToString(),
-                        Title = "Sample Note"
-                    }, new CommandExecuteContext(_logger, repository), null, null, new Dictionary<string, string>()));
+                commands.Add(new ProcessingCommand(new CreateNoteCommand
+                {
+                    AggregateRootId = i.ToString(),
+                    Title = "Sample Note"
+                }, new CommandExecuteContext(watch, commandCount, logger, repository), null, null, new Dictionary<string, string>()));
             }
 
-            Console.WriteLine("Start to process commands.");
+            Console.WriteLine("--Start to process commands, total count: {0}.", commandCount);
             foreach (var command in commands)
             {
                 commandProcessor.Process(command);
             }
             _waitHandle.WaitOne();
-            Console.WriteLine("Commands process completed, time spent: {0}ms", watch.ElapsedMilliseconds);
-            Console.ReadLine();
+            Console.WriteLine("--Commands process completed, average speed: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
         }
-
         static void InitializeENodeFramework()
         {
             var assemblies = new[]
@@ -67,40 +68,43 @@ namespace ENode.CommandProcessorPerfTests
                 .UseAutofac()
                 .RegisterCommonComponents()
                 .UseJsonNet()
+                .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)
                 .StartENode(NodeType.CommandProcessor);
 
-            Console.WriteLine(string.Empty);
-
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name);
-            _logger.Info("ENode started...");
+            Console.WriteLine("ENode started...");
         }
-
         class CommandExecuteContext : ICommandExecuteContext
         {
             private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRoots;
             private readonly ConcurrentDictionary<string, IEvent> _events;
             private readonly IRepository _repository;
             private readonly ILogger _logger;
+            private readonly Stopwatch _watch;
+            private readonly int _totalCount;
+            private readonly int _printSize;
             private static int _executedCount;
 
-            public CommandExecuteContext(ILogger logger, IRepository repository)
+            public CommandExecuteContext(Stopwatch watch, int totalCount, ILogger logger, IRepository repository)
             {
+                _watch = watch;
                 _aggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
                 _events = new ConcurrentDictionary<string, IEvent>();
                 _logger = logger;
                 _repository = repository;
+                _totalCount = totalCount;
+                _printSize = totalCount / 10;
             }
 
             public void OnCommandExecuted(CommandResult commandResult)
             {
                 var currentCount = Interlocked.Increment(ref _executedCount);
-                if (currentCount % 1000 == 0)
+                if (currentCount % _printSize == 0)
                 {
-                    Console.WriteLine("Executed {0} commands.", currentCount);
+                    Console.WriteLine("----Processed {0} commands, timespent:{1}ms", currentCount, _watch.ElapsedMilliseconds);
                 }
                 if (currentCount == _totalCount)
                 {

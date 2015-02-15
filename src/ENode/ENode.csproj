@@ -183,12 +183,11 @@
     <Reference Include="Dapper">
       <HintPath>..\..\packages\Dapper.1.38\lib\net45\Dapper.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon, Version=1.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\ECommon.1.4.0\lib\net45\ECommon.dll</HintPath>
+    <Reference Include="ECommon">
+      <HintPath>..\..\packages\ecommon.1.4.3\lib\net45\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Dapper">
-      <HintPath>..\..\packages\ECommon.Dapper.1.4.0\lib\net45\ECommon.Dapper.dll</HintPath>
+      <HintPath>..\..\packages\ECommon.Dapper.1.4.2\lib\net45\ECommon.Dapper.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />

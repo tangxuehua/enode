@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Threading;
 using DistributeSample.CommandProducer.EQueueIntegrations;
-using DistributeSample.Commands;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
@@ -12,6 +11,7 @@ using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
+using NoteSample.Commands;
 
 namespace DistributeSample.CommandProducer
 {
@@ -50,6 +50,7 @@ namespace DistributeSample.CommandProducer
                 .RegisterCommonComponents()
                 .UseLog4Net()
                 .UseJsonNet()
+                .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)

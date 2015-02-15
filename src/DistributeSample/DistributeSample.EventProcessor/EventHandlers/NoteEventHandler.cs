@@ -1,8 +1,8 @@
-﻿using DistributeSample.Events;
-using ECommon.Components;
+﻿using ECommon.Components;
 using ECommon.Logging;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using NoteSample.Domain;
 
 namespace DistributeSample.EventProcessor.EventHandlers
 {

@@ -7,7 +7,6 @@ using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.JsonNet;
-using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Configurations;
 using ENode.Eventing;
@@ -18,48 +17,44 @@ namespace ENode.PublishEventPerfTests
 {
     class Program
     {
-        static ILogger _logger;
         static ENodeConfiguration _configuration;
-        static int _totalCount = 10000;
-        static ManualResetEvent _waitHandle = new ManualResetEvent(false);
 
         static void Main(string[] args)
         {
             InitializeENodeFramework();
+            PublishEventSync(10000);
+            Console.ReadLine();
+        }
 
+        static void PublishEventSync(int eventCount)
+        {
+            var printSize = eventCount / 10;
             var eventPublisher = ObjectContainer.Resolve<IPublisher<DomainEventStream>>();
-            var watch = Stopwatch.StartNew();
             var eventStreams = new List<DomainEventStream>();
             var commandId = ObjectId.GenerateNewStringId();
             var noteId = ObjectId.GenerateNewStringId();
             var evnt = new NoteCreated(noteId, "Sample Note");
             var evnts = new List<IDomainEvent> { evnt };
 
-            for (var i = 1; i <= _totalCount; i++)
+            for (var i = 1; i <= eventCount; i++)
             {
                 eventStreams.Add(new DomainEventStream(commandId, noteId, 100, 1, DateTime.Now, evnts, new Dictionary<string, string>()));
             }
 
-            int _current = 0;
-            Console.WriteLine("Start to send event stream.");
+            int publishedEventCount = 0;
+            Console.WriteLine("--Start to send events, total count: {0}.", eventCount);
+            var watch = Stopwatch.StartNew();
             foreach (var eventStream in eventStreams)
             {
                 eventPublisher.Publish(eventStream);
-                var current = Interlocked.Increment(ref _current);
-                if (current % 1000 == 0)
+                publishedEventCount++;
+                if (publishedEventCount % printSize == 0)
                 {
-                    Console.WriteLine(current);
-                }
-                if (current == _totalCount)
-                {
-                    _waitHandle.Set();
+                    Console.WriteLine("----Sent {0} events, time spent: {1}ms", publishedEventCount, watch.ElapsedMilliseconds);
                 }
             }
-            _waitHandle.WaitOne();
-            Console.WriteLine("Event stream send completed, time spent: {0}ms", watch.ElapsedMilliseconds);
-            Console.ReadLine();
+            Console.WriteLine("--Events send completed, average speed: {0}/s", eventCount * 1000 / watch.ElapsedMilliseconds);
         }
-
         static void InitializeENodeFramework()
         {
             var assemblies = new[]
@@ -72,6 +67,7 @@ namespace ENode.PublishEventPerfTests
                 .UseAutofac()
                 .RegisterCommonComponents()
                 .UseJsonNet()
+                .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
@@ -79,7 +75,6 @@ namespace ENode.PublishEventPerfTests
                 .UseEQueue()
                 .StartEQueue();
 
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name);
             Console.WriteLine("ENode started...");
         }
     }

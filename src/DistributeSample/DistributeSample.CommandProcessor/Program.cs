@@ -21,7 +21,13 @@ namespace DistributeSample.CommandProcessor
 
         static void InitializeENodeFramework()
         {
-            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+            var assemblies = new[]
+            {
+                Assembly.Load("NoteSample.Domain"),
+                Assembly.Load("NoteSample.Commands"),
+                Assembly.Load("NoteSample.CommandHandlers"),
+                Assembly.GetExecutingAssembly()
+            };
 
             Configuration
                 .Create()
@@ -29,6 +35,7 @@ namespace DistributeSample.CommandProcessor
                 .RegisterCommonComponents()
                 .UseLog4Net()
                 .UseJsonNet()
+                .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)

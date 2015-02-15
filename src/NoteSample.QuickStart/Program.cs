@@ -56,6 +56,7 @@ namespace NoteSample.QuickStart
                 .RegisterCommonComponents()
                 .UseLog4Net()
                 .UseJsonNet()
+                .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)

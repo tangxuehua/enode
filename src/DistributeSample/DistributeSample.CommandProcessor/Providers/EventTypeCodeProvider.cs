@@ -1,7 +1,7 @@
-﻿using DistributeSample.Events;
-using ECommon.Components;
+﻿using ECommon.Components;
 using ENode.Eventing;
 using ENode.Infrastructure.Impl;
+using NoteSample.Domain;
 
 namespace DistributeSample.CommandProcessor.Providers
 {
