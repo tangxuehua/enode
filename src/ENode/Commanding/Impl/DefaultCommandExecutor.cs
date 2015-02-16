@@ -195,13 +195,7 @@ namespace ENode.Commanding.Impl
                 return;
             }
 
-            //尝试将当前已执行的command添加到commandStore
-            string sourceId;
-            string sourceType;
-            processingCommand.Items.TryGetValue("SourceId", out sourceId);
-            processingCommand.Items.TryGetValue("SourceType", out sourceType);
-
-            var handledAggregateCommand = new HandledAggregateCommand(command, sourceId, sourceType, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode);
+            var handledAggregateCommand = new HandledAggregateCommand(command, processingCommand.SourceId, processingCommand.SourceType, eventStream.AggregateRootId, eventStream.AggregateRootTypeCode);
 
             var addCommandIoResult = _ioHelper.TryIOFuncRecursively<CommandAddResult>("AddHandledAggregateCommand", () => handledAggregateCommand.ToString(), () =>
             {
@@ -266,12 +260,8 @@ namespace ENode.Commanding.Impl
         private void CommitChanges(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Command;
-            string sourceId;
-            string sourceType;
-            processingCommand.Items.TryGetValue("SourceId", out sourceId);
-            processingCommand.Items.TryGetValue("SourceType", out sourceType);
             var evnts = processingCommand.CommandExecuteContext.GetEvents().ToList();
-            var handledCommand = new HandledCommand(command, sourceId, sourceType, evnts);
+            var handledCommand = new HandledCommand(command, processingCommand.SourceId, processingCommand.SourceType, evnts);
 
             var addCommandIoResult = _ioHelper.TryIOFuncRecursively<CommandAddResult>("AddHandledCommand", () => handledCommand.ToString(), () =>
             {

@@ -115,17 +115,11 @@ namespace ENode.Eventing.Impl
                 eventStream.Items = processingCommand.Items;
             }
 
-            var result = _ioHelper.TryIOActionRecursively("PublishDomainEvent", () => eventStream.ToString(), () =>
+            var result = _ioHelper.TryIOActionRecursively("PublishDomainEventAsync", () => eventStream.ToString(), () =>
             {
-                _domainEventPublisher.Publish(eventStream);
+                PublishDomainEventAsync(processingCommand, eventStream);
             });
-
-            if (result.Success)
-            {
-                _logger.DebugFormat("Publish domain events success, {0}", eventStream);
-                processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, eventStream.AggregateRootId, null, null));
-            }
-            else
+            if (!result.Success)
             {
                 processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, eventStream.AggregateRootId, result.Exception.GetType().Name, "Publish domain events failed."));
             }
@@ -137,18 +131,11 @@ namespace ENode.Eventing.Impl
                 eventStream.Items = processingCommand.Items;
             }
 
-            var result = _ioHelper.TryIOActionRecursively("PublishEvent", () => eventStream.ToString(), () =>
+            var result = _ioHelper.TryIOActionRecursively("PublishEventAsync", () => eventStream.ToString(), () =>
             {
-                _eventPublisher.Publish(eventStream);
+                PublishEventAsync(processingCommand, eventStream);
             });
-
-
-            if (result.Success)
-            {
-                _logger.DebugFormat("Publish events success, {0}", eventStream);
-                processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, null, null, null));
-            }
-            else
+            if (!result.Success)
             {
                 processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, null, result.Exception.GetType().Name, "Publish events failed."));
             }
@@ -351,6 +338,44 @@ namespace ENode.Eventing.Impl
             processingCommand.CommandExecuteContext.Clear();
             _logger.InfoFormat("Begin to retry command as it meets the concurrent conflict. commandType:{0}, commandId:{1}, aggregateRootId:{2}, retried count:{3}.", command.GetType().Name, command.Id, processingCommand.AggregateRootId, processingCommand.ConcurrentRetriedCount);
             _commandExecutor.ExecuteCommand(processingCommand);
+        }
+        private async void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream)
+        {
+            var result = await _domainEventPublisher.PublishAsync(eventStream);
+
+            if (result.Status == PublishStatus.Success)
+            {
+                _logger.DebugFormat("Publish domain events success, {0}", eventStream);
+                processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, eventStream.AggregateRootId, null, null));
+            }
+            else if (result.Status == PublishStatus.IOException)
+            {
+                PublishDomainEvent(processingCommand, eventStream);
+            }
+            else
+            {
+                _logger.ErrorFormat("Publish domain events failed, events:{0}, errorMessage:{1}", eventStream, result.ErrorMessage);
+                processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, eventStream.AggregateRootId, null, "Publish domain events failed."));
+            }
+        }
+        private async void PublishEventAsync(ProcessingCommand processingCommand, EventStream eventStream)
+        {
+            var result = await _eventPublisher.PublishAsync(eventStream);
+
+            if (result.Status == PublishStatus.Success)
+            {
+                _logger.DebugFormat("Publish events success, {0}", eventStream);
+                processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, null, null, null));
+            }
+            else if (result.Status == PublishStatus.IOException)
+            {
+                PublishEvent(processingCommand, eventStream);
+            }
+            else
+            {
+                _logger.ErrorFormat("Publish events failed, events:{0}, errorMessage:{1}", eventStream, result.ErrorMessage);
+                processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, null, null, "Publish events failed."));
+            }
         }
 
         #endregion

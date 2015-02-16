@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Configurations;
@@ -51,7 +52,41 @@ namespace ENode.Infrastructure
                 throw new IOException(string.Format("{0} failed.", actionName), ex);
             }
         }
+        public Task TryIOActionAsync(Func<Task> action, string actionName)
+        {
+            Ensure.NotNull(action, "action");
+            Ensure.NotNull(actionName, "actionName");
+            try
+            {
+                return action();
+            }
+            catch (IOException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new IOException(string.Format("{0} failed.", actionName), ex);
+            }
+        }
         public T TryIOFunc<T>(Func<T> func, string funcName)
+        {
+            Ensure.NotNull(func, "func");
+            Ensure.NotNull(funcName, "funcName");
+            try
+            {
+                return func();
+            }
+            catch (IOException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new IOException(string.Format("{0} failed.", funcName), ex);
+            }
+        }
+        public Task<T> TryIOFuncAsync<T>(Func<Task<T>> func, string funcName)
         {
             Ensure.NotNull(func, "func");
             Ensure.NotNull(funcName, "funcName");

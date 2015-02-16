@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -57,6 +58,11 @@ namespace ENode.EQueue
                     throw new Exception(string.Format("Publish message failed, messageId:{0}, messageType:{1}", message.Id, message.GetType().Name));
                 }
             }, "Send message to broker");
+        }
+
+        public Task<PublishResult<IMessage>> PublishAsync(IMessage message)
+        {
+            throw new NotImplementedException();
         }
     }
 }

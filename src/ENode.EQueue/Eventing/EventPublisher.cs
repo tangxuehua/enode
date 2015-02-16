@@ -1,6 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -48,58 +48,109 @@ namespace ENode.EQueue
 
         public void Publish(IEvent evnt)
         {
-            var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
-            var eventData = _jsonSerializer.Serialize(evnt);
-            var topic = _eventTopicProvider.GetTopic(evnt);
-            var data = _jsonSerializer.Serialize(new EventMessage { EventTypeCode = eventTypeCode, EventData = eventData });
-            var message = new Message(topic, (int)EQueueMessageTypeCode.EventMessage, Encoding.UTF8.GetBytes(data));
-
+            var message = CreateEQueueMessage(evnt);
             _ioHelper.TryIOAction(() =>
             {
-                var result = _producer.Send(message, evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id);
+                var routingKey = evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id;
+                var result = _producer.Send(message, routingKey);
                 if (result.SendStatus != SendStatus.Success)
                 {
-                    var domainEvent = evnt as IDomainEvent;
-                    if (domainEvent != null)
-                    {
-                        throw new Exception(string.Format("Publish domain event failed, event:[id:{0},type:{1},aggregateRootId:{2},version:{3}]", domainEvent.Id, domainEvent.GetType().FullName, domainEvent.AggregateRootId, domainEvent.Version));
-                    }
-                    else
-                    {
-                        throw new Exception(string.Format("Publish event failed, event:[id:{0},type:{1}]", evnt.Id, evnt.GetType().FullName));
-                    }
+                    throw new IOException(result.ErrorMessage);
                 }
+            }, "Send event message to broker");
+        }
+        public async Task<PublishResult<IEvent>> PublishAsync(IEvent evnt)
+        {
+            var message = CreateEQueueMessage(evnt);
+            return await _ioHelper.TryIOFuncAsync(() =>
+            {
+                var routingKey = evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id;
+                return _producer.SendAsync(message, routingKey).ContinueWith<PublishResult<IEvent>>(t =>
+                {
+                    if (t.Result.SendStatus != SendStatus.Success)
+                    {
+                        return new PublishResult<IEvent>(PublishStatus.IOException, t.Result.ErrorMessage, evnt);
+                    }
+                    return new PublishResult<IEvent>(PublishStatus.Success, null, evnt);
+                });
             }, "Send event message to broker");
         }
         public void Publish(DomainEventStream eventStream)
         {
-            var eventMessage = CreateEventMessage(eventStream);
-            var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
-            var data = _jsonSerializer.Serialize(eventMessage);
-            var message = new Message(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, Encoding.UTF8.GetBytes(data));
+            var message = CreateEQueueMessage(eventStream);
             _ioHelper.TryIOAction(() =>
             {
                 var result = _producer.Send(message, eventStream.AggregateRootId);
                 if (result.SendStatus != SendStatus.Success)
                 {
-                    throw new Exception(string.Format("Publish domain event stream failed, eventStream:[{0}]", eventStream));
+                    throw new IOException(result.ErrorMessage);
                 }
+            }, "Send domain event stream message to broker");
+        }
+        public async Task<PublishResult<DomainEventStream>> PublishAsync(DomainEventStream eventStream)
+        {
+            var message = CreateEQueueMessage(eventStream);
+            return await _ioHelper.TryIOFuncAsync(() =>
+            {
+                return _producer.SendAsync(message, eventStream.AggregateRootId).ContinueWith<PublishResult<DomainEventStream>>(t =>
+                {
+                    if (t.Result.SendStatus != SendStatus.Success)
+                    {
+                        return new PublishResult<DomainEventStream>(PublishStatus.IOException, t.Result.ErrorMessage, eventStream);
+                    }
+                    return new PublishResult<DomainEventStream>(PublishStatus.Success, null, eventStream);
+                });
             }, "Send domain event stream message to broker");
         }
         public void Publish(EventStream eventStream)
         {
+            var message = CreateEQueueMessage(eventStream);
+            _ioHelper.TryIOAction(() =>
+            {
+                var result = _producer.Send(message, eventStream.CommandId);
+                if (result.SendStatus != SendStatus.Success)
+                {
+                    throw new IOException(result.ErrorMessage);
+                }
+            }, "Send event stream message to broker");
+        }
+        public async Task<PublishResult<EventStream>> PublishAsync(EventStream eventStream)
+        {
+            var message = CreateEQueueMessage(eventStream);
+            return await _ioHelper.TryIOFuncAsync(() =>
+            {
+                return _producer.SendAsync(message, eventStream.CommandId).ContinueWith<PublishResult<EventStream>>(t =>
+                {
+                    if (t.Result.SendStatus != SendStatus.Success)
+                    {
+                        return new PublishResult<EventStream>(PublishStatus.IOException, t.Result.ErrorMessage, eventStream);
+                    }
+                    return new PublishResult<EventStream>(PublishStatus.Success, null, eventStream);
+                });
+            }, "Send event stream message to broker");
+        }
+
+        private Message CreateEQueueMessage(IEvent evnt)
+        {
+            var eventTypeCode = _eventTypeCodeProvider.GetTypeCode(evnt.GetType());
+            var eventData = _jsonSerializer.Serialize(evnt);
+            var topic = _eventTopicProvider.GetTopic(evnt);
+            var data = _jsonSerializer.Serialize(new EventMessage { EventTypeCode = eventTypeCode, EventData = eventData });
+            return new Message(topic, (int)EQueueMessageTypeCode.EventMessage, Encoding.UTF8.GetBytes(data));
+        }
+        private Message CreateEQueueMessage(DomainEventStream eventStream)
+        {
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _jsonSerializer.Serialize(eventMessage);
-            var message = new Message(topic, (int)EQueueMessageTypeCode.EventStreamMessage, Encoding.UTF8.GetBytes(data));
-            _ioHelper.TryIOAction(() =>
-            {
-                var result = _producer.Send(message, eventMessage.CommandId);
-                if (result.SendStatus != SendStatus.Success)
-                {
-                    throw new Exception(string.Format("Publish event stream failed, eventStream:[{0}]", eventStream));
-                }
-            }, "Send event stream message to broker");
+            return new Message(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, Encoding.UTF8.GetBytes(data));
+        }
+        private Message CreateEQueueMessage(EventStream eventStream)
+        {
+            var eventMessage = CreateEventMessage(eventStream);
+            var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
+            var data = _jsonSerializer.Serialize(eventMessage);
+            return new Message(topic, (int)EQueueMessageTypeCode.EventStreamMessage, Encoding.UTF8.GetBytes(data));
         }
         private DomainEventStreamMessage CreateEventMessage(DomainEventStream eventStream)
         {

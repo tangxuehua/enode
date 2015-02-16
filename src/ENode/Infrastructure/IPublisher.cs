@@ -1,4 +1,6 @@
-﻿namespace ENode.Infrastructure
+﻿using System.Threading.Tasks;
+
+namespace ENode.Infrastructure
 {
     /// <summary>Represents a message publisher.
     /// </summary>
@@ -8,5 +10,10 @@
         /// </summary>
         /// <param name="message"></param>
         void Publish(TMessage message);
+        /// <summary>Publish the given message to all the subscribers async.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        Task<PublishResult<TMessage>> PublishAsync(TMessage message);
     }
 }

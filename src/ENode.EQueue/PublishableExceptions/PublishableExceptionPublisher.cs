@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -70,6 +71,11 @@ namespace ENode.EQueue
                         string.Join("|", serializableInfo.Select(x => x.Key + ":" + x.Value))));
                 }
             }, "Send exception message to broker");
+        }
+
+        public Task<PublishResult<IPublishableException>> PublishAsync(IPublishableException message)
+        {
+            throw new NotImplementedException();
         }
     }
 }
