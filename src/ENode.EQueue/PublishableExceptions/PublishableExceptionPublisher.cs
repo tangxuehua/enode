@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
-using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Exceptions;
 using ENode.Infrastructure;
@@ -16,12 +13,11 @@ namespace ENode.EQueue
     public class PublishableExceptionPublisher : IPublisher<IPublishableException>
     {
         private const string DefaultExceptionPublisherProcuderId = "ExceptionPublisher";
-        private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IPublishableException> _exceptionTopicProvider;
         private readonly ITypeCodeProvider<IPublishableException> _exceptionTypeCodeProvider;
         private readonly Producer _producer;
-        private readonly IOHelper _ioHelper;
+        private readonly PublisherHelper _publisherHelper;
 
         public Producer Producer { get { return _producer; } }
 
@@ -31,8 +27,7 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
             _exceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
-            _ioHelper = ObjectContainer.Resolve<IOHelper>();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            _publisherHelper = new PublisherHelper();
         }
 
         public PublishableExceptionPublisher Start()
@@ -48,34 +43,28 @@ namespace ENode.EQueue
 
         public void Publish(IPublishableException exception)
         {
+            var message = CreateEQueueMessage(exception);
+            _publisherHelper.PublishQueueMessage(_producer, message, exception.Id, "Send exception message to broker");
+        }
+        public Task<AsyncOperationResult> PublishAsync(IPublishableException exception)
+        {
+            var message = CreateEQueueMessage(exception);
+            return _publisherHelper.PublishQueueMessageAsync(_producer, message, exception.Id, "Send exception message to broker");
+        }
+
+        private Message CreateEQueueMessage(IPublishableException exception)
+        {
             var exceptionTypeCode = _exceptionTypeCodeProvider.GetTypeCode(exception.GetType());
             var topic = _exceptionTopicProvider.GetTopic(exception);
             var serializableInfo = new Dictionary<string, string>();
             exception.SerializeTo(serializableInfo);
-            var exceptionMessage = new PublishableExceptionMessage
+            var data = _jsonSerializer.Serialize(new PublishableExceptionMessage
             {
                 UniqueId = exception.Id,
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
-            };
-            var data = _jsonSerializer.Serialize(exceptionMessage);
-            var message = new Message(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
-            _ioHelper.TryIOAction(() =>
-            {
-                var result = _producer.Send(message, exception.Id);
-                if (result.SendStatus != SendStatus.Success)
-                {
-                    throw new Exception(string.Format("Publish exception failed, exceptionId:{0}, exceptionType:{1}, exceptionData:{2}",
-                        exception.Id,
-                        exception.GetType().Name,
-                        string.Join("|", serializableInfo.Select(x => x.Key + ":" + x.Value))));
-                }
-            }, "Send exception message to broker");
-        }
-
-        public Task<PublishResult<IPublishableException>> PublishAsync(IPublishableException message)
-        {
-            throw new NotImplementedException();
+            });
+            return new Message(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
         }
     }
 }

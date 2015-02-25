@@ -14,6 +14,6 @@ namespace ENode.Infrastructure
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        Task<PublishResult<TMessage>> PublishAsync(TMessage message);
+        Task<AsyncOperationResult> PublishAsync(TMessage message);
     }
 }

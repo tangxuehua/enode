@@ -34,7 +34,30 @@ namespace ENode.Infrastructure
             Ensure.NotNull(func, "func");
             return TryIOFuncRecursivelyInternal(funcName, getContextInfo, (x, y, z) => func(), 0);
         }
-
+        public void TryActionRecursivelyAsync<TAsyncResult>(Func<Task<TAsyncResult>> asyncAction, Action<int> mainAction, Action<TAsyncResult> continueAction, Func<TAsyncResult, int, string> getContextErrorFunc, int retryTimes) where TAsyncResult : AsyncOperationResult
+        {
+            asyncAction().ContinueWith(t =>
+            {
+                var result = t.Result;
+                if (result.Status == AsyncOperationResultStatus.IOException)
+                {
+                    _logger.Error(getContextErrorFunc(result, retryTimes));
+                    if (retryTimes > _immediatelyRetryTimes)
+                    {
+                        Task.Factory.StartDelayedTask(_retryIntervalForIOException, () => mainAction(retryTimes + 1));
+                    }
+                    else
+                    {
+                        mainAction(retryTimes + 1);
+                    }
+                    return;
+                }
+                if (continueAction != null)
+                {
+                    continueAction(result);
+                }
+            });
+        }
         public void TryIOAction(Action action, string actionName)
         {
             Ensure.NotNull(action, "action");

@@ -47,7 +47,6 @@ namespace ENode.Eventing.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     try
                     {
                         connection.Insert(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
@@ -70,7 +69,6 @@ namespace ENode.Eventing.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     var effectedRows = connection.Update(new { PublishedVersion = version }, new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId, PublishedVersion = version - 1 }, _tableName);
                     if (effectedRows != 1)
                     {
@@ -85,7 +83,6 @@ namespace ENode.Eventing.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     return connection.QueryList<int>(new { EventProcessorName = eventProcessorName, AggregateRootId = aggregateRootId }, _tableName, "PublishedVersion").SingleOrDefault();
                 }
             }, "GetAggregatePublishedVersion");

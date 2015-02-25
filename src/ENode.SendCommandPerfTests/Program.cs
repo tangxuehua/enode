@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
@@ -24,6 +25,7 @@ namespace ENode.SendCommandPerfTests
 
             _commandService = ObjectContainer.Resolve<ICommandService>();
 
+            Console.WriteLine("----current threadId:{0}", Thread.CurrentThread.ManagedThreadId);
             SendCommandAsync(100000);
             SendCommandSync(50000);
 
@@ -54,16 +56,16 @@ namespace ENode.SendCommandPerfTests
             Console.WriteLine("--Start to send commands asynchronously, total count: {0}.", commandCount);
             foreach (var command in commands)
             {
-                _commandService.SendAsync(command).ContinueWith(x =>
+                _commandService.SendAsync(command).ContinueWith(t =>
                 {
                     var current = Interlocked.Increment(ref sequence);
                     if (current % printSize == 0)
                     {
-                        Console.WriteLine("----Sent {0} commands, time spent: {1}ms", current, watch.ElapsedMilliseconds);
+                        Console.WriteLine("----Sent {0} commands async, time spent: {1}ms, threadId:{2}", current, watch.ElapsedMilliseconds, Thread.CurrentThread.ManagedThreadId);
                     }
                     if (current == commandCount)
                     {
-                        Console.WriteLine("--Commands send completed, average speed: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
+                        Console.WriteLine("--Commands send async completed, average speed: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
                     }
                 });
             }

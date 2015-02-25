@@ -3,6 +3,7 @@
     public enum CommandAddResult
     {
         Success = 1,
-        DuplicateCommand = 2
+        DuplicateCommand = 2,
+        Failed = 3
     }
 }

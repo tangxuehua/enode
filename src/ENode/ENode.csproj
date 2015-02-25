@@ -97,7 +97,8 @@
     </Compile>
     <Compile Include="Exceptions\Impl\ExceptionHandlerWrapper.cs" />
     <Compile Include="Exceptions\PublishableException.cs" />
-    <Compile Include="Infrastructure\PublishResult.cs" />
+    <Compile Include="Infrastructure\AsyncOperationResult.cs" />
+    <Compile Include="Infrastructure\TaskFactoryExtensions.cs" />
     <Compile Include="Infrastructure\ICanBeRetryException.cs" />
     <Compile Include="Infrastructure\IDispatcher.cs" />
     <Compile Include="Infrastructure\IDispatchableMessage.cs" />

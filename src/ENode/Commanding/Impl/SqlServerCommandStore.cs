@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.Serializing;
@@ -59,7 +60,6 @@ namespace ENode.Commanding.Impl
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     try
                     {
                         connection.Insert(record, _commandTable);
@@ -85,7 +85,6 @@ namespace ENode.Commanding.Impl
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     connection.Delete(new { CommandId = commandId }, _commandTable);
                 }
             }, "RemoveCommand");
@@ -96,7 +95,6 @@ namespace ENode.Commanding.Impl
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     return connection.QueryList<CommandRecord>(new { CommandId = commandId }, _commandTable).SingleOrDefault();
                 }
             }, "GetCommand");
@@ -106,6 +104,73 @@ namespace ENode.Commanding.Impl
                 return ConvertFrom(record);
             }
             return null;
+        }
+
+        public Task<AsyncOperationResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
+        {
+            var record = ConvertTo(handledCommand);
+
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<CommandAddResult>>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        await connection.InsertAsync(record, _commandTable);
+                        return new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.Success, null, CommandAddResult.Success);
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                    {
+                        return new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.Success, null, CommandAddResult.DuplicateCommand);
+                    }
+                    return new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.IOException, ex.Message, CommandAddResult.Failed);
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.IOException, ex.Message, CommandAddResult.Failed);
+                }
+            }, "AddCommandAsync");
+        }
+        public Task<AsyncOperationResult> RemoveAsync(string commandId)
+        {
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        await connection.DeleteAsync(new { CommandId = commandId }, _commandTable);
+                        return AsyncOperationResult.Success;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult(AsyncOperationResultStatus.IOException, ex.Message);
+                }
+            }, "RemoveCommandAsync");
+        }
+        public Task<AsyncOperationResult<HandledCommand>> GetAsync(string commandId)
+        {
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<HandledCommand>>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        var result = await connection.QueryListAsync<CommandRecord>(new { CommandId = commandId }, _commandTable);
+                        var record = result.SingleOrDefault();
+                        var handledCommand = record != null ? ConvertFrom(record) : null;
+                        return new AsyncOperationResult<HandledCommand>(AsyncOperationResultStatus.Success, handledCommand);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult<HandledCommand>(AsyncOperationResultStatus.IOException, ex.Message, null);
+                }
+            }, "GetCommandAsync");
         }
 
         #endregion

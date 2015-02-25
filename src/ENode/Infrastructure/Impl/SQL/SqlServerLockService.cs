@@ -39,7 +39,6 @@ namespace ENode.Infrastructure.Impl.SQL
         {
             using (var connection = GetConnection())
             {
-                connection.Open();
                 var count = connection.QueryList(new { LockKey = lockKey }, _lockKeyTable).Count();
                 if (count == 0)
                 {

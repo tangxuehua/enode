@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Eventing\EventMessage.cs" />
+    <Compile Include="PublisherHelper.cs" />
     <Compile Include="Messaging\MessageConsumer.cs" />
     <Compile Include="Messaging\MessagePublisher.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionMessage.cs" />

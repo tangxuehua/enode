@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Dapper;
 using ECommon.Components;
 using ECommon.Dapper;
@@ -104,7 +106,6 @@ namespace ENode.Eventing.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     try
                     {
                         connection.Insert(record, _eventTable);
@@ -130,7 +131,6 @@ namespace ENode.Eventing.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     return connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _eventTable).SingleOrDefault();
                 }
             }, "FindEventByVersion");
@@ -147,7 +147,6 @@ namespace ENode.Eventing.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     return connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _eventTable).SingleOrDefault();
                 }
             }, "FindEventByCommandId");
@@ -164,10 +163,8 @@ namespace ENode.Eventing.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _eventTable);
-                    return connection.Query<StreamRecord>(sql,
-                    new
+                    return connection.Query<StreamRecord>(sql, new
                     {
                         AggregateRootId = aggregateRootId,
                         MinVersion = minVersion,
@@ -176,12 +173,7 @@ namespace ENode.Eventing.Impl.SQL
                 }
             }, "QueryAggregateEvents");
 
-            var streams = new List<DomainEventStream>();
-            foreach (var record in records)
-            {
-                streams.Add(ConvertFrom(record));
-            }
-            return streams;
+            return records.Select(record => ConvertFrom(record));
         }
         public IEnumerable<DomainEventStream> QueryByPage(int pageIndex, int pageSize)
         {
@@ -189,17 +181,173 @@ namespace ENode.Eventing.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     return connection.QueryPaged<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
                 }
             }, "QueryByPage");
 
-            var streams = new List<DomainEventStream>();
-            foreach (var record in records)
+            return records.Select(record => ConvertFrom(record));
+        }
+
+        public Task<AsyncOperationResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
+        {
+            var table = BuildEventTable();
+            foreach (var eventStream in eventStreams)
             {
-                streams.Add(ConvertFrom(record));
+                AddDataRow(table, eventStream);
             }
-            return streams;
+
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        await connection.OpenAsync();
+                        var transaction = await Task.Run<SqlTransaction>(() => connection.BeginTransaction());
+
+                        using (var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
+                        {
+                            copy.BatchSize = _bulkCopyBatchSize;
+                            copy.BulkCopyTimeout = _bulkCopyTimeout;
+                            copy.DestinationTableName = _eventTable;
+                            copy.ColumnMappings.Add("CommandId", "CommandId");
+                            copy.ColumnMappings.Add("AggregateRootId", "AggregateRootId");
+                            copy.ColumnMappings.Add("AggregateRootTypeCode", "AggregateRootTypeCode");
+                            copy.ColumnMappings.Add("Version", "Version");
+                            copy.ColumnMappings.Add("Timestamp", "Timestamp");
+                            copy.ColumnMappings.Add("Events", "Events");
+
+                            try
+                            {
+                                await copy.WriteToServerAsync(table);
+                                await Task.Run(() => transaction.Commit());
+                                return AsyncOperationResult.Success;
+                            }
+                            catch
+                            {
+                                transaction.Rollback();
+                                throw;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult(AsyncOperationResultStatus.IOException, ex.Message);
+                }
+            }, "BatchAppendEventsAsync");
+        }
+        public Task<AsyncOperationResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
+        {
+            var record = ConvertTo(eventStream);
+
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<EventAppendResult>>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        await connection.InsertAsync(record, _eventTable);
+                        return new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.Success, EventAppendResult.Success);
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                    {
+                        return new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.Success, EventAppendResult.DuplicateEvent);
+                    }
+                    return new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.IOException, ex.Message, EventAppendResult.Failed);
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.IOException, ex.Message, EventAppendResult.Failed);
+                }
+            }, "AppendEventsAsync");
+        }
+        public Task<AsyncOperationResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
+        {
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<DomainEventStream>>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _eventTable);
+                        var record = result.SingleOrDefault();
+                        var stream = record != null ? ConvertFrom(record) : null;
+                        return new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.Success, stream);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.IOException, ex.Message);
+                }
+            }, "FindEventByVersionAsync");
+        }
+        public Task<AsyncOperationResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
+        {
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<DomainEventStream>>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _eventTable);
+                        var record = result.SingleOrDefault();
+                        var stream = record != null ? ConvertFrom(record) : null;
+                        return new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.Success, stream);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.IOException, ex.Message);
+                }
+            }, "FindEventByCommandIdAsync");
+        }
+        public Task<AsyncOperationResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        {
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<IEnumerable<DomainEventStream>>>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _eventTable);
+                        var result = await connection.QueryAsync<StreamRecord>(sql, new
+                        {
+                            AggregateRootId = aggregateRootId,
+                            MinVersion = minVersion,
+                            MaxVersion = maxVersion
+                        });
+                        var streams = result.Select(record => ConvertFrom(record));
+                        return new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.Success, streams);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.IOException, ex.Message);
+                }
+            }, "QueryAggregateEventsAsync");
+        }
+        public Task<AsyncOperationResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize)
+        {
+            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<IEnumerable<DomainEventStream>>>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        var result = await connection.QueryPagedAsync<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
+                        var streams = result.Select(record => ConvertFrom(record));
+                        return new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.Success, streams);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.IOException, ex.Message);
+                }
+            }, "QueryByPageAsync");
         }
 
         #endregion

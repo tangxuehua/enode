@@ -106,7 +106,7 @@ namespace ENode.EQueue
                     return;
                 }
 
-                _commandExecutedMessageSender.Send(new CommandExecutedMessage
+                _commandExecutedMessageSender.SendAsync(new CommandExecutedMessage
                 {
                     CommandId = commandResult.CommandId,
                     AggregateRootId = commandResult.AggregateRootId,

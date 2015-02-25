@@ -3,7 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using ECommon.Logging;
+using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl.InMemory
 {
@@ -95,6 +97,41 @@ namespace ENode.Eventing.Impl.InMemory
         {
             var start = pageIndex * pageSize;
             return _eventDict.Skip(start).Take(pageSize).Select(x => x.Value).ToList();
+        }
+
+        public Task<AsyncOperationResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
+        {
+            throw new NotImplementedException();
+        }
+        public Task<AsyncOperationResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
+        {
+            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<EventAppendResult>>();
+            taskCompletionSource.SetResult(new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.Success, null, Append(eventStream)));
+            return taskCompletionSource.Task;
+        }
+        public Task<AsyncOperationResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
+        {
+            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<DomainEventStream>>();
+            taskCompletionSource.SetResult(new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.Success, null, Find(aggregateRootId, version)));
+            return taskCompletionSource.Task;
+        }
+        public Task<AsyncOperationResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
+        {
+            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<DomainEventStream>>();
+            taskCompletionSource.SetResult(new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.Success, null, Find(aggregateRootId, commandId)));
+            return taskCompletionSource.Task;
+        }
+        public Task<AsyncOperationResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        {
+            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<IEnumerable<DomainEventStream>>>();
+            taskCompletionSource.SetResult(new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.Success, null, QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, minVersion, maxVersion)));
+            return taskCompletionSource.Task;
+        }
+        public Task<AsyncOperationResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize)
+        {
+            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<IEnumerable<DomainEventStream>>>();
+            taskCompletionSource.SetResult(new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.Success, null, QueryByPage(pageIndex, pageSize)));
+            return taskCompletionSource.Task;
         }
 
         class AggregateInfo

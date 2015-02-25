@@ -38,7 +38,6 @@ namespace ENode.Infrastructure.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     connection.Insert(new
                     {
                         Type = (int)record.Type,
@@ -57,7 +56,6 @@ namespace ENode.Infrastructure.Impl.SQL
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Open();
                     return connection.GetCount(new { MessageId = messageId, HandlerTypeCode = handlerTypeCode }, _tableName) > 0;
                 }
             }, "IsMessageHandleRecordExist");

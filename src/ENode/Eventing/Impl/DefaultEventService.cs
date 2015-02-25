@@ -343,12 +343,12 @@ namespace ENode.Eventing.Impl
         {
             var result = await _domainEventPublisher.PublishAsync(eventStream);
 
-            if (result.Status == PublishStatus.Success)
+            if (result.Status == AsyncOperationResultStatus.Success)
             {
                 _logger.DebugFormat("Publish domain events success, {0}", eventStream);
                 processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, eventStream.AggregateRootId, null, null));
             }
-            else if (result.Status == PublishStatus.IOException)
+            else if (result.Status == AsyncOperationResultStatus.IOException)
             {
                 PublishDomainEvent(processingCommand, eventStream);
             }
@@ -362,12 +362,12 @@ namespace ENode.Eventing.Impl
         {
             var result = await _eventPublisher.PublishAsync(eventStream);
 
-            if (result.Status == PublishStatus.Success)
+            if (result.Status == AsyncOperationResultStatus.Success)
             {
                 _logger.DebugFormat("Publish events success, {0}", eventStream);
                 processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, null, null, null));
             }
-            else if (result.Status == PublishStatus.IOException)
+            else if (result.Status == AsyncOperationResultStatus.IOException)
             {
                 PublishEvent(processingCommand, eventStream);
             }

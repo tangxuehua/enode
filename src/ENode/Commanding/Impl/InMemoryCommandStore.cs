@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using ECommon.Extensions;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
 {
@@ -27,6 +29,26 @@ namespace ENode.Commanding.Impl
                 return handledCommand;
             }
             return null;
+        }
+
+        public Task<AsyncOperationResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
+        {
+            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<CommandAddResult>>();
+            taskCompletionSource.SetResult(new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.Success, null, Add(handledCommand)));
+            return taskCompletionSource.Task;
+        }
+        public Task<AsyncOperationResult> RemoveAsync(string commandId)
+        {
+            Remove(commandId);
+            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult>();
+            taskCompletionSource.SetResult(AsyncOperationResult.Success);
+            return taskCompletionSource.Task;
+        }
+        public Task<AsyncOperationResult<HandledCommand>> GetAsync(string commandId)
+        {
+            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<HandledCommand>>();
+            taskCompletionSource.SetResult(new AsyncOperationResult<HandledCommand>(AsyncOperationResultStatus.Success, null, Get(commandId)));
+            return taskCompletionSource.Task;
         }
     }
 }
