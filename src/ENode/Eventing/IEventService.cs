@@ -13,19 +13,19 @@ namespace ENode.Eventing
         /// <summary>Start the event service.
         /// </summary>
         void Start();
-        /// <summary>Commit the given aggregate's domain events to the eventstore and publish the domain events.
+        /// <summary>Commit the given aggregate's domain events to the eventstore async and publish the domain events.
         /// </summary>
         /// <param name="context"></param>
-        void CommitEvent(EventCommittingContext context);
-        /// <summary>Publish the given domain events.
+        void CommitEventAsync(EventCommittingContext context);
+        /// <summary>Publish the given domain events async.
         /// </summary>
         /// <param name="processingCommand"></param>
         /// <param name="eventStream"></param>
-        void PublishDomainEvent(ProcessingCommand processingCommand, DomainEventStream eventStream);
-        /// <summary>Publish the given events.
+        void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream);
+        /// <summary>Publish the given events async.
         /// </summary>
         /// <param name="processingCommand"></param>
         /// <param name="eventStream"></param>
-        void PublishEvent(ProcessingCommand processingCommand, EventStream eventStream);
+        void PublishEventAsync(ProcessingCommand processingCommand, EventStream eventStream);
     }
 }

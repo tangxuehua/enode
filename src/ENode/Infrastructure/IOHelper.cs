@@ -34,33 +34,93 @@ namespace ENode.Infrastructure
             Ensure.NotNull(func, "func");
             return TryIOFuncRecursivelyInternal(funcName, getContextInfo, (x, y, z) => func(), 0);
         }
-        public void TryActionRecursivelyAsync<TAsyncResult>(Func<Task<TAsyncResult>> asyncAction, Action<int> mainAction, Action<TAsyncResult> continueAction, Func<TAsyncResult, int, string> getContextErrorFunc, int retryTimes) where TAsyncResult : AsyncOperationResult
+        public void TryAsyncActionRecursively<TAsyncResult>(
+            string asyncActionName,
+            Func<Task<TAsyncResult>> asyncAction,
+            Action<int> mainAction,
+            Action<TAsyncResult> successAction,
+            Func<string> getContextInfoFunc,
+            Action<Exception> failedAction,
+            int retryTimes) where TAsyncResult : AsyncOperationResult
         {
-            asyncAction().ContinueWith(t =>
+            var retryAction = new Action<int>(currentRetryTimes =>
+            {
+                if (currentRetryTimes > _immediatelyRetryTimes)
+                {
+                    Task.Factory.StartDelayedTask(_retryIntervalForIOException, () => mainAction(currentRetryTimes + 1));
+                }
+                else
+                {
+                    mainAction(currentRetryTimes + 1);
+                }
+            });
+            var executeFailedAction = new Action<Exception>(ex =>
+            {
+                try
+                {
+                    if (failedAction != null)
+                    {
+                        failedAction(ex);
+                    }
+                }
+                catch (Exception unknownEx)
+                {
+                    _logger.Error(string.Format("Failed to execute the failedCallbackAction of asyncAction:{0}, contextInfo:{1}",
+                        asyncActionName, getContextInfoFunc()), unknownEx);
+                }
+            });
+            var processTaskException = new Action<Exception, int>((ex, currentRetryTimes) =>
+            {
+                if (ex is IOException)
+                {
+                    _logger.Error(string.Format("Async task '{0}' has io exception, contextInfo:{1}, current retryTimes:{2}, try to run the async task again.",
+                        asyncActionName, getContextInfoFunc(), currentRetryTimes), ex);
+                    retryAction(retryTimes);
+                }
+                else
+                {
+                    _logger.Error(string.Format("Async task '{0}' has unknown exception, contextInfo:{1}, current retryTimes:{2}",
+                        asyncActionName, getContextInfoFunc(), currentRetryTimes), ex);
+                    executeFailedAction(ex);
+                }
+            });
+            var completeAction = new Action<Task<TAsyncResult>>(t =>
             {
                 if (t.Exception != null)
                 {
-                    _logger.ErrorFormat("Async task failed, ex:{0}", t.Exception.InnerException != null ? t.Exception.InnerException : t.Exception);
+                    processTaskException(t.Exception.InnerException, retryTimes);
+                    return;
                 }
                 var result = t.Result;
                 if (result.Status == AsyncOperationResultStatus.IOException)
                 {
-                    _logger.Error(getContextErrorFunc(result, retryTimes));
-                    if (retryTimes > _immediatelyRetryTimes)
-                    {
-                        Task.Factory.StartDelayedTask(_retryIntervalForIOException, () => mainAction(retryTimes + 1));
-                    }
-                    else
-                    {
-                        mainAction(retryTimes + 1);
-                    }
+                    _logger.ErrorFormat("Async task '{0}' result status is io exception, contextInfo:{1}, current retryTimes:{2}, errorMsg:{3}, try to run the async task again.",
+                        asyncActionName, getContextInfoFunc(), retryTimes, result.ErrorMessage);
+                    retryAction(retryTimes);
                     return;
                 }
-                if (continueAction != null)
+                if (successAction != null)
                 {
-                    continueAction(result);
+                    successAction(result);
                 }
             });
+
+            try
+            {
+                asyncAction().ContinueWith(completeAction);
+            }
+            catch (IOException ex)
+            {
+                _logger.Error(string.Format("IOException raised when executing async action '{0}', contextInfo:{1}, current retryTimes:{2}, try to run the async task again.",
+                    asyncActionName, getContextInfoFunc(), retryTimes), ex);
+                retryAction(retryTimes);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Unknown exception raised when executing async action '{0}', contextInfo:{1}, current retryTimes:{2}",
+                    asyncActionName, getContextInfoFunc(), retryTimes), ex);
+                executeFailedAction(ex);
+            }
         }
         public void TryIOAction(Action action, string actionName)
         {

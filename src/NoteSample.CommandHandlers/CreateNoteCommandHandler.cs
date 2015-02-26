@@ -13,7 +13,7 @@ namespace NoteSample.CommandHandlers
 
         public CreateNoteCommandHandler(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.Create(typeof(CreateNoteCommandHandler).Name);
+            _logger = loggerFactory.Create(GetType().Name);
         }
 
         public void Handle(ICommandContext context, CreateNoteCommand command)

@@ -13,13 +13,13 @@ namespace NoteSample.CommandHandlers
 
         public ChangeNoteTitleCommandHandler(ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory.Create(typeof(CreateNoteCommandHandler).Name);
+            _logger = loggerFactory.Create(GetType().Name);
         }
 
         public void Handle(ICommandContext context, ChangeNoteTitleCommand command)
         {
             context.Get<Note>(command.AggregateRootId).ChangeTitle(command.Title);
-            _logger.InfoFormat("Handled {0}, Note Title:{1}", typeof(CreateNoteCommand).Name, command.Title);
+            _logger.InfoFormat("Handled {0}, Note Title:{1}", typeof(ChangeNoteTitleCommand).Name, command.Title);
         }
     }
 }

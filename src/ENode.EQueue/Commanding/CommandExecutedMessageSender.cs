@@ -46,11 +46,12 @@ namespace ENode.EQueue
 
         private void SendMessageAsync(Message message, string messageJson, string routingKey, int retryTimes)
         {
-            _ioHelper.TryActionRecursivelyAsync<AsyncOperationResult>(
+            _ioHelper.TryAsyncActionRecursively<AsyncOperationResult>("PublishQueueMessageAsync",
             () => _publisherHelper.PublishQueueMessageAsync(_producer, message, routingKey, "SendCommandExecutedMessageAsync"),
             currentRetryTimes => SendMessageAsync(message, messageJson, routingKey, currentRetryTimes),
             null,
-            (result, currentRetryTimes) => string.Format("IOException raised when sending command executed message to broker, messageJson:{0}, current retryTimes:{1}, errorMsg:{2}", messageJson, currentRetryTimes, result.ErrorMessage),
+            () => string.Format("[message:{0}]", messageJson),
+            null,
             retryTimes);
         }
     }
