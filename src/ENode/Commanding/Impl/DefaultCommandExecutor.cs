@@ -88,7 +88,7 @@ namespace ENode.Commanding.Impl
                 DoExecuteCommand(processingCommand);
             },
             () => string.Format("[commandId:{0}]", command.Id),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Get command async failed."),
             retryTimes);
         }
         private void DoExecuteCommand(ProcessingCommand processingCommand)
@@ -249,7 +249,7 @@ namespace ENode.Commanding.Impl
                 }
             },
             () => string.Format("[handledAggregateCommand:{0}]", handledAggregateCommand),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Add command async failed."),
             retryTimes);
         }
         private void HandleAggregateDuplicatedCommandAsync(ProcessingCommand processingCommand, IAggregateRoot dirtyAggregateRoot, DomainEventStream eventStream, int retryTimes)
@@ -278,7 +278,7 @@ namespace ENode.Commanding.Impl
                 }
             },
             () => string.Format("[commandId:{0}]", command.Id),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Get command async failed."),
             retryTimes);
         }
         private void HandleExistingHandledAggregateAsync(ProcessingCommand processingCommand, IAggregateRoot dirtyAggregateRoot, DomainEventStream eventStream, HandledAggregateCommand existingHandledCommand, int retryTimes)
@@ -303,7 +303,7 @@ namespace ENode.Commanding.Impl
                 }
             },
             () => string.Format("[aggregateRootId:{0}, commandId:{1}]", existingHandledCommand.AggregateRootId, command.Id),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Find event stream by command id async failed."),
             retryTimes);
         }
         private void CommitChangesAsync(ProcessingCommand processingCommand, int retryTimes)
@@ -328,7 +328,7 @@ namespace ENode.Commanding.Impl
                 }
             },
             () => string.Format("[handledCommand:{0}]", handledCommand),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Add command async failed."),
             retryTimes);
         }
         private void HandleDuplicatedCommandAsync(ProcessingCommand processingCommand, int retryTimes)
@@ -357,7 +357,7 @@ namespace ENode.Commanding.Impl
                 }
             },
             () => string.Format("[commandId:{0}]", command.Id),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Get command async failed."),
             retryTimes);
         }
         private void HandleExceptionAsync(ProcessingCommand processingCommand, ICommandHandler commandHandler, Exception exception, int retryTimes)
@@ -399,7 +399,7 @@ namespace ENode.Commanding.Impl
                 }
             },
             () => string.Format("[commandId:{0}]", command.Id),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Get command async failed."),
             retryTimes);
         }
         private void PublishExceptionAsync(ProcessingCommand processingCommand, IPublishableException exception, int retryTimes)
@@ -418,7 +418,7 @@ namespace ENode.Commanding.Impl
                 var exceptionInfo = string.Join(",", serializableInfo.Select(x => string.Format("{0}:{1}", x.Key, x.Value)));
                 return string.Format("[commandId:{0}, exceptionInfo:{1}]", processingCommand.Command.Id, exceptionInfo);
             },
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Publish exception async failed."),
             retryTimes);
         }
         private void HandleExistingHandledAggregateCommandForExceptionAsync(ProcessingCommand processingCommand, HandledCommand existingHandledCommand, ICommandHandler commandHandler, Exception exception, int retryTimes)
@@ -444,7 +444,7 @@ namespace ENode.Commanding.Impl
                 }
             },
             () => string.Format("[aggregateRootId:{0}, commandId:{1}]", aggregateRootId, command.Id),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Find event stream by command id async failed."),
             retryTimes);
         }
         private void TryToRetryCommandForExceptionAsync(ProcessingCommand processingCommand, HandledAggregateCommand existingHandledAggregateCommand, ICommandHandler commandHandler, Exception exception, int retryTimes)
@@ -465,7 +465,7 @@ namespace ENode.Commanding.Impl
                 RetryCommand(processingCommand);
             },
             () => string.Format("[commandId:{0}]", command.Id),
-            ex => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, ex.Message),
+            () => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Remove command async failed."),
             retryTimes);
         }
         private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)

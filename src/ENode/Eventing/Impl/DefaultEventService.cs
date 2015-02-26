@@ -333,7 +333,7 @@ namespace ENode.Eventing.Impl
                 processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, eventStream.AggregateRootId, null, null));
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            ex => processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, eventStream.AggregateRootId, ex.GetType().Name, "Publish domain events failed.")),
+            () => processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, eventStream.AggregateRootId, null, "Publish domain event async failed.")),
             retryTimes);
         }
         private void PublishEventAsync(ProcessingCommand processingCommand, EventStream eventStream, int retryTimes)
@@ -347,7 +347,7 @@ namespace ENode.Eventing.Impl
                 processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Command.Id, null, null, null));
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            ex => processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, null, ex.GetType().Name, "Publish events failed.")),
+            () => processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Command.Id, null, null, "Publish event async failed.")),
             retryTimes);
         }
 
