@@ -38,6 +38,10 @@ namespace ENode.Infrastructure
         {
             asyncAction().ContinueWith(t =>
             {
+                if (t.Exception != null)
+                {
+                    _logger.ErrorFormat("Async task failed, ex:{0}", t.Exception.InnerException != null ? t.Exception.InnerException : t.Exception);
+                }
                 var result = t.Result;
                 if (result.Status == AsyncOperationResultStatus.IOException)
                 {

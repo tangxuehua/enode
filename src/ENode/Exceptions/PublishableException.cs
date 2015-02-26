@@ -17,6 +17,6 @@ namespace ENode.Exceptions
         }
 
         public abstract void SerializeTo(IDictionary<string, string> serializableInfo);
-        public abstract void RestoreFrom(System.Collections.Generic.IDictionary<string, string> serializableInfo);
+        public abstract void RestoreFrom(IDictionary<string, string> serializableInfo);
     }
 }

@@ -383,16 +383,34 @@ namespace ENode.Commanding.Impl
                     var publishableException = exception as IPublishableException;
                     if (publishableException != null)
                     {
-                        _exceptionPublisher.Publish(publishableException);
+                        PublishExceptionAsync(processingCommand, publishableException, 0);
                     }
                     else
                     {
                         LogCommandExecuteException(processingCommand, commandHandler, exception);
+                        NotifyCommandExecuted(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
                     }
-                    NotifyCommandExecuted(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
                 }
             },
             (result, currentRetryTimes) => string.Format("IOException raised when getting handled aggregate command, commandId:{0}, current retryTimes:{1}, errorMsg:{2}", command.Id, currentRetryTimes, result.ErrorMessage),
+            retryTimes);
+        }
+        private void PublishExceptionAsync(ProcessingCommand processingCommand, IPublishableException exception, int retryTimes)
+        {
+            _ioHelper.TryActionRecursivelyAsync<AsyncOperationResult>(
+            () => _exceptionPublisher.PublishAsync(exception),
+            currentRetryTimes => PublishExceptionAsync(processingCommand, exception, currentRetryTimes),
+            result =>
+            {
+                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message);
+            },
+            (result, currentRetryTimes) =>
+            {
+                var serializableInfo = new Dictionary<string, string>();
+                exception.SerializeTo(serializableInfo);
+                var exceptionInfo = string.Join(",", serializableInfo.Select(x => string.Format("{0}:{1}", x.Key, x.Value)));
+                return string.Format("IOException raised when publishing exception, commandId:{0}, exceptionInfo:{1}, current retryTimes:{2}, errorMsg:{3}", processingCommand.Command.Id, exceptionInfo, currentRetryTimes, result.ErrorMessage);
+            },
             retryTimes);
         }
         private void HandleExistingHandledAggregateCommandForExceptionAsync(ProcessingCommand processingCommand, HandledCommand existingHandledCommand, ICommandHandler commandHandler, Exception exception, int retryTimes)
