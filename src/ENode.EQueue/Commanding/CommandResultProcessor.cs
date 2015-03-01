@@ -8,6 +8,7 @@ using ECommon.Logging;
 using ECommon.Scheduling;
 using ECommon.Serializing;
 using ENode.Commanding;
+using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
@@ -65,25 +66,21 @@ namespace ENode.EQueue.Commanding
             return this;
         }
 
-        public bool RegisterCommand(ICommand command, CommandReturnType commandReturnType, TaskCompletionSource<CommandResult> taskCompletionSource)
+        public void RegisterProcessingCommand(ICommand command, CommandReturnType commandReturnType, TaskCompletionSource<AsyncTaskResult<CommandResult>> taskCompletionSource)
         {
-            return _commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource });
+            if (!_commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource }))
+            {
+                throw new Exception(string.Format("Duplicate processing command registration, type:{0}, id:{1}", command.GetType().Name, command.Id));
+            }
         }
-
-        public CommandResultProcessor NotifyCommandSendFailed(ICommand command)
+        public void ProcessFailedSendingCommand(ICommand command)
         {
             CommandTaskCompletionSource commandTaskCompletionSource;
-            if (_commandTaskDict.TryGetValue(command.Id, out commandTaskCompletionSource))
+            if (_commandTaskDict.TryRemove(command.Id, out commandTaskCompletionSource))
             {
-                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
-                    new CommandResult(
-                        CommandStatus.Failed,
-                        command.Id,
-                        command is IAggregateCommand ? ((IAggregateCommand)command).AggregateRootId : null,
-                        "CommandSendFailed",
-                        "Failed to send the command."));
+                var commandResult = new CommandResult(CommandStatus.Failed, command.Id, command is IAggregateCommand ? ((IAggregateCommand)command).AggregateRootId : null, "CommandSendFailed", "Failed to send the command.");
+                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult));
             }
-            return this;
         }
 
         public CommandResultProcessor Start()
@@ -128,38 +125,28 @@ namespace ENode.EQueue.Commanding
             {
                 if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.CommandExecuted)
                 {
-                    commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
-                        new CommandResult(
-                            message.CommandStatus,
-                            message.CommandId,
-                            message.AggregateRootId,
-                            message.ExceptionTypeName,
-                            message.ErrorMessage));
                     _commandTaskDict.Remove(message.CommandId);
-                    _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}",
-                        message.CommandId,
-                        message.CommandStatus,
-                        message.AggregateRootId);
+                    var commandResult = new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage);
+                    if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
+                    {
+                        _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}", message.CommandId, message.CommandStatus, message.AggregateRootId);
+                    }
                 }
                 else if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
                 {
-                    if (message.CommandStatus == CommandStatus.Failed ||
-                        message.CommandStatus == CommandStatus.NothingChanged)
+                    if (message.CommandStatus == CommandStatus.Failed || message.CommandStatus == CommandStatus.NothingChanged)
                     {
-                        commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
-                            new CommandResult(
-                                message.CommandStatus,
+                        _commandTaskDict.Remove(message.CommandId);
+                        var commandResult = new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage);
+                        if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
+                        {
+                            _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}, exceptionTypeName:{3}, errorMessage:{4}",
                                 message.CommandId,
+                                message.CommandStatus,
                                 message.AggregateRootId,
                                 message.ExceptionTypeName,
-                                message.ErrorMessage));
-                        _commandTaskDict.Remove(message.CommandId);
-                        _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}, exceptionTypeName:{3}, errorMessage:{4}",
-                            message.CommandId,
-                            message.CommandStatus,
-                            message.AggregateRootId,
-                            message.ExceptionTypeName,
-                            message.ErrorMessage);
+                                message.ErrorMessage);
+                        }
                     }
                 }
             }
@@ -169,23 +156,17 @@ namespace ENode.EQueue.Commanding
             CommandTaskCompletionSource commandTaskCompletionSource;
             if (_commandTaskDict.TryRemove(message.CommandId, out commandTaskCompletionSource))
             {
-                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(
-                    new CommandResult(
-                        CommandStatus.Success,
-                        message.CommandId,
-                        message.AggregateRootId,
-                        null,
-                        null));
-                _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}",
-                    message.CommandId,
-                    CommandStatus.Success,
-                    message.AggregateRootId);
+                var commandResult = new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, null, null);
+                if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
+                {
+                    _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}", message.CommandId, CommandStatus.Success, message.AggregateRootId);
+                }
             }
         }
 
         class CommandTaskCompletionSource
         {
-            public TaskCompletionSource<CommandResult> TaskCompletionSource { get; set; }
+            public TaskCompletionSource<AsyncTaskResult<CommandResult>> TaskCompletionSource { get; set; }
             public CommandReturnType CommandReturnType { get; set; }
         }
         class CommandExecutedMessageHandler : IQueueMessageHandler

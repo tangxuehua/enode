@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
 {
@@ -13,15 +14,15 @@ namespace ENode.Commanding.Impl
         {
             throw new NotImplementedException();
         }
-        public Task<CommandSendResult> SendAsync(ICommand command)
+        public Task<AsyncTaskResult> SendAsync(ICommand command)
         {
             throw new NotImplementedException();
         }
-        public Task<CommandResult> Execute(ICommand command)
+        public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
         {
             throw new NotImplementedException();
         }
-        public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
+        public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command, CommandReturnType commandReturnType)
         {
             throw new NotImplementedException();
         }

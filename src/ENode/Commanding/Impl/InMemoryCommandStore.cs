@@ -7,6 +7,7 @@ namespace ENode.Commanding.Impl
 {
     public class InMemoryCommandStore : ICommandStore
     {
+        private readonly Task<AsyncTaskResult> _successTask = Task.FromResult(AsyncTaskResult.Success);
         private readonly ConcurrentDictionary<string, HandledCommand> _handledCommandDict = new ConcurrentDictionary<string, HandledCommand>();
 
         public CommandAddResult Add(HandledCommand handledCommand)
@@ -31,24 +32,18 @@ namespace ENode.Commanding.Impl
             return null;
         }
 
-        public Task<AsyncOperationResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
+        public Task<AsyncTaskResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
         {
-            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<CommandAddResult>>();
-            taskCompletionSource.SetResult(new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.Success, null, Add(handledCommand)));
-            return taskCompletionSource.Task;
+            return Task.FromResult<AsyncTaskResult<CommandAddResult>>(new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, Add(handledCommand)));
         }
-        public Task<AsyncOperationResult> RemoveAsync(string commandId)
+        public Task<AsyncTaskResult> RemoveAsync(string commandId)
         {
             Remove(commandId);
-            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult>();
-            taskCompletionSource.SetResult(AsyncOperationResult.Success);
-            return taskCompletionSource.Task;
+            return _successTask;
         }
-        public Task<AsyncOperationResult<HandledCommand>> GetAsync(string commandId)
+        public Task<AsyncTaskResult<HandledCommand>> GetAsync(string commandId)
         {
-            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult<HandledCommand>>();
-            taskCompletionSource.SetResult(new AsyncOperationResult<HandledCommand>(AsyncOperationResultStatus.Success, null, Get(commandId)));
-            return taskCompletionSource.Task;
+            return Task.FromResult<AsyncTaskResult<HandledCommand>>(new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Success, null, Get(commandId)));
         }
     }
 }

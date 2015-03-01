@@ -16,7 +16,7 @@ namespace ENode.EQueue
         private readonly ITopicProvider<IMessage> _messageTopicProvider;
         private readonly ITypeCodeProvider<IMessage> _messageTypeCodeProvider;
         private readonly Producer _producer;
-        private readonly PublisherHelper _publisherHelper;
+        private readonly SendQueueMessageService _sendMessageService;
 
         public Producer Producer { get { return _producer; } }
 
@@ -26,7 +26,7 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _messageTopicProvider = ObjectContainer.Resolve<ITopicProvider<IMessage>>();
             _messageTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IMessage>>();
-            _publisherHelper = new PublisherHelper();
+            _sendMessageService = new SendQueueMessageService();
         }
 
         public MessagePublisher Start()
@@ -44,13 +44,13 @@ namespace ENode.EQueue
         {
             var queueMessage = CreateEQueueMessage(message);
             var routingKey = message is IVersionedMessage ? ((IVersionedMessage)message).SourceId : message.Id;
-            _publisherHelper.PublishQueueMessage(_producer, queueMessage, routingKey, "Send message to broker");
+            _sendMessageService.SendMessage(_producer, queueMessage, routingKey);
         }
-        public Task<AsyncOperationResult> PublishAsync(IMessage message)
+        public Task<AsyncTaskResult> PublishAsync(IMessage message)
         {
             var queueMessage = CreateEQueueMessage(message);
             var routingKey = message is IVersionedMessage ? ((IVersionedMessage)message).SourceId : message.Id;
-            return _publisherHelper.PublishQueueMessageAsync(_producer, queueMessage, routingKey, "Send message to broker");
+            return _sendMessageService.SendMessageAsync(_producer, queueMessage, routingKey);
         }
 
         private EQueueMessage CreateEQueueMessage(IMessage message)

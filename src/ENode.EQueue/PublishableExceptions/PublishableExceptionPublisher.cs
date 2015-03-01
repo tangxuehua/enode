@@ -17,7 +17,7 @@ namespace ENode.EQueue
         private readonly ITopicProvider<IPublishableException> _exceptionTopicProvider;
         private readonly ITypeCodeProvider<IPublishableException> _exceptionTypeCodeProvider;
         private readonly Producer _producer;
-        private readonly PublisherHelper _publisherHelper;
+        private readonly SendQueueMessageService _sendMessageService;
 
         public Producer Producer { get { return _producer; } }
 
@@ -27,7 +27,7 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
             _exceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
-            _publisherHelper = new PublisherHelper();
+            _sendMessageService = new SendQueueMessageService();
         }
 
         public PublishableExceptionPublisher Start()
@@ -44,12 +44,12 @@ namespace ENode.EQueue
         public void Publish(IPublishableException exception)
         {
             var message = CreateEQueueMessage(exception);
-            _publisherHelper.PublishQueueMessage(_producer, message, exception.Id, "Send exception message to broker");
+            _sendMessageService.SendMessage(_producer, message, exception.Id);
         }
-        public Task<AsyncOperationResult> PublishAsync(IPublishableException exception)
+        public Task<AsyncTaskResult> PublishAsync(IPublishableException exception)
         {
             var message = CreateEQueueMessage(exception);
-            return _publisherHelper.PublishQueueMessageAsync(_producer, message, exception.Id, "Send exception message to broker");
+            return _sendMessageService.SendMessageAsync(_producer, message, exception.Id);
         }
 
         private Message CreateEQueueMessage(IPublishableException exception)

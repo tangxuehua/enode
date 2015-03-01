@@ -188,7 +188,7 @@ namespace ENode.Eventing.Impl.SQL
             return records.Select(record => ConvertFrom(record));
         }
 
-        public Task<AsyncOperationResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
+        public Task<AsyncTaskResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
             var table = BuildEventTable();
             foreach (var eventStream in eventStreams)
@@ -196,7 +196,7 @@ namespace ENode.Eventing.Impl.SQL
                 AddDataRow(table, eventStream);
             }
 
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult>(async () =>
             {
                 try
                 {
@@ -221,7 +221,7 @@ namespace ENode.Eventing.Impl.SQL
                             {
                                 await copy.WriteToServerAsync(table);
                                 await Task.Run(() => transaction.Commit());
-                                return AsyncOperationResult.Success;
+                                return AsyncTaskResult.Success;
                             }
                             catch
                             {
@@ -233,41 +233,41 @@ namespace ENode.Eventing.Impl.SQL
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult(AsyncOperationResultStatus.IOException, ex.Message);
+                    return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
                 }
             }, "BatchAppendEventsAsync");
         }
-        public Task<AsyncOperationResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
+        public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
         {
             var record = ConvertTo(eventStream);
 
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<EventAppendResult>>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<EventAppendResult>>(async () =>
             {
                 try
                 {
                     using (var connection = GetConnection())
                     {
                         await connection.InsertAsync(record, _eventTable);
-                        return new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.Success, EventAppendResult.Success);
+                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.Success);
                     }
                 }
                 catch (SqlException ex)
                 {
                     if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
                     {
-                        return new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.Success, EventAppendResult.DuplicateEvent);
+                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
                     }
-                    return new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.IOException, ex.Message, EventAppendResult.Failed);
+                    return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.IOException, ex.Message, EventAppendResult.Failed);
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult<EventAppendResult>(AsyncOperationResultStatus.IOException, ex.Message, EventAppendResult.Failed);
+                    return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.IOException, ex.Message, EventAppendResult.Failed);
                 }
             }, "AppendEventsAsync");
         }
-        public Task<AsyncOperationResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
+        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<DomainEventStream>>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<DomainEventStream>>(async () =>
             {
                 try
                 {
@@ -276,18 +276,18 @@ namespace ENode.Eventing.Impl.SQL
                         var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _eventTable);
                         var record = result.SingleOrDefault();
                         var stream = record != null ? ConvertFrom(record) : null;
-                        return new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.Success, stream);
+                        return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, stream);
                     }
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.IOException, ex.Message);
+                    return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.IOException, ex.Message);
                 }
             }, "FindEventByVersionAsync");
         }
-        public Task<AsyncOperationResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
+        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<DomainEventStream>>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<DomainEventStream>>(async () =>
             {
                 try
                 {
@@ -296,18 +296,18 @@ namespace ENode.Eventing.Impl.SQL
                         var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _eventTable);
                         var record = result.SingleOrDefault();
                         var stream = record != null ? ConvertFrom(record) : null;
-                        return new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.Success, stream);
+                        return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, stream);
                     }
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult<DomainEventStream>(AsyncOperationResultStatus.IOException, ex.Message);
+                    return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.IOException, ex.Message);
                 }
             }, "FindEventByCommandIdAsync");
         }
-        public Task<AsyncOperationResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<IEnumerable<DomainEventStream>>>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<IEnumerable<DomainEventStream>>>(async () =>
             {
                 try
                 {
@@ -321,18 +321,18 @@ namespace ENode.Eventing.Impl.SQL
                             MaxVersion = maxVersion
                         });
                         var streams = result.Select(record => ConvertFrom(record));
-                        return new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.Success, streams);
+                        return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, streams);
                     }
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.IOException, ex.Message);
+                    return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.IOException, ex.Message);
                 }
             }, "QueryAggregateEventsAsync");
         }
-        public Task<AsyncOperationResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize)
+        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<IEnumerable<DomainEventStream>>>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<IEnumerable<DomainEventStream>>>(async () =>
             {
                 try
                 {
@@ -340,12 +340,12 @@ namespace ENode.Eventing.Impl.SQL
                     {
                         var result = await connection.QueryPagedAsync<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
                         var streams = result.Select(record => ConvertFrom(record));
-                        return new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.Success, streams);
+                        return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, streams);
                     }
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult<IEnumerable<DomainEventStream>>(AsyncOperationResultStatus.IOException, ex.Message);
+                    return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.IOException, ex.Message);
                 }
             }, "QueryByPageAsync");
         }

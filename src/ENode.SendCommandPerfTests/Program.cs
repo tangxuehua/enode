@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
@@ -16,19 +15,11 @@ namespace ENode.SendCommandPerfTests
 {
     class Program
     {
-        static ENodeConfiguration _configuration;
-        static ICommandService _commandService;
-
         static void Main(string[] args)
         {
             InitializeENodeFramework();
-
-            _commandService = ObjectContainer.Resolve<ICommandService>();
-
-            Console.WriteLine("----current threadId:{0}", Thread.CurrentThread.ManagedThreadId);
             SendCommandAsync(100000);
             SendCommandSync(50000);
-
             Console.ReadLine();
         }
 
@@ -51,24 +42,27 @@ namespace ENode.SendCommandPerfTests
             var watch = Stopwatch.StartNew();
             var sequence = 0;
             var printSize = commandCount / 10;
+            var commandService = ObjectContainer.Resolve<ICommandService>();
+            var asyncAction = new Action<ICommand>(async command =>
+            {
+                await commandService.SendAsync(command).ConfigureAwait(false);
+                var current = Interlocked.Increment(ref sequence);
+                if (current % printSize == 0)
+                {
+                    Console.WriteLine("----Sent {0} commands async, time spent: {1}ms, threadId:{2}", current, watch.ElapsedMilliseconds, Thread.CurrentThread.ManagedThreadId);
+                }
+                if (current == commandCount)
+                {
+                    Console.WriteLine("--Commands send async completed, throughput: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
+                }
+            });
 
-            Console.WriteLine("");
             Console.WriteLine("--Start to send commands asynchronously, total count: {0}.", commandCount);
             foreach (var command in commands)
             {
-                _commandService.SendAsync(command).ContinueWith(t =>
-                {
-                    var current = Interlocked.Increment(ref sequence);
-                    if (current % printSize == 0)
-                    {
-                        Console.WriteLine("----Sent {0} commands async, time spent: {1}ms, threadId:{2}", current, watch.ElapsedMilliseconds, Thread.CurrentThread.ManagedThreadId);
-                    }
-                    if (current == commandCount)
-                    {
-                        Console.WriteLine("--Commands send async completed, average speed: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
-                    }
-                });
+                asyncAction(command);
             }
+            Console.WriteLine("--Send commands asynchronously prepared, total count: {0}.", commandCount);
         }
         static void SendCommandSync(int commandCount)
         {
@@ -76,19 +70,19 @@ namespace ENode.SendCommandPerfTests
             var watch = Stopwatch.StartNew();
             var sentCount = 0;
             var printSize = commandCount / 10;
-
+            var commandService = ObjectContainer.Resolve<ICommandService>();
             Console.WriteLine("");
             Console.WriteLine("--Start to send commands synchronously, total count: {0}.", commandCount);
             foreach (var command in commands)
             {
-                _commandService.Send(command);
+                commandService.Send(command);
                 sentCount++;
                 if (sentCount % printSize == 0)
                 {
                     Console.WriteLine("----Sent {0} commands, time spent: {1}ms", sentCount, watch.ElapsedMilliseconds);
                 }
             }
-            Console.WriteLine("--Commands send completed, average speed: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
+            Console.WriteLine("--Commands send completed, throughput: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
         }
         static void InitializeENodeFramework()
         {
@@ -97,7 +91,7 @@ namespace ENode.SendCommandPerfTests
                 Assembly.Load("NoteSample.Commands"),
                 Assembly.GetExecutingAssembly()
             };
-            _configuration = Configuration
+            Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()

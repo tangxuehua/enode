@@ -18,7 +18,7 @@ namespace ENode.EQueue
         private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
         private readonly IEventSerializer _eventSerializer;
         private readonly Producer _producer;
-        private readonly PublisherHelper _publisherHelper;
+        private readonly SendQueueMessageService _sendMessageService;
 
         public Producer Producer { get { return _producer; } }
 
@@ -29,7 +29,7 @@ namespace ENode.EQueue
             _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IEvent>>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IEvent>>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
-            _publisherHelper = new PublisherHelper();
+            _sendMessageService = new SendQueueMessageService();
         }
 
         public EventPublisher Start()
@@ -47,34 +47,34 @@ namespace ENode.EQueue
         {
             var message = CreateEQueueMessage(evnt);
             var routingKey = evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id;
-            _publisherHelper.PublishQueueMessage(_producer, message, routingKey, "Send event message to broker");
+            _sendMessageService.SendMessage(_producer, message, routingKey);
         }
         public void Publish(DomainEventStream eventStream)
         {
             var message = CreateEQueueMessage(eventStream);
-            _publisherHelper.PublishQueueMessage(_producer, message, eventStream.AggregateRootId, "Send domain event stream message to broker");
+            _sendMessageService.SendMessage(_producer, message, eventStream.AggregateRootId);
         }
         public void Publish(EventStream eventStream)
         {
             var message = CreateEQueueMessage(eventStream);
-            _publisherHelper.PublishQueueMessage(_producer, message, eventStream.CommandId, "Send event stream message to broker");
+            _sendMessageService.SendMessage(_producer, message, eventStream.CommandId);
         }
 
-        public Task<AsyncOperationResult> PublishAsync(IEvent evnt)
+        public Task<AsyncTaskResult> PublishAsync(IEvent evnt)
         {
             var message = CreateEQueueMessage(evnt);
             var routingKey = evnt is IDomainEvent ? ((IDomainEvent)evnt).AggregateRootId : evnt.Id;
-            return _publisherHelper.PublishQueueMessageAsync(_producer, message, routingKey, "Send event message to broker");
+            return _sendMessageService.SendMessageAsync(_producer, message, routingKey);
         }
-        public Task<AsyncOperationResult> PublishAsync(DomainEventStream eventStream)
+        public Task<AsyncTaskResult> PublishAsync(DomainEventStream eventStream)
         {
             var message = CreateEQueueMessage(eventStream);
-            return _publisherHelper.PublishQueueMessageAsync(_producer, message, eventStream.AggregateRootId, "Send domain event stream message to broker");
+            return _sendMessageService.SendMessageAsync(_producer, message, eventStream.AggregateRootId);
         }
-        public Task<AsyncOperationResult> PublishAsync(EventStream eventStream)
+        public Task<AsyncTaskResult> PublishAsync(EventStream eventStream)
         {
             var message = CreateEQueueMessage(eventStream);
-            return _publisherHelper.PublishQueueMessageAsync(_producer, message, eventStream.CommandId, "Send event stream message to broker");
+            return _sendMessageService.SendMessageAsync(_producer, message, eventStream.CommandId);
         }
 
         private Message CreateEQueueMessage(IEvent evnt)

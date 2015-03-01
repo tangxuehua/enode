@@ -46,7 +46,6 @@
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
     <Compile Include="Commanding\AggregateCommand.cs" />
     <Compile Include="Commanding\CommandSendException.cs" />
-    <Compile Include="Commanding\CommandSendResult.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\HandledCommand.cs" />
     <Compile Include="Commanding\HandledAggregateCommand.cs" />
@@ -54,11 +53,11 @@
     <Compile Include="Commanding\IAggregateCommand.cs" />
     <Compile Include="Commanding\ICommandScheduler.cs" />
     <Compile Include="Commanding\ICommandExecutor.cs" />
-    <Compile Include="Commanding\ICommandRouteKeyProvider.cs" />
+    <Compile Include="Commanding\ICommandRoutingKeyProvider.cs" />
     <Compile Include="Commanding\ICommandStore.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandExecutor.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandScheduler.cs" />
-    <Compile Include="Commanding\Impl\DefaultCommandRouteKeyProvider.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandRoutingKeyProvider.cs" />
     <Compile Include="Commanding\CommandAggregateRootIdMissingException.cs" />
     <Compile Include="Commanding\Impl\SqlServerCommandStore.cs" />
     <Compile Include="Commanding\Impl\InMemoryCommandStore.cs" />
@@ -97,7 +96,7 @@
     </Compile>
     <Compile Include="Exceptions\Impl\ExceptionHandlerWrapper.cs" />
     <Compile Include="Exceptions\PublishableException.cs" />
-    <Compile Include="Infrastructure\AsyncOperationResult.cs" />
+    <Compile Include="Infrastructure\AsyncTaskResult.cs" />
     <Compile Include="Infrastructure\TaskFactoryExtensions.cs" />
     <Compile Include="Infrastructure\ICanBeRetryException.cs" />
     <Compile Include="Infrastructure\IDispatcher.cs" />

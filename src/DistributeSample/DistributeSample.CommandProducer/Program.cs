@@ -30,10 +30,7 @@ namespace DistributeSample.CommandProducer
             {
                 commandService.SendAsync(new CreateNoteCommand { AggregateRootId = ObjectId.GenerateNewStringId(), Title = "Sample Note" + index }).ContinueWith(task =>
                 {
-                    if (task.Result.Status == CommandSendStatus.Success)
-                    {
-                        _logger.InfoFormat("Sent command{0}", Interlocked.Increment(ref _count));
-                    }
+                    _logger.InfoFormat("Sent command{0}", Interlocked.Increment(ref _count));
                 });
             }
 

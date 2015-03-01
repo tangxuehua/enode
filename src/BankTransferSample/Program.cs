@@ -53,8 +53,8 @@ namespace BankTransferSample
             Console.WriteLine(string.Empty);
 
             //创建两个银行账户
-            commandService.Execute(new CreateAccountCommand("00001", "雪华"), CommandReturnType.EventHandled).Wait();
-            commandService.Execute(new CreateAccountCommand("00002", "凯锋"), CommandReturnType.EventHandled).Wait();
+            commandService.ExecuteAsync(new CreateAccountCommand("00001", "雪华"), CommandReturnType.EventHandled).Wait();
+            commandService.ExecuteAsync(new CreateAccountCommand("00002", "凯锋"), CommandReturnType.EventHandled).Wait();
 
             Console.WriteLine(string.Empty);
 
@@ -123,7 +123,7 @@ namespace BankTransferSample
             for (var i = 0; i < accountCount; i++)
             {
                 var accountId = ObjectId.GenerateNewStringId();
-                commandService.Execute(new CreateAccountCommand(accountId, "SampleAccount" + i), CommandReturnType.EventHandled).Wait();
+                commandService.ExecuteAsync(new CreateAccountCommand(accountId, "SampleAccount" + i), CommandReturnType.EventHandled).Wait();
                 accountList.Add(accountId);
             }
 

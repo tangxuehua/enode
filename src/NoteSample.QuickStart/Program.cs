@@ -30,8 +30,8 @@ namespace NoteSample.QuickStart
 
             Console.WriteLine(string.Empty);
 
-            commandService.Execute(command1, CommandReturnType.EventHandled).Wait();
-            commandService.Execute(command2, CommandReturnType.EventHandled).Wait();
+            commandService.ExecuteAsync(command1, CommandReturnType.EventHandled).Wait();
+            commandService.ExecuteAsync(command2, CommandReturnType.EventHandled).Wait();
 
             Console.WriteLine(string.Empty);
 

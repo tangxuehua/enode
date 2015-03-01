@@ -41,7 +41,7 @@ namespace ENode.Infrastructure
             Action<TAsyncResult> successAction,
             Func<string> getContextInfoFunc,
             Action failedAction,
-            int retryTimes) where TAsyncResult : AsyncOperationResult
+            int retryTimes) where TAsyncResult : AsyncTaskResult
         {
             var retryAction = new Action<int>(currentRetryTimes =>
             {
@@ -65,22 +65,19 @@ namespace ENode.Infrastructure
                 }
                 catch (Exception unknownEx)
                 {
-                    _logger.Error(string.Format("Failed to execute the failedCallbackAction of asyncAction:{0}, contextInfo:{1}",
-                        asyncActionName, getContextInfoFunc()), unknownEx);
+                    _logger.Error(string.Format("Failed to execute the failedCallbackAction of asyncAction:{0}, contextInfo:{1}", asyncActionName, getContextInfoFunc()), unknownEx);
                 }
             });
             var processTaskException = new Action<Exception, int>((ex, currentRetryTimes) =>
             {
                 if (ex is IOException)
                 {
-                    _logger.Error(string.Format("Async task '{0}' has io exception, contextInfo:{1}, current retryTimes:{2}, try to run the async task again.",
-                        asyncActionName, getContextInfoFunc(), currentRetryTimes), ex);
+                    _logger.Error(string.Format("Async task '{0}' has io exception, contextInfo:{1}, current retryTimes:{2}, try to run the async task again.", asyncActionName, getContextInfoFunc(), currentRetryTimes), ex);
                     retryAction(retryTimes);
                 }
                 else
                 {
-                    _logger.Error(string.Format("Async task '{0}' has unknown exception, contextInfo:{1}, current retryTimes:{2}",
-                        asyncActionName, getContextInfoFunc(), currentRetryTimes), ex);
+                    _logger.Error(string.Format("Async task '{0}' has unknown exception, contextInfo:{1}, current retryTimes:{2}", asyncActionName, getContextInfoFunc(), currentRetryTimes), ex);
                     executeFailedAction();
                 }
             });
@@ -93,29 +90,33 @@ namespace ENode.Infrastructure
                 }
                 if (t.IsCanceled)
                 {
-                    _logger.ErrorFormat("Async task '{0}' was cancelled, contextInfo:{1}, current retryTimes:{2}, try to run the async task again.",
-                        asyncActionName, getContextInfoFunc(), retryTimes);
+                    _logger.ErrorFormat("Async task '{0}' was cancelled, contextInfo:{1}, current retryTimes:{2}, try to run the async task again.", asyncActionName, getContextInfoFunc(), retryTimes);
                     retryAction(retryTimes);
                     return;
                 }
                 var result = t.Result;
                 if (result == null)
                 {
-                    _logger.ErrorFormat("Async task '{0}' result is null, contextInfo:{1}, current retryTimes:{2}",
-                        asyncActionName, getContextInfoFunc(), retryTimes);
+                    _logger.ErrorFormat("Async task '{0}' result is null, contextInfo:{1}, current retryTimes:{2}", asyncActionName, getContextInfoFunc(), retryTimes);
                     executeFailedAction();
                     return;
                 }
-                if (result.Status == AsyncOperationResultStatus.IOException)
+                if (result.Status == AsyncTaskStatus.Success)
                 {
-                    _logger.ErrorFormat("Async task '{0}' result status is io exception, contextInfo:{1}, current retryTimes:{2}, errorMsg:{3}, try to run the async task again.",
-                        asyncActionName, getContextInfoFunc(), retryTimes, result.ErrorMessage);
-                    retryAction(retryTimes);
-                    return;
+                    if (successAction != null)
+                    {
+                        successAction(result);
+                    }
                 }
-                if (successAction != null)
+                else if (result.Status == AsyncTaskStatus.IOException)
                 {
-                    successAction(result);
+                    _logger.ErrorFormat("Async task '{0}' result status is io exception, contextInfo:{1}, current retryTimes:{2}, errorMsg:{3}, try to run the async task again.", asyncActionName, getContextInfoFunc(), retryTimes, result.ErrorMessage);
+                    retryAction(retryTimes);
+                }
+                else if (result.Status == AsyncTaskStatus.Failed)
+                {
+                    _logger.ErrorFormat("Async task '{0}' was failed and will not be retry, contextInfo:{1}, current retryTimes:{2}, errorMsg:{3}", asyncActionName, getContextInfoFunc(), retryTimes, result.ErrorMessage);
+                    executeFailedAction();
                 }
             });
 
@@ -125,14 +126,12 @@ namespace ENode.Infrastructure
             }
             catch (IOException ex)
             {
-                _logger.Error(string.Format("IOException raised when executing async action '{0}', contextInfo:{1}, current retryTimes:{2}, try to run the async task again.",
-                    asyncActionName, getContextInfoFunc(), retryTimes), ex);
+                _logger.Error(string.Format("IOException raised when executing async task '{0}', contextInfo:{1}, current retryTimes:{2}, try to run the async task again.", asyncActionName, getContextInfoFunc(), retryTimes), ex);
                 retryAction(retryTimes);
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Unknown exception raised when executing async action '{0}', contextInfo:{1}, current retryTimes:{2}",
-                    asyncActionName, getContextInfoFunc(), retryTimes), ex);
+                _logger.Error(string.Format("Unknown exception raised when executing async task '{0}', contextInfo:{1}, current retryTimes:{2}", asyncActionName, getContextInfoFunc(), retryTimes), ex);
                 executeFailedAction();
             }
         }

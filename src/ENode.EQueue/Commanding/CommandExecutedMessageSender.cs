@@ -13,7 +13,7 @@ namespace ENode.EQueue
         private const string DefaultCommandExecutedMessageSenderProcuderId = "CommandExecutedMessageSender";
         private readonly Producer _producer;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly PublisherHelper _publisherHelper;
+        private readonly SendQueueMessageService _sendMessageService;
         private readonly IOHelper _ioHelper;
 
         public Producer Producer { get { return _producer; } }
@@ -22,7 +22,7 @@ namespace ENode.EQueue
         {
             _producer = new Producer(id ?? DefaultCommandExecutedMessageSenderProcuderId, setting ?? new ProducerSetting());
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _publisherHelper = new PublisherHelper();
+            _sendMessageService = new SendQueueMessageService();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }
 
@@ -46,8 +46,8 @@ namespace ENode.EQueue
 
         private void SendMessageAsync(Message message, string messageJson, string routingKey, int retryTimes)
         {
-            _ioHelper.TryAsyncActionRecursively<AsyncOperationResult>("PublishQueueMessageAsync",
-            () => _publisherHelper.PublishQueueMessageAsync(_producer, message, routingKey, "SendCommandExecutedMessageAsync"),
+            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("PublishQueueMessageAsync",
+            () => _sendMessageService.SendMessageAsync(_producer, message, routingKey),
             currentRetryTimes => SendMessageAsync(message, messageJson, routingKey, currentRetryTimes),
             null,
             () => string.Format("[message:{0}]", messageJson),

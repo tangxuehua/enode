@@ -106,55 +106,55 @@ namespace ENode.Commanding.Impl
             return null;
         }
 
-        public Task<AsyncOperationResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
+        public Task<AsyncTaskResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
         {
             var record = ConvertTo(handledCommand);
 
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<CommandAddResult>>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<CommandAddResult>>(async () =>
             {
                 try
                 {
                     using (var connection = GetConnection())
                     {
                         await connection.InsertAsync(record, _commandTable);
-                        return new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.Success, null, CommandAddResult.Success);
+                        return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, CommandAddResult.Success);
                     }
                 }
                 catch (SqlException ex)
                 {
                     if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
                     {
-                        return new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.Success, null, CommandAddResult.DuplicateCommand);
+                        return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, CommandAddResult.DuplicateCommand);
                     }
-                    return new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.IOException, ex.Message, CommandAddResult.Failed);
+                    return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.IOException, ex.Message, CommandAddResult.Failed);
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult<CommandAddResult>(AsyncOperationResultStatus.IOException, ex.Message, CommandAddResult.Failed);
+                    return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.IOException, ex.Message, CommandAddResult.Failed);
                 }
             }, "AddCommandAsync");
         }
-        public Task<AsyncOperationResult> RemoveAsync(string commandId)
+        public Task<AsyncTaskResult> RemoveAsync(string commandId)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult>(async () =>
             {
                 try
                 {
                     using (var connection = GetConnection())
                     {
                         await connection.DeleteAsync(new { CommandId = commandId }, _commandTable);
-                        return AsyncOperationResult.Success;
+                        return AsyncTaskResult.Success;
                     }
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult(AsyncOperationResultStatus.IOException, ex.Message);
+                    return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
                 }
             }, "RemoveCommandAsync");
         }
-        public Task<AsyncOperationResult<HandledCommand>> GetAsync(string commandId)
+        public Task<AsyncTaskResult<HandledCommand>> GetAsync(string commandId)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncOperationResult<HandledCommand>>(async () =>
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<HandledCommand>>(async () =>
             {
                 try
                 {
@@ -163,12 +163,12 @@ namespace ENode.Commanding.Impl
                         var result = await connection.QueryListAsync<CommandRecord>(new { CommandId = commandId }, _commandTable);
                         var record = result.SingleOrDefault();
                         var handledCommand = record != null ? ConvertFrom(record) : null;
-                        return new AsyncOperationResult<HandledCommand>(AsyncOperationResultStatus.Success, handledCommand);
+                        return new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Success, handledCommand);
                     }
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncOperationResult<HandledCommand>(AsyncOperationResultStatus.IOException, ex.Message, null);
+                    return new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.IOException, ex.Message, null);
                 }
             }, "GetCommandAsync");
         }

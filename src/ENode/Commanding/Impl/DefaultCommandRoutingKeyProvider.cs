@@ -1,9 +1,9 @@
 ﻿
 namespace ENode.Commanding.Impl
 {
-    public class DefaultCommandRouteKeyProvider : ICommandRouteKeyProvider
+    public class DefaultCommandRoutingKeyProvider : ICommandRoutingKeyProvider
     {
-        public string GetRouteKey(ICommand command)
+        public string GetRoutingKey(ICommand command)
         {
             var aggregateCommand = command as IAggregateCommand;
             if (aggregateCommand != null && !string.IsNullOrEmpty(aggregateCommand.AggregateRootId))

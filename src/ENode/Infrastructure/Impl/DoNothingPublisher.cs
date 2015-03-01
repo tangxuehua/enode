@@ -12,6 +12,8 @@ namespace ENode.Messaging.Impl
         IPublisher<IMessage>,
         IPublisher<IPublishableException>
     {
+        private static Task<AsyncTaskResult> _successResultTask = Task.FromResult(AsyncTaskResult.Success);
+
         public void Publish(IEvent evnt)
         {
         }
@@ -28,35 +30,25 @@ namespace ENode.Messaging.Impl
         {
         }
 
-        public Task<AsyncOperationResult> PublishAsync(EventStream eventStream)
+        public Task<AsyncTaskResult> PublishAsync(EventStream eventStream)
         {
-            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult>();
-            taskCompletionSource.SetResult(AsyncOperationResult.Success);
-            return taskCompletionSource.Task;
+            return _successResultTask;
         }
-        public Task<AsyncOperationResult> PublishAsync(DomainEventStream eventStream)
+        public Task<AsyncTaskResult> PublishAsync(DomainEventStream eventStream)
         {
-            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult>();
-            taskCompletionSource.SetResult(AsyncOperationResult.Success);
-            return taskCompletionSource.Task;
+            return _successResultTask;
         }
-        public Task<AsyncOperationResult> PublishAsync(IEvent evnt)
+        public Task<AsyncTaskResult> PublishAsync(IEvent evnt)
         {
-            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult>();
-            taskCompletionSource.SetResult(AsyncOperationResult.Success);
-            return taskCompletionSource.Task;
+            return _successResultTask;
         }
-        public Task<AsyncOperationResult> PublishAsync(IMessage message)
+        public Task<AsyncTaskResult> PublishAsync(IMessage message)
         {
-            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult>();
-            taskCompletionSource.SetResult(AsyncOperationResult.Success);
-            return taskCompletionSource.Task;
+            return _successResultTask;
         }
-        public Task<AsyncOperationResult> PublishAsync(IPublishableException exception)
+        public Task<AsyncTaskResult> PublishAsync(IPublishableException exception)
         {
-            var taskCompletionSource = new TaskCompletionSource<AsyncOperationResult>();
-            taskCompletionSource.SetResult(AsyncOperationResult.Success);
-            return taskCompletionSource.Task;
+            return _successResultTask;
         }
     }
 }

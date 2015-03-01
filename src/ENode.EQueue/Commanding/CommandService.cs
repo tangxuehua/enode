@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
+using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.EQueue.Commanding;
 using ENode.Infrastructure;
@@ -21,7 +22,7 @@ namespace ENode.EQueue
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<ICommand> _commandTopicProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
-        private readonly ICommandRouteKeyProvider _commandRouteKeyProvider;
+        private readonly ICommandRoutingKeyProvider _commandRouteKeyProvider;
         private readonly CommandResultProcessor _commandResultProcessor;
         private readonly Producer _producer;
         private readonly IOHelper _ioHelper;
@@ -31,12 +32,12 @@ namespace ENode.EQueue
 
         public CommandService(CommandResultProcessor commandResultProcessor = null, string id = null, ProducerSetting setting = null)
         {
-            _commandResultProcessor = commandResultProcessor;
+            _commandResultProcessor = commandResultProcessor ?? new CommandResultProcessor();
             _producer = new Producer(id ?? DefaultCommandServiceProcuderId, setting ?? new ProducerSetting());
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
-            _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRouteKeyProvider>();
+            _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRoutingKeyProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
             CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;
@@ -45,113 +46,85 @@ namespace ENode.EQueue
 
         public CommandService Start()
         {
+            _commandResultProcessor.Start();
             _producer.Start();
-            if (_commandResultProcessor != null)
-            {
-                _commandResultProcessor.Start();
-            }
             return this;
         }
         public CommandService Shutdown()
         {
             _producer.Shutdown();
-            if (_commandResultProcessor != null)
-            {
-                _commandResultProcessor.Shutdown();
-            }
+            _commandResultProcessor.Shutdown();
             return this;
         }
         public void Send(ICommand command)
         {
-            ValidateCommand(command);
-            _ioHelper.TryIOAction(() =>
-            {
-                var result = _producer.Send(BuildCommandMessage(command), _commandRouteKeyProvider.GetRouteKey(command));
-                if (result.SendStatus == SendStatus.Failed)
-                {
-                    throw new CommandSendException(result.ErrorMessage);
-                }
-            }, "SendCommand");
+            SendSync(command);
         }
         public void Send(ICommand command, string sourceId, string sourceType)
         {
+            SendSync(command, sourceId, sourceType, true);
+        }
+        public async Task<AsyncTaskResult> SendAsync(ICommand command)
+        {
             ValidateCommand(command);
-            if (string.IsNullOrEmpty(sourceId))
+            var message = BuildCommandMessage(command);
+            var routeKey = _commandRouteKeyProvider.GetRoutingKey(command);
+            try
             {
-                throw new ArgumentNullException("sourceId.");
+                var result = await _producer.SendAsync(message, routeKey).ConfigureAwait(false);
+                return new AsyncTaskResult(result.SendStatus == SendStatus.Success ? AsyncTaskStatus.Success : AsyncTaskStatus.IOException, result.ErrorMessage);
             }
-            if (string.IsNullOrEmpty(sourceType))
+            catch (Exception ex)
             {
-                throw new ArgumentNullException("sourceType.");
+                return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
+            }
+        }
+        public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
+        {
+            return ExecuteAsync(command, CommandReturnType.CommandExecuted);
+        }
+        public async Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command, CommandReturnType commandReturnType)
+        {
+            var taskCompletionSource = new TaskCompletionSource<AsyncTaskResult<CommandResult>>();
+            _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
+
+            try
+            {
+                var result = await SendAsync(command).ConfigureAwait(false);
+                if (result.Status == AsyncTaskStatus.IOException || result.Status == AsyncTaskStatus.Failed)
+                {
+                    _commandResultProcessor.ProcessFailedSendingCommand(command);
+                    return new AsyncTaskResult<CommandResult>(result.Status, result.ErrorMessage);
+                }
+                return await taskCompletionSource.Task.ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                return new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Failed, ex.Message);
+            }
+        }
+
+        private void SendSync(ICommand command, string sourceId = null, string sourceType = null, bool checkSource = false)
+        {
+            ValidateCommand(command);
+            if (checkSource)
+            {
+                Ensure.NotNullOrEmpty(sourceId, "sourceId");
+                Ensure.NotNullOrEmpty(sourceType, "sourceType");
             }
 
             _ioHelper.TryIOAction(() =>
             {
-                var result = _producer.Send(BuildCommandMessage(command, sourceId, sourceType), _commandRouteKeyProvider.GetRouteKey(command));
+                var result = _producer.Send(BuildCommandMessage(command, sourceId, sourceType), _commandRouteKeyProvider.GetRoutingKey(command));
                 if (result.SendStatus == SendStatus.Failed)
                 {
                     throw new CommandSendException(result.ErrorMessage);
                 }
-            }, "SendCommandFromSource");
+            }, "SendCommandSync");
         }
-        public Task<CommandSendResult> SendAsync(ICommand command)
-        {
-            ValidateCommand(command);
-            var message = BuildCommandMessage(command);
-            var routeKey = _commandRouteKeyProvider.GetRouteKey(command);
-
-            return _ioHelper.TryIOFunc<Task<CommandSendResult>>(() =>
-            {
-                return _producer.SendAsync(message, routeKey).ContinueWith<CommandSendResult>(sendTask =>
-                {
-                    return new CommandSendResult(
-                            sendTask.Result.SendStatus == SendStatus.Success ? CommandSendStatus.Success : CommandSendStatus.Failed,
-                            sendTask.Result.ErrorMessage);
-                });
-            }, "SendCommandAsync");
-        }
-        public Task<CommandResult> Execute(ICommand command)
-        {
-            return Execute(command, CommandReturnType.CommandExecuted);
-        }
-        public Task<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType)
-        {
-            if (_commandResultProcessor == null)
-            {
-                throw new NotSupportedException("Not supported operation as the command result processor is not set.");
-            }
-
-            ValidateCommand(command);
-            var taskCompletionSource = new TaskCompletionSource<CommandResult>();
-
-            if (!_commandResultProcessor.RegisterCommand(command, commandReturnType, taskCompletionSource))
-            {
-                throw new Exception("Duplicate command as there already has a command with the same command id is being executing.");
-            }
-
-            var message = BuildCommandMessage(command);
-            var routeKey = _commandRouteKeyProvider.GetRouteKey(command);
-
-            _ioHelper.TryIOAction(() =>
-            {
-                _producer.SendAsync(message, routeKey).ContinueWith(sendTask =>
-                {
-                    if (sendTask.Result.SendStatus == SendStatus.Failed)
-                    {
-                        _commandResultProcessor.NotifyCommandSendFailed(command);
-                    }
-                });
-            }, "ExecuteCommand");
-
-            return taskCompletionSource.Task;
-        }
-
         private void ValidateCommand(ICommand command)
         {
-            if (string.IsNullOrEmpty(command.Id))
-            {
-                throw new ArgumentException("Command id can not be null or empty.");
-            }
+            Ensure.NotNullOrEmpty(command.Id, "commandId");
             if (!(command is ICreatingAggregateCommand) && command is IAggregateCommand && string.IsNullOrEmpty(((IAggregateCommand)command).AggregateRootId))
             {
                 var format = "AggregateRootId cannot be null or empty if the aggregate command is not a ICreatingAggregateCommand, commandType:{0}, commandId:{1}.";

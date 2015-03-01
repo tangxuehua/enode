@@ -324,7 +324,7 @@ namespace ENode.Eventing.Impl
         }
         private void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream, int retryTimes)
         {
-            _ioHelper.TryAsyncActionRecursively<AsyncOperationResult>("PublishDomainEventAsync",
+            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("PublishDomainEventAsync",
             () => _domainEventPublisher.PublishAsync(eventStream),
             currentRetryTimes => PublishDomainEventAsync(processingCommand, eventStream, currentRetryTimes),
             result =>
@@ -338,7 +338,7 @@ namespace ENode.Eventing.Impl
         }
         private void PublishEventAsync(ProcessingCommand processingCommand, EventStream eventStream, int retryTimes)
         {
-            _ioHelper.TryAsyncActionRecursively<AsyncOperationResult>("PublishEventAsync",
+            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("PublishEventAsync",
             () => _eventPublisher.PublishAsync(eventStream),
             currentRetryTimes => PublishEventAsync(processingCommand, eventStream, currentRetryTimes),
             result =>

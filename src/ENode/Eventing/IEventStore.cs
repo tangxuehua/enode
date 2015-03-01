@@ -32,24 +32,24 @@ namespace ENode.Eventing
 
         /// <summary>Batch append the given event streams to the event store async.
         /// </summary>
-        Task<AsyncOperationResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams);
+        Task<AsyncTaskResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams);
         /// <summary>Append the given event stream to the event store async.
         /// </summary>
-        Task<AsyncOperationResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream);
+        Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream);
         /// <summary>Find a single event stream by aggregateRootId and version async.
         /// </summary>
         /// <returns></returns>
-        Task<AsyncOperationResult<DomainEventStream>> FindAsync(string aggregateRootId, int version);
+        Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version);
         /// <summary>Find a single event stream by aggregateRootId and commandId async.
         /// </summary>
         /// <returns></returns>
-        Task<AsyncOperationResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId);
+        Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId);
         /// <summary>Query a range of event streams of a single aggregate from event store async.
         /// </summary>
-        Task<AsyncOperationResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion);
+        Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion);
         /// <summary>Query a range of event streams from event store by page async.
         /// </summary>
         /// <returns></returns>
-        Task<AsyncOperationResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize);
+        Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize);
     }
 }
