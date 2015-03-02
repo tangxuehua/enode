@@ -68,10 +68,17 @@ namespace ENode.EQueue
         }
         public Task<AsyncTaskResult> SendAsync(ICommand command)
         {
-            ValidateCommand(command);
-            var message = BuildCommandMessage(command);
-            var routingKey = _commandRouteKeyProvider.GetRoutingKey(command);
-            return _sendMessageService.SendMessageAsync(_producer, message, routingKey);
+            try
+            {
+                ValidateCommand(command);
+                var message = BuildCommandMessage(command);
+                var routingKey = _commandRouteKeyProvider.GetRoutingKey(command);
+                return _sendMessageService.SendMessageAsync(_producer, message, routingKey);
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message));
+            }
         }
         public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
         {
@@ -85,12 +92,12 @@ namespace ENode.EQueue
             try
             {
                 var result = await SendAsync(command).ConfigureAwait(false);
-                if (result.Status == AsyncTaskStatus.IOException || result.Status == AsyncTaskStatus.Failed)
+                if (result.Status == AsyncTaskStatus.Success)
                 {
-                    _commandResultProcessor.ProcessFailedSendingCommand(command);
-                    return new AsyncTaskResult<CommandResult>(result.Status, result.ErrorMessage);
+                    return await taskCompletionSource.Task.ConfigureAwait(false);
                 }
-                return await taskCompletionSource.Task.ConfigureAwait(false);
+                _commandResultProcessor.ProcessFailedSendingCommand(command);
+                return new AsyncTaskResult<CommandResult>(result.Status, result.ErrorMessage);
             }
             catch (Exception ex)
             {
