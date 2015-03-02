@@ -23,6 +23,7 @@ namespace ENode.EQueue
         private readonly ITopicProvider<ICommand> _commandTopicProvider;
         private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
         private readonly ICommandRoutingKeyProvider _commandRouteKeyProvider;
+        private readonly SendQueueMessageService _sendMessageService;
         private readonly CommandResultProcessor _commandResultProcessor;
         private readonly Producer _producer;
         private readonly IOHelper _ioHelper;
@@ -38,6 +39,7 @@ namespace ENode.EQueue
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRoutingKeyProvider>();
+            _sendMessageService = new SendQueueMessageService();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
             CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;
@@ -64,20 +66,12 @@ namespace ENode.EQueue
         {
             SendSync(command, sourceId, sourceType, true);
         }
-        public async Task<AsyncTaskResult> SendAsync(ICommand command)
+        public Task<AsyncTaskResult> SendAsync(ICommand command)
         {
             ValidateCommand(command);
             var message = BuildCommandMessage(command);
-            var routeKey = _commandRouteKeyProvider.GetRoutingKey(command);
-            try
-            {
-                var result = await _producer.SendAsync(message, routeKey).ConfigureAwait(false);
-                return new AsyncTaskResult(result.SendStatus == SendStatus.Success ? AsyncTaskStatus.Success : AsyncTaskStatus.IOException, result.ErrorMessage);
-            }
-            catch (Exception ex)
-            {
-                return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
-            }
+            var routingKey = _commandRouteKeyProvider.GetRoutingKey(command);
+            return _sendMessageService.SendMessageAsync(_producer, message, routingKey);
         }
         public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
         {
