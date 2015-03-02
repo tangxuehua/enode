@@ -27,8 +27,8 @@ namespace ENode.Configurations
         public ConfigurationSetting()
         {
             EnableGroupCommitEvent = false;
-            GroupCommitEventInterval = 20;
-            GroupCommitMaxSize = 2000;
+            GroupCommitEventInterval = 100;
+            GroupCommitMaxSize = 1000;
             ImmediatelyRetryTimes = 3;
             RetryIntervalForIOException = 1000;
             CommandProcessorParallelThreadCount = Environment.ProcessorCount;

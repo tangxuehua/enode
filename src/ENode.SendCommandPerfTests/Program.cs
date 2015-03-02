@@ -19,7 +19,7 @@ namespace ENode.SendCommandPerfTests
         {
             InitializeENodeFramework();
             SendCommandAsync(100000);
-            SendCommandSync(50000);
+            SendCommandSync(20000);
             Console.ReadLine();
         }
 
@@ -43,6 +43,7 @@ namespace ENode.SendCommandPerfTests
             var sequence = 0;
             var printSize = commandCount / 10;
             var commandService = ObjectContainer.Resolve<ICommandService>();
+            var waitHandle = new ManualResetEvent(false);
             var asyncAction = new Action<ICommand>(async command =>
             {
                 await commandService.SendAsync(command).ConfigureAwait(false);
@@ -53,7 +54,7 @@ namespace ENode.SendCommandPerfTests
                 }
                 if (current == commandCount)
                 {
-                    Console.WriteLine("--Commands send async completed, throughput: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
+                    waitHandle.Set();
                 }
             });
 
@@ -62,7 +63,8 @@ namespace ENode.SendCommandPerfTests
             {
                 asyncAction(command);
             }
-            Console.WriteLine("--Send commands asynchronously prepared, total count: {0}.", commandCount);
+            waitHandle.WaitOne();
+            Console.WriteLine("--Commands send async completed, throughput: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
         }
         static void SendCommandSync(int commandCount)
         {

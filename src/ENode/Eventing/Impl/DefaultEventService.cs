@@ -31,9 +31,9 @@ namespace ENode.Eventing.Impl
         private readonly bool _enableGroupCommit;
         private readonly int _groupCommitInterval;
         private readonly int _groupCommitMaxSize;
-        private readonly ConcurrentQueue<EventCommittingContext> _toCommittingEventQueue;
-        private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _successPersistedEventsQueue;
-        private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _failedPersistedEventsQueue;
+        private readonly ConcurrentQueue<EventCommittingContext> _toCommitContextQueue;
+        private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _successPersistedContextQueue;
+        private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _failedPersistedContextQueue;
         private readonly Worker _processSuccessPersistedEventsWorker;
         private readonly Worker _processFailedPersistedEventsWorker;
         private int _isBatchPersistingEvents;
@@ -62,9 +62,9 @@ namespace ENode.Eventing.Impl
             Ensure.Positive(_groupCommitInterval, "_groupCommitInterval");
             Ensure.Positive(_groupCommitMaxSize, "_groupCommitMaxSize");
 
-            _toCommittingEventQueue = new ConcurrentQueue<EventCommittingContext>();
-            _successPersistedEventsQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
-            _failedPersistedEventsQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
+            _toCommitContextQueue = new ConcurrentQueue<EventCommittingContext>();
+            _successPersistedContextQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
+            _failedPersistedContextQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
 
             _scheduleService = scheduleService;
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
@@ -100,11 +100,11 @@ namespace ENode.Eventing.Impl
         {
             if (_enableGroupCommit)
             {
-                _toCommittingEventQueue.Enqueue(context);
+                _toCommitContextQueue.Enqueue(context);
             }
             else
             {
-                DoCommitEvent(context);
+                CommitEventAsync(context, 0);
             }
         }
         public void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream)
@@ -128,58 +128,70 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
+        private bool EnterBatchPersistingEvents()
+        {
+            return Interlocked.CompareExchange(ref _isBatchPersistingEvents, 1, 0) == 0;
+        }
+        private void ExitBatchPersistingEvents()
+        {
+            Interlocked.Exchange(ref _isBatchPersistingEvents, 0);
+        }
         private void TryBatchPersistEvents()
         {
-            if (Interlocked.CompareExchange(ref _isBatchPersistingEvents, 1, 0) == 0)
+            if (EnterBatchPersistingEvents())
             {
-                try
+                var contextList = DequeueContexts();
+                if (contextList.Count() > 0)
                 {
-                    var hasMoreEvents = BatchPersistEvents();
-                    while (hasMoreEvents)
-                    {
-                        hasMoreEvents = BatchPersistEvents();
-                    }
+                    BatchPersistEventsAsync(contextList, 0);
                 }
-                finally
+                else
                 {
-                    Interlocked.Exchange(ref _isBatchPersistingEvents, 0);
+                    ExitBatchPersistingEvents();
                 }
             }
         }
-        private bool BatchPersistEvents()
+        private void BatchPersistEventsAsync(IEnumerable<EventCommittingContext> contextList, int retryTimes)
         {
-            var currentCommittingContextList = new List<EventCommittingContext>();
-            var currentCommittingContextCount = 0;
+            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("BatchPersistEventAsync",
+            () => _eventStore.BatchAppendAsync(contextList.Select(x => x.EventStream)),
+            currentRetryTimes => BatchPersistEventsAsync(contextList, currentRetryTimes),
+            result =>
+            {
+                _successPersistedContextQueue.Add(contextList);
+                _logger.DebugFormat("Batch persist event stream success, persisted event stream count:{0}", contextList.Count());
+                if (_toCommitContextQueue.Count >= _groupCommitMaxSize)
+                {
+                    BatchPersistEventsAsync(DequeueContexts(), 0);
+                }
+                else
+                {
+                    ExitBatchPersistingEvents();
+                }
+            },
+            () => string.Format("[contextListCount:{0}]", contextList.Count()),
+            () =>
+            {
+                _failedPersistedContextQueue.Add(contextList);
+                ExitBatchPersistingEvents();
+            },
+            retryTimes);
+        }
+        private IEnumerable<EventCommittingContext> DequeueContexts()
+        {
+            var contextList = new List<EventCommittingContext>();
             EventCommittingContext context;
 
-            while (currentCommittingContextCount < _groupCommitMaxSize && _toCommittingEventQueue.TryDequeue(out context))
+            while (contextList.Count < _groupCommitMaxSize && _toCommitContextQueue.TryDequeue(out context))
             {
-                currentCommittingContextList.Add(context);
-                currentCommittingContextCount++;
+                contextList.Add(context);
             }
 
-            if (currentCommittingContextCount == 0)
-            {
-                return false;
-            }
-
-            try
-            {
-                _eventStore.BatchAppend(currentCommittingContextList.Select(x => x.EventStream));
-                _successPersistedEventsQueue.Add(currentCommittingContextList);
-                _logger.DebugFormat("Batch persist event stream success, persisted event stream count:{0}", currentCommittingContextCount);
-            }
-            catch (Exception ex)
-            {
-                _failedPersistedEventsQueue.Add(currentCommittingContextList);
-                _logger.Error("Batch persist event stream failed, auto persist them one by one.", ex);
-            }
-
-            return currentCommittingContextCount >= _groupCommitMaxSize;
+            return contextList;
         }
         private void ProcessSuccessPersistedEvents()
         {
-            foreach (var context in _successPersistedEventsQueue.Take())
+            foreach (var context in _successPersistedContextQueue.Take())
             {
                 RefreshAggregateMemoryCache(context);
                 PublishDomainEventAsync(context.ProcessingCommand, context.EventStream);
@@ -187,19 +199,18 @@ namespace ENode.Eventing.Impl
         }
         private void ProcessFailedPersistedEvents()
         {
-            foreach (var context in _failedPersistedEventsQueue.Take())
+            foreach (var context in _failedPersistedContextQueue.Take())
             {
-                DoCommitEvent(context);
+                CommitEventAsync(context, 0);
             }
         }
-        private void DoCommitEvent(EventCommittingContext context)
-        {
-            var result = _ioHelper.TryIOFuncRecursively<EventAppendResult>("PersistEvent", () => context.EventStream.ToString(), () =>
-            {
-                return _eventStore.Append(context.EventStream);
-            });
 
-            if (result.Success)
+        private void CommitEventAsync(EventCommittingContext context, int retryTimes)
+        {
+            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<EventAppendResult>>("PersistEventAsync",
+            () => _eventStore.AppendAsync(context.EventStream),
+            currentRetryTimes => CommitEventAsync(context, currentRetryTimes),
+            result =>
             {
                 if (result.Data == EventAppendResult.Success)
                 {
@@ -211,31 +222,35 @@ namespace ENode.Eventing.Impl
                 {
                     HandleDuplicateEventResult(context);
                 }
-            }
-            else
-            {
-                context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, context.EventStream.AggregateRootId, result.Exception.GetType().Name, "Persist events failed."));
-            }
+            },
+            () => string.Format("[eventStream:{0}]", context.EventStream),
+            () => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, context.EventStream.AggregateRootId, null, "Persist event async failed.")),
+            retryTimes);
         }
         private void HandleDuplicateEventResult(EventCommittingContext context)
         {
+            //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
+            if (context.EventStream.Version == 1)
+            {
+                HandleFirstEventDuplicationAsync(context, 0);
+            }
+            //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了；
+            //那么我们需要先将聚合根的最新状态更新到内存，然后重试command；
+            else
+            {
+                UpdateAggregateToLatestVersion(context.EventStream.AggregateRootTypeCode, context.EventStream.AggregateRootId);
+                RetryConcurrentCommand(context);
+            }
+        }
+        private void HandleFirstEventDuplicationAsync(EventCommittingContext context, int retryTimes)
+        {
             var eventStream = context.EventStream;
 
-            //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
-            if (eventStream.Version == 1)
+            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<DomainEventStream>>("FindFirstEventByVersion",
+            () => _eventStore.FindAsync(eventStream.AggregateRootId, 1),
+            currentRetryTimes => HandleFirstEventDuplicationAsync(context, currentRetryTimes),
+            result =>
             {
-                //取出该聚合根版本号为1的事件
-                var result = _ioHelper.TryIOFuncRecursively<DomainEventStream>("FindEventByVersion", () => eventStream.ToString(), () =>
-                {
-                    return _eventStore.Find(eventStream.AggregateRootId, 1);
-                });
-
-                if (!result.Success)
-                {
-                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, result.Exception.GetType().Name, "Persist the first version of event duplicated, but try to get the first version of domain event failed."));
-                    return;
-                }
-
                 var firstEventStream = result.Data;
                 if (firstEventStream != null)
                 {
@@ -268,14 +283,10 @@ namespace ENode.Eventing.Impl
                     _logger.Error(errorMessage);
                     context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, null, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore."));
                 }
-            }
-            //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了；
-            //那么我们需要先将聚合根的最新状态更新到内存，然后重试command；
-            else
-            {
-                UpdateAggregateToLatestVersion(eventStream.AggregateRootTypeCode, eventStream.AggregateRootId);
-                RetryConcurrentCommand(context);
-            }
+            },
+            () => string.Format("[eventStream:{0}]", eventStream),
+            () => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Command.Id, eventStream.AggregateRootId, null, "Persist the first version of event duplicated, but try to get the first version of domain event async failed.")),
+            retryTimes);
         }
         private void RefreshAggregateMemoryCache(DomainEventStream aggregateFirstEventStream)
         {

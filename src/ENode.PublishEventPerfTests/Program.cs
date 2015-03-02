@@ -22,10 +22,51 @@ namespace ENode.PublishEventPerfTests
         static void Main(string[] args)
         {
             InitializeENodeFramework();
-            PublishEventSync(10000);
+            PublishEventAsync(100000);
+            PublishEventSync(20000);
             Console.ReadLine();
         }
 
+        static void PublishEventAsync(int eventCount)
+        {
+            var printSize = eventCount / 10;
+            var eventPublisher = ObjectContainer.Resolve<IPublisher<DomainEventStream>>();
+            var eventStreams = new List<DomainEventStream>();
+            var commandId = ObjectId.GenerateNewStringId();
+            var noteId = ObjectId.GenerateNewStringId();
+            var evnt = new NoteCreated(noteId, "Sample Note");
+            var evnts = new List<IDomainEvent> { evnt };
+            var waitHandle = new ManualResetEvent(false);
+
+            for (var i = 1; i <= eventCount; i++)
+            {
+                eventStreams.Add(new DomainEventStream(commandId, noteId, 100, 1, DateTime.Now, evnts, new Dictionary<string, string>()));
+            }
+
+            var watch = Stopwatch.StartNew();
+            var publishedEventCount = 0;
+            var asyncAction = new Action<DomainEventStream>(async eventStream =>
+            {
+                await eventPublisher.PublishAsync(eventStream).ConfigureAwait(false);
+                var currentCount = Interlocked.Increment(ref publishedEventCount);
+                if (currentCount % printSize == 0)
+                {
+                    Console.WriteLine("----Published {0} events async, time spent: {1}ms", publishedEventCount, watch.ElapsedMilliseconds);
+                }
+                if (currentCount == eventCount)
+                {
+                    waitHandle.Set();
+                }
+            });
+
+            Console.WriteLine("--Start to publish event async, total count: {0}.", eventCount);
+            foreach (var eventStream in eventStreams)
+            {
+                asyncAction(eventStream);
+            }
+            waitHandle.WaitOne();
+            Console.WriteLine("--Event publish async completed, throughput: {0}/s", eventCount * 1000 / watch.ElapsedMilliseconds);
+        }
         static void PublishEventSync(int eventCount)
         {
             var printSize = eventCount / 10;
@@ -42,7 +83,7 @@ namespace ENode.PublishEventPerfTests
             }
 
             int publishedEventCount = 0;
-            Console.WriteLine("--Start to send events, total count: {0}.", eventCount);
+            Console.WriteLine("--Start to publish event sync, total count: {0}.", eventCount);
             var watch = Stopwatch.StartNew();
             foreach (var eventStream in eventStreams)
             {
@@ -50,10 +91,10 @@ namespace ENode.PublishEventPerfTests
                 publishedEventCount++;
                 if (publishedEventCount % printSize == 0)
                 {
-                    Console.WriteLine("----Sent {0} events, time spent: {1}ms", publishedEventCount, watch.ElapsedMilliseconds);
+                    Console.WriteLine("----Sent {0} events sync, time spent: {1}ms", publishedEventCount, watch.ElapsedMilliseconds);
                 }
             }
-            Console.WriteLine("--Events send completed, average speed: {0}/s", eventCount * 1000 / watch.ElapsedMilliseconds);
+            Console.WriteLine("--Event publish sync completed, throughput: {0}/s", eventCount * 1000 / watch.ElapsedMilliseconds);
         }
         static void InitializeENodeFramework()
         {
