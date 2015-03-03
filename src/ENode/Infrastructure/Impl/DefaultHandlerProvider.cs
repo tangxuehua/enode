@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ECommon.Components;
-using ENode.Infrastructure;
 
-namespace ENode.Commanding.Impl
+namespace ENode.Infrastructure.Impl
 {
-    public class DefaultCommandHandlerProvider : ICommandHandlerProvider, IAssemblyInitializer
+    public class DefaultHandlerProvider : IHandlerProvider, IAssemblyInitializer
     {
-        private readonly IDictionary<Type, IList<ICommandHandler>> _handlerDict = new Dictionary<Type, IList<ICommandHandler>>();
+        private readonly IDictionary<Type, IList<IProxyHandler>> _handlerDict = new Dictionary<Type, IList<IProxyHandler>>();
 
         public void Initialize(params Assembly[] assemblies)
         {
@@ -22,10 +21,10 @@ namespace ENode.Commanding.Impl
                 RegisterHandler(handlerType);
             }
         }
-        public IEnumerable<ICommandHandler> GetHandlers(Type commandType)
+        public IEnumerable<IProxyHandler> GetHandlers(Type messageType)
         {
-            var handlers = new List<ICommandHandler>();
-            foreach (var key in _handlerDict.Keys.Where(key => key.IsAssignableFrom(commandType)))
+            var handlers = new List<IProxyHandler>();
+            foreach (var key in _handlerDict.Keys.Where(key => key.IsAssignableFrom(messageType)))
             {
                 handlers.AddRange(_handlerDict[key]);
             }
@@ -41,11 +40,11 @@ namespace ENode.Commanding.Impl
             foreach (var handlerInterfaceType in ScanHandlerInterfaces(handlerType))
             {
                 var argumentType = handlerInterfaceType.GetGenericArguments().Single();
-                var handlerProxyType = typeof(CommandProxyHandler<>).MakeGenericType(argumentType);
-                IList<ICommandHandler> handlers;
+                var handlerProxyType = typeof(DefaultProxyHandler<>).MakeGenericType(argumentType);
+                IList<IProxyHandler> handlers;
                 if (!_handlerDict.TryGetValue(argumentType, out handlers))
                 {
-                    handlers = new List<ICommandHandler>();
+                    handlers = new List<IProxyHandler>();
                     _handlerDict.Add(argumentType, handlers);
                 }
 
@@ -54,12 +53,12 @@ namespace ENode.Commanding.Impl
                     continue;
                 }
 
-                handlers.Add(Activator.CreateInstance(handlerProxyType, new[] { ObjectContainer.Resolve(handlerType) }) as ICommandHandler);
+                handlers.Add(Activator.CreateInstance(handlerProxyType, new[] { ObjectContainer.Resolve(handlerType) }) as IProxyHandler);
             }
         }
         private IEnumerable<Type> ScanHandlerInterfaces(Type type)
         {
-            return type.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<>));
+            return type.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IHandler<>));
         }
     }
 }

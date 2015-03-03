@@ -15,7 +15,7 @@ namespace ENode.EQueue
         private const string DefaultMessageConsumerGroup = "MessageConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider<IMessage> _messageTypeCodeProvider;
+        private readonly ITypeCodeProvider _messageTypeCodeProvider;
         private readonly IProcessor<IMessage> _messageProcessor;
 
         public Consumer Consumer { get { return _consumer; } }
@@ -29,7 +29,7 @@ namespace ENode.EQueue
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _messageProcessor = ObjectContainer.Resolve<IProcessor<IMessage>>();
-            _messageTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IMessage>>();
+            _messageTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
         }
 
         public MessageConsumer Start()

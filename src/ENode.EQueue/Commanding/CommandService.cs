@@ -21,7 +21,7 @@ namespace ENode.EQueue
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<ICommand> _commandTopicProvider;
-        private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
+        private readonly ITypeCodeProvider _commandTypeCodeProvider;
         private readonly ICommandRoutingKeyProvider _commandRouteKeyProvider;
         private readonly SendQueueMessageService _sendMessageService;
         private readonly CommandResultProcessor _commandResultProcessor;
@@ -37,7 +37,7 @@ namespace ENode.EQueue
             _producer = new Producer(id ?? DefaultCommandServiceProcuderId, setting ?? new ProducerSetting());
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
+            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRoutingKeyProvider>();
             _sendMessageService = new SendQueueMessageService();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);

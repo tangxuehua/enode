@@ -2,16 +2,16 @@
 
 namespace ENode.Commanding.Impl
 {
-    public class CommandHandlerWrapper<TCommand> : ICommandHandler where TCommand : class, ICommand
+    public class CommandProxyHandler<TCommand> : ICommandHandler where TCommand : class, ICommand
     {
         private readonly ICommandHandler<TCommand> _commandHandler;
 
-        public CommandHandlerWrapper(ICommandHandler<TCommand> commandHandler)
+        public CommandProxyHandler(ICommandHandler<TCommand> commandHandler)
         {
             _commandHandler = commandHandler;
         }
 
-        public void Handle(ICommandContext context, object command)
+        public void Handle(ICommandContext context, ICommand command)
         {
             _commandHandler.Handle(context, command as TCommand);
         }

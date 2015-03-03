@@ -1,4 +1,5 @@
-﻿using ECommon.Components;
+﻿using System.Threading.Tasks;
+using ECommon.Components;
 using ECommon.Logging;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -7,7 +8,7 @@ using NoteSample.Domain;
 namespace NoteSample.QuickStart.EventHandlers
 {
     [Component]
-    public class NoteEventHandler : IEventHandler<NoteCreated>, IEventHandler<NoteTitleChanged>
+    public class NoteEventHandler : IHandler<NoteCreated>, IHandler<NoteTitleChanged>
     {
         private ILogger _logger;
 
@@ -16,13 +17,15 @@ namespace NoteSample.QuickStart.EventHandlers
             _logger = loggerFactory.Create(typeof(NoteEventHandler).Name);
         }
 
-        public void Handle(IHandlingContext context, NoteCreated evnt)
+        public Task<AsyncTaskResult> Handle(NoteCreated evnt)
         {
             _logger.InfoFormat("Note Created, Id:{0}, Title：{1}, Version: {2}", evnt.AggregateRootId, evnt.Title, evnt.Version);
+            return Task.FromResult(AsyncTaskResult.Success);
         }
-        public void Handle(IHandlingContext context, NoteTitleChanged evnt)
+        public Task<AsyncTaskResult> Handle(NoteTitleChanged evnt)
         {
             _logger.InfoFormat("Note Updated, Id:{0}, Title：{1}, Version: {2}", evnt.AggregateRootId, evnt.Title, evnt.Version);
+            return Task.FromResult(AsyncTaskResult.Success);
         }
     }
 }

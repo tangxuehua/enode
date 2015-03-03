@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ENode.Infrastructure.Impl
 {
-    public class DefaultTypeCodeProvider<TType> : ITypeCodeProvider<TType>
+    public class DefaultTypeCodeProvider : ITypeCodeProvider
     {
         private IDictionary<int, Type> _codeTypeDict = new Dictionary<int, Type>();
         private IDictionary<Type, int> _typeCodeDict = new Dictionary<Type, int>();
@@ -25,11 +25,11 @@ namespace ENode.Infrastructure.Impl
             return _codeTypeDict[typeCode];
         }
 
-        protected void RegisterType<T>(int code)
+        public void RegisterType<T>(int code)
         {
             RegisterType(code, typeof(T));
         }
-        protected void RegisterType(int code, Type type)
+        public void RegisterType(int code, Type type)
         {
             _codeTypeDict.Add(code, type);
             _typeCodeDict.Add(type, code);

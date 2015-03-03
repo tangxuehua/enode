@@ -10,10 +10,10 @@ namespace ENode.Domain.Impl
     {
         private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRootDict = new ConcurrentDictionary<string, IAggregateRoot>();
         private readonly IAggregateStorage _aggregateStorage;
-        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
+        private readonly ITypeCodeProvider _aggregateRootTypeCodeProvider;
         private readonly ILogger _logger;
 
-        public DefaultMemoryCache(ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider, IAggregateStorage aggregateStorage, ILoggerFactory loggerFactory)
+        public DefaultMemoryCache(ITypeCodeProvider aggregateRootTypeCodeProvider, IAggregateStorage aggregateStorage, ILoggerFactory loggerFactory)
         {
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
             _aggregateStorage = aggregateStorage;

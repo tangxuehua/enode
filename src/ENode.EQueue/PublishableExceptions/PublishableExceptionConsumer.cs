@@ -16,7 +16,7 @@ namespace ENode.EQueue
         private const string DefaultExceptionConsumerGroup = "ExceptionConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider<IPublishableException> _publishableExceptionTypeCodeProvider;
+        private readonly ITypeCodeProvider _publishableExceptionTypeCodeProvider;
         private readonly IProcessor<IPublishableException> _publishableExceptionProcessor;
 
         public Consumer Consumer { get { return _consumer; } }
@@ -30,7 +30,7 @@ namespace ENode.EQueue
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _publishableExceptionProcessor = ObjectContainer.Resolve<IProcessor<IPublishableException>>();
-            _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
+            _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
         }
 
         public PublishableExceptionConsumer Start()

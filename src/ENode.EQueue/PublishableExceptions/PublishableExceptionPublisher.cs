@@ -15,7 +15,7 @@ namespace ENode.EQueue
         private const string DefaultExceptionPublisherProcuderId = "ExceptionPublisher";
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IPublishableException> _exceptionTopicProvider;
-        private readonly ITypeCodeProvider<IPublishableException> _exceptionTypeCodeProvider;
+        private readonly ITypeCodeProvider _exceptionTypeCodeProvider;
         private readonly Producer _producer;
         private readonly SendQueueMessageService _sendMessageService;
 
@@ -26,7 +26,7 @@ namespace ENode.EQueue
             _producer = new Producer(id ?? DefaultExceptionPublisherProcuderId, setting ?? new ProducerSetting());
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
-            _exceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IPublishableException>>();
+            _exceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _sendMessageService = new SendQueueMessageService();
         }
 

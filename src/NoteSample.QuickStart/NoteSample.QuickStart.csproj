@@ -79,11 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ENodeExtensions.cs" />
-    <Compile Include="Providers\EventHandlerTypeCodeProvider.cs" />
-    <Compile Include="Providers\AggregateRootTypeCodeProvider.cs" />
-    <Compile Include="Providers\EventTypeCodeProvider.cs" />
     <Compile Include="Providers\EventTopicProvider.cs" />
-    <Compile Include="Providers\CommandTypeCodeProvider.cs" />
     <Compile Include="Providers\CommandTopicProvider.cs" />
     <Compile Include="EventHandlers\NoteEventHandler.cs" />
     <Compile Include="Program.cs" />

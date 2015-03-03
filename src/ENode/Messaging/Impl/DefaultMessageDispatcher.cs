@@ -6,28 +6,22 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Messaging.Impl
 {
-    public class DefaultMessageDispatcher : AbstractDispatcher<IMessage, IMessageHandler>
+    public class DefaultMessageDispatcher : AbstractDispatcher<IMessage>
     {
         public DefaultMessageDispatcher(
-            ITypeCodeProvider<IMessage> messageTypeCodeProvider,
-            ITypeCodeProvider<IMessageHandler> handlerTypeCodeProvider,
-            ITypeCodeProvider<ICommand> commandTypeCodeProvider,
-            IHandlerProvider<IMessageHandler> handlerProvider,
+            ITypeCodeProvider typeCodeProvider,
+            IHandlerProvider handlerProvider,
             ICommandService commandService,
             IRepository repository,
             IMessageHandleRecordStore messageHandleRecordStore,
-            IMessageHandleRecordCache messageHandleRecordCache,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
             : base(
-            messageTypeCodeProvider,
-            handlerTypeCodeProvider,
-            commandTypeCodeProvider,
+            typeCodeProvider,
             handlerProvider,
             commandService,
             repository,
             messageHandleRecordStore,
-            messageHandleRecordCache,
             ioHelper,
             loggerFactory)
         {
@@ -36,10 +30,6 @@ namespace ENode.Messaging.Impl
         protected override MessageHandleRecordType GetHandleRecordType(IMessage message)
         {
             return MessageHandleRecordType.Message;
-        }
-        protected override void HandleMessage(IMessage message, IMessageHandler messageHandler, IHandlingContext handlingContext)
-        {
-            messageHandler.Handle(handlingContext, message);
         }
     }
 }

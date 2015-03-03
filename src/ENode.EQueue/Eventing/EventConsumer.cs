@@ -17,7 +17,7 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
+        private readonly ITypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventSerializer _eventSerializer;
         private readonly IProcessor<DomainEventStream> _domainEventStreamProcessor;
         private readonly IProcessor<EventStream> _eventStreamProcessor;
@@ -35,7 +35,7 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IEvent>>();
+            _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _domainEventStreamProcessor = ObjectContainer.Resolve<IProcessor<DomainEventStream>>();
             _eventStreamProcessor = ObjectContainer.Resolve<IProcessor<EventStream>>();

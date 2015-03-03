@@ -83,23 +83,10 @@ namespace ENode.Configurations
         {
             _configuration.SetDefault<IOHelper, IOHelper>();
 
-            _configuration.SetDefault<ITypeCodeProvider<IAggregateRoot>, DefaultTypeCodeProvider<IAggregateRoot>>();
-            _configuration.SetDefault<ITypeCodeProvider<ICommand>, DefaultTypeCodeProvider<ICommand>>();
-            _configuration.SetDefault<ITypeCodeProvider<IEvent>, DefaultTypeCodeProvider<IEvent>>();
-            _configuration.SetDefault<ITypeCodeProvider<IPublishableException>, DefaultTypeCodeProvider<IPublishableException>>();
-            _configuration.SetDefault<ITypeCodeProvider<IMessage>, DefaultTypeCodeProvider<IMessage>>();
-            _configuration.SetDefault<ITypeCodeProvider<IEventHandler>, DefaultTypeCodeProvider<IEventHandler>>();
-            _configuration.SetDefault<ITypeCodeProvider<IExceptionHandler>, DefaultTypeCodeProvider<IExceptionHandler>>();
-            _configuration.SetDefault<ITypeCodeProvider<IMessageHandler>, DefaultTypeCodeProvider<IMessageHandler>>();
+            _configuration.SetDefault<ITypeCodeProvider, DefaultTypeCodeProvider>();
+            _configuration.SetDefault<IHandlerProvider, DefaultHandlerProvider>();
 
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
-            _configuration.SetDefault<IHandlerProvider<ICommandHandler>, DefaultCommandHandlerProvider>();
-            _configuration.SetDefault<IHandlerProvider<IEventHandler>, DefaultEventHandlerProvider>();
-            _configuration.SetDefault<IHandlerProvider<IExceptionHandler>, DefaultExceptionHandlerProvider>();
-            _configuration.SetDefault<IHandlerProvider<IMessageHandler>, DefaultMessageHandlerProvider>();
-
-            _configuration.SetDefault<IEventSerializer, DefaultEventSerializer>();
-
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
             _configuration.SetDefault<IAggregateStorage, EventSourcingAggregateStorage>();
@@ -109,6 +96,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<ISnapshotPolicy, NoSnapshotPolicy>();
             _configuration.SetDefault<ISnapshotStore, EmptySnapshotStore>();
 
+            _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
             _configuration.SetDefault<ICommandStore, InMemoryCommandStore>();
             _configuration.SetDefault<ICommandExecutor, DefaultCommandExecutor>();
             _configuration.SetDefault<ICommandScheduler, DefaultCommandScheduler>();
@@ -116,10 +104,10 @@ namespace ENode.Configurations
             _configuration.SetDefault<ICommandRoutingKeyProvider, DefaultCommandRoutingKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
 
+            _configuration.SetDefault<IEventSerializer, DefaultEventSerializer>();
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
             _configuration.SetDefault<IAggregatePublishVersionStore, InMemoryAggregatePublishVersionStore>();
             _configuration.SetDefault<IMessageHandleRecordStore, InMemoryMessageHandleRecordStore>();
-            _configuration.SetDefault<IMessageHandleRecordCache, InMemoryMessageHandleRecordCache>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
             _configuration.SetDefault<IDispatcher<IEvent>, DefaultEventDispatcher>();
             _configuration.SetDefault<IProcessor<IEvent>, DefaultEventProcessor>();
@@ -138,10 +126,8 @@ namespace ENode.Configurations
             _configuration.SetDefault<IPublisher<IMessage>, DoNothingPublisher>();
 
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<ICommandHandler>));
-            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<IEventHandler>));
-            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<IExceptionHandler>));
-            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider<IMessageHandler>));
+            _assemblyInitializerServiceTypes.Add(typeof(IHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
 
             return this;
         }

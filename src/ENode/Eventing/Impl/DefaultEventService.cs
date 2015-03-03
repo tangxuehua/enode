@@ -19,7 +19,7 @@ namespace ENode.Eventing.Impl
 
         private ICommandExecutor _commandExecutor;
         private readonly IScheduleService _scheduleService;
-        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
+        private readonly ITypeCodeProvider _aggregateRootTypeCodeProvider;
         private readonly IMemoryCache _memoryCache;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IAggregateStorage _aggregateStorage;
@@ -44,7 +44,7 @@ namespace ENode.Eventing.Impl
 
         public DefaultEventService(
             IScheduleService scheduleService,
-            ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider,
+            ITypeCodeProvider aggregateRootTypeCodeProvider,
             IMemoryCache memoryCache,
             IAggregateRootFactory aggregateRootFactory,
             IAggregateStorage aggregateStorage,

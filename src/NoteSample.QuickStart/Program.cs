@@ -61,6 +61,7 @@ namespace NoteSample.QuickStart
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
+                .RegisterAllTypeCodes()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartENode(NodeType.CommandProcessor | NodeType.EventProcessor)
                 .StartEQueue();

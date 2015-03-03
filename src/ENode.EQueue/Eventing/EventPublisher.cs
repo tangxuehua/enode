@@ -15,7 +15,7 @@ namespace ENode.EQueue
         private const string DefaultEventPublisherProcuderId = "EventPublisher";
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IEvent> _eventTopicProvider;
-        private readonly ITypeCodeProvider<IEvent> _eventTypeCodeProvider;
+        private readonly ITypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventSerializer _eventSerializer;
         private readonly Producer _producer;
         private readonly SendQueueMessageService _sendMessageService;
@@ -27,7 +27,7 @@ namespace ENode.EQueue
             _producer = new Producer(id ?? DefaultEventPublisherProcuderId, setting ?? new ProducerSetting());
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IEvent>>();
-            _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<IEvent>>();
+            _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _sendMessageService = new SendQueueMessageService();
         }

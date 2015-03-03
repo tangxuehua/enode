@@ -22,7 +22,7 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
+        private readonly ITypeCodeProvider _commandTypeCodeProvider;
         private readonly ICommandProcessor _commandProcessor;
         private readonly IRepository _repository;
         private readonly ILogger _logger;
@@ -40,7 +40,7 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
+            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);

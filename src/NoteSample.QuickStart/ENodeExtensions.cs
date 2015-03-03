@@ -9,8 +9,12 @@ using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using EQueue.Broker;
 using EQueue.Configurations;
+using NoteSample.Commands;
+using NoteSample.Domain;
+using NoteSample.QuickStart.EventHandlers;
 
 namespace NoteSample.QuickStart
 {
@@ -66,6 +70,27 @@ namespace NoteSample.QuickStart
             _commandConsumer.Shutdown();
             _eventConsumer.Shutdown();
             _broker.Shutdown();
+            return enodeConfiguration;
+        }
+
+        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
+        {
+            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
+
+            //aggregates
+            provider.RegisterType<Note>(1000);
+
+            //commands
+            provider.RegisterType<CreateNoteCommand>(2000);
+            provider.RegisterType<ChangeNoteTitleCommand>(2001);
+
+            //events
+            provider.RegisterType<NoteCreated>(3000);
+            provider.RegisterType<NoteTitleChanged>(3001);
+
+            //event handlers
+            provider.RegisterType<NoteEventHandler>(4000);
+
             return enodeConfiguration;
         }
 

@@ -15,8 +15,8 @@ namespace ENode.Commanding.Impl
 
         private readonly ICommandStore _commandStore;
         private readonly IEventStore _eventStore;
-        private readonly IHandlerProvider<ICommandHandler> _commandHandlerProvider;
-        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeProvider;
+        private readonly ICommandHandlerProvider _commandHandlerProvider;
+        private readonly ITypeCodeProvider _aggregateRootTypeProvider;
         private readonly IEventService _eventService;
         private readonly IPublisher<IPublishableException> _exceptionPublisher;
         private readonly IMemoryCache _memoryCache;
@@ -30,8 +30,8 @@ namespace ENode.Commanding.Impl
         public DefaultCommandExecutor(
             ICommandStore commandStore,
             IEventStore eventStore,
-            IHandlerProvider<ICommandHandler> commandHandlerProvider,
-            ITypeCodeProvider<IAggregateRoot> aggregateRootTypeProvider,
+            ICommandHandlerProvider commandHandlerProvider,
+            ITypeCodeProvider aggregateRootTypeProvider,
             IEventService eventService,
             IPublisher<IPublishableException> exceptionPublisher,
             IMemoryCache memoryCache,

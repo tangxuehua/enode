@@ -21,7 +21,7 @@ namespace ENode.Commanding.Impl
         private readonly string _commandTable;
         private readonly string _primaryKeyName;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
+        private readonly ITypeCodeProvider _commandTypeCodeProvider;
         private readonly IEventSerializer _eventSerializer;
         private readonly IOHelper _ioHelper;
 
@@ -41,7 +41,7 @@ namespace ENode.Commanding.Impl
             _commandTable = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider<ICommand>>();
+            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }

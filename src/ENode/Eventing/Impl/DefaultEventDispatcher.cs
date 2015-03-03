@@ -6,28 +6,22 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventDispatcher : AbstractDispatcher<IEvent, IEventHandler>
+    public class DefaultEventDispatcher : AbstractDispatcher<IEvent>
     {
         public DefaultEventDispatcher(
-            ITypeCodeProvider<IEvent> messageTypeCodeProvider,
-            ITypeCodeProvider<IEventHandler> handlerTypeCodeProvider,
-            ITypeCodeProvider<ICommand> commandTypeCodeProvider,
-            IHandlerProvider<IEventHandler> handlerProvider,
+            ITypeCodeProvider typeCodeProvider,
+            IHandlerProvider handlerProvider,
             ICommandService commandService,
             IRepository repository,
             IMessageHandleRecordStore messageHandleRecordStore,
-            IMessageHandleRecordCache messageHandleRecordCache,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
             : base(
-            messageTypeCodeProvider,
-            handlerTypeCodeProvider,
-            commandTypeCodeProvider,
+            typeCodeProvider,
             handlerProvider,
             commandService,
             repository,
             messageHandleRecordStore,
-            messageHandleRecordCache,
             ioHelper,
             loggerFactory)
         {
@@ -36,10 +30,6 @@ namespace ENode.Eventing.Impl
         protected override MessageHandleRecordType GetHandleRecordType(IEvent evnt)
         {
             return evnt is IDomainEvent ? MessageHandleRecordType.DomainEvent : MessageHandleRecordType.Event;
-        }
-        protected override void HandleMessage(IEvent evnt, IEventHandler eventHandler, IHandlingContext handlingContext)
-        {
-            eventHandler.Handle(handlingContext, evnt);
         }
         protected override void OnMessageHandleRecordCreated(IEvent evnt, MessageHandleRecord record)
         {

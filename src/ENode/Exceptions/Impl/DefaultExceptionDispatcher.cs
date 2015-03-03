@@ -6,28 +6,22 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Exceptions.Impl
 {
-    public class DefaultExceptionDispatcher : AbstractDispatcher<IPublishableException, IExceptionHandler>
+    public class DefaultExceptionDispatcher : AbstractDispatcher<IPublishableException>
     {
         public DefaultExceptionDispatcher(
-            ITypeCodeProvider<IPublishableException> messageTypeCodeProvider,
-            ITypeCodeProvider<IExceptionHandler> handlerTypeCodeProvider,
-            ITypeCodeProvider<ICommand> commandTypeCodeProvider,
-            IHandlerProvider<IExceptionHandler> handlerProvider,
+            ITypeCodeProvider typeCodeProvider,
+            IHandlerProvider handlerProvider,
             ICommandService commandService,
             IRepository repository,
             IMessageHandleRecordStore messageHandleRecordStore,
-            IMessageHandleRecordCache messageHandleRecordCache,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
             : base(
-            messageTypeCodeProvider,
-            handlerTypeCodeProvider,
-            commandTypeCodeProvider,
+            typeCodeProvider,
             handlerProvider,
             commandService,
             repository,
             messageHandleRecordStore,
-            messageHandleRecordCache,
             ioHelper,
             loggerFactory)
         {
@@ -36,10 +30,6 @@ namespace ENode.Exceptions.Impl
         protected override MessageHandleRecordType GetHandleRecordType(IPublishableException exception)
         {
             return MessageHandleRecordType.PublishableException;
-        }
-        protected override void HandleMessage(IPublishableException exception, IExceptionHandler exceptionHandler, IHandlingContext handlingContext)
-        {
-            exceptionHandler.Handle(handlingContext, exception);
         }
     }
 }

@@ -15,14 +15,14 @@ namespace ENode.Domain.Impl
         private readonly IEventStore _eventStore;
         private readonly ISnapshotStore _snapshotStore;
         private readonly ISnapshotter _snapshotter;
-        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
+        private readonly ITypeCodeProvider _aggregateRootTypeCodeProvider;
 
         public EventSourcingAggregateStorage(
             IAggregateRootFactory aggregateRootFactory,
             IEventStore eventStore,
             ISnapshotStore snapshotStore,
             ISnapshotter snapshotter,
-            ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider)
+            ITypeCodeProvider aggregateRootTypeCodeProvider)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _eventStore = eventStore;

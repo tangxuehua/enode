@@ -1,26 +1,23 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using ECommon.Extensions;
 using ECommon.Logging;
 using ENode.Commanding;
 using ENode.Domain;
 
 namespace ENode.Infrastructure.Impl
 {
-    public abstract class AbstractDispatcher<TMessage, TMessageHandler> : IDispatcher<TMessage>
-        where TMessage : class, IDispatchableMessage
-        where TMessageHandler : class, IProxyHandler
+    public abstract class AbstractDispatcher<TMessage> : IDispatcher<TMessage> where TMessage : class, IDispatchableMessage
     {
         #region Private Variables
 
-        private readonly ITypeCodeProvider<TMessage> _messageTypeCodeProvider;
-        private readonly ITypeCodeProvider<TMessageHandler> _handlerTypeCodeProvider;
-        private readonly ITypeCodeProvider<ICommand> _commandTypeCodeProvider;
-        private readonly IHandlerProvider<TMessageHandler> _handlerProvider;
+        private readonly ITypeCodeProvider _typeCodeProvider;
+        private readonly IHandlerProvider _handlerProvider;
         private readonly ICommandService _commandService;
         private readonly IRepository _repository;
         private readonly IMessageHandleRecordStore _messageHandleRecordStore;
-        private readonly IMessageHandleRecordCache _messageHandleRecordCache;
+        private readonly ConcurrentDictionary<string, ISet<int>> _messageHandleRecordCache;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
 
@@ -29,25 +26,20 @@ namespace ENode.Infrastructure.Impl
         #region Constructors
 
         public AbstractDispatcher(
-            ITypeCodeProvider<TMessage> messageTypeCodeProvider,
-            ITypeCodeProvider<TMessageHandler> handlerTypeCodeProvider,
-            ITypeCodeProvider<ICommand> commandTypeCodeProvider,
-            IHandlerProvider<TMessageHandler> handlerProvider,
+            ITypeCodeProvider typeCodeProvider,
+            IHandlerProvider handlerProvider,
             ICommandService commandService,
             IRepository repository,
             IMessageHandleRecordStore messageHandleRecordStore,
-            IMessageHandleRecordCache messageHandleRecordCache,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
-            _messageTypeCodeProvider = messageTypeCodeProvider;
-            _handlerTypeCodeProvider = handlerTypeCodeProvider;
-            _commandTypeCodeProvider = commandTypeCodeProvider;
+            _typeCodeProvider = typeCodeProvider;
             _handlerProvider = handlerProvider;
             _commandService = commandService;
             _repository = repository;
             _messageHandleRecordStore = messageHandleRecordStore;
-            _messageHandleRecordCache = messageHandleRecordCache;
+            _messageHandleRecordCache = new ConcurrentDictionary<string, ISet<int>>();
             _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
         }
@@ -72,14 +64,13 @@ namespace ENode.Infrastructure.Impl
             {
                 foreach (var message in messages)
                 {
-                    _messageHandleRecordCache.RemoveRecordFromCache(GetHandleRecordType(message), message.Id);
+                    RemoveMessageHandleRecordFromCache(GetHandleRecordType(message), message.Id);
                 }
             }
             return success;
         }
 
         protected abstract MessageHandleRecordType GetHandleRecordType(TMessage message);
-        protected abstract void HandleMessage(TMessage message, TMessageHandler messageHandler, IHandlingContext handlingContext);
         protected virtual void OnMessageHandleRecordCreated(TMessage message, MessageHandleRecord record) { }
 
         private bool DispatchMessageToHandlers(TMessage message, bool autoRemoveMessageHandleRecordCache)
@@ -101,42 +92,23 @@ namespace ENode.Infrastructure.Impl
             }
             if (autoRemoveMessageHandleRecordCache)
             {
-                _messageHandleRecordCache.RemoveRecordFromCache(GetHandleRecordType(message), message.Id);
+                RemoveMessageHandleRecordFromCache(GetHandleRecordType(message), message.Id);
             }
             return success;
         }
-        private bool DispatchMessageToHandler(TMessage message, TMessageHandler messageHandler)
+        private bool DispatchMessageToHandler(TMessage message, IProxyHandler proxyHandler)
         {
-            var messageTypeCode = _messageTypeCodeProvider.GetTypeCode(message.GetType());
-            var handlerType = messageHandler.GetInnerHandler().GetType();
-            var handlerTypeCode = _handlerTypeCodeProvider.GetTypeCode(handlerType);
+            var messageTypeCode = _typeCodeProvider.GetTypeCode(message.GetType());
+            var handlerType = proxyHandler.GetInnerHandler().GetType();
+            var handlerTypeCode = _typeCodeProvider.GetTypeCode(handlerType);
             var handleRecordType = GetHandleRecordType(message);
-            if (_messageHandleRecordCache.IsRecordExist(handleRecordType, message.Id, handlerTypeCode)) return true;
+
+            if (IsMessageHandleRecordExistInCache(handleRecordType, message.Id, handlerTypeCode)) return true;
             if (_messageHandleRecordStore.IsRecordExist(handleRecordType, message.Id, handlerTypeCode)) return true;
-            var handlingContext = new DefaultHandlingContext(_repository);
 
             try
             {
-                HandleMessage(message, messageHandler, handlingContext);
-                var commands = handlingContext.GetCommands();
-                if (commands.Any())
-                {
-                    foreach (var command in commands)
-                    {
-                        var contextInfo = string.Format("Send command success, commandType:{0}, commandId:{1}, commandTarget:{2}, handlerType:{3}, messageType:{4}, messageId:{5}",
-                            command.GetType().Name,
-                            command.Id,
-                            command.GetTarget(),
-                            handlerType.Name,
-                            message.GetType().Name,
-                            message.Id);
-                        _ioHelper.TryIOActionRecursively("SendCommandFromHandler", () => contextInfo, () =>
-                        {
-                            _commandService.Send(command, message.Id, handleRecordType.ToString());
-                        });
-                        _logger.Debug(contextInfo);
-                    }
-                }
+                proxyHandler.Handle(message);
 
                 var messageHandleRecord = new MessageHandleRecord
                 {
@@ -151,7 +123,7 @@ namespace ENode.Infrastructure.Impl
                 {
                     _messageHandleRecordStore.AddRecord(messageHandleRecord);
                 });
-                _messageHandleRecordCache.AddRecord(messageHandleRecord);
+                AddMessageHandleRecordToCache(messageHandleRecord);
 
                 _logger.DebugFormat("Message handle success, handlerType:{0}, messageType:{1}, messageId:{2}",
                     handlerType.Name,
@@ -172,6 +144,19 @@ namespace ENode.Infrastructure.Impl
                     message.Id), ex);
                 return !(ex is ICanBeRetryException);
             }
+        }
+        private void AddMessageHandleRecordToCache(MessageHandleRecord record)
+        {
+            _messageHandleRecordCache.GetOrAdd(record.MessageId, x => new HashSet<int>()).Add(record.HandlerTypeCode);
+        }
+        private bool IsMessageHandleRecordExistInCache(MessageHandleRecordType type, string messageId, int handlerTypeCode)
+        {
+            ISet<int> handlerTypeCodeList;
+            return _messageHandleRecordCache.TryGetValue(messageId, out handlerTypeCodeList) && handlerTypeCodeList.Contains(handlerTypeCode);
+        }
+        private void RemoveMessageHandleRecordFromCache(MessageHandleRecordType type, string messageId)
+        {
+            _messageHandleRecordCache.Remove(messageId);
         }
     }
 }

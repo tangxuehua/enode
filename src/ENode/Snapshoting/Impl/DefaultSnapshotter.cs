@@ -10,14 +10,14 @@ namespace ENode.Snapshoting.Impl
         #region Private Variables
 
         private readonly IAggregateRootFactory _aggregateRootFactory;
-        private readonly ITypeCodeProvider<IAggregateRoot> _aggregateRootTypeCodeProvider;
+        private readonly ITypeCodeProvider _aggregateRootTypeCodeProvider;
         private readonly IBinarySerializer _binarySerializer;
 
         #endregion
 
         #region Constructors
 
-        public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, ITypeCodeProvider<IAggregateRoot> aggregateRootTypeCodeProvider, IBinarySerializer binarySerializer)
+        public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, ITypeCodeProvider aggregateRootTypeCodeProvider, IBinarySerializer binarySerializer)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
