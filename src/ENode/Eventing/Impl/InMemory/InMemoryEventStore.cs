@@ -25,6 +25,10 @@ namespace ENode.Eventing.Impl.InMemory
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
+        public bool SupportBatchAppend
+        {
+            get { return false; }
+        }
         public void BatchAppend(IEnumerable<DomainEventStream> eventStreams)
         {
             throw new NotSupportedException();
