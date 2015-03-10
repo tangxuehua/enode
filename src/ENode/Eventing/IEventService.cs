@@ -1,31 +1,27 @@
 ﻿using ENode.Commanding;
+using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
-    /// <summary>Represents a service to commit or publish events.
+    /// <summary>Represents a service to commit or publish domain event stream.
     /// </summary>
     public interface IEventService
     {
         /// <summary>Set the command executor for command retring.
         /// </summary>
-        /// <param name="commandExecutor"></param>
-        void SetCommandExecutor(ICommandExecutor commandExecutor);
+        /// <param name="processingCommandHandler"></param>
+        void SetProcessingCommandHandler(IProcessingMessageHandler<ProcessingCommand, ICommand, CommandResult> processingCommandHandler);
         /// <summary>Start the event service.
         /// </summary>
         void Start();
         /// <summary>Commit the given aggregate's domain events to the eventstore async and publish the domain events.
         /// </summary>
         /// <param name="context"></param>
-        void CommitEventAsync(EventCommittingContext context);
-        /// <summary>Publish the given domain events async.
+        void CommitDomainEventAsync(EventCommittingContext context);
+        /// <summary>Publish the given domain event stream async.
         /// </summary>
         /// <param name="processingCommand"></param>
         /// <param name="eventStream"></param>
         void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream);
-        /// <summary>Publish the given events async.
-        /// </summary>
-        /// <param name="processingCommand"></param>
-        /// <param name="eventStream"></param>
-        void PublishEventAsync(ProcessingCommand processingCommand, EventStream eventStream);
     }
 }

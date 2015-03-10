@@ -11,7 +11,7 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
 {
     public static class ENodeExtensions
     {
-        private static EventConsumer _eventConsumer;
+        private static DomainEventConsumer _eventConsumer;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
@@ -19,7 +19,7 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
 
             configuration.RegisterEQueueComponents();
 
-            _eventConsumer = new EventConsumer();
+            _eventConsumer = new DomainEventConsumer();
 
             _eventConsumer.Subscribe("NoteEventTopic1");
             _eventConsumer.Subscribe("NoteEventTopic2");

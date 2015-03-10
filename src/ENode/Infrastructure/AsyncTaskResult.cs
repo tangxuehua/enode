@@ -33,6 +33,12 @@ namespace ENode.Infrastructure
 
         /// <summary>Parameterized constructor.
         /// </summary>
+        public AsyncTaskResult(AsyncTaskStatus status)
+            : this(status, null, default(T))
+        {
+        }
+        /// <summary>Parameterized constructor.
+        /// </summary>
         public AsyncTaskResult(AsyncTaskStatus status, T data)
             : this(status, null, data)
         {

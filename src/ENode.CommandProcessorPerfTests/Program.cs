@@ -31,15 +31,15 @@ namespace ENode.CommandProcessorPerfTests
 
         static void ProcessCreateAggregateCommands(int commandCount)
         {
-            var commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
+            var commandProcessor = ObjectContainer.Resolve<IAggregateCommandProcessor>();
             var repository = ObjectContainer.Resolve<IRepository>();
             var watch = Stopwatch.StartNew();
-            var commands = new List<ProcessingCommand>();
+            var commands = new List<ProcessingAggregateCommand>();
             var logger = ObjectContainer.Resolve<ILoggerFactory>().Create("main");
 
             for (var i = 1; i <= commandCount; i++)
             {
-                commands.Add(new ProcessingCommand(new CreateNoteCommand
+                commands.Add(new ProcessingAggregateCommand(new CreateNoteCommand
                 {
                     AggregateRootId = i.ToString(),
                     Title = "Sample Note"
@@ -77,7 +77,7 @@ namespace ENode.CommandProcessorPerfTests
 
             Console.WriteLine("ENode started...");
         }
-        class CommandExecuteContext : ICommandExecuteContext
+        class CommandExecuteContext : IAggregateCommandExecuteContext
         {
             private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRoots;
             private readonly ConcurrentDictionary<string, IEvent> _events;

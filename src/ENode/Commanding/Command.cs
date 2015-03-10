@@ -1,29 +1,53 @@
 ﻿using System;
-using ECommon.Utilities;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
     /// <summary>Represents an abstract command.
     /// </summary>
     [Serializable]
-    public abstract class Command : ICommand
+    public abstract class Command<TAggregateRootId> : Message, ICommand
     {
-        /// <summary>Represents the unique identifier of the command.
+        /// <summary>Represents the associated aggregate root id.
         /// </summary>
-        public string Id { get; set; }
+        public TAggregateRootId AggregateRootId { get; set; }
 
         /// <summary>Default constructor.
         /// </summary>
-        protected Command()
+        public Command() : base() { }
+        /// <summary>Parameterized constructor.
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        public Command(TAggregateRootId aggregateRootId)
         {
-            Id = ObjectId.GenerateNewStringId();
+            if (aggregateRootId == null)
+            {
+                throw new ArgumentNullException("aggregateRootId");
+            }
+            AggregateRootId = aggregateRootId;
         }
 
-        /// <summary>Returns null by default.
+        string ICommand.AggregateRootId
+        {
+            get
+            {
+                if (this.AggregateRootId != null)
+                {
+                    return this.AggregateRootId.ToString();
+                }
+                return null;
+            }
+        }
+
+        /// <summary>Returns the aggregate root id by default.
         /// </summary>
         /// <returns></returns>
-        public virtual object GetTarget()
+        public override string GetRoutingKey()
         {
+            if (!object.Equals(AggregateRootId, default(TAggregateRootId)))
+            {
+                return ((ICommand)this).AggregateRootId;
+            }
             return null;
         }
     }

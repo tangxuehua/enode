@@ -30,7 +30,7 @@ namespace ENode.PublishEventPerfTests
         static void PublishEventAsync(int eventCount)
         {
             var printSize = eventCount / 10;
-            var eventPublisher = ObjectContainer.Resolve<IPublisher<DomainEventStream>>();
+            var eventPublisher = ObjectContainer.Resolve<IMessagePublisher<DomainEventStream>>();
             var eventStreams = new List<DomainEventStream>();
             var commandId = ObjectId.GenerateNewStringId();
             var noteId = ObjectId.GenerateNewStringId();
@@ -70,7 +70,7 @@ namespace ENode.PublishEventPerfTests
         static void PublishEventSync(int eventCount)
         {
             var printSize = eventCount / 10;
-            var eventPublisher = ObjectContainer.Resolve<IPublisher<DomainEventStream>>();
+            var eventPublisher = ObjectContainer.Resolve<IMessagePublisher<DomainEventStream>>();
             var eventStreams = new List<DomainEventStream>();
             var commandId = ObjectId.GenerateNewStringId();
             var noteId = ObjectId.GenerateNewStringId();

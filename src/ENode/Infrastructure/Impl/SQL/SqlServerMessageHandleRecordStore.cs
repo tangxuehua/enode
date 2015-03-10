@@ -1,5 +1,5 @@
 ﻿using System.Data.SqlClient;
-using ECommon.Components;
+using System.Threading.Tasks;
 using ECommon.Dapper;
 using ECommon.Utilities;
 using ENode.Configurations;
@@ -12,7 +12,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
         private readonly string _connectionString;
         private readonly string _tableName;
-        private readonly IOHelper _ioHelper;
+        private readonly string _primaryKeyName;
 
         #endregion
 
@@ -24,41 +24,48 @@ namespace ENode.Infrastructure.Impl.SQL
             Ensure.NotNull(setting, "SqlServerMessageHandleRecordStoreSetting");
             Ensure.NotNull(setting.ConnectionString, "SqlServerMessageHandleRecordStoreSetting.ConnectionString");
             Ensure.NotNull(setting.TableName, "SqlServerMessageHandleRecordStoreSetting.TableName");
+            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerMessageHandleRecordStoreSetting.PrimaryKeyName");
 
             _connectionString = setting.ConnectionString;
             _tableName = setting.TableName;
-            _ioHelper = ObjectContainer.Resolve<IOHelper>();
+            _primaryKeyName = setting.PrimaryKeyName;
         }
 
         #endregion
 
-        public void AddRecord(MessageHandleRecord record)
+        public async Task<AsyncTaskResult> AddRecordAsync(MessageHandleRecord record)
         {
-            _ioHelper.TryIOAction(() =>
+            try
             {
                 using (var connection = GetConnection())
                 {
-                    connection.Insert(new
+                    await connection.InsertAsync(new
                     {
-                        Type = (int)record.Type,
                         HandlerTypeCode = record.HandlerTypeCode,
                         MessageId = record.MessageId,
                         MessageTypeCode = record.MessageTypeCode,
                         AggregateRootId = record.AggregateRootId,
-                        AggregateRootVersion = record.AggregateRootVersion
+                        Version = record.Version
                     }, _tableName);
+                    return AsyncTaskResult.Success;
                 }
-            }, "AddMessageHandleRecord");
-        }
-        public bool IsRecordExist(MessageHandleRecordType type, string messageId, int handlerTypeCode)
-        {
-            return _ioHelper.TryIOFunc(() =>
+            }
+            catch (SqlException ex)
             {
-                using (var connection = GetConnection())
+                if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
                 {
-                    return connection.GetCount(new { MessageId = messageId, HandlerTypeCode = handlerTypeCode }, _tableName) > 0;
+                    return AsyncTaskResult.Success;
                 }
-            }, "IsMessageHandleRecordExist");
+                return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
+            }
+        }
+        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId, int handlerTypeCode)
+        {
+            using (var connection = GetConnection())
+            {
+                var count = await connection.GetCountAsync(new { MessageId = messageId, HandlerTypeCode = handlerTypeCode }, _tableName);
+                return new AsyncTaskResult<bool>(AsyncTaskStatus.Success, count > 0);
+            }
         }
 
         private SqlConnection GetConnection()

@@ -15,7 +15,7 @@ namespace ENode.Eventing.Impl
             _jsonSerializer = jsonSerializer;
         }
 
-        public IDictionary<int, string> Serialize(IEnumerable<IEvent> evnts)
+        public IDictionary<int, string> Serialize(IEnumerable<IDomainEvent> evnts)
         {
             var dict = new Dictionary<int, string>();
 
@@ -28,7 +28,7 @@ namespace ENode.Eventing.Impl
 
             return dict;
         }
-        public IEnumerable<TEvent> Deserialize<TEvent>(IDictionary<int, string> data) where TEvent : class, IEvent
+        public IEnumerable<TEvent> Deserialize<TEvent>(IDictionary<int, string> data) where TEvent : class, IDomainEvent
         {
             var evnts = new List<TEvent>();
 

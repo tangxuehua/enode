@@ -11,15 +11,15 @@ namespace ENode.PublishEventPerfTests
     public static class ENodeExtensions
     {
         private static BrokerController _broker;
-        private static EventPublisher _eventPublisher;
+        private static DomainEventPublisher _eventPublisher;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.RegisterEQueueComponents();
             _broker = new BrokerController();
-            _eventPublisher = new EventPublisher();
-            configuration.SetDefault<IPublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
+            _eventPublisher = new DomainEventPublisher();
+            configuration.SetDefault<IMessagePublisher<DomainEventStream>, DomainEventPublisher>(_eventPublisher);
             return enodeConfiguration;
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)

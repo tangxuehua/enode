@@ -5,6 +5,7 @@ using ECommon.Serializing;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
+using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.EQueue
 {
@@ -40,11 +41,11 @@ namespace ENode.EQueue
         {
             var messageJson = _jsonSerializer.Serialize(message);
             var messageBytes = Encoding.UTF8.GetBytes(messageJson);
-            var equeueMessage = new Message(topic, (int)EQueueMessageTypeCode.CommandExecutedMessage, messageBytes);
+            var equeueMessage = new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandExecutedMessage, messageBytes);
             SendMessageAsync(equeueMessage, messageJson, message.CommandId, 0);
         }
 
-        private void SendMessageAsync(Message message, string messageJson, string routingKey, int retryTimes)
+        private void SendMessageAsync(EQueueMessage message, string messageJson, string routingKey, int retryTimes)
         {
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("PublishQueueMessageAsync",
             () => _sendMessageService.SendMessageAsync(_producer, message, routingKey),

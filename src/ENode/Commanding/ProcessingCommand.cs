@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
-    public class ProcessingCommand
+    public class ProcessingCommand : IProcessingMessage<ProcessingCommand, ICommand, CommandResult>
     {
-        private CommandMailbox _mailbox;
+        private ProcessingMessageMailbox<ProcessingCommand, ICommand, CommandResult> _mailbox;
 
-        public string AggregateRootId { get; private set; }
-        public ICommand Command { get; private set; }
+        public ICommand Message { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }
         public string SourceId { get; private set; }
         public string SourceType { get; private set; }
@@ -16,23 +16,14 @@ namespace ENode.Commanding
 
         public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, string sourceId, string sourceType, IDictionary<string, string> items)
         {
-            Command = command;
+            Message = command;
             CommandExecuteContext = commandExecuteContext;
             SourceId = sourceId;
             SourceType = sourceType;
             Items = items ?? new Dictionary<string, string>();
-
-            if (command is IAggregateCommand)
-            {
-                AggregateRootId = ((IAggregateCommand)command).AggregateRootId;
-                if (string.IsNullOrEmpty(AggregateRootId) && (!(command is ICreatingAggregateCommand)))
-                {
-                    throw new CommandAggregateRootIdMissingException(command);
-                }
-            }
         }
 
-        public void SetMailbox(CommandMailbox mailbox)
+        public void SetMailbox(ProcessingMessageMailbox<ProcessingCommand, ICommand, CommandResult> mailbox)
         {
             _mailbox = mailbox;
         }
@@ -43,10 +34,6 @@ namespace ENode.Commanding
             {
                 _mailbox.CompleteCommand(this);
             }
-        }
-        public object GetRoutingKey()
-        {
-            return string.IsNullOrEmpty(AggregateRootId) ? Command.Id : AggregateRootId;
         }
         public void IncreaseConcurrentRetriedCount()
         {

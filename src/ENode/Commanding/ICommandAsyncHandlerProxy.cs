@@ -1,0 +1,15 @@
+﻿using System.Threading.Tasks;
+using ENode.Infrastructure;
+
+namespace ENode.Commanding
+{
+    /// <summary>Represents an async handler proxy for command.
+    /// </summary>
+    public interface ICommandAsyncHandlerProxy : IHandlerProxy
+    {
+        /// <summary>Handle the given application command async.
+        /// </summary>
+        /// <param name="command"></param>
+        Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(ICommand command);
+    }
+}

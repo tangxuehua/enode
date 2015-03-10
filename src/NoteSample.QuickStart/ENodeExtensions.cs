@@ -23,8 +23,8 @@ namespace NoteSample.QuickStart
         private static BrokerController _broker;
         private static CommandService _commandService;
         private static CommandConsumer _commandConsumer;
-        private static EventPublisher _eventPublisher;
-        private static EventConsumer _eventConsumer;
+        private static DomainEventPublisher _eventPublisher;
+        private static DomainEventConsumer _eventConsumer;
         private static CommandResultProcessor _commandResultProcessor;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
@@ -37,13 +37,13 @@ namespace NoteSample.QuickStart
 
             _commandResultProcessor = new CommandResultProcessor();
             _commandService = new CommandService(_commandResultProcessor);
-            _eventPublisher = new EventPublisher();
+            _eventPublisher = new DomainEventPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
-            configuration.SetDefault<IPublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer();
-            _eventConsumer = new EventConsumer();
+            _eventConsumer = new DomainEventConsumer();
 
             _commandConsumer.Subscribe("NoteCommandTopic");
             _eventConsumer.Subscribe("NoteEventTopic");

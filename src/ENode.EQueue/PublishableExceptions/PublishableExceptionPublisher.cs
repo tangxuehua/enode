@@ -3,14 +3,14 @@ using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Serializing;
-using ENode.Exceptions;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
+using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.EQueue
 {
-    public class PublishableExceptionPublisher : IPublisher<IPublishableException>
+    public class PublishableExceptionPublisher : IMessagePublisher<IPublishableException>
     {
         private const string DefaultExceptionPublisherProcuderId = "ExceptionPublisher";
         private readonly IJsonSerializer _jsonSerializer;
@@ -52,7 +52,7 @@ namespace ENode.EQueue
             return _sendMessageService.SendMessageAsync(_producer, message, exception.Id);
         }
 
-        private Message CreateEQueueMessage(IPublishableException exception)
+        private EQueueMessage CreateEQueueMessage(IPublishableException exception)
         {
             var exceptionTypeCode = _exceptionTypeCodeProvider.GetTypeCode(exception.GetType());
             var topic = _exceptionTopicProvider.GetTopic(exception);
@@ -64,7 +64,7 @@ namespace ENode.EQueue
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
             });
-            return new Message(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
         }
     }
 }

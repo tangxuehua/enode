@@ -5,10 +5,9 @@ namespace ENode.Commanding.Impl
     {
         public string GetRoutingKey(ICommand command)
         {
-            var aggregateCommand = command as IAggregateCommand;
-            if (aggregateCommand != null && !string.IsNullOrEmpty(aggregateCommand.AggregateRootId))
+            if (!string.IsNullOrEmpty(command.AggregateRootId))
             {
-                return aggregateCommand.AggregateRootId;
+                return command.AggregateRootId;
             }
             return command.Id;
         }

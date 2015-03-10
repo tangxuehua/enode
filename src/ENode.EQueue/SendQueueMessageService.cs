@@ -4,6 +4,7 @@ using ECommon.Components;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
+using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.EQueue
 {
@@ -16,7 +17,7 @@ namespace ENode.EQueue
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }
 
-        public void SendMessage(Producer producer, Message message, object routingKey)
+        public void SendMessage(Producer producer, EQueueMessage message, object routingKey)
         {
             _ioHelper.TryIOAction(() =>
             {
@@ -27,7 +28,7 @@ namespace ENode.EQueue
                 }
             }, "SendQueueMessage");
         }
-        public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, Message message, object routingKey)
+        public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, EQueueMessage message, object routingKey)
         {
             try
             {

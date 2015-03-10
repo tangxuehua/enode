@@ -2,7 +2,6 @@
 using System.Text;
 using ECommon.Components;
 using ECommon.Serializing;
-using ENode.Exceptions;
 using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
@@ -17,7 +16,7 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider _publishableExceptionTypeCodeProvider;
-        private readonly IProcessor<IPublishableException> _publishableExceptionProcessor;
+        private readonly IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool> _publishableExceptionProcessor;
 
         public Consumer Consumer { get { return _consumer; } }
 
@@ -29,7 +28,7 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _publishableExceptionProcessor = ObjectContainer.Resolve<IProcessor<IPublishableException>>();
+            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
             _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
         }
 
@@ -54,9 +53,11 @@ namespace ENode.EQueue
             var publishableExceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var publishableExceptionType = _publishableExceptionTypeCodeProvider.GetType(publishableExceptionMessage.ExceptionTypeCode);
             var publishableException = FormatterServices.GetUninitializedObject(publishableExceptionType) as IPublishableException;
-            publishableException.UniqueId = publishableExceptionMessage.UniqueId;
+            publishableException.SetId(publishableExceptionMessage.UniqueId);
             publishableException.RestoreFrom(publishableExceptionMessage.SerializableInfo);
-            _publishableExceptionProcessor.Process(publishableException, new EQueueProcessContext<IPublishableException>(queueMessage, context, publishableException));
+            var processContext = new EQueueProcessContext(queueMessage, context);
+            var processingMessage = new ProcessingPublishableExceptionMessage(publishableException, processContext);
+            _publishableExceptionProcessor.Process(processingMessage);
         }
     }
 }

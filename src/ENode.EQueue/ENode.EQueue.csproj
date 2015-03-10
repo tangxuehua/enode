@@ -60,10 +60,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Eventing\EventStreamMessage.cs" />
     <Compile Include="Eventing\EventMessage.cs" />
     <Compile Include="SendQueueMessageService.cs" />
-    <Compile Include="Messaging\MessageConsumer.cs" />
-    <Compile Include="Messaging\MessagePublisher.cs" />
+    <Compile Include="Messaging\ApplicationMessageConsumer.cs" />
+    <Compile Include="Messaging\ApplicationMessagePublisher.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionMessage.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionConsumer.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionPublisher.cs" />
@@ -77,10 +78,8 @@
     <Compile Include="Commanding\CommandExecutedMessage.cs" />
     <Compile Include="Commanding\CommandResultProcessor.cs" />
     <Compile Include="Commanding\CommandExecutedMessageSender.cs" />
-    <Compile Include="Eventing\EventStreamMessage.cs" />
-    <Compile Include="Eventing\EventConsumer.cs" />
+    <Compile Include="Eventing\DomainEventConsumer.cs" />
     <Compile Include="Eventing\EventPublisher.cs" />
-    <Compile Include="Eventing\DomainEventStreamMessage.cs" />
     <Compile Include="Eventing\DomainEventHandledMessageSender.cs" />
     <Compile Include="Commanding\CommandService.cs" />
     <Compile Include="ITopicProvider.cs" />

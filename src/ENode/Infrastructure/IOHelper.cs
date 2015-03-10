@@ -41,7 +41,8 @@ namespace ENode.Infrastructure
             Action<TAsyncResult> successAction,
             Func<string> getContextInfoFunc,
             Action failedAction,
-            int retryTimes) where TAsyncResult : AsyncTaskResult
+            int retryTimes,
+            bool retryWhenFailed = false) where TAsyncResult : AsyncTaskResult
         {
             var retryAction = new Action<int>(currentRetryTimes =>
             {
@@ -78,7 +79,14 @@ namespace ENode.Infrastructure
                 else
                 {
                     _logger.Error(string.Format("Async task '{0}' has unknown exception, contextInfo:{1}, current retryTimes:{2}", asyncActionName, getContextInfoFunc(), currentRetryTimes), ex);
-                    executeFailedAction();
+                    if (retryWhenFailed)
+                    {
+                        retryAction(retryTimes);
+                    }
+                    else
+                    {
+                        executeFailedAction();
+                    }
                 }
             });
             var completeAction = new Action<Task<TAsyncResult>>(t =>
@@ -98,7 +106,14 @@ namespace ENode.Infrastructure
                 if (result == null)
                 {
                     _logger.ErrorFormat("Async task '{0}' result is null, contextInfo:{1}, current retryTimes:{2}", asyncActionName, getContextInfoFunc(), retryTimes);
-                    executeFailedAction();
+                    if (retryWhenFailed)
+                    {
+                        retryAction(retryTimes);
+                    }
+                    else
+                    {
+                        executeFailedAction();
+                    }
                     return;
                 }
                 if (result.Status == AsyncTaskStatus.Success)
@@ -116,7 +131,14 @@ namespace ENode.Infrastructure
                 else if (result.Status == AsyncTaskStatus.Failed)
                 {
                     _logger.ErrorFormat("Async task '{0}' was failed and will not be retry, contextInfo:{1}, current retryTimes:{2}, errorMsg:{3}", asyncActionName, getContextInfoFunc(), retryTimes, result.ErrorMessage);
-                    executeFailedAction();
+                    if (retryWhenFailed)
+                    {
+                        retryAction(retryTimes);
+                    }
+                    else
+                    {
+                        executeFailedAction();
+                    }
                 }
             });
 
@@ -132,7 +154,14 @@ namespace ENode.Infrastructure
             catch (Exception ex)
             {
                 _logger.Error(string.Format("Unknown exception raised when executing async task '{0}', contextInfo:{1}, current retryTimes:{2}", asyncActionName, getContextInfoFunc(), retryTimes), ex);
-                executeFailedAction();
+                if (retryWhenFailed)
+                {
+                    retryAction(retryTimes);
+                }
+                else
+                {
+                    executeFailedAction();
+                }
             }
         }
         public void TryIOAction(Action action, string actionName)

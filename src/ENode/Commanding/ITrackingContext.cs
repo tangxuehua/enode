@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using ENode.Domain;
-using ENode.Eventing;
 
 namespace ENode.Commanding
 {
-    /// <summary>Represents a tracking context for tracking changed aggregate roots in the command handler.
+    /// <summary>Represents a tracking context for tracking the changed aggregate roots for the aggregate command handler.
     /// </summary>
     public interface ITrackingContext
     {
@@ -12,10 +11,6 @@ namespace ENode.Commanding
         /// </summary>
         /// <returns></returns>
         IEnumerable<IAggregateRoot> GetTrackedAggregateRoots();
-        /// <summary>Get all the related events.
-        /// </summary>
-        /// <returns></returns>
-        IEnumerable<IEvent> GetEvents();
         /// <summary>Clear the tracking context.
         /// </summary>
         void Clear();

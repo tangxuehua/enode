@@ -1,15 +1,13 @@
-﻿namespace ENode.Commanding
+﻿using ENode.Infrastructure;
+
+namespace ENode.Commanding
 {
     /// <summary>Represents a command.
     /// </summary>
-    public interface ICommand
+    public interface ICommand : IMessage
     {
-        /// <summary>Represents the unique identifier of the command.
+        /// <summary>Represents the associated aggregate root string id.
         /// </summary>
-        string Id { get; set; }
-        /// <summary>Gets the target of the command.
-        /// </summary>
-        /// <returns></returns>
-        object GetTarget();
+        string AggregateRootId { get; }
     }
 }

@@ -63,7 +63,7 @@ namespace NoteSample.QuickStart
                 .UseEQueue()
                 .RegisterAllTypeCodes()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode(NodeType.CommandProcessor | NodeType.EventProcessor)
+                .StartENode()
                 .StartEQueue();
 
             Console.WriteLine(string.Empty);

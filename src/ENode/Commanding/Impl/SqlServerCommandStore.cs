@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,7 +20,7 @@ namespace ENode.Commanding.Impl
         private readonly string _commandTable;
         private readonly string _primaryKeyName;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider _commandTypeCodeProvider;
+        private readonly ITypeCodeProvider _typeCodeProvider;
         private readonly IEventSerializer _eventSerializer;
         private readonly IOHelper _ioHelper;
 
@@ -41,7 +40,7 @@ namespace ENode.Commanding.Impl
             _commandTable = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
+            _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }
@@ -183,40 +182,38 @@ namespace ENode.Commanding.Impl
         }
         private CommandRecord ConvertTo(HandledCommand handledCommand)
         {
-            var handledAggregateCommand = handledCommand as HandledAggregateCommand;
             return new CommandRecord
             {
                 CommandId = handledCommand.Command.Id,
-                CommandTypeCode = _commandTypeCodeProvider.GetTypeCode(handledCommand.Command.GetType()),
-                AggregateRootId = handledAggregateCommand != null ? handledAggregateCommand.AggregateRootId : null,
-                AggregateRootTypeCode = handledAggregateCommand != null ? handledAggregateCommand.AggregateRootTypeCode : 0,
+                CommandTypeCode = _typeCodeProvider.GetTypeCode(handledCommand.Command.GetType()),
+                AggregateRootId = handledCommand.AggregateRootId,
+                AggregateRootTypeCode = handledCommand.AggregateRootTypeCode,
                 SourceId = handledCommand.SourceId,
                 SourceType = handledCommand.SourceType,
                 Timestamp = DateTime.Now,
-                CommandData = _jsonSerializer.Serialize(handledCommand.Command),
-                Events = _jsonSerializer.Serialize(_eventSerializer.Serialize(handledCommand.Events))
+                Payload = _jsonSerializer.Serialize(handledCommand.Command),
+                Message = handledCommand.Message != null ? _jsonSerializer.Serialize(handledCommand.Message) : null,
+                MessageTypeCode = _typeCodeProvider.GetTypeCode(handledCommand.Message.GetType()),
             };
         }
         private HandledCommand ConvertFrom(CommandRecord record)
         {
-            var commandType = _commandTypeCodeProvider.GetType(record.CommandTypeCode);
-            if (commandType == typeof(HandledAggregateCommand))
+            var commandType = _typeCodeProvider.GetType(record.CommandTypeCode);
+            var message = default(IApplicationMessage);
+
+            if (record.MessageTypeCode > 0)
             {
-                return new HandledAggregateCommand(
-                    _jsonSerializer.Deserialize(record.CommandData, commandType) as ICommand,
-                    record.SourceId,
-                    record.SourceType,
-                    record.AggregateRootId,
-                    record.AggregateRootTypeCode);
+                var messageType = _typeCodeProvider.GetType(record.MessageTypeCode);
+                message = _jsonSerializer.Deserialize(record.Message, messageType) as IApplicationMessage;
             }
-            else
-            {
-                return new HandledCommand(
-                    _jsonSerializer.Deserialize(record.CommandData, commandType) as ICommand,
-                    record.SourceId,
-                    record.SourceType,
-                    _eventSerializer.Deserialize<IEvent>(_jsonSerializer.Deserialize<IDictionary<int, string>>(record.Events)));
-            }
+
+            return new HandledCommand(
+                _jsonSerializer.Deserialize(record.Payload, commandType) as ICommand,
+                record.SourceId,
+                record.SourceType,
+                record.AggregateRootId,
+                record.AggregateRootTypeCode,
+                message);
         }
 
         #endregion
@@ -230,8 +227,9 @@ namespace ENode.Commanding.Impl
             public string SourceId { get; set; }
             public string SourceType { get; set; }
             public DateTime Timestamp { get; set; }
-            public string CommandData { get; set; }
-            public string Events { get; set; }
+            public string Payload { get; set; }
+            public string Message { get; set; }
+            public int MessageTypeCode { get; set; }
         }
     }
 }

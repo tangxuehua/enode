@@ -78,7 +78,7 @@ namespace ENode.EQueue.Commanding
             CommandTaskCompletionSource commandTaskCompletionSource;
             if (_commandTaskDict.TryRemove(command.Id, out commandTaskCompletionSource))
             {
-                var commandResult = new CommandResult(CommandStatus.Failed, command.Id, command is IAggregateCommand ? ((IAggregateCommand)command).AggregateRootId : null, "CommandSendFailed", "Failed to send the command.");
+                var commandResult = new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "CommandSendFailed", "Failed to send the command.");
                 commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult));
             }
         }

@@ -14,7 +14,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
     public static class ENodeExtensions
     {
         private static CommandConsumer _commandConsumer;
-        private static EventPublisher _eventPublisher;
+        private static DomainEventPublisher _eventPublisher;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
@@ -22,9 +22,9 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
 
             configuration.RegisterEQueueComponents();
 
-            _eventPublisher = new EventPublisher();
+            _eventPublisher = new DomainEventPublisher();
 
-            configuration.SetDefault<IPublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<DomainEventStream>, DomainEventPublisher>(_eventPublisher);
 
             _commandConsumer = new CommandConsumer();
 

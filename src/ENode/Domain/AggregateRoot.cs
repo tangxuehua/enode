@@ -141,7 +141,7 @@ namespace ENode.Domain
             foreach (var eventStream in eventStreams)
             {
                 VerifyEvent(eventStream);
-                foreach (var domainEvent in eventStream.DomainEvents)
+                foreach (var domainEvent in eventStream.Events)
                 {
                     HandleEvent(domainEvent);
                 }

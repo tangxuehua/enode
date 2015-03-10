@@ -22,8 +22,8 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider _commandTypeCodeProvider;
-        private readonly ICommandProcessor _commandProcessor;
+        private readonly ITypeCodeProvider _typeCodeProvider;
+        private readonly IMessageProcessor<ProcessingCommand, ICommand, CommandResult> _processor;
         private readonly IRepository _repository;
         private readonly ILogger _logger;
 
@@ -40,8 +40,8 @@ namespace ENode.EQueue
                 MessageHandleMode = MessageHandleMode.Sequential
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
-            _commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
+            _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
+            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingCommand, ICommand, CommandResult>>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _commandExecutedMessageSender = commandExecutedMessageSender ?? new CommandExecutedMessageSender();
@@ -67,19 +67,18 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
+            var commandItems = new Dictionary<string, string>();
             var commandMessage = _jsonSerializer.Deserialize<CommandMessage>(Encoding.UTF8.GetString(queueMessage.Body));
-            var commandType = _commandTypeCodeProvider.GetType(commandMessage.CommandTypeCode);
+            var commandType = _typeCodeProvider.GetType(commandMessage.CommandTypeCode);
             var command = _jsonSerializer.Deserialize(commandMessage.CommandData, commandType) as ICommand;
             var commandExecuteContext = new CommandExecuteContext(_repository, queueMessage, context, commandMessage, _commandExecutedMessageSender);
-            var commandItems = new Dictionary<string, string>();
             commandItems["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
-            _commandProcessor.Process(new ProcessingCommand(command, commandExecuteContext, commandMessage.SourceId, commandMessage.SourceType, commandItems));
+            _processor.Process(new ProcessingCommand(command, commandExecuteContext, commandMessage.SourceId, commandMessage.SourceType, commandItems));
         }
 
         class CommandExecuteContext : ICommandExecuteContext
         {
-            private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRoots;
-            private readonly ConcurrentDictionary<string, IEvent> _events;
+            private readonly ConcurrentDictionary<string, IAggregateRoot> _changedAggregateRootDict;
             private readonly IRepository _repository;
             private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
             private readonly QueueMessage _queueMessage;
@@ -88,8 +87,7 @@ namespace ENode.EQueue
 
             public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, CommandExecutedMessageSender commandExecutedMessageSender)
             {
-                _aggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
-                _events = new ConcurrentDictionary<string, IEvent>();
+                _changedAggregateRootDict = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
                 _commandExecutedMessageSender = commandExecutedMessageSender;
                 _queueMessage = queueMessage;
@@ -121,7 +119,7 @@ namespace ENode.EQueue
                 {
                     throw new ArgumentNullException("aggregateRoot");
                 }
-                if (!_aggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot))
+                if (!_changedAggregateRootDict.TryAdd(aggregateRoot.UniqueId, aggregateRoot))
                 {
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
@@ -134,7 +132,7 @@ namespace ENode.EQueue
                 }
 
                 IAggregateRoot aggregateRoot = null;
-                if (_aggregateRoots.TryGetValue(id.ToString(), out aggregateRoot))
+                if (_changedAggregateRootDict.TryGetValue(id.ToString(), out aggregateRoot))
                 {
                     return aggregateRoot as T;
                 }
@@ -143,35 +141,19 @@ namespace ENode.EQueue
 
                 if (aggregateRoot != null)
                 {
-                    _aggregateRoots.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
+                    _changedAggregateRootDict.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
                     return aggregateRoot as T;
                 }
 
                 return null;
             }
-            public void Add(IEvent evnt)
-            {
-                if (evnt == null)
-                {
-                    throw new ArgumentNullException("evnt");
-                }
-                if (!_events.TryAdd(evnt.Id, evnt))
-                {
-                    throw new EventAlreadyExistException(evnt.Id, evnt.GetType());
-                }
-            }
             public IEnumerable<IAggregateRoot> GetTrackedAggregateRoots()
             {
-                return _aggregateRoots.Values;
-            }
-            public IEnumerable<IEvent> GetEvents()
-            {
-                return _events.Values;
+                return _changedAggregateRootDict.Values;
             }
             public void Clear()
             {
-                _aggregateRoots.Clear();
-                _events.Clear();
+                _changedAggregateRootDict.Clear();
             }
         }
     }

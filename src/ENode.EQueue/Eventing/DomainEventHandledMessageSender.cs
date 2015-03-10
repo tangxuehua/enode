@@ -4,6 +4,7 @@ using ECommon.Serializing;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
+using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.EQueue
 {
@@ -37,7 +38,7 @@ namespace ENode.EQueue
         {
             var messageJson = _jsonSerializer.Serialize(message);
             var messageBytes = Encoding.UTF8.GetBytes(messageJson);
-            var equeueMessage = new Message(topic, (int)EQueueMessageTypeCode.DomainEventHandledMessage, messageBytes);
+            var equeueMessage = new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventHandledMessage, messageBytes);
             _ioHelper.TryIOActionRecursively("DomainEventHandledMessage", () => messageJson, () =>
             {
                 _ioHelper.TryIOAction(() => _producer.SendAsync(equeueMessage, message.CommandId), "DomainEventHandledMessageAsync");

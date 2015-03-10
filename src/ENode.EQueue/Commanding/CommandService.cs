@@ -10,6 +10,7 @@ using ENode.EQueue.Commanding;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
+using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.EQueue
 {
@@ -70,7 +71,6 @@ namespace ENode.EQueue
         {
             try
             {
-                ValidateCommand(command);
                 var message = BuildCommandMessage(command);
                 var routingKey = _commandRouteKeyProvider.GetRoutingKey(command);
                 return _sendMessageService.SendMessageAsync(_producer, message, routingKey);
@@ -107,7 +107,6 @@ namespace ENode.EQueue
 
         private void SendSync(ICommand command, string sourceId = null, string sourceType = null, bool checkSource = false)
         {
-            ValidateCommand(command);
             if (checkSource)
             {
                 Ensure.NotNullOrEmpty(sourceId, "sourceId");
@@ -123,16 +122,7 @@ namespace ENode.EQueue
                 }
             }, "SendCommandSync");
         }
-        private void ValidateCommand(ICommand command)
-        {
-            Ensure.NotNullOrEmpty(command.Id, "commandId");
-            if (!(command is ICreatingAggregateCommand) && command is IAggregateCommand && string.IsNullOrEmpty(((IAggregateCommand)command).AggregateRootId))
-            {
-                var format = "AggregateRootId cannot be null or empty if the aggregate command is not a ICreatingAggregateCommand, commandType:{0}, commandId:{1}.";
-                throw new ArgumentException(string.Format(format, command.GetType().FullName, command.Id));
-            }
-        }
-        private Message BuildCommandMessage(ICommand command, string sourceId = null, string sourceType = null)
+        private EQueueMessage BuildCommandMessage(ICommand command, string sourceId = null, string sourceType = null)
         {
             var commandData = _jsonSerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
@@ -148,7 +138,7 @@ namespace ENode.EQueue
                 SourceId = sourceId,
                 SourceType = sourceType
             });
-            return new Message(topic, (int)EQueueMessageTypeCode.CommandMessage, Encoding.UTF8.GetBytes(messageData));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, Encoding.UTF8.GetBytes(messageData));
         }
     }
 }

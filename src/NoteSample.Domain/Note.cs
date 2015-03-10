@@ -12,12 +12,12 @@ namespace NoteSample.Domain
 
         public Note(string id, string title) : base(id)
         {
-            ApplyEvent(new NoteCreated(id, title));
+            ApplyEvent(new NoteCreated(this, title));
         }
 
         public void ChangeTitle(string title)
         {
-            ApplyEvent(new NoteTitleChanged(Id, title));
+            ApplyEvent(new NoteTitleChanged(this, title));
         }
 
         private void Handle(NoteCreated evnt)

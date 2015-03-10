@@ -21,8 +21,8 @@ namespace BankTransferSample
         private static CommandService _commandService;
         private static CommandResultProcessor _commandResultProcessor;
         private static CommandConsumer _commandConsumer;
-        private static EventPublisher _eventPublisher;
-        private static EventConsumer _eventConsumer;
+        private static DomainEventPublisher _eventPublisher;
+        private static DomainEventConsumer _eventConsumer;
         private static PublishableExceptionPublisher _exceptionPublisher;
         private static PublishableExceptionConsumer _exceptionConsumer;
 
@@ -36,16 +36,16 @@ namespace BankTransferSample
 
             _commandResultProcessor = new CommandResultProcessor();
             _commandService = new CommandService(_commandResultProcessor);
-            _eventPublisher = new EventPublisher();
+            _eventPublisher = new DomainEventPublisher();
             _exceptionPublisher = new PublishableExceptionPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
-            configuration.SetDefault<IPublisher<EventStream>, EventPublisher>(_eventPublisher);
-            configuration.SetDefault<IPublisher<DomainEventStream>, EventPublisher>(_eventPublisher);
-            configuration.SetDefault<IPublisher<IPublishableException>, PublishableExceptionPublisher>(_exceptionPublisher);
+            configuration.SetDefault<IMessagePublisher<ApplicationCommandResult>, DomainEventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<DomainEventStream>, DomainEventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<IPublishableException>, PublishableExceptionPublisher>(_exceptionPublisher);
 
             _commandConsumer = new CommandConsumer();
-            _eventConsumer = new EventConsumer();
+            _eventConsumer = new DomainEventConsumer();
             _exceptionConsumer = new PublishableExceptionConsumer();
 
             _commandConsumer.Subscribe("BankTransferCommandTopic");

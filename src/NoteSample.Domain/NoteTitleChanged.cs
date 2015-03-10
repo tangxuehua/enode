@@ -9,7 +9,7 @@ namespace NoteSample.Domain
         public string Title { get; private set; }
 
         private NoteTitleChanged() { }
-        public NoteTitleChanged(string id, string title) : base(id)
+        public NoteTitleChanged(Note note, string title) : base(note)
         {
             Title = title;
         }
