@@ -86,7 +86,7 @@ namespace ENode.Eventing.Impl
         }
         public void Start()
         {
-            if (_enableGroupCommit)
+            if (_enableGroupCommit && _eventStore.SupportBatchAppend)
             {
                 _scheduleService.ScheduleTask("TryBatchPersistEvents", TryBatchPersistEvents, _groupCommitInterval, _groupCommitInterval);
                 _processSuccessPersistedEventsWorker.Start();
@@ -95,7 +95,7 @@ namespace ENode.Eventing.Impl
         }
         public void CommitDomainEventAsync(EventCommittingContext context)
         {
-            if (_enableGroupCommit)
+            if (_enableGroupCommit && _eventStore.SupportBatchAppend)
             {
                 _toCommitContextQueue.Enqueue(context);
             }

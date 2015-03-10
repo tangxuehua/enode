@@ -8,6 +8,9 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventStore
     {
+        /// <summary>Represents whether the event store supports batch append event.
+        /// </summary>
+        bool SupportBatchAppend { get; }
         /// <summary>Batch append the given event streams to the event store.
         /// </summary>
         void BatchAppend(IEnumerable<DomainEventStream> eventStreams);

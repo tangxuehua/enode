@@ -57,6 +57,10 @@ namespace ENode.Eventing.Impl
 
         #region Public Methods
 
+        public bool SupportBatchAppend
+        {
+            get { return true; }
+        }
         public void BatchAppend(IEnumerable<DomainEventStream> eventStreams)
         {
             var table = BuildEventTable();
