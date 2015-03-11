@@ -12,7 +12,7 @@ using ECommon.Logging;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
-using ENode.Eventing;
+using ENode.Infrastructure;
 using NoteSample.Commands;
 
 namespace ENode.CommandProcessorPerfTests
@@ -31,15 +31,15 @@ namespace ENode.CommandProcessorPerfTests
 
         static void ProcessCreateAggregateCommands(int commandCount)
         {
-            var commandProcessor = ObjectContainer.Resolve<IAggregateCommandProcessor>();
+            var commandProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingCommand, ICommand, CommandResult>>();
             var repository = ObjectContainer.Resolve<IRepository>();
             var watch = Stopwatch.StartNew();
-            var commands = new List<ProcessingAggregateCommand>();
+            var commands = new List<ProcessingCommand>();
             var logger = ObjectContainer.Resolve<ILoggerFactory>().Create("main");
 
             for (var i = 1; i <= commandCount; i++)
             {
-                commands.Add(new ProcessingAggregateCommand(new CreateNoteCommand
+                commands.Add(new ProcessingCommand(new CreateNoteCommand
                 {
                     AggregateRootId = i.ToString(),
                     Title = "Sample Note"
@@ -71,16 +71,16 @@ namespace ENode.CommandProcessorPerfTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
+                .RegisterAllTypeCodes()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode(NodeType.CommandProcessor);
+                .StartENode();
 
             Console.WriteLine("ENode started...");
         }
-        class CommandExecuteContext : IAggregateCommandExecuteContext
+        class CommandExecuteContext : ICommandExecuteContext
         {
             private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRoots;
-            private readonly ConcurrentDictionary<string, IEvent> _events;
             private readonly IRepository _repository;
             private readonly ILogger _logger;
             private readonly Stopwatch _watch;
@@ -92,7 +92,6 @@ namespace ENode.CommandProcessorPerfTests
             {
                 _watch = watch;
                 _aggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
-                _events = new ConcurrentDictionary<string, IEvent>();
                 _logger = logger;
                 _repository = repository;
                 _totalCount = totalCount;
@@ -145,29 +144,14 @@ namespace ENode.CommandProcessorPerfTests
 
                 return null;
             }
-            public void Add(IEvent evnt)
-            {
-                if (evnt == null)
-                {
-                    throw new ArgumentNullException("evnt");
-                }
-                if (!_events.TryAdd(evnt.Id, evnt))
-                {
-                    throw new EventAlreadyExistException(evnt.Id, evnt.GetType());
-                }
-            }
             public IEnumerable<IAggregateRoot> GetTrackedAggregateRoots()
             {
                 return _aggregateRoots.Values;
             }
-            public IEnumerable<IEvent> GetEvents()
-            {
-                return _events.Values;
-            }
             public void Clear()
             {
                 _aggregateRoots.Clear();
-                _events.Clear();
+
             }
         }
     }

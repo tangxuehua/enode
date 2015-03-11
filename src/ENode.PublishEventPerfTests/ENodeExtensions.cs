@@ -1,10 +1,12 @@
-﻿using ENode.Commanding;
+﻿using ECommon.Components;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using EQueue.Broker;
 using EQueue.Configurations;
+using NoteSample.Domain;
 
 namespace ENode.PublishEventPerfTests
 {
@@ -19,7 +21,7 @@ namespace ENode.PublishEventPerfTests
             configuration.RegisterEQueueComponents();
             _broker = new BrokerController();
             _eventPublisher = new DomainEventPublisher();
-            configuration.SetDefault<IMessagePublisher<DomainEventStream>, DomainEventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_eventPublisher);
             return enodeConfiguration;
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
@@ -32,6 +34,16 @@ namespace ENode.PublishEventPerfTests
         {
             _eventPublisher.Shutdown();
             _broker.Shutdown();
+            return enodeConfiguration;
+        }
+
+        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
+        {
+            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
+
+            //events
+            provider.RegisterType<NoteCreated>(1000);
+
             return enodeConfiguration;
         }
     }

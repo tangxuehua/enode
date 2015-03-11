@@ -1,8 +1,12 @@
-﻿using ENode.Commanding;
+﻿using ECommon.Components;
+using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
+using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using EQueue.Broker;
 using EQueue.Configurations;
+using NoteSample.Commands;
 
 namespace ENode.SendCommandPerfTests
 {
@@ -30,6 +34,16 @@ namespace ENode.SendCommandPerfTests
         {
             _commandService.Shutdown();
             _broker.Shutdown();
+            return enodeConfiguration;
+        }
+
+        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
+        {
+            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
+
+            //commands
+            provider.RegisterType<CreateNoteCommand>(1000);
+
             return enodeConfiguration;
         }
     }

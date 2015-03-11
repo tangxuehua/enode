@@ -101,6 +101,7 @@ namespace ENode.SendCommandPerfTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
+                .RegisterAllTypeCodes()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)
                 .UseEQueue()

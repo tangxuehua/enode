@@ -23,29 +23,28 @@ namespace ENode.PublishEventPerfTests
         {
             InitializeENodeFramework();
             PublishEventAsync(100000);
-            PublishEventSync(20000);
             Console.ReadLine();
         }
 
         static void PublishEventAsync(int eventCount)
         {
             var printSize = eventCount / 10;
-            var eventPublisher = ObjectContainer.Resolve<IMessagePublisher<DomainEventStream>>();
-            var eventStreams = new List<DomainEventStream>();
+            var eventPublisher = ObjectContainer.Resolve<IMessagePublisher<DomainEventStreamMessage>>();
+            var eventStreams = new List<DomainEventStreamMessage>();
             var commandId = ObjectId.GenerateNewStringId();
-            var noteId = ObjectId.GenerateNewStringId();
-            var evnt = new NoteCreated(noteId, "Sample Note");
+            var note = new Note(ObjectId.GenerateNewStringId(), "Sample Note");
+            var evnt = new NoteCreated(note, "Sample Note");
             var evnts = new List<IDomainEvent> { evnt };
             var waitHandle = new ManualResetEvent(false);
 
             for (var i = 1; i <= eventCount; i++)
             {
-                eventStreams.Add(new DomainEventStream(commandId, noteId, 100, 1, DateTime.Now, evnts, new Dictionary<string, string>()));
+                eventStreams.Add(new DomainEventStreamMessage(commandId, note.Id, 1, evnts, new Dictionary<string, string>()));
             }
 
             var watch = Stopwatch.StartNew();
             var publishedEventCount = 0;
-            var asyncAction = new Action<DomainEventStream>(async eventStream =>
+            var asyncAction = new Action<DomainEventStreamMessage>(async eventStream =>
             {
                 await eventPublisher.PublishAsync(eventStream).ConfigureAwait(false);
                 var currentCount = Interlocked.Increment(ref publishedEventCount);
@@ -67,35 +66,6 @@ namespace ENode.PublishEventPerfTests
             waitHandle.WaitOne();
             Console.WriteLine("--Event publish async completed, throughput: {0}/s", eventCount * 1000 / watch.ElapsedMilliseconds);
         }
-        static void PublishEventSync(int eventCount)
-        {
-            var printSize = eventCount / 10;
-            var eventPublisher = ObjectContainer.Resolve<IMessagePublisher<DomainEventStream>>();
-            var eventStreams = new List<DomainEventStream>();
-            var commandId = ObjectId.GenerateNewStringId();
-            var noteId = ObjectId.GenerateNewStringId();
-            var evnt = new NoteCreated(noteId, "Sample Note");
-            var evnts = new List<IDomainEvent> { evnt };
-
-            for (var i = 1; i <= eventCount; i++)
-            {
-                eventStreams.Add(new DomainEventStream(commandId, noteId, 100, 1, DateTime.Now, evnts, new Dictionary<string, string>()));
-            }
-
-            int publishedEventCount = 0;
-            Console.WriteLine("--Start to publish event sync, total count: {0}.", eventCount);
-            var watch = Stopwatch.StartNew();
-            foreach (var eventStream in eventStreams)
-            {
-                eventPublisher.Publish(eventStream);
-                publishedEventCount++;
-                if (publishedEventCount % printSize == 0)
-                {
-                    Console.WriteLine("----Sent {0} events sync, time spent: {1}ms", publishedEventCount, watch.ElapsedMilliseconds);
-                }
-            }
-            Console.WriteLine("--Event publish sync completed, throughput: {0}/s", eventCount * 1000 / watch.ElapsedMilliseconds);
-        }
         static void InitializeENodeFramework()
         {
             var assemblies = new[]
@@ -111,6 +81,7 @@ namespace ENode.PublishEventPerfTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
+                .RegisterAllTypeCodes()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)
                 .UseEQueue()
