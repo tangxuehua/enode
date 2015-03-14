@@ -45,7 +45,5 @@ namespace BankTransferSample.CommandHandlers
         {
             context.Get<BankAccount>(command.AggregateRootId).CommitTransactionPreparation(command.TransactionId);
         }
-
-
     }
 }
