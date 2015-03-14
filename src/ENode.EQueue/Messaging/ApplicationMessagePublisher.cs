@@ -10,9 +10,9 @@ namespace ENode.EQueue
 {
     public class ApplicationMessagePublisher : IMessagePublisher<IApplicationMessage>
     {
-        private const string DefaultMessagePublisherProcuderId = "MessagePublisher";
+        private const string DefaultMessagePublisherProcuderId = "ApplicationMessagePublisher";
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITopicProvider<IMessage> _messageTopicProvider;
+        private readonly ITopicProvider<IApplicationMessage> _messageTopicProvider;
         private readonly ITypeCodeProvider _messageTypeCodeProvider;
         private readonly Producer _producer;
         private readonly SendQueueMessageService _sendMessageService;
@@ -23,7 +23,7 @@ namespace ENode.EQueue
         {
             _producer = new Producer(id ?? DefaultMessagePublisherProcuderId, setting ?? new ProducerSetting());
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _messageTopicProvider = ObjectContainer.Resolve<ITopicProvider<IMessage>>();
+            _messageTopicProvider = ObjectContainer.Resolve<ITopicProvider<IApplicationMessage>>();
             _messageTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _sendMessageService = new SendQueueMessageService();
         }
@@ -39,15 +39,10 @@ namespace ENode.EQueue
             return this;
         }
 
-        public void Publish(IApplicationMessage message)
-        {
-            var queueMessage = CreateEQueueMessage(message);
-            _sendMessageService.SendMessage(_producer, queueMessage, message.GetRoutingKey());
-        }
         public Task<AsyncTaskResult> PublishAsync(IApplicationMessage message)
         {
             var queueMessage = CreateEQueueMessage(message);
-            return _sendMessageService.SendMessageAsync(_producer, queueMessage, message.GetRoutingKey());
+            return _sendMessageService.SendMessageAsync(_producer, queueMessage, message.GetRoutingKey() ?? message.Id);
         }
 
         private EQueueMessage CreateEQueueMessage(IApplicationMessage message)

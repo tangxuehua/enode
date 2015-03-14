@@ -6,7 +6,7 @@ namespace BankTransferSample.Commands
     /// <summary>发起一笔存款交易
     /// </summary>
     [Serializable]
-    public class StartDepositTransactionCommand : AggregateCommand<string>, ICreatingAggregateCommand
+    public class StartDepositTransactionCommand : Command
     {
         /// <summary>账户ID
         /// </summary>
@@ -25,7 +25,7 @@ namespace BankTransferSample.Commands
     /// <summary>确认预存款
     /// </summary>
     [Serializable]
-    public class ConfirmDepositPreparationCommand : AggregateCommand<string>
+    public class ConfirmDepositPreparationCommand : Command
     {
         public ConfirmDepositPreparationCommand() { }
         public ConfirmDepositPreparationCommand(string transactionId)
@@ -36,7 +36,7 @@ namespace BankTransferSample.Commands
     /// <summary>确认存款
     /// </summary>
     [Serializable]
-    public class ConfirmDepositCommand : AggregateCommand<string>
+    public class ConfirmDepositCommand : Command
     {
         public ConfirmDepositCommand() { }
         public ConfirmDepositCommand(string transactionId)

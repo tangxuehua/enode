@@ -49,7 +49,7 @@ namespace ENode.EQueue
         public Task<AsyncTaskResult> PublishAsync(IPublishableException exception)
         {
             var message = CreateEQueueMessage(exception);
-            return _sendMessageService.SendMessageAsync(_producer, message, exception.Id);
+            return _sendMessageService.SendMessageAsync(_producer, message, exception.GetRoutingKey() ?? exception.Id);
         }
 
         private EQueueMessage CreateEQueueMessage(IPublishableException exception)
@@ -61,6 +61,7 @@ namespace ENode.EQueue
             var data = _jsonSerializer.Serialize(new PublishableExceptionMessage
             {
                 UniqueId = exception.Id,
+                Timestamp = exception.Timestamp,
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
             });

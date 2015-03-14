@@ -77,8 +77,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ENodeExtensions.cs" />
-    <Compile Include="Providers\EventHandlerTypeCodeProvider.cs" />
-    <Compile Include="Providers\EventTypeCodeProvider.cs" />
     <Compile Include="EventHandlers\NoteEventHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,13 +1,13 @@
 ﻿using System.Threading;
-using BankTransferSample.DomainEvents;
+using System.Threading.Tasks;
+using BankTransferSample.Domain;
 using ECommon.Components;
-using ENode.Eventing;
 using ENode.Infrastructure;
 
 namespace BankTransferSample.EventHandlers
 {
     [Component]
-    public class CountSyncHelper : IEventHandler<TransferTransactionCompletedEvent>
+    public class CountSyncHelper : IMessageHandler<TransferTransactionCompletedEvent>
     {
         private ManualResetEvent _waitHandle = new ManualResetEvent(false);
         private int _expectedCount;
@@ -23,13 +23,14 @@ namespace BankTransferSample.EventHandlers
             _waitHandle.WaitOne();
         }
 
-        public void Handle(IHandlingContext context, TransferTransactionCompletedEvent message)
+        public Task<AsyncTaskResult> HandleAsync(TransferTransactionCompletedEvent message)
         {
             var currentCount = Interlocked.Increment(ref _currentCount);
             if (currentCount == _expectedCount)
             {
                 _waitHandle.Set();
             }
+            return Task.FromResult(AsyncTaskResult.Success);
         }
     }
 }

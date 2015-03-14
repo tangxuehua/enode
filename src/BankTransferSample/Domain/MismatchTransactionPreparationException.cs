@@ -1,7 +1,6 @@
 ﻿using System;
-using BankTransferSample.Domain;
 
-namespace BankTransferSample.Exceptions
+namespace BankTransferSample.Domain
 {
     public class MismatchTransactionPreparationException : Exception
     {

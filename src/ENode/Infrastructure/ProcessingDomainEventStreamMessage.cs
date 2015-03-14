@@ -25,7 +25,7 @@ namespace ENode.Infrastructure
             _processContext.NotifyMessageProcessed();
             if (_mailbox != null)
             {
-                _mailbox.CompleteCommand(this);
+                _mailbox.CompleteMessage(this);
             }
         }
     }

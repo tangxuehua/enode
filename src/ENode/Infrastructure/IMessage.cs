@@ -16,6 +16,10 @@ namespace ENode.Infrastructure
         /// </summary>
         /// <param name="id"></param>
         void SetId(string id);
+        /// <summary>Set the timestamp.
+        /// </summary>
+        /// <param name="timestamp"></param>
+        void SetTimestamp(DateTime timestamp);
         /// <summary>Represents the routing key of the message.
         /// </summary>
         /// <returns></returns>

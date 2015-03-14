@@ -1,13 +1,13 @@
-﻿using ECommon.Components;
+﻿using System.Threading.Tasks;
+using ECommon.Components;
 using ECommon.Logging;
-using ENode.Eventing;
 using ENode.Infrastructure;
 using NoteSample.Domain;
 
 namespace DistributeSample.EventProcessor.EventHandlers
 {
     [Component]
-    public class NoteEventHandler : IEventHandler<NoteCreated>
+    public class NoteEventHandler : IMessageHandler<NoteCreated>
     {
         private ILogger _logger;
 
@@ -16,9 +16,10 @@ namespace DistributeSample.EventProcessor.EventHandlers
             _logger = loggerFactory.Create(typeof(NoteEventHandler).Name);
         }
 
-        public void Handle(IHandlingContext context, NoteCreated evnt)
+        public Task<AsyncTaskResult> HandleAsync(NoteCreated evnt)
         {
-            _logger.InfoFormat("Note created, Title：{0}", evnt.Title);
+            _logger.InfoFormat("Note Created, Id:{0}, Title：{1}, Version: {2}", evnt.AggregateRootId, evnt.Title, evnt.Version);
+            return Task.FromResult(AsyncTaskResult.Success);
         }
     }
 }

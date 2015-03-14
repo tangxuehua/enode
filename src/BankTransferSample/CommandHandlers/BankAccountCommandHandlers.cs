@@ -1,9 +1,10 @@
-﻿using BankTransferSample.Commands;
+﻿using System.Threading.Tasks;
+using BankTransferSample.ApplicationMessages;
+using BankTransferSample.Commands;
 using BankTransferSample.Domain;
-using BankTransferSample.DomainEvents;
-using BankTransferSample.Exceptions;
 using ECommon.Components;
 using ENode.Commanding;
+using ENode.Infrastructure;
 
 namespace BankTransferSample.CommandHandlers
 {
@@ -12,7 +13,7 @@ namespace BankTransferSample.CommandHandlers
     [Component]
     public class BankAccountCommandHandlers :
         ICommandHandler<CreateAccountCommand>,                       //开户
-        ICommandHandler<ValidateAccountCommand>,                     //验证账户是否合法
+        ICommandAsyncHandler<ValidateAccountCommand>,                //验证账户是否合法
         ICommandHandler<AddTransactionPreparationCommand>,           //添加预操作
         ICommandHandler<CommitTransactionPreparationCommand>         //提交预操作
     {
@@ -20,13 +21,21 @@ namespace BankTransferSample.CommandHandlers
         {
             context.Add(new BankAccount(command.AggregateRootId, command.Owner));
         }
-        public void Handle(ICommandContext context, ValidateAccountCommand command)
+        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(ValidateAccountCommand command)
         {
-            if (command.AccountId == "00003")
+            var applicationMessage = default(ApplicationMessage);
+
+            //此处应该会调用外部接口验证账号是否合法，这里仅仅简单通过账号是否等于00003判断是否合法；根据账号的合法性，返回不同的应用层消息
+            if (command.AggregateRootId == "00003")
             {
-                throw new InvalidAccountException(command.AccountId, command.TransactionId, "账户不可以是00003.");
+                applicationMessage = new AccountValidateFailedMessage(command.AggregateRootId, command.TransactionId, "账户不可以是00003.");
             }
-            context.Add(new AccountValidatePassedEvent(command.AccountId, command.TransactionId));
+            else
+            {
+                applicationMessage = new AccountValidatePassedMessage(command.AggregateRootId, command.TransactionId);
+            }
+
+            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success, applicationMessage));
         }
         public void Handle(ICommandContext context, AddTransactionPreparationCommand command)
         {
@@ -36,5 +45,7 @@ namespace BankTransferSample.CommandHandlers
         {
             context.Get<BankAccount>(command.AggregateRootId).CommitTransactionPreparation(command.TransactionId);
         }
+
+
     }
 }

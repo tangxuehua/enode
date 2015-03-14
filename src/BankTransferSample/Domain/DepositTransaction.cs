@@ -1,5 +1,4 @@
 ﻿using System;
-using BankTransferSample.DomainEvents;
 using ENode.Domain;
 
 namespace BankTransferSample.Domain
@@ -24,7 +23,7 @@ namespace BankTransferSample.Domain
         public DepositTransaction(string transactionId, string accountId, double amount)
             : base(transactionId)
         {
-            ApplyEvent(new DepositTransactionStartedEvent(transactionId, accountId, amount));
+            ApplyEvent(new DepositTransactionStartedEvent(this, accountId, amount));
         }
 
         #endregion
@@ -37,7 +36,7 @@ namespace BankTransferSample.Domain
         {
             if (_status == TransactionStatus.Started)
             {
-                ApplyEvent(new DepositTransactionPreparationCompletedEvent(Id, _accountId));
+                ApplyEvent(new DepositTransactionPreparationCompletedEvent(this, _accountId));
             }
         }
         /// <summary>确认存款
@@ -46,7 +45,7 @@ namespace BankTransferSample.Domain
         {
             if (_status == TransactionStatus.PreparationCompleted)
             {
-                ApplyEvent(new DepositTransactionCompletedEvent(Id, _accountId));
+                ApplyEvent(new DepositTransactionCompletedEvent(this, _accountId));
             }
         }
 

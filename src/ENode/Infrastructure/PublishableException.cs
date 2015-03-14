@@ -31,5 +31,9 @@ namespace ENode.Infrastructure
         {
             Id = id;
         }
+        void IMessage.SetTimestamp(DateTime timestamp)
+        {
+            Timestamp = timestamp;
+        }
     }
 }

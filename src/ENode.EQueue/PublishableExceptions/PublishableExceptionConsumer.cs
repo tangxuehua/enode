@@ -54,6 +54,7 @@ namespace ENode.EQueue
             var publishableExceptionType = _publishableExceptionTypeCodeProvider.GetType(publishableExceptionMessage.ExceptionTypeCode);
             var publishableException = FormatterServices.GetUninitializedObject(publishableExceptionType) as IPublishableException;
             publishableException.SetId(publishableExceptionMessage.UniqueId);
+            publishableException.SetTimestamp(publishableExceptionMessage.Timestamp);
             publishableException.RestoreFrom(publishableExceptionMessage.SerializableInfo);
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingPublishableExceptionMessage(publishableException, processContext);

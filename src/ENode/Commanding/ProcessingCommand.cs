@@ -32,7 +32,7 @@ namespace ENode.Commanding
             CommandExecuteContext.OnCommandExecuted(commandResult);
             if (_mailbox != null)
             {
-                _mailbox.CompleteCommand(this);
+                _mailbox.CompleteMessage(this);
             }
         }
         public void IncreaseConcurrentRetriedCount()

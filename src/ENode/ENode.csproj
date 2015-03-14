@@ -81,6 +81,7 @@
     <Compile Include="Eventing\Impl\DomainEventStreamMessageHandler.cs" />
     <Compile Include="Infrastructure\IHandlerProxy.cs" />
     <Compile Include="Infrastructure\Impl\AbstractHandlerProvider.cs" />
+    <Compile Include="Infrastructure\ApplicationMessage.cs" />
     <Compile Include="Infrastructure\MessageHandleRecord.cs" />
     <Compile Include="Infrastructure\Impl\DefaultProcessingMessageHandler.cs" />
     <Compile Include="Infrastructure\Impl\DefaultMessageProcessor.cs" />

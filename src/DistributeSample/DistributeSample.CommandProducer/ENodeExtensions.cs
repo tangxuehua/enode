@@ -7,7 +7,10 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
+using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using EQueue.Configurations;
+using NoteSample.Commands;
 
 namespace DistributeSample.CommandProducer.EQueueIntegrations
 {
@@ -34,6 +37,16 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
             _commandService.Start();
 
             WaitAllConsumerLoadBalanceComplete();
+
+            return enodeConfiguration;
+        }
+
+        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
+        {
+            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
+
+            //commands
+            provider.RegisterType<CreateNoteCommand>(2000);
 
             return enodeConfiguration;
         }

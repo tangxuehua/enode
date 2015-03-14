@@ -7,7 +7,7 @@ namespace BankTransferSample.Commands
     /// <summary>发起一笔转账交易
     /// </summary>
     [Serializable]
-    public class StartTransferTransactionCommand : AggregateCommand<string>, ICreatingAggregateCommand
+    public class StartTransferTransactionCommand : Command
     {
         /// <summary>转账交易信息
         /// </summary>
@@ -22,7 +22,7 @@ namespace BankTransferSample.Commands
     /// <summary>确认账户验证已通过
     /// </summary>
     [Serializable]
-    public class ConfirmAccountValidatePassedCommand : AggregateCommand<string>
+    public class ConfirmAccountValidatePassedCommand : Command
     {
         /// <summary>账户ID
         /// </summary>
@@ -38,7 +38,7 @@ namespace BankTransferSample.Commands
     /// <summary>确认预转出
     /// </summary>
     [Serializable]
-    public class ConfirmTransferOutPreparationCommand : AggregateCommand<string>
+    public class ConfirmTransferOutPreparationCommand : Command
     {
         public ConfirmTransferOutPreparationCommand() { }
         public ConfirmTransferOutPreparationCommand(string transactionId)
@@ -49,7 +49,7 @@ namespace BankTransferSample.Commands
     /// <summary>确认预转入
     /// </summary>
     [Serializable]
-    public class ConfirmTransferInPreparationCommand : AggregateCommand<string>
+    public class ConfirmTransferInPreparationCommand : Command
     {
         public ConfirmTransferInPreparationCommand() { }
         public ConfirmTransferInPreparationCommand(string transactionId)
@@ -60,7 +60,7 @@ namespace BankTransferSample.Commands
     /// <summary>确认转出
     /// </summary>
     [Serializable]
-    public class ConfirmTransferOutCommand : AggregateCommand<string>
+    public class ConfirmTransferOutCommand : Command
     {
         public ConfirmTransferOutCommand() { }
         public ConfirmTransferOutCommand(string transactionId)
@@ -71,7 +71,7 @@ namespace BankTransferSample.Commands
     /// <summary>确认转入
     /// </summary>
     [Serializable]
-    public class ConfirmTransferInCommand : AggregateCommand<string>
+    public class ConfirmTransferInCommand : Command
     {
         public ConfirmTransferInCommand() { }
         public ConfirmTransferInCommand(string transactionId)
@@ -82,7 +82,7 @@ namespace BankTransferSample.Commands
     /// <summary>取消转账交易
     /// </summary>
     [Serializable]
-    public class CancelTransferTransactionCommand : AggregateCommand<string>
+    public class CancelTransferTransactionCommand : Command
     {
         public CancelTransferTransactionCommand() { }
         public CancelTransferTransactionCommand(string transactionId)

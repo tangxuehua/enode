@@ -10,8 +10,8 @@ namespace ENode.EQueue
 {
     public class ApplicationMessageConsumer : IQueueMessageHandler
     {
-        private const string DefaultMessageConsumerId = "MessageConsumer";
-        private const string DefaultMessageConsumerGroup = "MessageConsumerGroup";
+        private const string DefaultMessageConsumerId = "ApplicationMessageConsumer";
+        private const string DefaultMessageConsumerGroup = "ApplicationMessageConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider _typeCodeProvider;

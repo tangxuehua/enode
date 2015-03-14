@@ -11,9 +11,6 @@ namespace ENode.Eventing
         /// </summary>
         /// <param name="processingCommandHandler"></param>
         void SetProcessingCommandHandler(IProcessingMessageHandler<ProcessingCommand, ICommand, CommandResult> processingCommandHandler);
-        /// <summary>Start the event service.
-        /// </summary>
-        void Start();
         /// <summary>Commit the given aggregate's domain events to the eventstore async and publish the domain events.
         /// </summary>
         /// <param name="context"></param>

@@ -391,6 +391,11 @@ namespace ENode.Commanding.Impl
         }
         private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {
+            if (commandStatus == CommandStatus.Failed)
+            {
+                var command = processingCommand.Message;
+                _logger.ErrorFormat("Handle command failed, commandType:{0}, commandId:{1}, aggregateId:{2}, errorMessage:{3}", command.GetType().Name, command.Id, command.AggregateRootId, errorMessage);
+            }
             processingCommand.Complete(new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, exceptionTypeName, errorMessage));
         }
         private void RetryCommand(ProcessingCommand processingCommand)

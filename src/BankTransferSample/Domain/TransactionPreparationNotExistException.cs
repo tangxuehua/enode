@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BankTransferSample.Exceptions
+namespace BankTransferSample.Domain
 {
     public class TransactionPreparationNotExistException : Exception
     {

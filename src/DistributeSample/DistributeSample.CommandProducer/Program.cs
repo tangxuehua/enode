@@ -51,6 +51,7 @@ namespace DistributeSample.CommandProducer
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
+                .RegisterAllTypeCodes()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();

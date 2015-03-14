@@ -1,5 +1,10 @@
 ﻿using System.Linq;
 using System.Threading;
+using BankTransferSample.ApplicationMessages;
+using BankTransferSample.Commands;
+using BankTransferSample.Domain;
+using BankTransferSample.EventHandlers;
+using BankTransferSample.ProcessManagers;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
@@ -8,8 +13,8 @@ using ENode.Configurations;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
-using ENode.Exceptions;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using EQueue.Broker;
 using EQueue.Configurations;
 
@@ -21,7 +26,9 @@ namespace BankTransferSample
         private static CommandService _commandService;
         private static CommandResultProcessor _commandResultProcessor;
         private static CommandConsumer _commandConsumer;
-        private static DomainEventPublisher _eventPublisher;
+        private static ApplicationMessagePublisher _applicationMessagePublisher;
+        private static ApplicationMessageConsumer _applicationMessageConsumer;
+        private static DomainEventPublisher _domainEventPublisher;
         private static DomainEventConsumer _eventConsumer;
         private static PublishableExceptionPublisher _exceptionPublisher;
         private static PublishableExceptionConsumer _exceptionConsumer;
@@ -36,21 +43,19 @@ namespace BankTransferSample
 
             _commandResultProcessor = new CommandResultProcessor();
             _commandService = new CommandService(_commandResultProcessor);
-            _eventPublisher = new DomainEventPublisher();
+            _applicationMessagePublisher = new ApplicationMessagePublisher();
+            _domainEventPublisher = new DomainEventPublisher();
             _exceptionPublisher = new PublishableExceptionPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
-            configuration.SetDefault<IMessagePublisher<ApplicationCommandResult>, DomainEventPublisher>(_eventPublisher);
-            configuration.SetDefault<IMessagePublisher<DomainEventStream>, DomainEventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<IApplicationMessage>, ApplicationMessagePublisher>(_applicationMessagePublisher);
+            configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_domainEventPublisher);
             configuration.SetDefault<IMessagePublisher<IPublishableException>, PublishableExceptionPublisher>(_exceptionPublisher);
 
-            _commandConsumer = new CommandConsumer();
-            _eventConsumer = new DomainEventConsumer();
-            _exceptionConsumer = new PublishableExceptionConsumer();
-
-            _commandConsumer.Subscribe("BankTransferCommandTopic");
-            _eventConsumer.Subscribe("BankTransferEventTopic");
-            _exceptionConsumer.Subscribe("BankTransferExceptionTopic");
+            _commandConsumer = new CommandConsumer().Subscribe("BankTransferCommandTopic");
+            _applicationMessageConsumer = new ApplicationMessageConsumer().Subscribe("BankTransferApplicationMessageTopic");
+            _eventConsumer = new DomainEventConsumer().Subscribe("BankTransferEventTopic");
+            _exceptionConsumer = new PublishableExceptionConsumer().Subscribe("BankTransferExceptionTopic");
 
             return enodeConfiguration;
         }
@@ -59,9 +64,11 @@ namespace BankTransferSample
             _broker.Start();
             _exceptionConsumer.Start();
             _eventConsumer.Start();
+            _applicationMessageConsumer.Start();
             _commandConsumer.Start();
+            _applicationMessagePublisher.Start();
+            _domainEventPublisher.Start();
             _exceptionPublisher.Start();
-            _eventPublisher.Start();
             _commandService.Start();
             _commandResultProcessor.Start();
 
@@ -73,12 +80,79 @@ namespace BankTransferSample
         {
             _commandResultProcessor.Shutdown();
             _commandService.Shutdown();
-            _eventPublisher.Shutdown();
+            _applicationMessagePublisher.Shutdown();
+            _domainEventPublisher.Shutdown();
             _exceptionPublisher.Shutdown();
             _commandConsumer.Shutdown();
+            _applicationMessageConsumer.Shutdown();
             _eventConsumer.Shutdown();
             _exceptionConsumer.Shutdown();
             _broker.Shutdown();
+            return enodeConfiguration;
+        }
+
+        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
+        {
+            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
+
+            //aggregates
+            provider.RegisterType<BankAccount>(100);
+            provider.RegisterType<DepositTransaction>(101);
+            provider.RegisterType<TransferTransaction>(102);
+
+            //commands
+            provider.RegisterType<CreateAccountCommand>(200);
+            provider.RegisterType<ValidateAccountCommand>(201);
+            provider.RegisterType<AddTransactionPreparationCommand>(202);
+            provider.RegisterType<CommitTransactionPreparationCommand>(203);
+
+            provider.RegisterType<StartDepositTransactionCommand>(204);
+            provider.RegisterType<ConfirmDepositPreparationCommand>(205);
+            provider.RegisterType<ConfirmDepositCommand>(206);
+
+            provider.RegisterType<StartTransferTransactionCommand>(207);
+            provider.RegisterType<ConfirmAccountValidatePassedCommand>(208);
+            provider.RegisterType<ConfirmTransferOutPreparationCommand>(209);
+            provider.RegisterType<ConfirmTransferInPreparationCommand>(210);
+            provider.RegisterType<ConfirmTransferOutCommand>(211);
+            provider.RegisterType<ConfirmTransferInCommand>(212);
+            provider.RegisterType<CancelTransferTransactionCommand>(213);
+
+            //application messages
+            provider.RegisterType<AccountValidatePassedMessage>(300);
+            provider.RegisterType<AccountValidateFailedMessage>(301);
+
+            //domain events
+            provider.RegisterType<AccountCreatedEvent>(400);
+            provider.RegisterType<TransactionPreparationAddedEvent>(401);
+            provider.RegisterType<TransactionPreparationCommittedEvent>(402);
+            provider.RegisterType<TransactionPreparationCanceledEvent>(403);
+
+            provider.RegisterType<DepositTransactionStartedEvent>(404);
+            provider.RegisterType<DepositTransactionPreparationCompletedEvent>(405);
+            provider.RegisterType<DepositTransactionCompletedEvent>(406);
+
+            provider.RegisterType<TransferTransactionStartedEvent>(407);
+            provider.RegisterType<SourceAccountValidatePassedConfirmedEvent>(408);
+            provider.RegisterType<TargetAccountValidatePassedConfirmedEvent>(409);
+            provider.RegisterType<AccountValidatePassedConfirmCompletedEvent>(410);
+            provider.RegisterType<TransferOutPreparationConfirmedEvent>(411);
+            provider.RegisterType<TransferInPreparationConfirmedEvent>(412);
+            provider.RegisterType<TransferOutConfirmedEvent>(413);
+            provider.RegisterType<TransferInConfirmedEvent>(414);
+            provider.RegisterType<TransferTransactionCompletedEvent>(415);
+            provider.RegisterType<TransferTransactionCanceledEvent>(416);
+
+            //publishable exceptions
+            provider.RegisterType<InsufficientBalanceException>(500);
+
+            //application message and domain event handlers
+            provider.RegisterType<DepositTransactionProcessManager>(600);
+            provider.RegisterType<TransferTransactionProcessManager>(601);
+            provider.RegisterType<ConsoleLogger>(602);
+            provider.RegisterType<SyncHelper>(603);
+            provider.RegisterType<CountSyncHelper>(604);
+
             return enodeConfiguration;
         }
 

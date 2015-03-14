@@ -1,22 +1,28 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using ECommon.Scheduling;
-using ENode.Configurations;
+using ECommon.Utilities;
 
 namespace ENode.Infrastructure
 {
-    public class DefaultProcessingMessageScheduler<X, Y, Z> : IProcessingMessageScheduler<X, Y, Z> where X : class, IProcessingMessage<X, Y, Z>
+    public class DefaultProcessingMessageScheduler<X, Y, Z> : IProcessingMessageScheduler<X, Y, Z>
+        where X : class, IProcessingMessage<X, Y, Z>
+        where Y : IMessage
     {
-        private readonly TaskFactory _taskFactory;
+        private TaskFactory _taskFactory;
         private readonly IProcessingMessageHandler<X, Y, Z> _messageHandler;
 
         public DefaultProcessingMessageScheduler(IProcessingMessageHandler<X, Y, Z> messageHandler)
         {
-            var setting = ENodeConfiguration.Instance.Setting;
-            //TODO set maxDegreeOfParallelism
-            _taskFactory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(4));
             _messageHandler = messageHandler;
+            _taskFactory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(Environment.ProcessorCount));
         }
 
+        public void SetConcurrencyLevel(int concurrentLevel)
+        {
+            Ensure.Positive(concurrentLevel, "concurrentLevel");
+            _taskFactory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(concurrentLevel));
+        }
         public void ScheduleMessage(X processingMessage)
         {
             _taskFactory.StartNew(obj =>

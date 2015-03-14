@@ -33,9 +33,9 @@ namespace DistributeSample.EventProcessor
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
+                .RegisterAllTypeCodes()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode(NodeType.EventProcessor)
                 .StartEQueue();
 
             ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Event Processor started.");

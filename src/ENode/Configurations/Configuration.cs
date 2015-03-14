@@ -126,6 +126,7 @@ namespace ENode.Configurations
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(ICommandAsyncHandlerProvider));
 
             return this;
         }
@@ -192,6 +193,42 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMessageHandleRecordStore, SqlServerMessageHandleRecordStore>();
             return this;
         }
+        /// <summary>Set the concurrent level for command scheduler.
+        /// </summary>
+        /// <param name="concurrentLevel"></param>
+        /// <returns></returns>
+        public ENodeConfiguration SetCommandSchedulerConcurrentLevel(int concurrentLevel)
+        {
+            ObjectContainer.Resolve<IProcessingMessageScheduler<ProcessingCommand, ICommand, CommandResult>>().SetConcurrencyLevel(concurrentLevel);
+            return this;
+        }
+        /// <summary>Set the concurrent level for application message scheduler.
+        /// </summary>
+        /// <param name="concurrentLevel"></param>
+        /// <returns></returns>
+        public ENodeConfiguration SetApplicationMessageSchedulerConcurrentLevel(int concurrentLevel)
+        {
+            ObjectContainer.Resolve<IProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage, bool>>().SetConcurrencyLevel(concurrentLevel);
+            return this;
+        }
+        /// <summary>Set the concurrent level for domain event scheduler.
+        /// </summary>
+        /// <param name="concurrentLevel"></param>
+        /// <returns></returns>
+        public ENodeConfiguration SetDomainEventSchedulerConcurrentLevel(int concurrentLevel)
+        {
+            ObjectContainer.Resolve<IProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>().SetConcurrencyLevel(concurrentLevel);
+            return this;
+        }
+        /// <summary>Set the concurrent level for exception scheduler.
+        /// </summary>
+        /// <param name="concurrentLevel"></param>
+        /// <returns></returns>
+        public ENodeConfiguration SetExceptionSchedulerConcurrentLevel(int concurrentLevel)
+        {
+            ObjectContainer.Resolve<IProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException, bool>>().SetConcurrencyLevel(concurrentLevel);
+            return this;
+        }
 
         /// <summary>Initialize all the assembly initializers with the given business assemblies.
         /// </summary>
@@ -206,15 +243,6 @@ namespace ENode.Configurations
             return this;
         }
 
-        /// <summary>Start ENode with default node type option.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration StartENode()
-        {
-            ObjectContainer.Resolve<IEventService>().Start();
-            return this;
-        }
-
         #region Private Methods
 
         private static void ValidateSerializableTypes(params Assembly[] assemblies)
@@ -223,7 +251,9 @@ namespace ENode.Configurations
             {
                 foreach (var type in assembly.GetTypes().Where(
                     x => x.IsClass && (
-                        typeof(IMessage).IsAssignableFrom(x) ||
+                        typeof(ICommand).IsAssignableFrom(x) ||
+                        typeof(IApplicationMessage).IsAssignableFrom(x) ||
+                        typeof(IDomainEvent).IsAssignableFrom(x) ||
                         typeof(IAggregateRoot).IsAssignableFrom(x))))
                 {
                     if (!type.IsSerializable)

@@ -52,7 +52,7 @@ namespace ENode.CommandProcessorPerfTests
                 commandProcessor.Process(command);
             }
             _waitHandle.WaitOne();
-            Console.WriteLine("--Commands process completed, average speed: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
+            Console.WriteLine("--Commands process completed, throughput: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
         }
         static void InitializeENodeFramework()
         {
@@ -73,8 +73,7 @@ namespace ENode.CommandProcessorPerfTests
                 .RegisterENodeComponents()
                 .RegisterAllTypeCodes()
                 .RegisterBusinessComponents(assemblies)
-                .InitializeBusinessAssemblies(assemblies)
-                .StartENode();
+                .InitializeBusinessAssemblies(assemblies);
 
             Console.WriteLine("ENode started...");
         }

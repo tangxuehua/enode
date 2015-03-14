@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
 using BankTransferSample.Commands;
 using BankTransferSample.Domain;
 using BankTransferSample.EventHandlers;
@@ -22,8 +23,8 @@ namespace BankTransferSample
 
         static void Main(string[] args)
         {
-            NormalTest();
-            //PerformanceTest();
+            //NormalTest();
+            PerformanceTest();
         }
 
         static void NormalTest()
@@ -38,10 +39,10 @@ namespace BankTransferSample
                 .UseJsonNet()
                 .CreateENode()
                 .RegisterENodeComponents()
+                .RegisterAllTypeCodes()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode(NodeType.CommandProcessor | NodeType.EventProcessor | NodeType.ExceptionProcessor)
                 .StartEQueue();
 
             Console.WriteLine(string.Empty);
@@ -79,8 +80,9 @@ namespace BankTransferSample
             //账户2向账户1转账500元，交易成功
             commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00002", "00001", 500D)));
             syncHelper.WaitOne();
-            Console.WriteLine(string.Empty);
 
+            Thread.Sleep(500);
+            Console.WriteLine(string.Empty);
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
             _configuration.ShutdownEQueue();
@@ -98,10 +100,10 @@ namespace BankTransferSample
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
+                .RegisterAllTypeCodes()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode()
                 .StartEQueue();
 
             Console.WriteLine(string.Empty);
@@ -152,8 +154,10 @@ namespace BankTransferSample
 
             countSyncHelper.WaitOne();
 
+            var spentTime = watch.ElapsedMilliseconds;
+            Thread.Sleep(500);
             Console.WriteLine(string.Empty);
-            Console.WriteLine("All transfer transactions completed, time spent: {0}ms, speed: {1} transactions per second.", watch.ElapsedMilliseconds, transactionCount * 1000 / watch.ElapsedMilliseconds);
+            Console.WriteLine("All transfer transactions completed, time spent: {0}ms, throughput: {1} transactions per second.", spentTime, transactionCount * 1000 / spentTime);
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
             _configuration.ShutdownEQueue();

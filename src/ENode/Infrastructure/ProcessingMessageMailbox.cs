@@ -3,7 +3,9 @@ using System.Threading;
 
 namespace ENode.Infrastructure
 {
-    public class ProcessingMessageMailbox<X, Y, Z> where X : class, IProcessingMessage<X, Y, Z>
+    public class ProcessingMessageMailbox<X, Y, Z>
+        where X : class, IProcessingMessage<X, Y, Z>
+        where Y : IMessage
     {
         private readonly ConcurrentQueue<X> _messageQueue;
         private readonly IProcessingMessageScheduler<X, Y, Z> _mailboxScheduler;
@@ -30,7 +32,7 @@ namespace ENode.Infrastructure
         {
             Interlocked.Exchange(ref _isHandlingMessage, 0);
         }
-        public void CompleteCommand(X processingCommand)
+        public void CompleteMessage(X processingMessage)
         {
             ExitHandlingMessage();
             RegisterForExecution();

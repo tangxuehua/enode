@@ -1,11 +1,15 @@
 ﻿using System.Linq;
 using System.Threading;
+using DistributeSample.EventProcessor.EventHandlers;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Configurations;
 using ENode.EQueue;
+using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using EQueue.Configurations;
+using NoteSample.Domain;
 
 namespace DistributeSample.EventProcessor.EQueueIntegrations
 {
@@ -30,6 +34,20 @@ namespace DistributeSample.EventProcessor.EQueueIntegrations
         {
             _eventConsumer.Start();
             WaitAllConsumerLoadBalanceComplete();
+
+            return enodeConfiguration;
+        }
+
+        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
+        {
+            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
+
+            //events
+            provider.RegisterType<NoteCreated>(3000);
+            provider.RegisterType<NoteTitleChanged>(3001);
+
+            //event handlers
+            provider.RegisterType<NoteEventHandler>(4000);
 
             return enodeConfiguration;
         }

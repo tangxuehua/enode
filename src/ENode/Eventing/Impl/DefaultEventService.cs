@@ -74,6 +74,8 @@ namespace ENode.Eventing.Impl
             _logger = loggerFactory.Create(GetType().FullName);
             _processSuccessPersistedEventsWorker = new Worker("ProcessSuccessPersistedEvents", ProcessSuccessPersistedEvents);
             _processFailedPersistedEventsWorker = new Worker("ProcessFailedPersistedEvents", ProcessFailedPersistedEvents);
+
+            Start();
         }
 
         #endregion
@@ -83,15 +85,6 @@ namespace ENode.Eventing.Impl
         public void SetProcessingCommandHandler(IProcessingMessageHandler<ProcessingCommand, ICommand, CommandResult> processingCommandHandler)
         {
             _processingCommandHandler = processingCommandHandler;
-        }
-        public void Start()
-        {
-            if (_enableGroupCommit && _eventStore.SupportBatchAppend)
-            {
-                _scheduleService.ScheduleTask("TryBatchPersistEvents", TryBatchPersistEvents, _groupCommitInterval, _groupCommitInterval);
-                _processSuccessPersistedEventsWorker.Start();
-                _processFailedPersistedEventsWorker.Start();
-            }
         }
         public void CommitDomainEventAsync(EventCommittingContext context)
         {
@@ -118,6 +111,15 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
+        private void Start()
+        {
+            if (_enableGroupCommit && _eventStore.SupportBatchAppend)
+            {
+                _scheduleService.ScheduleTask("TryBatchPersistEvents", TryBatchPersistEvents, _groupCommitInterval, _groupCommitInterval);
+                _processSuccessPersistedEventsWorker.Start();
+                _processFailedPersistedEventsWorker.Start();
+            }
+        }
         private bool EnterBatchPersistingEvents()
         {
             return Interlocked.CompareExchange(ref _isBatchPersistingEvents, 1, 0) == 0;

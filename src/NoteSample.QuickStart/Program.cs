@@ -60,10 +60,9 @@ namespace NoteSample.QuickStart
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .UseEQueue()
                 .RegisterAllTypeCodes()
+                .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartENode()
                 .StartEQueue();
 
             Console.WriteLine(string.Empty);

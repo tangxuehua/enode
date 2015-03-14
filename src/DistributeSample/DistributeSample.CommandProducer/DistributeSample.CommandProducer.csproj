@@ -78,7 +78,6 @@
   <ItemGroup>
     <Compile Include="ENodeExtensions.cs" />
     <Compile Include="Providers\CommandTopicProvider.cs" />
-    <Compile Include="Providers\CommandTypeCodeProvider.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ECommon.Extensions;
 using ECommon.Logging;
@@ -47,9 +48,15 @@ namespace ENode.Infrastructure.Impl
             foreach (var message in messages)
             {
                 var handlers = _handlerProvider.GetHandlers(message.GetType());
+                if (!handlers.Any())
+                {
+                    messageStream.RemoveHandledMessage(message.Id);
+                    continue;
+                }
+                var dispatchingMessage = new DisptachingMessage(message, messageStream, handlers);
                 foreach (var handler in handlers)
                 {
-                    DispatchMessageToHandlerAsync(new DisptachingMessage(message, messageStream, handlers), handler, 0);
+                    DispatchMessageToHandlerAsync(dispatchingMessage, handler, 0);
                 }
             }
             return messageStream.Task;

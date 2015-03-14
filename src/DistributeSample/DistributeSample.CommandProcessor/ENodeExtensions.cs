@@ -7,14 +7,17 @@ using ENode.Configurations;
 using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Impl;
 using EQueue.Configurations;
+using NoteSample.Commands;
+using NoteSample.Domain;
 
 namespace DistributeSample.CommandProcessor.EQueueIntegrations
 {
     public static class ENodeExtensions
     {
         private static CommandConsumer _commandConsumer;
-        private static DomainEventPublisher _eventPublisher;
+        private static DomainEventPublisher _domainEventPublisher;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
@@ -22,9 +25,9 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
 
             configuration.RegisterEQueueComponents();
 
-            _eventPublisher = new DomainEventPublisher();
+            _domainEventPublisher = new DomainEventPublisher();
 
-            configuration.SetDefault<IMessagePublisher<DomainEventStream>, DomainEventPublisher>(_eventPublisher);
+            configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_domainEventPublisher);
 
             _commandConsumer = new CommandConsumer();
 
@@ -36,9 +39,25 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
             _commandConsumer.Start();
-            _eventPublisher.Start();
+            _domainEventPublisher.Start();
 
             WaitAllConsumerLoadBalanceComplete();
+
+            return enodeConfiguration;
+        }
+
+        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
+        {
+            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
+
+            //aggregates
+            provider.RegisterType<Note>(1000);
+
+            //commands
+            provider.RegisterType<CreateNoteCommand>(2000);
+
+            //events
+            provider.RegisterType<NoteCreated>(3000);
 
             return enodeConfiguration;
         }
