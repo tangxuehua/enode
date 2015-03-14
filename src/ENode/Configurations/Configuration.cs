@@ -177,10 +177,10 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventStore, SqlServerEventStore>();
             return this;
         }
-        /// <summary>Use the SqlServerAggregatePublishVersionStore as the IAggregatePublishVersionStore.
+        /// <summary>Use the SqlServerSequenceMessagePublishedVersionStore as the ISequenceMessagePublishedVersionStore.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerAggregatePublishVersionStore()
+        public ENodeConfiguration UseSqlServerSequenceMessagePublishedVersionStore()
         {
             _configuration.SetDefault<ISequenceMessagePublishedVersionStore, SqlServerSequenceMessagePublishedVersionStore>();
             return this;

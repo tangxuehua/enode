@@ -23,8 +23,8 @@ namespace BankTransferSample
 
         static void Main(string[] args)
         {
-            //NormalTest();
-            PerformanceTest();
+            NormalTest();
+            //PerformanceTest();
         }
 
         static void NormalTest()
