@@ -50,35 +50,37 @@ namespace BankTransferSample
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
             var syncHelper = ObjectContainer.Resolve<SyncHelper>();
-
+            var account1 = ObjectId.GenerateNewStringId();
+            var account2 = ObjectId.GenerateNewStringId();
+            var account3 = "INVALID-" + ObjectId.GenerateNewStringId();
             Console.WriteLine(string.Empty);
 
             //创建两个银行账户
-            commandService.ExecuteAsync(new CreateAccountCommand("00001", "雪华"), CommandReturnType.EventHandled).Wait();
-            commandService.ExecuteAsync(new CreateAccountCommand("00002", "凯锋"), CommandReturnType.EventHandled).Wait();
+            commandService.ExecuteAsync(new CreateAccountCommand(account1, "雪华"), CommandReturnType.EventHandled).Wait();
+            commandService.ExecuteAsync(new CreateAccountCommand(account2, "凯锋"), CommandReturnType.EventHandled).Wait();
 
             Console.WriteLine(string.Empty);
 
             //每个账户都存入1000元
-            commandService.Send(new StartDepositTransactionCommand("00001", 1000));
+            commandService.Send(new StartDepositTransactionCommand(account1, 1000));
             syncHelper.WaitOne();
-            commandService.Send(new StartDepositTransactionCommand("00002", 1000));
+            commandService.Send(new StartDepositTransactionCommand(account2, 1000));
             syncHelper.WaitOne();
 
             Console.WriteLine(string.Empty);
 
             //账户1向账户3转账300元，交易会失败，因为账户3不存在
-            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00003", 300D)));
+            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo(account1, account3, 300D)));
             syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
             //账户1向账户2转账1200元，交易会失败，因为余额不足
-            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00001", "00002", 1200D)));
+            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo(account1, account2, 1200D)));
             syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
             //账户2向账户1转账500元，交易成功
-            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo("00002", "00001", 500D)));
+            commandService.Send(new StartTransferTransactionCommand(new TransferTransactionInfo(account2, account1, 500D)));
             syncHelper.WaitOne();
 
             Thread.Sleep(500);

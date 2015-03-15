@@ -25,10 +25,10 @@ namespace BankTransferSample.CommandHandlers
         {
             var applicationMessage = default(ApplicationMessage);
 
-            //此处应该会调用外部接口验证账号是否合法，这里仅仅简单通过账号是否等于00003判断是否合法；根据账号的合法性，返回不同的应用层消息
-            if (command.AggregateRootId == "00003")
+            //此处应该会调用外部接口验证账号是否合法，这里仅仅简单通过账号是否以INVALID字符串开头来判断是否合法；根据账号的合法性，返回不同的应用层消息
+            if (command.AggregateRootId.StartsWith("INVALID"))
             {
-                applicationMessage = new AccountValidateFailedMessage(command.AggregateRootId, command.TransactionId, "账户不可以是00003.");
+                applicationMessage = new AccountValidateFailedMessage(command.AggregateRootId, command.TransactionId, "账户不合法.");
             }
             else
             {

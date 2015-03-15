@@ -50,7 +50,7 @@ namespace ENode.Configurations
             SqlServerLockServiceSetting = new DbTableSetting(this) { TableName = "Lock" };
             SqlServerCommandStoreSetting = new DbTableSetting(this) { TableName = "Command", PrimaryKeyName = "PK_Command" };
             SqlServerEventStoreSetting = new DbTableSetting(this) { TableName = "EventStream", PrimaryKeyName = "PK_EventStream" };
-            SqlServerAggregatePublishVersionStoreSetting = new DbTableSetting(this) { TableName = "AggregatePublishVersion", PrimaryKeyName = "PK_AggregatePublishVersion" };
+            SqlServerAggregatePublishVersionStoreSetting = new DbTableSetting(this) { TableName = "SequenceMessagePublishedVersion", PrimaryKeyName = "PK_SequenceMessagePublishedVersion" };
             SqlServerMessageHandleRecordStoreSetting = new DbTableSetting(this) { TableName = "MessageHandleRecord", PrimaryKeyName = "PK_MessageHandleRecord" };
         }
     }

@@ -193,7 +193,7 @@ namespace ENode.Commanding.Impl
                 Timestamp = DateTime.Now,
                 Payload = _jsonSerializer.Serialize(handledCommand.Command),
                 Message = handledCommand.Message != null ? _jsonSerializer.Serialize(handledCommand.Message) : null,
-                MessageTypeCode = _typeCodeProvider.GetTypeCode(handledCommand.Message.GetType()),
+                MessageTypeCode = handledCommand.Message != null ? _typeCodeProvider.GetTypeCode(handledCommand.Message.GetType()) : 0,
             };
         }
         private HandledCommand ConvertFrom(CommandRecord record)
