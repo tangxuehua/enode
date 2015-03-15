@@ -37,6 +37,7 @@ namespace ENode.Domain.Impl
                     {
                         _aggregateRootDict[aggregateRoot.UniqueId] = lastestAggregateRoot;
                     }
+                    return lastestAggregateRoot;
                 }
                 return aggregateRoot;
             }
