@@ -34,7 +34,7 @@ namespace ENode.EQueue
 
         public CommandService(CommandResultProcessor commandResultProcessor = null, string id = null, ProducerSetting setting = null)
         {
-            _commandResultProcessor = commandResultProcessor ?? new CommandResultProcessor();
+            _commandResultProcessor = commandResultProcessor;
             _producer = new Producer(id ?? DefaultCommandServiceProcuderId, setting ?? new ProducerSetting());
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
@@ -49,14 +49,20 @@ namespace ENode.EQueue
 
         public CommandService Start()
         {
-            _commandResultProcessor.Start();
+            if (_commandResultProcessor != null)
+            {
+                _commandResultProcessor.Start();
+            }
             _producer.Start();
             return this;
         }
         public CommandService Shutdown()
         {
             _producer.Shutdown();
-            _commandResultProcessor.Shutdown();
+            if (_commandResultProcessor != null)
+            {
+                _commandResultProcessor.Shutdown();
+            }
             return this;
         }
         public void Send(ICommand command)
@@ -86,6 +92,7 @@ namespace ENode.EQueue
         }
         public async Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command, CommandReturnType commandReturnType)
         {
+            Ensure.NotNull(_commandResultProcessor, "commandResultProcessor");
             var taskCompletionSource = new TaskCompletionSource<AsyncTaskResult<CommandResult>>();
             _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
 
