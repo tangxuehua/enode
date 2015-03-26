@@ -12,17 +12,13 @@ namespace ENode.Eventing
         public IDictionary<string, string> Items { get; set; }
         public IEnumerable<IDomainEvent> Events { get; set; }
 
+        public DomainEventStreamMessage() { }
         public DomainEventStreamMessage(string commandId, string aggregateRootId, int version, IEnumerable<IDomainEvent> events, IDictionary<string, string> items)
             : base(aggregateRootId, version)
         {
             CommandId = commandId;
             Events = events;
             Items = items;
-        }
-
-        public DomainEventStreamMessage()
-        {
-            // TODO: Complete member initialization
         }
 
         public override string ToString()

@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ECommon.Utilities;
 using ENode.Eventing;
 
 namespace ENode.Infrastructure
 {
-    public class ProcessingDomainEventStreamMessage : IProcessingMessage<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>
+    public class ProcessingDomainEventStreamMessage : IProcessingMessage<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, ISequenceProcessingMessage
     {
         private ProcessingMessageMailbox<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool> _mailbox;
         private IMessageProcessContext _processContext;
@@ -20,8 +20,9 @@ namespace ENode.Infrastructure
         {
             _mailbox = mailbox;
         }
-        public void HandleLater()
+        public void AddToWaitingList()
         {
+            Ensure.NotNull(_mailbox, "_mailbox");
             _mailbox.AddWaitingForRetryMessage(this);
         }
         public void Complete(bool result)

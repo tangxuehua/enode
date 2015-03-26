@@ -19,10 +19,6 @@ namespace ENode.Infrastructure
         {
             _mailbox = mailbox;
         }
-        public void HandleLater()
-        {
-            _mailbox.AddWaitingForRetryMessage(this);
-        }
         public void Complete(bool result)
         {
             _processContext.NotifyMessageProcessed();

@@ -4,7 +4,6 @@
     {
         Y Message { get; }
         void SetMailbox(ProcessingMessageMailbox<X, Y, Z> mailbox);
-        void HandleLater();
         void Complete(Z result);
     }
 }
