@@ -40,6 +40,9 @@ namespace ENode.Infrastructure
             var sequenceMessage = processingMessage.Message as ISequenceMessage;
             Ensure.NotNull(sequenceMessage, "processingMessage");
             _waitingToRetryMessageDict.TryAdd(sequenceMessage.Version, processingMessage);
+
+            ExitHandlingMessage();
+            RegisterForExecution();
         }
         public void CompleteMessage(X processingMessage)
         {
