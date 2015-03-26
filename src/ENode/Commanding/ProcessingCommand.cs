@@ -27,6 +27,10 @@ namespace ENode.Commanding
         {
             _mailbox = mailbox;
         }
+        public void HandleLater()
+        {
+            _mailbox.AddWaitingForRetryMessage(this);
+        }
         public void Complete(CommandResult commandResult)
         {
             CommandExecuteContext.OnCommandExecuted(commandResult);

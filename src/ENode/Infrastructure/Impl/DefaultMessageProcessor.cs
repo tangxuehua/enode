@@ -19,9 +19,7 @@ namespace ENode.Infrastructure
 
         public void Process(X processingMessage)
         {
-            var sequenceMessage = processingMessage.Message;
-            var routingKey = sequenceMessage != null ? sequenceMessage.GetRoutingKey() : null;
-
+            var routingKey = processingMessage.Message.GetRoutingKey();
             if (routingKey != null)
             {
                 var mailbox = _mailboxDict.GetOrAdd(routingKey, x =>

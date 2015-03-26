@@ -51,7 +51,8 @@ namespace ENode.Infrastructure.Impl
                 }
                 else if (publishedVersion + 1 < message.Version)
                 {
-                    _logger.DebugFormat("Currently, the message is not allowed to handle as the previous message has not been handled yet. contextInfo [aggregateRootId={0},lastPublishedVersion={1},messageVersion={2}]", message.AggregateRootId, publishedVersion, message.Version);
+                    _logger.DebugFormat("The sequence message cannot be process now as the version is not the next version, it will be handle later. contextInfo [aggregateRootId={0},lastPublishedVersion={1},messageVersion={2}]", message.AggregateRootId, publishedVersion, message.Version);
+                    processingMessage.HandleLater();
                 }
                 else
                 {
