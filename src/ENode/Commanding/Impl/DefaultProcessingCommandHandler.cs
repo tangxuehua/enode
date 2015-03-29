@@ -193,8 +193,6 @@ namespace ENode.Commanding.Impl
 
             var handledAggregateCommand = new HandledCommand(
                 command,
-                processingCommand.SourceId,
-                processingCommand.SourceType,
                 eventStream.AggregateRootId,
                 eventStream.AggregateRootTypeCode);
             CommitAggregateChangesAsync(processingCommand, dirtyAggregateRoot, eventStream, handledAggregateCommand, 0);
@@ -481,8 +479,6 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Message;
             var handledCommand = new HandledCommand(
                 command,
-                processingCommand.SourceId,
-                processingCommand.SourceType,
                 aggregateRootId: command.AggregateRootId,
                 message: message);
 

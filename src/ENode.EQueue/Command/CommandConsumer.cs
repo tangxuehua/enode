@@ -73,7 +73,7 @@ namespace ENode.EQueue
             var command = _jsonSerializer.Deserialize(commandMessage.CommandData, commandType) as ICommand;
             var commandExecuteContext = new CommandExecuteContext(_repository, queueMessage, context, commandMessage, _commandExecutedMessageSender);
             commandItems["DomainEventHandledMessageTopic"] = commandMessage.DomainEventHandledMessageTopic;
-            _processor.Process(new ProcessingCommand(command, commandExecuteContext, commandMessage.SourceId, commandMessage.SourceType, commandItems));
+            _processor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
 
         class CommandExecuteContext : ICommandExecuteContext

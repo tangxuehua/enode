@@ -9,12 +9,12 @@ namespace ENode.Infrastructure.Impl.InMemory
         private readonly Task<AsyncTaskResult> _successTask = Task.FromResult(AsyncTaskResult.Success);
         private readonly ConcurrentDictionary<string, int> _versionDict = new ConcurrentDictionary<string, int>();
 
-        public Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, string aggregateRootId, int publishedVersion)
+        public Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId, int publishedVersion)
         {
             _versionDict[BuildKey(processorName, aggregateRootId)] = publishedVersion;
             return _successTask;
         }
-        public Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, string aggregateRootId)
+        public Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId)
         {
             int version;
             var publishedVersion = _versionDict.TryGetValue(BuildKey(processorName, aggregateRootId), out version) ? version : 0;

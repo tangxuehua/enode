@@ -50,14 +50,20 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var publishableExceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
-            var publishableExceptionType = _publishableExceptionTypeCodeProvider.GetType(publishableExceptionMessage.ExceptionTypeCode);
-            var publishableException = FormatterServices.GetUninitializedObject(publishableExceptionType) as IPublishableException;
-            publishableException.SetId(publishableExceptionMessage.UniqueId);
-            publishableException.SetTimestamp(publishableExceptionMessage.Timestamp);
-            publishableException.RestoreFrom(publishableExceptionMessage.SerializableInfo);
+            var exceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
+            var exceptionType = _publishableExceptionTypeCodeProvider.GetType(exceptionMessage.ExceptionTypeCode);
+            var exception = FormatterServices.GetUninitializedObject(exceptionType) as IPublishableException;
+            exception.SetId(exceptionMessage.UniqueId);
+            exception.SetTimestamp(exceptionMessage.Timestamp);
+            exception.RestoreFrom(exceptionMessage.SerializableInfo);
+            var sequenceMessage = exception as ISequenceMessage;
+            if (sequenceMessage != null)
+            {
+                sequenceMessage.SetAggregateRootTypeCode(exceptionMessage.AggregateRootTypeCode);
+                sequenceMessage.SetAggregateRootId(exceptionMessage.AggregateRootId);
+            }
             var processContext = new EQueueProcessContext(queueMessage, context);
-            var processingMessage = new ProcessingPublishableExceptionMessage(publishableException, processContext);
+            var processingMessage = new ProcessingPublishableExceptionMessage(exception, processContext);
             _publishableExceptionProcessor.Process(processingMessage);
         }
     }

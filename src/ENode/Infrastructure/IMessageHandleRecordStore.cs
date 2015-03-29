@@ -14,7 +14,8 @@ namespace ENode.Infrastructure
         /// </summary>
         /// <param name="messageId"></param>
         /// <param name="handlerTypeCode"></param>
+        /// <param name="aggregateRootTypeCode"></param>
         /// <returns></returns>
-        Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId, int handlerTypeCode);
+        Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId, int handlerTypeCode, int aggregateRootTypeCode);
     }
 }

@@ -9,7 +9,6 @@ using ENode.Commanding;
 using ENode.EQueue.Commanding;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
-using EQueue.Protocols;
 using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.EQueue
@@ -67,19 +66,13 @@ namespace ENode.EQueue
         }
         public void Send(ICommand command)
         {
-            SendSync(command);
-        }
-        public void Send(ICommand command, string sourceId, string sourceType)
-        {
-            SendSync(command, sourceId, sourceType, true);
+            _sendMessageService.SendMessage(_producer, BuildCommandMessage(command), _commandRouteKeyProvider.GetRoutingKey(command));
         }
         public Task<AsyncTaskResult> SendAsync(ICommand command)
         {
             try
             {
-                var message = BuildCommandMessage(command);
-                var routingKey = _commandRouteKeyProvider.GetRoutingKey(command);
-                return _sendMessageService.SendMessageAsync(_producer, message, routingKey);
+                return _sendMessageService.SendMessageAsync(_producer, BuildCommandMessage(command), _commandRouteKeyProvider.GetRoutingKey(command));
             }
             catch (Exception ex)
             {
@@ -112,24 +105,7 @@ namespace ENode.EQueue
             }
         }
 
-        private void SendSync(ICommand command, string sourceId = null, string sourceType = null, bool checkSource = false)
-        {
-            if (checkSource)
-            {
-                Ensure.NotNullOrEmpty(sourceId, "sourceId");
-                Ensure.NotNullOrEmpty(sourceType, "sourceType");
-            }
-
-            _ioHelper.TryIOAction(() =>
-            {
-                var result = _producer.Send(BuildCommandMessage(command, sourceId, sourceType), _commandRouteKeyProvider.GetRoutingKey(command));
-                if (result.SendStatus == SendStatus.Failed)
-                {
-                    throw new CommandSendException(result.ErrorMessage);
-                }
-            }, "SendCommandSync");
-        }
-        private EQueueMessage BuildCommandMessage(ICommand command, string sourceId = null, string sourceType = null)
+        private EQueueMessage BuildCommandMessage(ICommand command)
         {
             var commandData = _jsonSerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
@@ -141,9 +117,7 @@ namespace ENode.EQueue
                 CommandTypeCode = commandTypeCode,
                 CommandData = commandData,
                 CommandExecutedMessageTopic = commandExecutedMessageTopic,
-                DomainEventHandledMessageTopic = domainEventHandledMessageTopic,
-                SourceId = sourceId,
-                SourceType = sourceType
+                DomainEventHandledMessageTopic = domainEventHandledMessageTopic
             });
             return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, Encoding.UTF8.GetBytes(messageData));
         }

@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using ECommon.Dapper;
@@ -21,7 +22,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
         public SqlServerSequenceMessagePublishedVersionStore()
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerAggregatePublishVersionStoreSetting;
+            var setting = ENodeConfiguration.Instance.Setting.SqlServerSequenceMessagePublishedVersionStoreSetting;
             Ensure.NotNull(setting, "SqlServerAggregatePublishVersionStoreSetting");
             Ensure.NotNull(setting.ConnectionString, "SqlServerAggregatePublishVersionStoreSetting.ConnectionString");
             Ensure.NotNull(setting.TableName, "SqlServerAggregatePublishVersionStoreSetting.TableName");
@@ -34,7 +35,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
         #endregion
 
-        public async Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, string aggregateRootId, int publishedVersion)
+        public async Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId, int publishedVersion)
         {
             if (publishedVersion == 1)
             {
@@ -42,7 +43,14 @@ namespace ENode.Infrastructure.Impl.SQL
                 {
                     using (var connection = GetConnection())
                     {
-                        await connection.InsertAsync(new { ProcessorName = processorName, AggregateRootId = aggregateRootId, PublishedVersion = 1 }, _tableName);
+                        await connection.InsertAsync(new
+                        {
+                            ProcessorName = processorName,
+                            AggregateRootTypeCode = aggregateRootTypeCode,
+                            AggregateRootId = aggregateRootId,
+                            PublishedVersion = 1,
+                            Timestamp = DateTime.Now
+                        }, _tableName);
                         return AsyncTaskResult.Success;
                     }
                 }
@@ -62,7 +70,8 @@ namespace ENode.Infrastructure.Impl.SQL
                     await connection.UpdateAsync(
                     new
                     {
-                        PublishedVersion = publishedVersion
+                        PublishedVersion = publishedVersion,
+                        Timestamp = DateTime.Now
                     },
                     new
                     {
@@ -74,7 +83,7 @@ namespace ENode.Infrastructure.Impl.SQL
                 }
             }
         }
-        public async Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, string aggregateRootId)
+        public async Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId)
         {
             using (var connection = GetConnection())
             {

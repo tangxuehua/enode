@@ -4,10 +4,8 @@ CREATE TABLE [dbo].[Command] (
     [CommandTypeCode]         INT                    NOT NULL,
     [Timestamp]               DATETIME               NOT NULL,
     [Payload]                 NVARCHAR (MAX)         NOT NULL,
-    [AggregateRootId]         NVARCHAR (36)          NULL,
     [AggregateRootTypeCode]   INT                    NOT NULL,
-    [SourceId]                NVARCHAR (36)          NULL,
-    [SourceType]              NVARCHAR (36)          NULL,
+    [AggregateRootId]         NVARCHAR (36)          NULL,
     [Message]                 NVARCHAR (MAX)         NULL,
     [MessageTypeCode]         INT                    NOT NULL,
     CONSTRAINT [PK_Command] PRIMARY KEY CLUSTERED ([CommandId] ASC)
@@ -27,8 +25,10 @@ GO
 CREATE TABLE [dbo].[SequenceMessagePublishedVersion] (
     [Sequence]                BIGINT IDENTITY (1, 1) NOT NULL,
     [ProcessorName]           NVARCHAR (128)         NOT NULL,
+    [AggregateRootTypeCode]   INT                    NOT NULL,
     [AggregateRootId]         NVARCHAR (36)          NOT NULL,
     [PublishedVersion]        INT                    NOT NULL,
+    [Timestamp]               DATETIME               NOT NULL,
     CONSTRAINT [PK_SequenceMessagePublishedVersion] PRIMARY KEY CLUSTERED ([ProcessorName] ASC, [AggregateRootId] ASC, [PublishedVersion] ASC)
 )
 GO
@@ -37,16 +37,18 @@ CREATE TABLE [dbo].[MessageHandleRecord] (
     [MessageId]                 NVARCHAR (36)          NOT NULL,
     [HandlerTypeCode]           INT                    NOT NULL,
     [MessageTypeCode]           INT                    NOT NULL,
+    [AggregateRootTypeCode]     INT                    NOT NULL,
     [AggregateRootId]           NVARCHAR (36)          NULL,
     [Version]                   INT                    NULL,
+    [Timestamp]                 DATETIME               NOT NULL,
     CONSTRAINT [PK_MessageHandleRecord] PRIMARY KEY CLUSTERED ([MessageId] ASC, [HandlerTypeCode] ASC)
 )
 GO
 CREATE TABLE [dbo].[Snapshot] (
     [Sequence]               BIGINT IDENTITY (1, 1)  NOT NULL,
+    [AggregateRootTypeCode]  INT                     NOT NULL,
     [AggregateRootId]        NVARCHAR (36)           NOT NULL,
     [Version]                INT                     NOT NULL,
-    [AggregateRootTypeCode]  INT                     NOT NULL,
     [Payload]                VARBINARY (MAX)         NOT NULL,
     [Timestamp]              DATETIME                NOT NULL,
     CONSTRAINT [PK_Snapshot] PRIMARY KEY CLUSTERED ([AggregateRootId] ASC, [Version] ASC)

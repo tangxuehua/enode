@@ -188,8 +188,6 @@ namespace ENode.Commanding.Impl
                 CommandTypeCode = _typeCodeProvider.GetTypeCode(handledCommand.Command.GetType()),
                 AggregateRootId = handledCommand.AggregateRootId,
                 AggregateRootTypeCode = handledCommand.AggregateRootTypeCode,
-                SourceId = handledCommand.SourceId,
-                SourceType = handledCommand.SourceType,
                 Timestamp = DateTime.Now,
                 Payload = _jsonSerializer.Serialize(handledCommand.Command),
                 Message = handledCommand.Message != null ? _jsonSerializer.Serialize(handledCommand.Message) : null,
@@ -209,8 +207,6 @@ namespace ENode.Commanding.Impl
 
             return new HandledCommand(
                 _jsonSerializer.Deserialize(record.Payload, commandType) as ICommand,
-                record.SourceId,
-                record.SourceType,
                 record.AggregateRootId,
                 record.AggregateRootTypeCode,
                 message);
@@ -224,8 +220,6 @@ namespace ENode.Commanding.Impl
             public int CommandTypeCode { get; set; }
             public int AggregateRootTypeCode { get; set; }
             public string AggregateRootId { get; set; }
-            public string SourceId { get; set; }
-            public string SourceType { get; set; }
             public DateTime Timestamp { get; set; }
             public string Payload { get; set; }
             public string Message { get; set; }

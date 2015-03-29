@@ -60,11 +60,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Eventing\EventStreamMessage.cs" />
-    <Compile Include="Eventing\EventMessage.cs" />
+    <Compile Include="DomainEvent\EventStreamMessage.cs" />
     <Compile Include="SendQueueMessageService.cs" />
-    <Compile Include="Messaging\ApplicationMessageConsumer.cs" />
-    <Compile Include="Messaging\ApplicationMessagePublisher.cs" />
+    <Compile Include="ApplicationMessage\ApplicationMessageConsumer.cs" />
+    <Compile Include="ApplicationMessage\ApplicationMessagePublisher.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionMessage.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionConsumer.cs" />
     <Compile Include="PublishableExceptions\PublishableExceptionPublisher.cs" />
@@ -72,16 +71,16 @@
     <Compile Include="Constants.cs" />
     <Compile Include="EQueueMessageTypeCode.cs" />
     <Compile Include="AbstractTopicProvider.cs" />
-    <Compile Include="Commanding\CommandConsumer.cs" />
-    <Compile Include="Commanding\CommandMessage.cs" />
-    <Compile Include="Eventing\DomainEventHandledMessage.cs" />
-    <Compile Include="Commanding\CommandExecutedMessage.cs" />
-    <Compile Include="Commanding\CommandResultProcessor.cs" />
-    <Compile Include="Commanding\CommandExecutedMessageSender.cs" />
-    <Compile Include="Eventing\DomainEventConsumer.cs" />
-    <Compile Include="Eventing\EventPublisher.cs" />
-    <Compile Include="Eventing\DomainEventHandledMessageSender.cs" />
-    <Compile Include="Commanding\CommandService.cs" />
+    <Compile Include="Command\CommandConsumer.cs" />
+    <Compile Include="Command\CommandMessage.cs" />
+    <Compile Include="DomainEvent\DomainEventHandledMessage.cs" />
+    <Compile Include="Command\CommandExecutedMessage.cs" />
+    <Compile Include="Command\CommandResultProcessor.cs" />
+    <Compile Include="Command\CommandExecutedMessageSender.cs" />
+    <Compile Include="DomainEvent\DomainEventConsumer.cs" />
+    <Compile Include="DomainEvent\DomainEventPublisher.cs" />
+    <Compile Include="DomainEvent\DomainEventHandledMessageSender.cs" />
+    <Compile Include="Command\CommandService.cs" />
     <Compile Include="ITopicProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

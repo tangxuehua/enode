@@ -68,9 +68,10 @@ namespace ENode.Infrastructure.Impl
             var messageTypeCode = _typeCodeProvider.GetTypeCode(message.GetType());
             var handlerType = handlerProxy.GetInnerHandler().GetType();
             var handlerTypeCode = _typeCodeProvider.GetTypeCode(handlerType);
+            var aggregateRootTypeCode = message is ISequenceMessage ? ((ISequenceMessage)message).AggregateRootTypeCode : 0;
 
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<bool>>("IsRecordExistAsync",
-            () => _messageHandleRecordStore.IsRecordExistAsync(message.Id, handlerTypeCode),
+            () => _messageHandleRecordStore.IsRecordExistAsync(message.Id, handlerTypeCode, aggregateRootTypeCode),
             currentRetryTimes => DispatchMessageToHandlerAsync(dispatchingMessage, handlerProxy, currentRetryTimes),
             result =>
             {
@@ -101,11 +102,13 @@ namespace ENode.Infrastructure.Impl
                 {
                     MessageId = message.Id,
                     HandlerTypeCode = handlerTypeCode,
-                    MessageTypeCode = messageTypeCode
+                    MessageTypeCode = messageTypeCode,
+                    Timestamp = DateTime.Now
                 };
                 var sequenceMessage = message as ISequenceMessage;
                 if (sequenceMessage != null)
                 {
+                    messageHandleRecord.AggregateRootTypeCode = sequenceMessage.AggregateRootTypeCode;
                     messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootId;
                     messageHandleRecord.Version = sequenceMessage.Version;
                 }

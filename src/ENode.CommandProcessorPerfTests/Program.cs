@@ -43,7 +43,7 @@ namespace ENode.CommandProcessorPerfTests
                 {
                     AggregateRootId = i.ToString(),
                     Title = "Sample Note"
-                }, new CommandExecuteContext(watch, commandCount, logger, repository), null, null, new Dictionary<string, string>()));
+                }, new CommandExecuteContext(watch, commandCount, logger, repository), new Dictionary<string, string>()));
             }
 
             Console.WriteLine("--Start to process commands, total count: {0}.", commandCount);

@@ -75,16 +75,15 @@ namespace ENode.EQueue
 
         private DomainEventStreamMessage ConvertToDomainEventStream(EventStreamMessage message)
         {
-            return new DomainEventStreamMessage
-            {
-                Id = ObjectId.GenerateNewStringId(),
-                CommandId = message.CommandId,
-                AggregateRootId = message.AggregateRootId,
-                Version = message.Version,
-                Timestamp = message.Timestamp,
-                Items = message.Items,
-                Events = _eventSerializer.Deserialize<IDomainEvent>(message.Events)
-            };
+            var domainEventStreamMessage = new DomainEventStreamMessage(
+                message.CommandId,
+                message.AggregateRootId,
+                message.Version,
+                message.AggregateRootTypeCode,
+                _eventSerializer.Deserialize<IDomainEvent>(message.Events),
+                message.Items);
+            domainEventStreamMessage.Timestamp = message.Timestamp;
+            return domainEventStreamMessage;
         }
 
         class DomainEventStreamProcessContext : EQueueProcessContext

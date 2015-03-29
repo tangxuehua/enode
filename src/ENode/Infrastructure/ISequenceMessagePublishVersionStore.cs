@@ -8,9 +8,9 @@ namespace ENode.Infrastructure
     {
         /// <summary>Update the published version for the given aggregate.
         /// </summary>
-        Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, string aggregateRootId, int publishedVersion);
+        Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId, int publishedVersion);
         /// <summary>Get the current published version for the given aggregate.
         /// </summary>
-        Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, string aggregateRootId);
+        Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId);
     }
 }

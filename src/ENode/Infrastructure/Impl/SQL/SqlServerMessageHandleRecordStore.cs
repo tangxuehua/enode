@@ -44,8 +44,10 @@ namespace ENode.Infrastructure.Impl.SQL
                         HandlerTypeCode = record.HandlerTypeCode,
                         MessageId = record.MessageId,
                         MessageTypeCode = record.MessageTypeCode,
+                        AggregateRootTypeCode = record.AggregateRootTypeCode,
                         AggregateRootId = record.AggregateRootId,
-                        Version = record.Version
+                        Version = record.Version,
+                        Timestamp = record.Timestamp
                     }, _tableName);
                     return AsyncTaskResult.Success;
                 }
@@ -59,7 +61,7 @@ namespace ENode.Infrastructure.Impl.SQL
                 return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
             }
         }
-        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId, int handlerTypeCode)
+        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId, int handlerTypeCode, int aggregateRootTypeCode)
         {
             using (var connection = GetConnection())
             {

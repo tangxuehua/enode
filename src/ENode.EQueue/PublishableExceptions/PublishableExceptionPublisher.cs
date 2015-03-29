@@ -58,9 +58,12 @@ namespace ENode.EQueue
             var topic = _exceptionTopicProvider.GetTopic(exception);
             var serializableInfo = new Dictionary<string, string>();
             exception.SerializeTo(serializableInfo);
+            var sequenceMessage = exception as ISequenceMessage;
             var data = _jsonSerializer.Serialize(new PublishableExceptionMessage
             {
                 UniqueId = exception.Id,
+                AggregateRootTypeCode = sequenceMessage != null ? sequenceMessage.AggregateRootTypeCode : 0,
+                AggregateRootId = sequenceMessage != null ? sequenceMessage.AggregateRootId : null,
                 Timestamp = exception.Timestamp,
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo

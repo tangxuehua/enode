@@ -9,17 +9,13 @@ namespace ENode.Commanding
 
         public ICommand Message { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }
-        public string SourceId { get; private set; }
-        public string SourceType { get; private set; }
         public int ConcurrentRetriedCount { get; private set; }
         public IDictionary<string, string> Items { get; private set; }
 
-        public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, string sourceId, string sourceType, IDictionary<string, string> items)
+        public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, IDictionary<string, string> items)
         {
             Message = command;
             CommandExecuteContext = commandExecuteContext;
-            SourceId = sourceId;
-            SourceType = sourceType;
             Items = items ?? new Dictionary<string, string>();
         }
 

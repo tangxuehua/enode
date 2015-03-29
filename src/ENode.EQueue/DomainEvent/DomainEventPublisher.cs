@@ -66,6 +66,7 @@ namespace ENode.EQueue
             var message = new EventStreamMessage();
 
             message.CommandId = eventStream.CommandId;
+            message.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
             message.AggregateRootId = eventStream.AggregateRootId;
             message.Timestamp = eventStream.Timestamp;
             message.Version = eventStream.Version;

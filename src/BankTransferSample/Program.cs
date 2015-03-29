@@ -31,15 +31,25 @@ namespace BankTransferSample
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
 
+            var setting = new ConfigurationSetting
+            {
+                EnableGroupCommitEvent = true,
+                SqlServerDefaultConnectionString = @"Data Source=(localdb)\Projects;Integrated Security=true;Initial Catalog=ENode;Connect Timeout=30;Min Pool Size=10;Max Pool Size=100"
+            };
+
             _configuration = Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
                 .UseLog4Net()
                 .UseJsonNet()
-                .CreateENode()
+                .CreateENode(setting)
                 .RegisterENodeComponents()
                 .RegisterAllTypeCodes()
+                .UseSqlServerCommandStore()
+                .UseSqlServerEventStore()
+                .UseSqlServerSequenceMessagePublishedVersionStore()
+                .UseSqlServerMessageHandleRecordStore()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
