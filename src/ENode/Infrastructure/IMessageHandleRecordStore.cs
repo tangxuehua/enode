@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using ECommon.Retring;
 
 namespace ENode.Infrastructure
 {

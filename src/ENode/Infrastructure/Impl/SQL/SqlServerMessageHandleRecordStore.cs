@@ -1,6 +1,7 @@
 ﻿using System.Data.SqlClient;
 using System.Threading.Tasks;
 using ECommon.Dapper;
+using ECommon.Retring;
 using ECommon.Utilities;
 using ENode.Configurations;
 

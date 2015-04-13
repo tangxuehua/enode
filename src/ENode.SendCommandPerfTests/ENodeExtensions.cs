@@ -19,7 +19,7 @@ namespace ENode.SendCommandPerfTests
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.RegisterEQueueComponents();
-            _broker = new BrokerController();
+            _broker = BrokerController.Create();
             _commandService = new CommandService();
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             return enodeConfiguration;

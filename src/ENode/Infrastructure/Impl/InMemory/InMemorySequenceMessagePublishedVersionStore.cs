@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using ECommon.Retring;
 using ENode.Infrastructure;
 
 namespace ENode.Infrastructure.Impl.InMemory

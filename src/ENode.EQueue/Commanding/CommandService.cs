@@ -16,8 +16,6 @@ namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
-        private const string DefaultCommandExecutedMessageTopic = "CommandExecutedMessageTopic";
-        private const string DefaultDomainEventHandledMessageTopic = "DomainEventHandledMessageTopic";
         private const string DefaultCommandServiceProcuderId = "CommandService";
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
@@ -43,8 +41,6 @@ namespace ENode.EQueue
             _sendMessageService = new SendQueueMessageService();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
-            CommandExecutedMessageTopic = DefaultCommandExecutedMessageTopic;
-            DomainEventHandledMessageTopic = DefaultDomainEventHandledMessageTopic;
         }
 
         public CommandService Start()

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using ECommon.Dapper;
+using ECommon.Retring;
 using ECommon.Utilities;
 using ENode.Configurations;
 

@@ -39,7 +39,7 @@ namespace BankTransferSample
 
             configuration.RegisterEQueueComponents();
 
-            _broker = new BrokerController();
+            _broker = BrokerController.Create();
 
             _commandResultProcessor = new CommandResultProcessor();
             _commandService = new CommandService(_commandResultProcessor);

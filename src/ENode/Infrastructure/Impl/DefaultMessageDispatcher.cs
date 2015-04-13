@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ECommon.Extensions;
 using ECommon.Logging;
+using ECommon.Retring;
 
 namespace ENode.Infrastructure.Impl
 {

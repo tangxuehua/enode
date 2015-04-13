@@ -2,6 +2,6 @@
 {
     public class Constants
     {
-        public const string DomainEventHandledMessageTopic = "DomainEventHandledMessageTopic";
+        public const int SuccessResponseCode = 1;
     }
 }

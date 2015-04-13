@@ -36,13 +36,14 @@ namespace ENode.EQueue
         }
         public void Send(DomainEventHandledMessage message, string topic)
         {
-            var messageJson = _jsonSerializer.Serialize(message);
-            var messageBytes = Encoding.UTF8.GetBytes(messageJson);
-            var equeueMessage = new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventHandledMessage, messageBytes);
-            _ioHelper.TryIOActionRecursively("DomainEventHandledMessage", () => messageJson, () =>
-            {
-                _ioHelper.TryIOAction(() => _producer.SendAsync(equeueMessage, message.CommandId), "DomainEventHandledMessageAsync");
-            });
+            //TODO
+            //var messageJson = _jsonSerializer.Serialize(message);
+            //var messageBytes = Encoding.UTF8.GetBytes(messageJson);
+            //var equeueMessage = new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventHandledMessage, messageBytes);
+            //_ioHelper.TryIOActionRecursively("DomainEventHandledMessage", () => messageJson, () =>
+            //{
+            //    _ioHelper.TryIOAction(() => _producer.SendAsync(equeueMessage, message.CommandId), "DomainEventHandledMessageAsync");
+            //});
         }
     }
 }

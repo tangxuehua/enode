@@ -98,7 +98,6 @@
     <Compile Include="Infrastructure\IApplicationMessage.cs" />
     <Compile Include="Infrastructure\IPublishableException.cs" />
     <Compile Include="Infrastructure\PublishableException.cs" />
-    <Compile Include="Infrastructure\AsyncTaskResult.cs" />
     <Compile Include="Infrastructure\Impl\MessageHandlerProxy.cs" />
     <Compile Include="Infrastructure\IMessageHandler.cs" />
     <Compile Include="Infrastructure\SequenceMessage.cs" />
@@ -107,9 +106,7 @@
     <Compile Include="Infrastructure\IMessageHandlerProvider.cs" />
     <Compile Include="Infrastructure\Impl\DefaultMessageDispatcher.cs" />
     <Compile Include="Infrastructure\Impl\DoNothingPublisher.cs" />
-    <Compile Include="Infrastructure\IOHelper.cs" />
     <Compile Include="Infrastructure\IMessageHandlerProxy.cs" />
-    <Compile Include="Infrastructure\IOException.cs" />
     <Compile Include="Infrastructure\Impl\DefaultMessageHandlerProvider.cs" />
     <Compile Include="Infrastructure\IMessageProcessContext.cs" />
     <Compile Include="Infrastructure\IMessageProcessor.cs" />
@@ -169,7 +166,7 @@
       <HintPath>..\..\packages\Dapper.1.38\lib\net45\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="ECommon">
-      <HintPath>..\..\packages\ecommon.1.4.3\lib\net45\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ecommon.1.4.4\lib\net45\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Dapper">
       <HintPath>..\..\packages\ECommon.Dapper.1.4.2\lib\net45\ECommon.Dapper.dll</HintPath>

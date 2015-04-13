@@ -80,16 +80,16 @@ namespace ENode.EQueue
         {
             private readonly ConcurrentDictionary<string, IAggregateRoot> _changedAggregateRootDict;
             private readonly IRepository _repository;
-            private readonly CommandExecutedMessageSender _commandExecutedMessageSender;
+            private readonly SendReplyService _sendReplyService;
             private readonly QueueMessage _queueMessage;
             private readonly IMessageContext _messageContext;
             private readonly CommandMessage _commandMessage;
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, CommandExecutedMessageSender commandExecutedMessageSender)
+            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, SendReplyService sendReplyService)
             {
                 _changedAggregateRootDict = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
-                _commandExecutedMessageSender = commandExecutedMessageSender;
+                _sendReplyService = sendReplyService;
                 _queueMessage = queueMessage;
                 _commandMessage = commandMessage;
                 _messageContext = messageContext;
@@ -99,19 +99,23 @@ namespace ENode.EQueue
             {
                 _messageContext.OnMessageHandled(_queueMessage);
 
-                if (string.IsNullOrEmpty(_commandMessage.CommandExecutedMessageTopic))
+                if (string.IsNullOrEmpty(_commandMessage.ReplyAddress))
                 {
                     return;
                 }
 
-                _commandExecutedMessageSender.SendAsync(new CommandExecutedMessage
+                var message = new CommandExecutedMessage
                 {
                     CommandId = commandResult.CommandId,
                     AggregateRootId = commandResult.AggregateRootId,
                     CommandStatus = commandResult.Status,
                     ExceptionTypeName = commandResult.ExceptionTypeName,
                     ErrorMessage = commandResult.ErrorMessage,
-                }, _commandMessage.CommandExecutedMessageTopic);
+                };
+
+                _sendReplyService.SendReply(CommandReplyType.CommandExecuted, message, )
+
+                _commandExecutedMessageSender.SendAsync(, _commandMessage.CommandExecutedMessageTopic);
             }
             public void Add(IAggregateRoot aggregateRoot)
             {

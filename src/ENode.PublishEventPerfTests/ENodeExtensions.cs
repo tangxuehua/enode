@@ -19,7 +19,7 @@ namespace ENode.PublishEventPerfTests
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.RegisterEQueueComponents();
-            _broker = new BrokerController();
+            _broker = BrokerController.Create();
             _eventPublisher = new DomainEventPublisher();
             configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_eventPublisher);
             return enodeConfiguration;

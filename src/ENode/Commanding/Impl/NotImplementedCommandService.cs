@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using ECommon.Retring;
 using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
@@ -7,10 +8,6 @@ namespace ENode.Commanding.Impl
     public class NotImplementedCommandService : ICommandService
     {
         public void Send(ICommand command)
-        {
-            throw new NotImplementedException();
-        }
-        public void Send(ICommand command, string sourceId, string sourceType)
         {
             throw new NotImplementedException();
         }

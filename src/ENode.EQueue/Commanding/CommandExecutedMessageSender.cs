@@ -1,7 +1,12 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Text;
 using ECommon.Components;
 using ECommon.Logging;
+using ECommon.Remoting;
 using ECommon.Serializing;
+using ECommon.Utilities;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueue.Protocols;
@@ -14,8 +19,8 @@ namespace ENode.EQueue
         private const string DefaultCommandExecutedMessageSenderProcuderId = "CommandExecutedMessageSender";
         private readonly Producer _producer;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly SendQueueMessageService _sendMessageService;
-        private readonly IOHelper _ioHelper;
+        private readonly SendReplyService _sendReplyService;
+        private readonly ILogger _logger;
 
         public Producer Producer { get { return _producer; } }
 
@@ -23,8 +28,8 @@ namespace ENode.EQueue
         {
             _producer = new Producer(id ?? DefaultCommandExecutedMessageSenderProcuderId, setting ?? new ProducerSetting());
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _sendMessageService = new SendQueueMessageService();
-            _ioHelper = ObjectContainer.Resolve<IOHelper>();
+            _sendReplyService = ObjectContainer.Resolve<SendReplyService>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         public CommandExecutedMessageSender Start()
@@ -37,14 +42,38 @@ namespace ENode.EQueue
             _producer.Shutdown();
             return this;
         }
-        public void SendAsync(CommandExecutedMessage message, string topic)
+        public async void SendAsync(CommandExecutedMessage message, string replyAddress)
         {
             var messageJson = _jsonSerializer.Serialize(message);
-            var messageBytes = Encoding.UTF8.GetBytes(messageJson);
-            var equeueMessage = new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandExecutedMessage, messageBytes);
-            SendMessageAsync(equeueMessage, messageJson, message.CommandId, 0);
+            var data = Encoding.UTF8.GetBytes(messageJson);
+            try
+            {
+                var remotingClient = CreateReplyRemotingClient(replyAddress);
+                var remotingRequest = new RemotingRequest(Constants.SendCommandReplyMessageRequestCode, data);
+                var remotingResponse = await remotingClient.InvokeAsync(remotingRequest, 5000);
+                if (remotingResponse.Code != Constants.SuccessResponseCode)
+                {
+                    _logger.ErrorFormat("Send command executed message failed. replyAddress: {0}, message: {1}, responseCode: {2}", replyAddress, messageJson, remotingResponse.Code);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Send command executed message failed. replyAddress: {0}, message: {1}", replyAddress, messageJson), ex);
+            }
         }
 
+        private SocketRemotingClient CreateReplyRemotingClient(string replyAddress)
+        {
+            return _sendReplyRemotingClientDict.GetOrAdd(replyAddress, key =>
+            {
+                Ensure.NotNull(key, "replyAddress");
+                var items = key.Split(':');
+                Ensure.Equals(items.Length, 2);
+                var remotingClient = new SocketRemotingClient(new IPEndPoint(IPAddress.Parse(items[0]), int.Parse(items[1])));
+                remotingClient.Start();
+                return remotingClient;
+            });
+        }
         private void SendMessageAsync(EQueueMessage message, string messageJson, string routingKey, int retryTimes)
         {
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("PublishQueueMessageAsync",

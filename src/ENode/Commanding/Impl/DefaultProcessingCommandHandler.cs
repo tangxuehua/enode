@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ECommon.Logging;
+using ECommon.Retring;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -193,8 +194,6 @@ namespace ENode.Commanding.Impl
 
             var handledAggregateCommand = new HandledCommand(
                 command,
-                processingCommand.SourceId,
-                processingCommand.SourceType,
                 eventStream.AggregateRootId,
                 eventStream.AggregateRootTypeCode);
             CommitAggregateChangesAsync(processingCommand, dirtyAggregateRoot, eventStream, handledAggregateCommand, 0);
@@ -481,8 +480,6 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Message;
             var handledCommand = new HandledCommand(
                 command,
-                processingCommand.SourceId,
-                processingCommand.SourceType,
                 aggregateRootId: command.AggregateRootId,
                 message: message);
 
