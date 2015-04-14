@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Net;
 using System.Threading;
 using BankTransferSample.ApplicationMessages;
 using BankTransferSample.Commands;
@@ -8,6 +9,7 @@ using BankTransferSample.ProcessManagers;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
+using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
@@ -41,7 +43,7 @@ namespace BankTransferSample
 
             _broker = BrokerController.Create();
 
-            _commandResultProcessor = new CommandResultProcessor();
+            _commandResultProcessor = new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000));
             _commandService = new CommandService(_commandResultProcessor);
             _applicationMessagePublisher = new ApplicationMessagePublisher();
             _domainEventPublisher = new DomainEventPublisher();
@@ -70,7 +72,6 @@ namespace BankTransferSample
             _domainEventPublisher.Start();
             _exceptionPublisher.Start();
             _commandService.Start();
-            _commandResultProcessor.Start();
 
             WaitAllConsumerLoadBalanceComplete();
 
@@ -78,7 +79,6 @@ namespace BankTransferSample
         }
         public static ENodeConfiguration ShutdownEQueue(this ENodeConfiguration enodeConfiguration)
         {
-            _commandResultProcessor.Shutdown();
             _commandService.Shutdown();
             _applicationMessagePublisher.Shutdown();
             _domainEventPublisher.Shutdown();
@@ -165,16 +165,10 @@ namespace BankTransferSample
             logger.Info("Waiting for all consumer load balance complete, please wait for a moment...");
             var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
-                var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
+                var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
                 var exceptionConsumerAllocatedQueues = _exceptionConsumer.Consumer.GetCurrentQueues();
-                var commandExecutedMessageConsumerAllocatedQueues = _commandResultProcessor.CommandExecutedMessageConsumer.GetCurrentQueues();
-                var domainEventHandledMessageConsumerAllocatedQueues = _commandResultProcessor.DomainEventHandledMessageConsumer.GetCurrentQueues();
-                if (eventConsumerAllocatedQueues.Count() == 4
-                    && commandConsumerAllocatedQueues.Count() == 4
-                    && exceptionConsumerAllocatedQueues.Count() == 4
-                    && commandExecutedMessageConsumerAllocatedQueues.Count() == 4
-                    && domainEventHandledMessageConsumerAllocatedQueues.Count() == 4)
+                if (commandConsumerAllocatedQueues.Count() == 4 && eventConsumerAllocatedQueues.Count() == 4 && exceptionConsumerAllocatedQueues.Count() == 4)
                 {
                     waitHandle.Set();
                 }

@@ -1,8 +1,6 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Net;
 using ECommon.Components;
-using ECommon.Logging;
-using ECommon.Scheduling;
+using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
@@ -25,7 +23,7 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
 
             configuration.RegisterEQueueComponents();
 
-            _commandResultProcessor = new CommandResultProcessor();
+            _commandResultProcessor = new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000));
             _commandService = new CommandService(_commandResultProcessor);
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
@@ -35,9 +33,6 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
             _commandService.Start();
-
-            WaitAllConsumerLoadBalanceComplete();
-
             return enodeConfiguration;
         }
 
@@ -49,27 +44,6 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
             provider.RegisterType<CreateNoteCommand>(2000);
 
             return enodeConfiguration;
-        }
-
-        private static void WaitAllConsumerLoadBalanceComplete()
-        {
-            var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);
-            var scheduleService = ObjectContainer.Resolve<IScheduleService>();
-            var waitHandle = new ManualResetEvent(false);
-            logger.Info("Waiting for all consumer load balance complete, please wait for a moment...");
-            var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
-            {
-                var executedCommandMessageConsumerAllocatedQueues = _commandResultProcessor.CommandExecutedMessageConsumer.GetCurrentQueues();
-                var domainEventHandledMessageConsumerAllocatedQueues = _commandResultProcessor.DomainEventHandledMessageConsumer.GetCurrentQueues();
-                if (executedCommandMessageConsumerAllocatedQueues.Count() == 4 && domainEventHandledMessageConsumerAllocatedQueues.Count() == 4)
-                {
-                    waitHandle.Set();
-                }
-            }, 1000, 1000);
-
-            waitHandle.WaitOne();
-            scheduleService.ShutdownTask(taskId);
-            logger.Info("All consumer load balance completed.");
         }
     }
 }

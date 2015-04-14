@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ECommon.Logging;
-using ECommon.Retring;
+using ECommon.IO;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;

@@ -2,7 +2,6 @@
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
-using ECommon.Utilities;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
@@ -16,7 +15,7 @@ namespace ENode.EQueue
         private const string DefaultEventConsumerId = "EventConsumer";
         private const string DefaultEventConsumerGroup = "EventConsumerGroup";
         private readonly Consumer _consumer;
-        private readonly DomainEventHandledMessageSender _domainEventHandledMessageSender;
+        private readonly SendReplyService _sendReplyService;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IEventSerializer _eventSerializer;
         private readonly IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool> _processor;
@@ -25,18 +24,18 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public DomainEventConsumer(string id = null, string groupName = null, ConsumerSetting setting = null, DomainEventHandledMessageSender domainEventHandledMessageSender = null, bool sendEventHandledMessage = true)
+        public DomainEventConsumer(string id = null, string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
         {
             var consumerId = id ?? DefaultEventConsumerId;
             _consumer = new Consumer(consumerId, groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
             {
                 MessageHandleMode = MessageHandleMode.Sequential
             });
+            _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
-            _domainEventHandledMessageSender = domainEventHandledMessageSender ?? new DomainEventHandledMessageSender();
             _sendEventHandledMessage = sendEventHandledMessage;
         }
 
@@ -45,7 +44,7 @@ namespace ENode.EQueue
             _consumer.SetMessageHandler(this).Start();
             if (_sendEventHandledMessage)
             {
-                _domainEventHandledMessageSender.Start();
+                _sendReplyService.Start();
             }
             return this;
         }
@@ -59,14 +58,14 @@ namespace ENode.EQueue
             _consumer.Shutdown();
             if (_sendEventHandledMessage)
             {
-                _domainEventHandledMessageSender.Shutdown();
+                _sendReplyService.Shutdown();
             }
             return this;
         }
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), typeof(EventStreamMessage)) as EventStreamMessage;
+            var message = _jsonSerializer.Deserialize<EventStreamMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var domainEventStreamMessage = ConvertToDomainEventStream(message);
             var processContext = new DomainEventStreamProcessContext(this, domainEventStreamMessage, queueMessage, context);
             var processingMessage = new ProcessingDomainEventStreamMessage(domainEventStreamMessage, processContext);
@@ -75,16 +74,15 @@ namespace ENode.EQueue
 
         private DomainEventStreamMessage ConvertToDomainEventStream(EventStreamMessage message)
         {
-            return new DomainEventStreamMessage
-            {
-                Id = ObjectId.GenerateNewStringId(),
-                CommandId = message.CommandId,
-                AggregateRootId = message.AggregateRootId,
-                Version = message.Version,
-                Timestamp = message.Timestamp,
-                Items = message.Items,
-                Events = _eventSerializer.Deserialize<IDomainEvent>(message.Events)
-            };
+            var domainEventStreamMessage = new DomainEventStreamMessage(
+                message.CommandId,
+                message.AggregateRootId,
+                message.Version,
+                message.AggregateRootTypeCode,
+                _eventSerializer.Deserialize<IDomainEvent>(message.Events),
+                message.Items);
+            domainEventStreamMessage.Timestamp = message.Timestamp;
+            return domainEventStreamMessage;
         }
 
         class DomainEventStreamProcessContext : EQueueProcessContext
@@ -108,20 +106,18 @@ namespace ENode.EQueue
                     return;
                 }
 
-                var topic = Constants.DomainEventHandledMessageTopic;
-                var items = _domainEventStreamMessage.Items;
-                if (!items.ContainsKey(topic) || string.IsNullOrEmpty(items[topic]))
+                string replyAddress;
+                if (!_domainEventStreamMessage.Items.TryGetValue("CommandReplyAddress", out replyAddress))
                 {
-                    _eventConsumer._logger.ErrorFormat("{0} cannot be null or empty. current eventStream:{1}", topic, _domainEventStreamMessage);
+                    _eventConsumer._logger.ErrorFormat("Cannot send command reply message as the reply address is null or empty. currentEventStream: {1}", _domainEventStreamMessage);
                     return;
                 }
-                var domainEventHandledMessageTopic = items[topic];
 
-                _eventConsumer._domainEventHandledMessageSender.Send(new DomainEventHandledMessage
+                _eventConsumer._sendReplyService.SendReply((int)CommandReplyType.DomainEventHandled, new DomainEventHandledMessage
                 {
                     CommandId = _domainEventStreamMessage.CommandId,
                     AggregateRootId = _domainEventStreamMessage.AggregateRootId
-                }, domainEventHandledMessageTopic);
+                }, replyAddress);
             }
         }
     }

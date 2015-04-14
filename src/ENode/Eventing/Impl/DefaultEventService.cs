@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using ECommon.Logging;
-using ECommon.Retring;
+using ECommon.IO;
 using ECommon.Scheduling;
 using ECommon.Utilities;
 using ENode.Commanding;
@@ -104,7 +104,7 @@ namespace ENode.Eventing.Impl
             {
                 eventStream.Items = processingCommand.Items;
             }
-            var eventStreamMessage = new DomainEventStreamMessage(processingCommand.Message.Id, eventStream.AggregateRootId, eventStream.Version, eventStream.Events, eventStream.Items);
+            var eventStreamMessage = new DomainEventStreamMessage(processingCommand.Message.Id, eventStream.AggregateRootId, eventStream.Version, eventStream.AggregateRootTypeCode, eventStream.Events, eventStream.Items);
             PublishDomainEventAsync(processingCommand, eventStreamMessage, 0);
         }
 

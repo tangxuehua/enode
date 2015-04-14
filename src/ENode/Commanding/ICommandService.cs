@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using ECommon.Retring;
+using ECommon.IO;
 using ENode.Infrastructure;
 
 namespace ENode.Commanding
@@ -17,12 +17,6 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="command">The command to send.</param>
         void Send(ICommand command);
-        /// <summary>Send a command synchronously.
-        /// </summary>
-        /// <param name="command">The command to send.</param>
-        /// <param name="sourceId">The identifier of the source.</param>
-        /// <param name="sourceType">The type of the source.</param>
-        void Send(ICommand command, string sourceId, string sourceType);
         /// <summary>Execute a command asynchronously with the default command return type.
         /// </summary>
         /// <param name="command">The command to execute.</param>

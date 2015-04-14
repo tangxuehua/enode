@@ -42,16 +42,13 @@ namespace ENode.Test
 
         private DomainEventStreamMessage CreateMessage(IAggregateRoot aggregateRoot)
         {
-            return new DomainEventStreamMessage
-            {
-                Id = ObjectId.GenerateNewStringId(),
-                CommandId = ObjectId.GenerateNewStringId(),
-                AggregateRootId = aggregateRoot.UniqueId,
-                Version = aggregateRoot.Version + 1,
-                Timestamp = DateTime.Now,
-                Items = new Dictionary<string, string>(),
-                Events = aggregateRoot.GetChanges()
-            };
+            return new DomainEventStreamMessage(
+                ObjectId.GenerateNewStringId(),
+                aggregateRoot.UniqueId,
+                aggregateRoot.Version + 1,
+                100,
+                aggregateRoot.GetChanges(),
+                new Dictionary<string, string>());
         }
         class DomainEventStreamProcessContext : IMessageProcessContext
         {

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Dapper;
 using ECommon.Components;
 using ECommon.Dapper;
-using ECommon.Retring;
+using ECommon.IO;
 using ECommon.Serializing;
 using ECommon.Utilities;
 using ENode.Configurations;

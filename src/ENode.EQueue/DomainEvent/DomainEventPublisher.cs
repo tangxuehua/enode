@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
+using ECommon.IO;
 using ECommon.Serializing;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -66,6 +67,7 @@ namespace ENode.EQueue
             var message = new EventStreamMessage();
 
             message.CommandId = eventStream.CommandId;
+            message.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
             message.AggregateRootId = eventStream.AggregateRootId;
             message.Timestamp = eventStream.Timestamp;
             message.Version = eventStream.Version;

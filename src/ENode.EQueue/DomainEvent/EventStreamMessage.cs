@@ -7,6 +7,7 @@ namespace ENode.EQueue
     public class EventStreamMessage
     {
         public string AggregateRootId { get; set; }
+        public int AggregateRootTypeCode { get; set; }
         public int Version { get; set; }
         public DateTime Timestamp { get; set; }
         public string CommandId { get; set; }

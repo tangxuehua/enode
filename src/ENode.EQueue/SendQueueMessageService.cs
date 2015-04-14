@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ECommon.Components;
-using ENode.Infrastructure;
+using ECommon.IO;
 using EQueue.Clients.Producers;
-using EQueue.Protocols;
 using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.EQueue

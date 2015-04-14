@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Reflection;
-using System.Threading;
 using DistributeSample.CommandProducer.EQueueIntegrations;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
+using ECommon.Extensions;
+using ECommon.IO;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
 using ECommon.Logging;
@@ -17,7 +18,6 @@ namespace DistributeSample.CommandProducer
 {
     class Program
     {
-        static int _count;
         static ILogger _logger;
 
         static void Main(string[] args)
@@ -28,10 +28,15 @@ namespace DistributeSample.CommandProducer
 
             for (var index = 1; index <= 10; index++)
             {
-                commandService.SendAsync(new CreateNoteCommand { AggregateRootId = ObjectId.GenerateNewStringId(), Title = "Sample Note" + index }).ContinueWith(task =>
+                var result = commandService.ExecuteAsync(new CreateNoteCommand { AggregateRootId = ObjectId.GenerateNewStringId(), Title = "Sample Note" + index }).WaitResult<AsyncTaskResult<CommandResult>>(5000000);
+                if (result.Data.Status == CommandStatus.Success)
                 {
-                    _logger.InfoFormat("Sent command{0}", Interlocked.Increment(ref _count));
-                });
+                    _logger.InfoFormat("Execute command success, title: {0}", "Sample Note" + index);
+                }
+                else
+                {
+                    _logger.ErrorFormat("Execute command failed, title: {0}, errorMsg: {1}", "Sample Note" + index, result.Data.ErrorMessage);
+                }
             }
 
             Console.ReadLine();

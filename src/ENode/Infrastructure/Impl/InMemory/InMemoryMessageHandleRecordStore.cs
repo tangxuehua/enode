@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using ECommon.Retring;
+using ECommon.IO;
 
 namespace ENode.Infrastructure.Impl.InMemory
 {
@@ -14,7 +14,7 @@ namespace ENode.Infrastructure.Impl.InMemory
             _dict.TryAdd(record.MessageId + record.HandlerTypeCode.ToString(), 0);
             return _successTask;
         }
-        Task<AsyncTaskResult<bool>> IMessageHandleRecordStore.IsRecordExistAsync(string messageId, int handlerTypeCode)
+        Task<AsyncTaskResult<bool>> IMessageHandleRecordStore.IsRecordExistAsync(string messageId, int handlerTypeCode, int aggregateRootTypeCode)
         {
             return Task.FromResult(new AsyncTaskResult<bool>(AsyncTaskStatus.Success, _dict.ContainsKey(messageId + handlerTypeCode.ToString())));
         }

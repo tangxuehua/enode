@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
+using ECommon.IO;
 using ENode.Infrastructure;
 using NoteSample.Domain;
 
