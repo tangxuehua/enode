@@ -2,8 +2,10 @@
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.IO;
+using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Configurations;
 
@@ -16,6 +18,7 @@ namespace ENode.Infrastructure.Impl.SQL
         private readonly string _connectionString;
         private readonly string _tableName;
         private readonly string _primaryKeyName;
+        private readonly ILogger _logger;
 
         #endregion
 
@@ -24,14 +27,15 @@ namespace ENode.Infrastructure.Impl.SQL
         public SqlServerSequenceMessagePublishedVersionStore()
         {
             var setting = ENodeConfiguration.Instance.Setting.SqlServerSequenceMessagePublishedVersionStoreSetting;
-            Ensure.NotNull(setting, "SqlServerAggregatePublishVersionStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "SqlServerAggregatePublishVersionStoreSetting.ConnectionString");
-            Ensure.NotNull(setting.TableName, "SqlServerAggregatePublishVersionStoreSetting.TableName");
-            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerAggregatePublishVersionStoreSetting.PrimaryKeyName");
+            Ensure.NotNull(setting, "SqlServerSequenceMessagePublishedVersionStoreSetting");
+            Ensure.NotNull(setting.ConnectionString, "SqlServerSequenceMessagePublishedVersionStoreSetting.ConnectionString");
+            Ensure.NotNull(setting.TableName, "SqlServerSequenceMessagePublishedVersionStoreSetting.TableName");
+            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerSequenceMessagePublishedVersionStoreSetting.PrimaryKeyName");
 
             _connectionString = setting.ConnectionString;
             _tableName = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         #endregion
@@ -61,39 +65,71 @@ namespace ENode.Infrastructure.Impl.SQL
                     {
                         return AsyncTaskResult.Success;
                     }
+                    _logger.Error("Insert sequence message published version has sql exception.", ex);
                     return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("Insert sequence message published version has unknown exception.", ex);
+                    return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
                 }
             }
             else
             {
-                using (var connection = GetConnection())
+                try
                 {
-                    await connection.UpdateAsync(
-                    new
+                    using (var connection = GetConnection())
                     {
-                        PublishedVersion = publishedVersion,
-                        Timestamp = DateTime.Now
-                    },
-                    new
-                    {
-                        ProcessorName = processorName,
-                        AggregateRootId = aggregateRootId,
-                        PublishedVersion = publishedVersion - 1
-                    }, _tableName);
-                    return AsyncTaskResult.Success;
+                        await connection.UpdateAsync(
+                        new
+                        {
+                            PublishedVersion = publishedVersion,
+                            Timestamp = DateTime.Now
+                        },
+                        new
+                        {
+                            ProcessorName = processorName,
+                            AggregateRootId = aggregateRootId,
+                            PublishedVersion = publishedVersion - 1
+                        }, _tableName);
+                        return AsyncTaskResult.Success;
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    _logger.Error("Update sequence message published version has sql exception.", ex);
+                    return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("Update sequence message published version has unknown exception.", ex);
+                    return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
                 }
             }
         }
         public async Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId)
         {
-            using (var connection = GetConnection())
+            try
             {
-                var result = await connection.QueryListAsync<int>(new
+                using (var connection = GetConnection())
                 {
-                    ProcessorName = processorName,
-                    AggregateRootId = aggregateRootId
-                }, _tableName, "PublishedVersion");
-                return new AsyncTaskResult<int>(AsyncTaskStatus.Success, result.SingleOrDefault());
+                    var result = await connection.QueryListAsync<int>(new
+                    {
+                        ProcessorName = processorName,
+                        AggregateRootId = aggregateRootId
+                    }, _tableName, "PublishedVersion");
+                    return new AsyncTaskResult<int>(AsyncTaskStatus.Success, result.SingleOrDefault());
+                }
+            }
+            catch (SqlException ex)
+            {
+                _logger.Error("Get sequence message published version has sql exception.", ex);
+                return new AsyncTaskResult<int>(AsyncTaskStatus.IOException, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Get sequence message published version has unknown exception.", ex);
+                return new AsyncTaskResult<int>(AsyncTaskStatus.Failed, ex.Message);
             }
         }
 

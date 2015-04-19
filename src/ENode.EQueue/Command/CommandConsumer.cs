@@ -111,7 +111,7 @@ namespace ENode.EQueue
                     ErrorMessage = commandResult.ErrorMessage,
                 };
 
-                _sendReplyService.SendReply((int)CommandReplyType.CommandExecuted, message, _commandMessage.ReplyAddress);
+                _sendReplyService.SendReplyAsync((int)CommandReplyType.CommandExecuted, message, _commandMessage.ReplyAddress);
             }
             public void Add(IAggregateRoot aggregateRoot)
             {

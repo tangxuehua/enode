@@ -1,7 +1,10 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
+using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.IO;
+using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Configurations;
 
@@ -14,6 +17,7 @@ namespace ENode.Infrastructure.Impl.SQL
         private readonly string _connectionString;
         private readonly string _tableName;
         private readonly string _primaryKeyName;
+        private readonly ILogger _logger;
 
         #endregion
 
@@ -30,6 +34,7 @@ namespace ENode.Infrastructure.Impl.SQL
             _connectionString = setting.ConnectionString;
             _tableName = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         #endregion
@@ -59,15 +64,34 @@ namespace ENode.Infrastructure.Impl.SQL
                 {
                     return AsyncTaskResult.Success;
                 }
+                _logger.Error("Insert message handle record has sql exception.", ex);
                 return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Insert message handle record has unknown exception.", ex);
+                return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
             }
         }
         public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId, int handlerTypeCode, int aggregateRootTypeCode)
         {
-            using (var connection = GetConnection())
+            try
             {
-                var count = await connection.GetCountAsync(new { MessageId = messageId, HandlerTypeCode = handlerTypeCode }, _tableName);
-                return new AsyncTaskResult<bool>(AsyncTaskStatus.Success, count > 0);
+                using (var connection = GetConnection())
+                {
+                    var count = await connection.GetCountAsync(new { MessageId = messageId, HandlerTypeCode = handlerTypeCode }, _tableName);
+                    return new AsyncTaskResult<bool>(AsyncTaskStatus.Success, count > 0);
+                }
+            }
+            catch (SqlException ex)
+            {
+                _logger.Error("Get message handle record has sql exception.", ex);
+                return new AsyncTaskResult<bool>(AsyncTaskStatus.IOException, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Get message handle record has unknown exception.", ex);
+                return new AsyncTaskResult<bool>(AsyncTaskStatus.Failed, ex.Message);
             }
         }
 

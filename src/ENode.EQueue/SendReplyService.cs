@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.IO;
 using ECommon.Logging;
@@ -19,10 +20,11 @@ namespace ENode.EQueue
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IScheduleService _scheduleService;
         private readonly ConcurrentDictionary<string, SocketRemotingClientWrapper> _sendReplyRemotingClientDict;
+        private TaskFactory _taskFactory;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
         private readonly IList<int> _taskIds;
-        private const int MaxNotActiveTimeSeconds = 60 * 10;
+        private const int MaxNotActiveTimeSeconds = 60 * 5;
         private const int ScanNotActiveClientInterval = 5000;
 
         public SendReplyService()
@@ -32,6 +34,7 @@ namespace ENode.EQueue
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _sendReplyRemotingClientDict = new ConcurrentDictionary<string, SocketRemotingClientWrapper>();
+            _taskFactory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(Environment.ProcessorCount));
             _taskIds = new List<int>();
         }
 
@@ -46,31 +49,39 @@ namespace ENode.EQueue
                 _scheduleService.ShutdownTask(taskId);
             }
         }
-        public void SendReply(int replyType, object replyData, string replyAddress)
+        public void SendReplyAsync(int replyType, object replyData, string replyAddress)
         {
-            Ensure.Positive(replyType, "replyType");
-            Ensure.NotNull(replyData, "replyData");
-            Ensure.NotNull(replyAddress, "replyAddress");
-
-            var remotingClientWrapper = GetRemotingClientWrapper(replyAddress);
-            if (remotingClientWrapper == null) return;
-
-            var message = _jsonSerializer.Serialize(replyData);
-            var body = Encoding.UTF8.GetBytes(message);
-            var remotingRequest = new RemotingRequest(replyType, body);
-
-            _ioHelper.TryIOAction("SendReplyAsync", () => string.Format("[replyAddress: {0}, replyType: {1}, message: {2}]", replyAddress, replyType, message), () =>
+            _taskFactory.StartNew(obj =>
             {
-                _ioHelper.TryIOAction(async () =>
+                var request = obj as SendReplyRequest;
+                try
                 {
-                    var remotingResponse = await remotingClientWrapper.RemotingClient.InvokeAsync(remotingRequest);
-                    if (remotingResponse.Code != Constants.SuccessResponseCode)
+                    var remotingClientWrapper = GetRemotingClientWrapper(request.ReplyAddress);
+                    if (remotingClientWrapper == null) return;
+
+                    var message = _jsonSerializer.Serialize(request.ReplyData);
+                    var body = Encoding.UTF8.GetBytes(message);
+                    var remotingRequest = new RemotingRequest(request.ReplyType, body);
+                    var getContextInfo = new Func<String>(() => string.Format("[replyAddress: {0}, replyType: {1}, message: {2}]", request.ReplyAddress, request.ReplyType, message));
+
+                    _ioHelper.TryIOAction("SendCommandReply", getContextInfo, () =>
                     {
-                        throw new IOException("Send reply remoting request failed.");
-                    }
-                    remotingClientWrapper.LastActiveTime = DateTime.Now;
-                }, "SendReplyRemotingRequestAsync");
-            }, 3);
+                        _ioHelper.TryIOAction(() =>
+                        {
+                            var remotingResponse = remotingClientWrapper.RemotingClient.InvokeSync(remotingRequest);
+                            if (remotingResponse.Code != Constants.SuccessResponseCode)
+                            {
+                                throw new IOException("Send command reply failed, remotingResponseCode: {0}", remotingResponse.Code);
+                            }
+                            remotingClientWrapper.LastActiveTime = DateTime.Now;
+                        }, "SendCommandReply");
+                    }, 3);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("Send command reply failed.", ex);
+                }
+            }, new SendReplyRequest(replyType, replyData, replyAddress));
         }
 
         private void RemoveNotActiveRemotingClient()
@@ -133,6 +144,19 @@ namespace ENode.EQueue
             });
         }
 
+        class SendReplyRequest
+        {
+            public int ReplyType { get; private set; }
+            public object ReplyData { get; private set; }
+            public string ReplyAddress { get; private set; }
+
+            public SendReplyRequest(int replyType, object replyData, string replyAddress)
+            {
+                ReplyType = replyType;
+                ReplyData = replyData;
+                ReplyAddress = replyAddress;
+            }
+        }
         class SocketRemotingClientWrapper
         {
             public IPEndPoint ReplyEndpoint { get; set; }

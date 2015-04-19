@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Dapper;
 using ECommon.IO;
+using ECommon.Logging;
 using ECommon.Serializing;
 using ECommon.Utilities;
 using ENode.Configurations;
@@ -24,6 +25,7 @@ namespace ENode.Commanding.Impl
         private readonly ITypeCodeProvider _typeCodeProvider;
         private readonly IEventSerializer _eventSerializer;
         private readonly IOHelper _ioHelper;
+        private readonly ILogger _logger;
 
         #region Constructors
 
@@ -44,6 +46,7 @@ namespace ENode.Commanding.Impl
             _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         #endregion
@@ -126,11 +129,13 @@ namespace ENode.Commanding.Impl
                     {
                         return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, CommandAddResult.DuplicateCommand);
                     }
+                    _logger.Error(string.Format("Add handled command has sql exception, handledCommand: {0}", handledCommand), ex);
                     return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.IOException, ex.Message, CommandAddResult.Failed);
                 }
                 catch (Exception ex)
                 {
-                    return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.IOException, ex.Message, CommandAddResult.Failed);
+                    _logger.Error(string.Format("Add handled command has unkown exception, handledCommand: {0}", handledCommand), ex);
+                    return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Failed, ex.Message, CommandAddResult.Failed);
                 }
             }, "AddCommandAsync");
         }
@@ -146,9 +151,15 @@ namespace ENode.Commanding.Impl
                         return AsyncTaskResult.Success;
                     }
                 }
+                catch (SqlException ex)
+                {
+                    _logger.Error(string.Format("Remove handled command has sql exception, commandId: {0}", commandId), ex);
+                    return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
+                }
                 catch (Exception ex)
                 {
-                    return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
+                    _logger.Error(string.Format("Remove handled command has unkown exception, commandId: {0}", commandId), ex);
+                    return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
                 }
             }, "RemoveCommandAsync");
         }
@@ -166,9 +177,15 @@ namespace ENode.Commanding.Impl
                         return new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Success, handledCommand);
                     }
                 }
+                catch (SqlException ex)
+                {
+                    _logger.Error(string.Format("Get handled command has sql exception, commandId: {0}", commandId), ex);
+                    return new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.IOException, ex.Message, null);
+                }
                 catch (Exception ex)
                 {
-                    return new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.IOException, ex.Message, null);
+                    _logger.Error(string.Format("Get handled command has unkown exception, commandId: {0}", commandId), ex);
+                    return new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Failed, ex.Message, null);
                 }
             }, "GetCommandAsync");
         }

@@ -44,6 +44,7 @@ namespace NoteSample.QuickStart
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_eventPublisher);
 
+            //注意，这里实例化之前，需要确保各种MessagePublisher要先注入到IOC，因为CommandConsumer, DomainEventConsumer都依赖于IMessagePublisher<T>
             _commandConsumer = new CommandConsumer();
             _eventConsumer = new DomainEventConsumer();
 
