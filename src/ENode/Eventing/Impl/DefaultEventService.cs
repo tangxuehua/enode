@@ -163,7 +163,7 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[contextListCount:{0}]", contextList.Count()),
-            () =>
+            errorMessage =>
             {
                 _failedPersistedContextQueue.Add(contextList);
                 ExitBatchPersistingEvents();
@@ -217,7 +217,7 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[eventStream:{0}]", context.EventStream),
-            () => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, null, "Persist event async failed.")),
+            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, null, errorMessage ?? "Persist event async failed.")),
             retryTimes);
         }
         private void HandleDuplicateEventResult(EventCommittingContext context)
@@ -278,7 +278,7 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            () => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, null, "Persist the first version of event duplicated, but try to get the first version of domain event async failed.")),
+            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, null, errorMessage ?? "Persist the first version of event duplicated, but try to get the first version of domain event async failed.")),
             retryTimes);
         }
         private void RefreshAggregateMemoryCache(DomainEventStream aggregateFirstEventStream)
@@ -337,7 +337,7 @@ namespace ENode.Eventing.Impl
                 processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Message.Id, eventStream.AggregateRootId, null, null));
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            () => processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Message.Id, eventStream.AggregateRootId, null, "Publish domain event async failed.")),
+            errorMessage => processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Message.Id, eventStream.AggregateRootId, null, errorMessage ?? "Publish domain event async failed.")),
             retryTimes);
         }
 
