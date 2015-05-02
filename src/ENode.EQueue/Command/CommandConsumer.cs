@@ -76,7 +76,7 @@ namespace ENode.EQueue
 
         class CommandExecuteContext : ICommandExecuteContext
         {
-            private readonly ConcurrentDictionary<string, IAggregateRoot> _changedAggregateRootDict;
+            private readonly ConcurrentDictionary<string, IAggregateRoot> _trackingAggregateRootDict;
             private readonly IRepository _repository;
             private readonly SendReplyService _sendReplyService;
             private readonly QueueMessage _queueMessage;
@@ -85,7 +85,7 @@ namespace ENode.EQueue
 
             public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, SendReplyService sendReplyService)
             {
-                _changedAggregateRootDict = new ConcurrentDictionary<string, IAggregateRoot>();
+                _trackingAggregateRootDict = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
                 _sendReplyService = sendReplyService;
                 _queueMessage = queueMessage;
@@ -119,7 +119,7 @@ namespace ENode.EQueue
                 {
                     throw new ArgumentNullException("aggregateRoot");
                 }
-                if (!_changedAggregateRootDict.TryAdd(aggregateRoot.UniqueId, aggregateRoot))
+                if (!_trackingAggregateRootDict.TryAdd(aggregateRoot.UniqueId, aggregateRoot))
                 {
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
@@ -132,7 +132,7 @@ namespace ENode.EQueue
                 }
 
                 IAggregateRoot aggregateRoot = null;
-                if (_changedAggregateRootDict.TryGetValue(id.ToString(), out aggregateRoot))
+                if (_trackingAggregateRootDict.TryGetValue(id.ToString(), out aggregateRoot))
                 {
                     return aggregateRoot as T;
                 }
@@ -141,7 +141,7 @@ namespace ENode.EQueue
 
                 if (aggregateRoot != null)
                 {
-                    _changedAggregateRootDict.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
+                    _trackingAggregateRootDict.TryAdd(aggregateRoot.UniqueId, aggregateRoot);
                     return aggregateRoot as T;
                 }
 
@@ -149,11 +149,11 @@ namespace ENode.EQueue
             }
             public IEnumerable<IAggregateRoot> GetTrackedAggregateRoots()
             {
-                return _changedAggregateRootDict.Values;
+                return _trackingAggregateRootDict.Values;
             }
             public void Clear()
             {
-                _changedAggregateRootDict.Clear();
+                _trackingAggregateRootDict.Clear();
             }
         }
     }

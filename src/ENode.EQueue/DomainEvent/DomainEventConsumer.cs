@@ -107,9 +107,8 @@ namespace ENode.EQueue
                 }
 
                 string replyAddress;
-                if (!_domainEventStreamMessage.Items.TryGetValue("CommandReplyAddress", out replyAddress))
+                if (!_domainEventStreamMessage.Items.TryGetValue("CommandReplyAddress", out replyAddress) || string.IsNullOrEmpty(replyAddress))
                 {
-                    _eventConsumer._logger.ErrorFormat("Cannot send command reply message as the reply address is null or empty. currentEventStream: {1}", _domainEventStreamMessage);
                     return;
                 }
 

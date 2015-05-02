@@ -82,12 +82,12 @@ namespace ENode.EQueue
         }
         public async Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command, CommandReturnType commandReturnType)
         {
-            Ensure.NotNull(_commandResultProcessor, "commandResultProcessor");
-            var taskCompletionSource = new TaskCompletionSource<AsyncTaskResult<CommandResult>>();
-            _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
-
             try
             {
+                Ensure.NotNull(_commandResultProcessor, "commandResultProcessor");
+                var taskCompletionSource = new TaskCompletionSource<AsyncTaskResult<CommandResult>>();
+                _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
+
                 var result = await SendAsync(command).ConfigureAwait(false);
                 if (result.Status == AsyncTaskStatus.Success)
                 {

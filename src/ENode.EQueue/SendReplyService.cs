@@ -24,7 +24,7 @@ namespace ENode.EQueue
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
         private readonly IList<int> _taskIds;
-        private const int MaxNotActiveTimeSeconds = 60 * 5;
+        private const int MaxNotActiveTimeSeconds = 60;
         private const int ScanNotActiveClientInterval = 5000;
 
         public SendReplyService()
