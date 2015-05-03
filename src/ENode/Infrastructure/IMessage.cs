@@ -8,18 +8,13 @@ namespace ENode.Infrastructure
     {
         /// <summary>Represents the unique identifier of the message.
         /// </summary>
-        string Id { get; }
+        string Id { get; set; }
         /// <summary>Represents the timestamp of the message.
         /// </summary>
-        DateTime Timestamp { get; }
-        /// <summary>Set the id.
+        DateTime Timestamp { get; set; }
+        /// <summary>Represents the sequence of the message which is belongs to the message stream.
         /// </summary>
-        /// <param name="id"></param>
-        void SetId(string id);
-        /// <summary>Set the timestamp.
-        /// </summary>
-        /// <param name="timestamp"></param>
-        void SetTimestamp(DateTime timestamp);
+        int Sequence { get; set; }
         /// <summary>Represents the routing key of the message.
         /// </summary>
         /// <returns></returns>

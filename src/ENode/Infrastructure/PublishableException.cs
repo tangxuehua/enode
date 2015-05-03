@@ -8,12 +8,15 @@ namespace ENode.Infrastructure
     {
         public string Id { get; set; }
         public DateTime Timestamp { get; set; }
+        public int Sequence { get; set; }
 
         /// <summary>Default constructor.
         /// </summary>
         public PublishableException()
         {
             Id = ObjectId.GenerateNewStringId();
+            Timestamp = DateTime.Now;
+            Sequence = 1;
         }
 
         public abstract void SerializeTo(IDictionary<string, string> serializableInfo);
@@ -25,15 +28,6 @@ namespace ENode.Infrastructure
         public string GetRoutingKey()
         {
             return null;
-        }
-
-        void IMessage.SetId(string id)
-        {
-            Id = id;
-        }
-        void IMessage.SetTimestamp(DateTime timestamp)
-        {
-            Timestamp = timestamp;
         }
     }
 }

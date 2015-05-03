@@ -16,9 +16,11 @@ namespace ENode.Eventing
             Timestamp = timestamp;
             Events = events;
             Items = items ?? new Dictionary<string, string>();
+            var sequence = 1;
             foreach (var evnt in Events)
             {
-                evnt.SetAggregateRootTypeCode(aggregateRootTypeCode);
+                evnt.AggregateRootTypeCode = aggregateRootTypeCode;
+                evnt.Sequence = sequence++;
             }
         }
 

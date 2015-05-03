@@ -53,14 +53,14 @@ namespace ENode.EQueue
             var exceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var exceptionType = _publishableExceptionTypeCodeProvider.GetType(exceptionMessage.ExceptionTypeCode);
             var exception = FormatterServices.GetUninitializedObject(exceptionType) as IPublishableException;
-            exception.SetId(exceptionMessage.UniqueId);
-            exception.SetTimestamp(exceptionMessage.Timestamp);
+            exception.Id = exceptionMessage.UniqueId;
+            exception.Timestamp = exceptionMessage.Timestamp;
             exception.RestoreFrom(exceptionMessage.SerializableInfo);
             var sequenceMessage = exception as ISequenceMessage;
             if (sequenceMessage != null)
             {
-                sequenceMessage.SetAggregateRootTypeCode(exceptionMessage.AggregateRootTypeCode);
-                sequenceMessage.SetAggregateRootId(exceptionMessage.AggregateRootId);
+                sequenceMessage.AggregateRootTypeCode = exceptionMessage.AggregateRootTypeCode;
+                sequenceMessage.AggregateRootId = exceptionMessage.AggregateRootId;
             }
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingPublishableExceptionMessage(exception, processContext);

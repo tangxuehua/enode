@@ -14,6 +14,9 @@ namespace ENode.Infrastructure
         /// <summary>Represents the timestamp of the message.
         /// </summary>
         public DateTime Timestamp { get; set; }
+        /// <summary>Represents the sequence of the message which is belongs to the message stream.
+        /// </summary>
+        public int Sequence { get; set; }
 
         /// <summary>Default constructor.
         /// </summary>
@@ -21,6 +24,7 @@ namespace ENode.Infrastructure
         {
             Id = ObjectId.GenerateNewStringId();
             Timestamp = DateTime.Now;
+            Sequence = 1;
         }
 
         /// <summary>Returns null by default.
@@ -29,15 +33,6 @@ namespace ENode.Infrastructure
         public virtual string GetRoutingKey()
         {
             return null;
-        }
-
-        void IMessage.SetId(string id)
-        {
-            Id = id;
-        }
-        void IMessage.SetTimestamp(DateTime timestamp)
-        {
-            Timestamp = timestamp;
         }
     }
 }

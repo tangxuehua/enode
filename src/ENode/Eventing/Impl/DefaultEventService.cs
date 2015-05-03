@@ -100,7 +100,7 @@ namespace ENode.Eventing.Impl
         }
         public void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
-            if (eventStream.Items.Count == 0)
+            if (eventStream.Items == null || eventStream.Items.Count == 0)
             {
                 eventStream.Items = processingCommand.Items;
             }

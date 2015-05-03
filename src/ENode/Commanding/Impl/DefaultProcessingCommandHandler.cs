@@ -160,7 +160,7 @@ namespace ENode.Commanding.Impl
             //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
             if (dirtyAggregateRootCount == 0)
             {
-                _logger.DebugFormat("No aggregate created or modified by command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
+                _logger.InfoFormat("No aggregate created or modified by command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
                 NotifyCommandExecuted(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
             }
@@ -227,6 +227,8 @@ namespace ENode.Commanding.Impl
                 }
                 else
                 {
+                    var command = processingCommand.Message;
+                    _logger.ErrorFormat("Add command async failed, commandType:{0}, commandId:{1}, aggregateRootId:{2}", command.GetType().Name, command.Id, command.AggregateRootId);
                     NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Add command async failed.");
                 }
             },
@@ -253,9 +255,11 @@ namespace ENode.Commanding.Impl
                     //到这里，说明当前command想添加到commandStore中时，提示command重复，但是尝试从commandStore中取出该command时却找不到该command。
                     //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的Add接口和Get接口出现读写不一致的情况；
                     //我们记录错误日志，然后认为当前command已被处理为失败。
-                    var errorMessage = string.Format("Command exist in the command store, but we cannot get it from the command store. commandType:{0}, commandId:{1}",
+                    var errorMessage = string.Format("Command exist in the command store, but we cannot get it from the command store. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
                         command.GetType().Name,
-                        command.Id);
+                        command.Id,
+                        command.AggregateRootId);
+                    _logger.Error(errorMessage);
                     NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage);
                 }
             },
@@ -390,11 +394,6 @@ namespace ENode.Commanding.Impl
         }
         private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
         {
-            if (commandStatus == CommandStatus.Failed)
-            {
-                var command = processingCommand.Message;
-                _logger.ErrorFormat("Handle command failed, commandType:{0}, commandId:{1}, aggregateId:{2}, errorMessage:{3}", command.GetType().Name, command.Id, command.AggregateRootId, errorMessage);
-            }
             processingCommand.Complete(new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, exceptionTypeName, errorMessage));
         }
         private void RetryCommand(ProcessingCommand processingCommand)
@@ -499,6 +498,7 @@ namespace ENode.Commanding.Impl
                 }
                 else
                 {
+                    _logger.ErrorFormat("Add command async failed, commandType:{0}, commandId:{1}, aggregateRootId:{2}", command.GetType().Name, command.Id, command.AggregateRootId);
                     NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Add command async failed.");
                 }
             },
@@ -540,9 +540,11 @@ namespace ENode.Commanding.Impl
                     //到这里，说明当前command想添加到commandStore中时，提示command重复，但是尝试从commandStore中取出该command时却找不到该command。
                     //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的Add接口和Get接口出现读写不一致的情况；
                     //我们记录错误日志，然后认为当前command已被处理为失败。
-                    var errorMessage = string.Format("Command exist in the command store, but we cannot get it from the command store. commandType:{0}, commandId:{1}",
+                    var errorMessage = string.Format("Command exist in the command store, but we cannot get it from the command store. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
                         command.GetType().Name,
-                        command.Id);
+                        command.Id,
+                        command.AggregateRootId);
+                    _logger.Error(errorMessage);
                     NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage);
                 }
             },

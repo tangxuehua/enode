@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ECommon.Extensions;
-using ECommon.Logging;
 using ECommon.IO;
+using ECommon.Logging;
 
 namespace ENode.Infrastructure.Impl
 {
@@ -45,24 +45,33 @@ namespace ENode.Infrastructure.Impl
         }
         public Task<AsyncTaskResult> DispatchMessagesAsync(IEnumerable<IMessage> messages)
         {
-            var messageStream = new DisptachingMessageStream(messages);
-            foreach (var message in messages)
-            {
-                var handlers = _handlerProvider.GetHandlers(message.GetType());
-                if (!handlers.Any())
-                {
-                    messageStream.RemoveHandledMessage(message.Id);
-                    continue;
-                }
-                var dispatchingMessage = new DisptachingMessage(message, messageStream, handlers);
-                foreach (var handler in handlers)
-                {
-                    DispatchMessageToHandlerAsync(dispatchingMessage, handler, 0);
-                }
-            }
-            return messageStream.Task;
+            return DispatchMessageStream(new DisptachingMessageStream(this, messages));
         }
 
+        private Task<AsyncTaskResult> DispatchMessageStream(DisptachingMessageStream messageStream)
+        {
+            var message = messageStream.DequeueMessage();
+            if (message == null)
+            {
+                return Task.FromResult<AsyncTaskResult>(AsyncTaskResult.Success);
+            }
+            DispatchMessage(message, messageStream);
+            return messageStream.Task;
+        }
+        private void DispatchMessage(IMessage message, DisptachingMessageStream messageStream)
+        {
+            var handlers = _handlerProvider.GetHandlers(message.GetType());
+            if (!handlers.Any())
+            {
+                messageStream.OnMessageHandled(message);
+                return;
+            }
+            var dispatchingMessage = new DisptachingMessage(message, messageStream, handlers, _typeCodeProvider);
+            foreach (var handler in handlers)
+            {
+                DispatchMessageToHandlerAsync(dispatchingMessage, handler, 0);
+            }
+        }
         private void DispatchMessageToHandlerAsync(DisptachingMessage dispatchingMessage, IMessageHandlerProxy handlerProxy, int retryTimes)
         {
             var message = dispatchingMessage.Message;
@@ -78,7 +87,7 @@ namespace ENode.Infrastructure.Impl
             {
                 if (result.Data)
                 {
-                    dispatchingMessage.RemoveHandledHandler(handlerType);
+                    dispatchingMessage.RemoveHandledHandler(handlerTypeCode);
                 }
                 else
                 {
@@ -114,23 +123,23 @@ namespace ENode.Infrastructure.Impl
                     messageHandleRecord.Version = sequenceMessage.Version;
                 }
 
-                AddMessageHandledRecordAsync(dispatchingMessage, messageHandleRecord, handlerProxy.GetInnerHandler().GetType(), 0);
+                AddMessageHandledRecordAsync(dispatchingMessage, messageHandleRecord, handlerProxy.GetInnerHandler().GetType(), handlerTypeCode, 0);
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerProxy.GetInnerHandler().GetType().Name),
             null,
             retryTimes,
             true);
         }
-        private void AddMessageHandledRecordAsync(DisptachingMessage dispatchingMessage, MessageHandleRecord messageHandleRecord, Type handlerType, int retryTimes)
+        private void AddMessageHandledRecordAsync(DisptachingMessage dispatchingMessage, MessageHandleRecord messageHandleRecord, Type handlerType, int handlerTypeCode, int retryTimes)
         {
             var message = dispatchingMessage.Message;
 
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("AddMessageHandledRecordAsync",
             () => _messageHandleRecordStore.AddRecordAsync(messageHandleRecord),
-            currentRetryTimes => AddMessageHandledRecordAsync(dispatchingMessage, messageHandleRecord, handlerType, currentRetryTimes),
+            currentRetryTimes => AddMessageHandledRecordAsync(dispatchingMessage, messageHandleRecord, handlerType, handlerTypeCode, currentRetryTimes),
             result =>
             {
-                dispatchingMessage.RemoveHandledHandler(handlerType);
+                dispatchingMessage.RemoveHandledHandler(handlerTypeCode);
                 _logger.DebugFormat("Message handled success, handlerType:{0}, messageType:{1}, messageId:{2}", handlerType.Name, message.GetType().Name, message.Id);
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerType.Name),
@@ -141,53 +150,63 @@ namespace ENode.Infrastructure.Impl
 
         class DisptachingMessageStream
         {
+            private DefaultMessageDispatcher _dispatcher;
             private TaskCompletionSource<AsyncTaskResult> _taskCompletionSource;
-            private ConcurrentDictionary<string, IMessage> _messageDict;
+            private ConcurrentQueue<IMessage> _messageQueue;
 
-            public Task<AsyncTaskResult> Task { get { return _taskCompletionSource.Task; } }
-
-            public DisptachingMessageStream(IEnumerable<IMessage> messages)
-            {
-                _taskCompletionSource = new TaskCompletionSource<AsyncTaskResult>();
-                _messageDict = new ConcurrentDictionary<string, IMessage>();
-                messages.ForEach(x => _messageDict.TryAdd(x.Id, x));
-            }
-
-            public void RemoveHandledMessage(string messageId)
+            public IMessage DequeueMessage()
             {
                 IMessage message;
-                if (_messageDict.TryRemove(messageId, out message))
+                if (_messageQueue.TryDequeue(out message))
                 {
-                    if (_messageDict.IsEmpty)
-                    {
-                        _taskCompletionSource.SetResult(AsyncTaskResult.Success);
-                    }
+                    return message;
                 }
+                return null;
+            }
+            public Task<AsyncTaskResult> Task { get { return _taskCompletionSource.Task; } }
+
+            public DisptachingMessageStream(DefaultMessageDispatcher dispatcher, IEnumerable<IMessage> messages)
+            {
+                _dispatcher = dispatcher;
+                _taskCompletionSource = new TaskCompletionSource<AsyncTaskResult>();
+                _messageQueue = new ConcurrentQueue<IMessage>();
+                messages.ForEach(message => _messageQueue.Enqueue(message));
+            }
+
+            public void OnMessageHandled(IMessage message)
+            {
+                var nextMessage = DequeueMessage();
+                if (nextMessage == null)
+                {
+                    _taskCompletionSource.SetResult(AsyncTaskResult.Success);
+                    return;
+                }
+                _dispatcher.DispatchMessage(nextMessage, this);
             }
         }
         class DisptachingMessage
         {
-            private ConcurrentDictionary<Type, IMessageHandlerProxy> _handlerDict;
+            private ConcurrentDictionary<int, IMessageHandlerProxy> _handlerDict;
             private DisptachingMessageStream _parentMessageStream;
 
             public IMessage Message { get; private set; }
 
-            public DisptachingMessage(IMessage message, DisptachingMessageStream parentMessageStream, IEnumerable<IMessageHandlerProxy> handlers)
+            public DisptachingMessage(IMessage message, DisptachingMessageStream parentMessageStream, IEnumerable<IMessageHandlerProxy> handlers, ITypeCodeProvider typeCodeProvider)
             {
                 Message = message;
                 _parentMessageStream = parentMessageStream;
-                _handlerDict = new ConcurrentDictionary<Type, IMessageHandlerProxy>();
-                handlers.ForEach(x => _handlerDict.TryAdd(x.GetInnerHandler().GetType(), x));
+                _handlerDict = new ConcurrentDictionary<int, IMessageHandlerProxy>();
+                handlers.ForEach(x => _handlerDict.TryAdd(typeCodeProvider.GetTypeCode(x.GetInnerHandler().GetType()), x));
             }
 
-            public void RemoveHandledHandler(Type handlerType)
+            public void RemoveHandledHandler(int handlerTypeCode)
             {
                 IMessageHandlerProxy handler;
-                if (_handlerDict.TryRemove(handlerType, out handler))
+                if (_handlerDict.TryRemove(handlerTypeCode, out handler))
                 {
                     if (_handlerDict.IsEmpty)
                     {
-                        _parentMessageStream.RemoveHandledMessage(Message.Id);
+                        _parentMessageStream.OnMessageHandled(Message);
                     }
                 }
             }

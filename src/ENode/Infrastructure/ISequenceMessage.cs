@@ -8,20 +8,12 @@ namespace ENode.Infrastructure
     {
         /// <summary>Represents the aggregate root id of the sequence message.
         /// </summary>
-        string AggregateRootId { get; }
+        string AggregateRootId { get; set; }
         /// <summary>Represents the aggregate root type code of the sequence message.
         /// </summary>
-        int AggregateRootTypeCode { get; }
-        /// <summary>Represents the version of the sequence message.
+        int AggregateRootTypeCode { get; set; }
+        /// <summary>Represents the main version of the sequence message.
         /// </summary>
-        int Version { get; }
-        /// <summary>Set the aggregate root type code of the sequence message.
-        /// </summary>
-        /// <param name="aggregateRootTypeCode"></param>
-        void SetAggregateRootTypeCode(int aggregateRootTypeCode);
-        /// <summary>Set the aggregate root id of the sequence message.
-        /// </summary>
-        /// <param name="aggregateRootId"></param>
-        void SetAggregateRootId(string aggregateRootId);
+        int Version { get; set; }
     }
 }

@@ -51,14 +51,10 @@ namespace ENode.Infrastructure
             {
                 return AggregateRootStringId;
             }
-        }
-        void ISequenceMessage.SetAggregateRootTypeCode(int aggregateRootTypeCode)
-        {
-            AggregateRootTypeCode = aggregateRootTypeCode;
-        }
-        void ISequenceMessage.SetAggregateRootId(string aggregateRootId)
-        {
-            AggregateRootStringId = aggregateRootId;
+            set
+            {
+                AggregateRootStringId = value;
+            }
         }
 
         /// <summary>Returns the aggregate root id by default.
