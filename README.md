@@ -16,6 +16,10 @@ A simple forum sample
 --------------
 https://github.com/tangxuehua/forum
 
+A conference management and registration sample
+--------------
+https://github.com/tangxuehua/conference
+
 architecture
 --------------
 ![alt tag](https://raw.githubusercontent.com/tangxuehua/enode/master/doc/enode%20arch.png)
