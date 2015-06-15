@@ -22,6 +22,8 @@ CREATE TABLE [dbo].[EventStream] (
     CONSTRAINT [PK_EventStream] PRIMARY KEY CLUSTERED ([AggregateRootId] ASC, [Version] ASC)
 )
 GO
+CREATE UNIQUE INDEX [IX_EventStream_AggId_CommandId] ON [dbo].[EventStream] ([AggregateRootId], [CommandId])
+GO
 CREATE TABLE [dbo].[SequenceMessagePublishedVersion] (
     [Sequence]                BIGINT IDENTITY (1, 1) NOT NULL,
     [ProcessorName]           NVARCHAR (128)         NOT NULL,

@@ -3,7 +3,8 @@
     public enum EventAppendResult
     {
         Success = 1,
-        DuplicateEvent = 2,
-        Failed = 3
+        Failed = 2,
+        DuplicateEvent = 3,
+        DuplicateCommand = 4
     }
 }

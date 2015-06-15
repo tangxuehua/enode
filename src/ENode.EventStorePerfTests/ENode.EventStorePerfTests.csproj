@@ -32,15 +32,49 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\packages\Autofac.3.4.0\lib\net40\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Dapper">
+      <HintPath>..\..\packages\Dapper.1.38\lib\net45\Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="ECommon">
+      <HintPath>..\..\packages\ECommon.1.4.7\lib\net45\ECommon.dll</HintPath>
+    </Reference>
+    <Reference Include="ECommon.Autofac">
+      <HintPath>..\..\packages\ECommon.Autofac.1.4.2\lib\net45\ECommon.Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="ECommon.Dapper">
+      <HintPath>..\..\packages\ECommon.Dapper.1.4.2\lib\net45\ECommon.Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="ECommon.JsonNet">
+      <HintPath>..\..\packages\ECommon.JsonNet.1.4.2\lib\net45\ECommon.JsonNet.dll</HintPath>
+    </Reference>
+    <Reference Include="ECommon.Log4Net">
+      <HintPath>..\..\packages\ECommon.Log4Net.1.4.2\lib\net45\ECommon.Log4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="EQueue, Version=1.4.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\EQueue.1.4.6\lib\net45\EQueue.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ENodeExtensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -49,6 +83,16 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\eNode\ENode.csproj">
+      <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
+      <Name>ENode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NoteSample.Domain\NoteSample.Domain.csproj">
+      <Project>{51c698d5-8ccf-468b-8c4e-db615b4463c1}</Project>
+      <Name>NoteSample.Domain</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
