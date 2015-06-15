@@ -62,6 +62,14 @@ namespace ENode.Commanding.Impl
 
         public void HandleAsync(ProcessingCommand processingCommand)
         {
+            if (string.IsNullOrEmpty(processingCommand.Message.AggregateRootId))
+            {
+                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null,
+                    string.Format("The aggregateRootId of command cannot be null or empty. commandType:{0}, commandId:{1}",
+                    processingCommand.Message.GetType().Name,
+                    processingCommand.Message.Id));
+                return;
+            }
             var commandHandler = GetCommandHandler(processingCommand);
             var commandAsyncHandler = default(ICommandAsyncHandlerProxy);
 
@@ -72,7 +80,10 @@ namespace ENode.Commanding.Impl
 
             if (commandHandler == null && commandAsyncHandler == null)
             {
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "No command handler found.");
+                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null,
+                    string.Format("No command handler found of command. commandType:{0}, commandId:{1}",
+                    processingCommand.Message.GetType().Name,
+                    processingCommand.Message.Id));
                 return;
             }
 
