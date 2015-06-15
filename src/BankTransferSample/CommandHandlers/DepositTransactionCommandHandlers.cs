@@ -16,7 +16,7 @@ namespace BankTransferSample.CommandHandlers
     {
         public void Handle(ICommandContext context, StartDepositTransactionCommand command)
         {
-            context.Add(new DepositTransaction(ObjectId.GenerateNewStringId(), command.AccountId, command.Amount));
+            context.Add(new DepositTransaction(command.AggregateRootId, command.AccountId, command.Amount));
         }
         public void Handle(ICommandContext context, ConfirmDepositPreparationCommand command)
         {

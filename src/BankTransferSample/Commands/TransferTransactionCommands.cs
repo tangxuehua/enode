@@ -14,7 +14,8 @@ namespace BankTransferSample.Commands
         public TransferTransactionInfo TransactionInfo { get; set; }
 
         public StartTransferTransactionCommand() { }
-        public StartTransferTransactionCommand(TransferTransactionInfo transactionInfo)
+        public StartTransferTransactionCommand(string transactionId, TransferTransactionInfo transactionInfo)
+            : base(transactionId)
         {
             TransactionInfo = transactionInfo;
         }

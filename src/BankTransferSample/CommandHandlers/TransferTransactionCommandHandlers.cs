@@ -20,7 +20,7 @@ namespace BankTransferSample.CommandHandlers
     {
         public void Handle(ICommandContext context, StartTransferTransactionCommand command)
         {
-            context.Add(new TransferTransaction(ObjectId.GenerateNewStringId(), command.TransactionInfo));
+            context.Add(new TransferTransaction(command.AggregateRootId, command.TransactionInfo));
         }
         public void Handle(ICommandContext context, ConfirmAccountValidatePassedCommand command)
         {

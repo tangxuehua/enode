@@ -16,7 +16,8 @@ namespace BankTransferSample.Commands
         public double Amount { get; set; }
 
         public StartDepositTransactionCommand() { }
-        public StartDepositTransactionCommand(string accountId, double amount)
+        public StartDepositTransactionCommand(string transactionId, string accountId, double amount)
+            : base(transactionId)
         {
             AccountId = accountId;
             Amount = amount;
