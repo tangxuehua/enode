@@ -34,7 +34,7 @@ namespace ENode.Configurations
             SqlServerBulkCopyTimeout = 60;
             SqlServerLockServiceSetting = new DbTableSetting(this) { TableName = "Lock" };
             SqlServerCommandStoreSetting = new DbTableSetting(this) { TableName = "Command", PrimaryKeyName = "PK_Command" };
-            SqlServerEventStoreSetting = new DbTableSetting(this) { TableName = "EventStream", PrimaryKeyName = "PK_EventStream" };
+            SqlServerEventStoreSetting = new DbTableSetting(this) { TableName = "EventStream", PrimaryKeyName = "PK_EventStream", CommandIndexName = "IX_EventStream_AggId_CommandId" };
             SqlServerSequenceMessagePublishedVersionStoreSetting = new DbTableSetting(this) { TableName = "SequenceMessagePublishedVersion", PrimaryKeyName = "PK_SequenceMessagePublishedVersion" };
             SqlServerMessageHandleRecordStoreSetting = new DbTableSetting(this) { TableName = "MessageHandleRecord", PrimaryKeyName = "PK_MessageHandleRecord" };
         }

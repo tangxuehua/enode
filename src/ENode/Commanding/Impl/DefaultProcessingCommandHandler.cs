@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ECommon.Logging;
 using ECommon.IO;
+using ECommon.Logging;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -119,7 +119,7 @@ namespace ENode.Commanding.Impl
                         commandHandler.GetInnerHandler().GetType().Name,
                         command.GetType().Name,
                         command.Id,
-                        processingCommand.Message.AggregateRootId);
+                        command.AggregateRootId);
                 }
                 handleSuccess = true;
             }
@@ -185,18 +185,8 @@ namespace ENode.Commanding.Impl
             //构造出一个事件流对象
             var eventStream = BuildDomainEventStream(dirtyAggregateRoot, changedEvents, processingCommand);
 
-            //如果当前command处于并发冲突的重试中，则直接提交该command产生的事件，因为该command肯定已经在command store中了
-            if (processingCommand.ConcurrentRetriedCount > 0)
-            {
-                _eventService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
-                return;
-            }
-
-            var handledAggregateCommand = new HandledCommand(
-                command,
-                eventStream.AggregateRootId,
-                eventStream.AggregateRootTypeCode);
-            CommitAggregateChangesAsync(processingCommand, dirtyAggregateRoot, eventStream, handledAggregateCommand, 0);
+            //将事件流提交到EventStore
+            _eventService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
         }
         private DomainEventStream BuildDomainEventStream(IAggregateRoot aggregateRoot, IEnumerable<IDomainEvent> changedEvents, ProcessingCommand processingCommand)
         {
@@ -209,102 +199,23 @@ namespace ENode.Commanding.Impl
                 changedEvents,
                 processingCommand.Items);
         }
-        private void CommitAggregateChangesAsync(ProcessingCommand processingCommand, IAggregateRoot dirtyAggregateRoot, DomainEventStream eventStream, HandledCommand handledCommand, int retryTimes)
-        {
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<CommandAddResult>>("AddCommandAsync",
-            () => _commandStore.AddAsync(handledCommand),
-            currentRetryTimes => CommitAggregateChangesAsync(processingCommand, dirtyAggregateRoot, eventStream, handledCommand, currentRetryTimes),
-            result =>
-            {
-                var commandAddResult = result.Data;
-                if (commandAddResult == CommandAddResult.Success)
-                {
-                    _eventService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
-                }
-                else if (commandAddResult == CommandAddResult.DuplicateCommand)
-                {
-                    HandleAggregateDuplicatedCommandAsync(processingCommand, dirtyAggregateRoot, eventStream, 0);
-                }
-                else
-                {
-                    var command = processingCommand.Message;
-                    _logger.ErrorFormat("Add command async failed, commandType:{0}, commandId:{1}, aggregateRootId:{2}", command.GetType().Name, command.Id, command.AggregateRootId);
-                    NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, "Add command async failed.");
-                }
-            },
-            () => string.Format("[handledCommand:{0}]", handledCommand),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage ?? "Add command async failed."),
-            retryTimes);
-        }
-        private void HandleAggregateDuplicatedCommandAsync(ProcessingCommand processingCommand, IAggregateRoot dirtyAggregateRoot, DomainEventStream eventStream, int retryTimes)
-        {
-            var command = processingCommand.Message;
-
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<HandledCommand>>("GetCommandAsync",
-            () => _commandStore.GetAsync(command.Id),
-            currentRetryTimes => HandleAggregateDuplicatedCommandAsync(processingCommand, dirtyAggregateRoot, eventStream, currentRetryTimes),
-            result =>
-            {
-                var existingHandledCommand = result.Data;
-                if (existingHandledCommand != null)
-                {
-                    HandleExistingHandledAggregateAsync(processingCommand, dirtyAggregateRoot, eventStream, existingHandledCommand, 0);
-                }
-                else
-                {
-                    //到这里，说明当前command想添加到commandStore中时，提示command重复，但是尝试从commandStore中取出该command时却找不到该command。
-                    //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的Add接口和Get接口出现读写不一致的情况；
-                    //我们记录错误日志，然后认为当前command已被处理为失败。
-                    var errorMessage = string.Format("Command exist in the command store, but we cannot get it from the command store. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
-                        command.GetType().Name,
-                        command.Id,
-                        command.AggregateRootId);
-                    _logger.Error(errorMessage);
-                    NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage);
-                }
-            },
-            () => string.Format("[commandId:{0}]", command.Id),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage ?? "Get command async failed."),
-            retryTimes);
-        }
-        private void HandleExistingHandledAggregateAsync(ProcessingCommand processingCommand, IAggregateRoot dirtyAggregateRoot, DomainEventStream eventStream, HandledCommand existingHandledCommand, int retryTimes)
+        private void HandleExceptionAsync(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler, Exception exception, int retryTimes)
         {
             var command = processingCommand.Message;
 
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<DomainEventStream>>("FindEventStreamByCommandIdAsync",
-            () => _eventStore.FindAsync(existingHandledCommand.AggregateRootId, command.Id),
-            currentRetryTimes => HandleExistingHandledAggregateAsync(processingCommand, dirtyAggregateRoot, eventStream, existingHandledCommand, currentRetryTimes),
+            () => _eventStore.FindAsync(command.AggregateRootId, command.Id),
+            currentRetryTimes => HandleExceptionAsync(processingCommand, commandHandler, exception, currentRetryTimes),
             result =>
             {
                 var existingEventStream = result.Data;
                 if (existingEventStream != null)
                 {
-                    //如果当前command已经被持久化过了，且该command产生的事件也已经被持久化了，则只要再做一遍发布事件的操作
+                    //这里，我们需要再重新做一遍更新内存缓存以及发布事件这两个操作；
+                    //之所以要这样做是因为虽然该command产生的事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
+                    //因为有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
+                    _memoryCache.RefreshAggregateFromEventStore(existingEventStream.AggregateRootTypeCode, existingEventStream.AggregateRootId);
                     _eventService.PublishDomainEventAsync(processingCommand, existingEventStream);
-                }
-                else
-                {
-                    //如果当前command已经被持久化过了，但事件没有被持久化，则需要重新提交当前command所产生的事件；
-                    _eventService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
-                }
-            },
-            () => string.Format("[aggregateRootId:{0}, commandId:{1}]", existingHandledCommand.AggregateRootId, command.Id),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage ?? "Find event stream by command id async failed."),
-            retryTimes);
-        }
-        private void HandleExceptionAsync(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler, Exception exception, int retryTimes)
-        {
-            var command = processingCommand.Message;
-
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<HandledCommand>>("GetCommandAsync",
-            () => _commandStore.GetAsync(command.Id),
-            currentRetryTimes => HandleExceptionAsync(processingCommand, commandHandler, exception, currentRetryTimes),
-            result =>
-            {
-                var existingHandledCommand = result.Data;
-                if (existingHandledCommand != null)
-                {
-                    HandleExistingHandledCommandForExceptionAsync(processingCommand, existingHandledCommand, commandHandler, exception, 0);
                 }
                 else
                 {
@@ -344,52 +255,6 @@ namespace ENode.Commanding.Impl
                 return string.Format("[commandId:{0}, exceptionInfo:{1}]", processingCommand.Message.Id, exceptionInfo);
             },
             errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage ?? "Publish exception async failed."),
-            retryTimes);
-        }
-        private void HandleExistingHandledCommandForExceptionAsync(ProcessingCommand processingCommand, HandledCommand existingHandledCommand, ICommandHandlerProxy commandHandler, Exception exception, int retryTimes)
-        {
-            var command = processingCommand.Message;
-            var aggregateRootId = existingHandledCommand.AggregateRootId;
-
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<DomainEventStream>>("FindEventStreamByCommandIdAsync",
-            () => _eventStore.FindAsync(aggregateRootId, command.Id),
-            currentRetryTimes => HandleExistingHandledCommandForExceptionAsync(processingCommand, existingHandledCommand, commandHandler, exception, currentRetryTimes),
-            result =>
-            {
-                var existingEventStream = result.Data;
-                if (existingEventStream != null)
-                {
-                    _eventService.PublishDomainEventAsync(processingCommand, existingEventStream);
-                }
-                else
-                {
-                    LogCommandExecuteException(processingCommand, commandHandler, exception);
-                    TryToRetryCommandForExceptionAsync(processingCommand, existingHandledCommand, commandHandler, exception, 0);
-                }
-            },
-            () => string.Format("[aggregateRootId:{0}, commandId:{1}]", aggregateRootId, command.Id),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage ?? "Find event stream by command id async failed."),
-            retryTimes);
-        }
-        private void TryToRetryCommandForExceptionAsync(ProcessingCommand processingCommand, HandledCommand existingHandledCommand, ICommandHandlerProxy commandHandler, Exception exception, int retryTimes)
-        {
-            var command = processingCommand.Message;
-
-            //到这里，说明当前command执行遇到异常，然后该command在commandStore中存在，
-            //但是在eventStore中不存在，此时可以理解为该command还未被成功执行，此时做如下操作：
-            //1.将command从commandStore中移除
-            //2.根据eventStore里的事件刷新缓存，目的是为了还原聚合根到最新状态，因为该聚合根的状态有可能已经被污染
-            //3.重试该command
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("RemoveCommandAsync",
-            () => _commandStore.RemoveAsync(command.Id),
-            currentRetryTimes => TryToRetryCommandForExceptionAsync(processingCommand, existingHandledCommand, commandHandler, exception, currentRetryTimes),
-            result =>
-            {
-                _memoryCache.RefreshAggregateFromEventStore(existingHandledCommand.AggregateRootTypeCode, existingHandledCommand.AggregateRootId);
-                RetryCommand(processingCommand);
-            },
-            () => string.Format("[commandId:{0}]", command.Id),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage ?? "Remove command async failed."),
             retryTimes);
         }
         private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string exceptionTypeName, string errorMessage)
@@ -445,6 +310,7 @@ namespace ENode.Commanding.Impl
                     NotifyCommandExecuted(processingCommand, CommandStatus.NothingChanged, null, null);
                     return;
                 }
+                _logger.DebugFormat("Duplicate command execution, commandId:{0},commandType:{1}", command.Id, command.GetType().Name);
                 HandleCommandAsync(processingCommand, commandAsyncHandler, 0);
             },
             () => string.Format("[commandId:{0},commandType:{1}]", command.Id, command.GetType().Name),
@@ -477,10 +343,7 @@ namespace ENode.Commanding.Impl
         private void CommitChangesAsync(ProcessingCommand processingCommand, IApplicationMessage message, int retryTimes)
         {
             var command = processingCommand.Message;
-            var handledCommand = new HandledCommand(
-                command,
-                aggregateRootId: command.AggregateRootId,
-                message: message);
+            var handledCommand = new HandledCommand(command.Id, command.AggregateRootId, message);
 
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<CommandAddResult>>("AddCommandAsync",
             () => _commandStore.AddAsync(handledCommand),
@@ -533,7 +396,14 @@ namespace ENode.Commanding.Impl
                 var existingHandledCommand = result.Data;
                 if (existingHandledCommand != null)
                 {
-                    PublishMessageAsync(processingCommand, existingHandledCommand.Message, 0);
+                    if (existingHandledCommand.Message != null)
+                    {
+                        PublishMessageAsync(processingCommand, existingHandledCommand.Message, 0);
+                    }
+                    else
+                    {
+                        NotifyCommandExecuted(processingCommand, CommandStatus.Success, null, null);
+                    }
                 }
                 else
                 {

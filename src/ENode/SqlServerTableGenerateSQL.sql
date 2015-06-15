@@ -1,13 +1,10 @@
 CREATE TABLE [dbo].[Command] (
     [Sequence]                BIGINT IDENTITY (1, 1) NOT NULL,
     [CommandId]               NVARCHAR (36)          NOT NULL,
-    [CommandTypeCode]         INT                    NOT NULL,
-    [Timestamp]               DATETIME               NOT NULL,
-    [Payload]                 NVARCHAR (MAX)         NOT NULL,
-    [AggregateRootTypeCode]   INT                    NOT NULL,
     [AggregateRootId]         NVARCHAR (36)          NULL,
     [Message]                 NVARCHAR (MAX)         NULL,
     [MessageTypeCode]         INT                    NOT NULL,
+    [Timestamp]               DATETIME               NOT NULL,
     CONSTRAINT [PK_Command] PRIMARY KEY CLUSTERED ([CommandId] ASC)
 )
 GO

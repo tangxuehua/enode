@@ -24,6 +24,7 @@ namespace ENode.Eventing.Impl
         private readonly string _connectionString;
         private readonly string _eventTable;
         private readonly string _primaryKeyName;
+        private readonly string _commandIndexName;
         private readonly int _bulkCopyBatchSize;
         private readonly int _bulkCopyTimeout;
         private readonly IJsonSerializer _jsonSerializer;
@@ -49,6 +50,7 @@ namespace ENode.Eventing.Impl
             _connectionString = setting.ConnectionString;
             _eventTable = setting.TableName;
             _primaryKeyName = setting.PrimaryKeyName;
+            _commandIndexName = setting.CommandIndexName;
             _bulkCopyBatchSize = configSetting.SqlServerBulkCopyBatchSize;
             _bulkCopyTimeout = configSetting.SqlServerBulkCopyTimeout;
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
@@ -64,106 +66,6 @@ namespace ENode.Eventing.Impl
         public bool SupportBatchAppend
         {
             get { return true; }
-        }
-        public void BatchAppend(IEnumerable<DomainEventStream> eventStreams)
-        {
-            var table = BuildEventTable();
-            foreach (var eventStream in eventStreams)
-            {
-                AddDataRow(table, eventStream);
-            }
-
-            _ioHelper.TryIOAction(() =>
-            {
-                using (var connection = GetConnection())
-                {
-                    connection.Open();
-                    var transaction = connection.BeginTransaction();
-
-                    using (var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
-                    {
-                        copy.BatchSize = _bulkCopyBatchSize;
-                        copy.BulkCopyTimeout = _bulkCopyTimeout;
-                        copy.DestinationTableName = _eventTable;
-                        copy.ColumnMappings.Add("CommandId", "CommandId");
-                        copy.ColumnMappings.Add("AggregateRootId", "AggregateRootId");
-                        copy.ColumnMappings.Add("AggregateRootTypeCode", "AggregateRootTypeCode");
-                        copy.ColumnMappings.Add("Version", "Version");
-                        copy.ColumnMappings.Add("Timestamp", "Timestamp");
-                        copy.ColumnMappings.Add("Events", "Events");
-
-                        try
-                        {
-                            copy.WriteToServer(table);
-                            transaction.Commit();
-                        }
-                        catch
-                        {
-                            transaction.Rollback();
-                            throw;
-                        }
-                    }
-                }
-            }, "BatchAppendEvents");
-        }
-        public EventAppendResult Append(DomainEventStream eventStream)
-        {
-            var record = ConvertTo(eventStream);
-
-            return _ioHelper.TryIOFunc(() =>
-            {
-                using (var connection = GetConnection())
-                {
-                    try
-                    {
-                        connection.Insert(record, _eventTable);
-                        return EventAppendResult.Success;
-                    }
-                    catch (SqlException ex)
-                    {
-                        if (ex.Number == 2627)
-                        {
-                            if (ex.Message.Contains(_primaryKeyName))
-                            {
-                                return EventAppendResult.DuplicateEvent;
-                            }
-                        }
-                        throw;
-                    }
-                }
-            }, "AppendEvents");
-        }
-        public DomainEventStream Find(string aggregateRootId, int version)
-        {
-            var record = _ioHelper.TryIOFunc(() =>
-            {
-                using (var connection = GetConnection())
-                {
-                    return connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _eventTable).SingleOrDefault();
-                }
-            }, "FindEventByVersion");
-
-            if (record != null)
-            {
-                return ConvertFrom(record);
-            }
-            return null;
-        }
-        public DomainEventStream Find(string aggregateRootId, string commandId)
-        {
-            var record = _ioHelper.TryIOFunc(() =>
-            {
-                using (var connection = GetConnection())
-                {
-                    return connection.QueryList<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _eventTable).SingleOrDefault();
-                }
-            }, "FindEventByCommandId");
-
-            if (record != null)
-            {
-                return ConvertFrom(record);
-            }
-            return null;
         }
         public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
@@ -231,10 +133,11 @@ namespace ENode.Eventing.Impl
                                 await Task.Run(() => transaction.Commit());
                                 return AsyncTaskResult.Success;
                             }
-                            catch
+                            catch (Exception ex)
                             {
-                                transaction.Rollback();
-                                throw;
+                                try { transaction.Rollback(); }
+                                catch { }
+                                return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
                             }
                         }
                     }
@@ -270,6 +173,10 @@ namespace ENode.Eventing.Impl
                     if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
                     {
                         return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
+                    }
+                    else if (ex.Number == 2601 && ex.Message.Contains(_commandIndexName))
+                    {
+                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateCommand);
                     }
                     _logger.Error(string.Format("Append event has sql exception, eventStream: {0}", eventStream), ex);
                     return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.IOException, ex.Message, EventAppendResult.Failed);

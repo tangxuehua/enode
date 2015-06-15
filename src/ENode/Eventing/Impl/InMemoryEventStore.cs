@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ECommon.Logging;
 using ECommon.IO;
-using ENode.Infrastructure;
+using ECommon.Logging;
 
 namespace ENode.Eventing.Impl
 {
@@ -29,59 +28,6 @@ namespace ENode.Eventing.Impl
         public bool SupportBatchAppend
         {
             get { return false; }
-        }
-        public void BatchAppend(IEnumerable<DomainEventStream> eventStreams)
-        {
-            throw new NotSupportedException();
-        }
-        public EventAppendResult Append(DomainEventStream eventStream)
-        {
-            var aggregateInfo = _aggregateInfoDict.GetOrAdd(eventStream.AggregateRootId, new AggregateInfo());
-            var originalStatus = Interlocked.CompareExchange(ref aggregateInfo.Status, Editing, UnEditing);
-
-            if (originalStatus == aggregateInfo.Status)
-            {
-                return EventAppendResult.DuplicateEvent;
-            }
-
-            try
-            {
-                if (eventStream.Version == aggregateInfo.CurrentVersion + 1)
-                {
-                    aggregateInfo.EventDict[eventStream.Version] = eventStream;
-                    aggregateInfo.CommandDict[eventStream.CommandId] = eventStream;
-                    aggregateInfo.CurrentVersion = eventStream.Version;
-                    _eventDict.TryAdd(Interlocked.Increment(ref _sequence), eventStream);
-                    return EventAppendResult.Success;
-                }
-                return EventAppendResult.DuplicateEvent;
-            }
-            finally
-            {
-                Interlocked.Exchange(ref aggregateInfo.Status, UnEditing);
-            }
-        }
-        public DomainEventStream Find(string aggregateRootId, int version)
-        {
-            AggregateInfo aggregateInfo;
-            if (!_aggregateInfoDict.TryGetValue(aggregateRootId, out aggregateInfo))
-            {
-                return null;
-            }
-
-            DomainEventStream eventStream;
-            return aggregateInfo.EventDict.TryGetValue(version, out eventStream) ? eventStream : null;
-        }
-        public DomainEventStream Find(string aggregateRootId, string commandId)
-        {
-            AggregateInfo aggregateInfo;
-            if (!_aggregateInfoDict.TryGetValue(aggregateRootId, out aggregateInfo))
-            {
-                return null;
-            }
-
-            DomainEventStream eventStream;
-            return aggregateInfo.CommandDict.TryGetValue(commandId, out eventStream) ? eventStream : null;
         }
         public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
         {
@@ -129,6 +75,56 @@ namespace ENode.Eventing.Impl
             return Task.FromResult(new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, null, QueryByPage(pageIndex, pageSize)));
         }
 
+
+        private EventAppendResult Append(DomainEventStream eventStream)
+        {
+            var aggregateInfo = _aggregateInfoDict.GetOrAdd(eventStream.AggregateRootId, new AggregateInfo());
+            var originalStatus = Interlocked.CompareExchange(ref aggregateInfo.Status, Editing, UnEditing);
+
+            if (originalStatus == aggregateInfo.Status)
+            {
+                return EventAppendResult.DuplicateEvent;
+            }
+
+            try
+            {
+                if (eventStream.Version == aggregateInfo.CurrentVersion + 1)
+                {
+                    aggregateInfo.EventDict[eventStream.Version] = eventStream;
+                    aggregateInfo.CommandDict[eventStream.CommandId] = eventStream;
+                    aggregateInfo.CurrentVersion = eventStream.Version;
+                    _eventDict.TryAdd(Interlocked.Increment(ref _sequence), eventStream);
+                    return EventAppendResult.Success;
+                }
+                return EventAppendResult.DuplicateEvent;
+            }
+            finally
+            {
+                Interlocked.Exchange(ref aggregateInfo.Status, UnEditing);
+            }
+        }
+        private DomainEventStream Find(string aggregateRootId, int version)
+        {
+            AggregateInfo aggregateInfo;
+            if (!_aggregateInfoDict.TryGetValue(aggregateRootId, out aggregateInfo))
+            {
+                return null;
+            }
+
+            DomainEventStream eventStream;
+            return aggregateInfo.EventDict.TryGetValue(version, out eventStream) ? eventStream : null;
+        }
+        private DomainEventStream Find(string aggregateRootId, string commandId)
+        {
+            AggregateInfo aggregateInfo;
+            if (!_aggregateInfoDict.TryGetValue(aggregateRootId, out aggregateInfo))
+            {
+                return null;
+            }
+
+            DomainEventStream eventStream;
+            return aggregateInfo.CommandDict.TryGetValue(commandId, out eventStream) ? eventStream : null;
+        }
         class AggregateInfo
         {
             public int Status;

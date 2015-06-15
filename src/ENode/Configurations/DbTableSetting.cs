@@ -24,6 +24,7 @@ namespace ENode.Configurations
         }
         public string TableName { get; set; }
         public string PrimaryKeyName { get; set; }
+        public string CommandIndexName { get; set; }
 
         public DbTableSetting(ConfigurationSetting configurationSetting)
         {

@@ -3,8 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using ECommon.Logging;
 using ECommon.IO;
+using ECommon.Logging;
 using ECommon.Scheduling;
 using ECommon.Utilities;
 using ENode.Commanding;
@@ -215,9 +215,48 @@ namespace ENode.Eventing.Impl
                 {
                     HandleDuplicateEventResult(context);
                 }
+                else if (result.Data == EventAppendResult.DuplicateCommand)
+                {
+                    HandleDuplicateCommandResult(context, 0);
+                }
             },
             () => string.Format("[eventStream:{0}]", context.EventStream),
             errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, null, errorMessage ?? "Persist event async failed.")),
+            retryTimes);
+        }
+        private void HandleDuplicateCommandResult(EventCommittingContext context, int retryTimes)
+        {
+            var command = context.ProcessingCommand.Message;
+
+            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<DomainEventStream>>("FindEventStreamByCommandIdAsync",
+            () => _eventStore.FindAsync(command.AggregateRootId, command.Id),
+            currentRetryTimes => HandleDuplicateCommandResult(context, currentRetryTimes),
+            result =>
+            {
+                var existingEventStream = result.Data;
+                if (existingEventStream != null)
+                {
+                    //这里，我们需要再重新做一遍更新内存缓存以及发布事件这两个操作；
+                    //之所以要这样做是因为虽然该command产生的事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
+                    //因为有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
+                    RefreshAggregateMemoryCache(existingEventStream);
+                    PublishDomainEventAsync(context.ProcessingCommand, existingEventStream);
+                }
+                else
+                {
+                    //到这里，说明当前command想添加到eventStore中时，提示command重复，但是尝试从eventStore中取出该command时却找不到该command。
+                    //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非eventStore的Add接口和Get接口出现读写不一致的情况；
+                    //我们记录错误日志，然后认为当前command已被处理为失败。
+                    var errorMessage = string.Format("Command exist in the event store, but we cannot get it from the event store. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
+                        command.GetType().Name,
+                        command.Id,
+                        command.AggregateRootId);
+                    _logger.Error(errorMessage);
+                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, null, "Duplicate command execution."));
+                }
+            },
+            () => string.Format("[aggregateRootId:{0}, commandId:{1}]", command.AggregateRootId, command.Id),
+            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, null, "Find event stream by commandId failed.")),
             retryTimes);
         }
         private void HandleDuplicateEventResult(EventCommittingContext context)
