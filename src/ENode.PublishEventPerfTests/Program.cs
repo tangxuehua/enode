@@ -7,6 +7,7 @@ using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.JsonNet;
+using ECommon.Log4Net;
 using ECommon.Utilities;
 using ENode.Configurations;
 using ENode.Eventing;
@@ -77,6 +78,7 @@ namespace ENode.PublishEventPerfTests
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
+                .UseLog4Net()
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()

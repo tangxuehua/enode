@@ -8,6 +8,7 @@ using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.JsonNet;
+using ECommon.Log4Net;
 using ECommon.Logging;
 using ENode.Commanding;
 using ENode.Configurations;
@@ -67,6 +68,7 @@ namespace ENode.CommandProcessorPerfTests
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
+                .UseLog4Net()
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()

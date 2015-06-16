@@ -8,6 +8,7 @@ using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.IO;
 using ECommon.JsonNet;
+using ECommon.Log4Net;
 using ECommon.Utilities;
 using ENode.Configurations;
 using ENode.Domain;
@@ -37,7 +38,7 @@ namespace ENode.EventStorePerfTests
                 var current = 0;
                 for (var i = 1; i <= count; i++)
                 {
-                    eventStore.AppendAsync(new DomainEventStream("001", note.Id, 100, i, DateTime.Now, evnts)).ContinueWith(t =>
+                    eventStore.AppendAsync(new DomainEventStream(ObjectId.GenerateNewStringId(), note.Id, 100, i, DateTime.Now, evnts)).ContinueWith(t =>
                     {
                         if (t.Result.Data == EventAppendResult.DuplicateEvent)
                         {
@@ -79,7 +80,7 @@ namespace ENode.EventStorePerfTests
                     }
                     else
                     {
-                        batch.Add(new DomainEventStream("0001", note.Id, 100, i, DateTime.Now, evnts));
+                        batch.Add(new DomainEventStream(ObjectId.GenerateNewStringId(), note.Id, 100, i, DateTime.Now, evnts));
                     }
                 }
                 if (batch.Count > 0)
@@ -113,6 +114,7 @@ namespace ENode.EventStorePerfTests
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
+                .UseLog4Net()
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode(setting)
