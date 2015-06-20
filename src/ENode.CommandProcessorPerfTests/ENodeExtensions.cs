@@ -14,7 +14,11 @@ namespace ENode.CommandProcessorPerfTests
             var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
 
             //aggregates
-            provider.RegisterType<Note>(1000);
+            provider.RegisterType<Note>(100);
+
+            //events
+            provider.RegisterType<NoteCreated>(1000);
+            provider.RegisterType<NoteTitleChanged>(1001);
 
             return enodeConfiguration;
         }
