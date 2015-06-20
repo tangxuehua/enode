@@ -166,7 +166,7 @@
       <HintPath>..\..\packages\Dapper.1.38\lib\net45\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="ECommon">
-      <HintPath>..\..\packages\ecommon.1.4.7\lib\net45\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ecommon.1.4.9\lib\net45\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Dapper">
       <HintPath>..\..\packages\ECommon.Dapper.1.4.2\lib\net45\ECommon.Dapper.dll</HintPath>

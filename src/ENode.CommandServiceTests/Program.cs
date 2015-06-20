@@ -27,13 +27,15 @@ namespace ENode.CommandServiceTests
         static void Main(string[] args)
         {
             InitializeENodeFramework();
+            Console.WriteLine("ENode started....");
 
             create_and_update_aggregate_test();
             create_and_concurrent_update_aggregate_test();
             duplicate_create_aggregate_command_test();
             duplicate_update_aggregate_command_test();
 
-            Console.WriteLine("----All cases run success, Press enter to exit.");
+            Console.WriteLine("");
+            Console.WriteLine("All cases run success, press enter to exit.");
             Console.ReadLine();
         }
         static void InitializeENodeFramework()
@@ -67,12 +69,12 @@ namespace ENode.CommandServiceTests
 
             _commandService = ObjectContainer.Resolve<ICommandService>();
             _memoryCache = ObjectContainer.Resolve<IMemoryCache>();
-
-            Console.WriteLine("ENode started, please wait for equeue consumer load balance...");
         }
 
         static void create_and_update_aggregate_test()
         {
+            Console.WriteLine("");
+            Console.WriteLine("----create_and_update_aggregate_test start.");
             var noteId = ObjectId.GenerateNewStringId();
             var command = new CreateNoteCommand
             {
@@ -108,9 +110,12 @@ namespace ENode.CommandServiceTests
             Assert.NotNull(note);
             Assert.AreEqual("Changed Note", note.Title);
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
+            Console.WriteLine("----create_and_update_aggregate_test end.");
         }
         static void duplicate_create_aggregate_command_test()
         {
+            Console.WriteLine("");
+            Console.WriteLine("----duplicate_create_aggregate_command_test start.");
             var noteId = ObjectId.GenerateNewStringId();
             var command = new CreateNoteCommand
             {
@@ -139,9 +144,12 @@ namespace ENode.CommandServiceTests
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             Assert.AreEqual("Sample Note", note.Title);
             Assert.AreEqual(1, ((IAggregateRoot)note).Version);
+            Console.WriteLine("----duplicate_create_aggregate_command_test end.");
         }
         static void duplicate_update_aggregate_command_test()
         {
+            Console.WriteLine("");
+            Console.WriteLine("----duplicate_update_aggregate_command_test start.");
             var noteId = ObjectId.GenerateNewStringId();
             var command1 = new CreateNoteCommand
             {
@@ -182,9 +190,12 @@ namespace ENode.CommandServiceTests
             Assert.NotNull(note);
             Assert.AreEqual("Changed Note", note.Title);
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
+            Console.WriteLine("----duplicate_update_aggregate_command_test end.");
         }
         static void create_and_concurrent_update_aggregate_test()
         {
+            Console.WriteLine("");
+            Console.WriteLine("----create_and_concurrent_update_aggregate_test start.");
             var noteId = ObjectId.GenerateNewStringId();
             var command = new CreateNoteCommand
             {
@@ -234,6 +245,7 @@ namespace ENode.CommandServiceTests
                 });
             }
             waitHandle.WaitOne();
+            Console.WriteLine("----create_and_concurrent_update_aggregate_test end.");
         }
     }
 }

@@ -8,7 +8,9 @@ using ENode.EQueue.Commanding;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
 using EQueue.Broker;
+using EQueue.Clients.Consumers;
 using EQueue.Configurations;
+using EQueue.Protocols;
 using NoteSample.Commands;
 using NoteSample.Domain;
 
@@ -28,7 +30,7 @@ namespace ENode.CommandServiceTests
             _commandService = new CommandService(new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
 
-            _commandConsumer = new CommandConsumer().Subscribe("NoteCommandTopic");
+            _commandConsumer = new CommandConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("NoteCommandTopic");
 
             return enodeConfiguration;
         }
