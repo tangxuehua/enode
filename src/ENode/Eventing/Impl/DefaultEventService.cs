@@ -152,7 +152,7 @@ namespace ENode.Eventing.Impl
             result =>
             {
                 _successPersistedContextQueue.Add(contextList);
-                _logger.InfoFormat("Batch persist event stream success, persisted event stream count:{0}", contextList.Count());
+                _logger.DebugFormat("Batch persist event stream success, persisted event stream count:{0}", contextList.Count());
                 if (_toCommitContextQueue.Count >= _groupCommitMaxSize)
                 {
                     BatchPersistEventsAsync(DequeueContexts(), 0);
