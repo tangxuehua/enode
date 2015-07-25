@@ -68,6 +68,16 @@ namespace ENode.Domain
             HandleEvent(domainEvent);
             AppendUncommittedEvent(domainEvent);
         }
+        /// <summary>Apply multiple domain events to the current aggregate root.
+        /// </summary>
+        /// <param name="domainEvent"></param>
+        protected void ApplyEvents(params IDomainEvent[] domainEvents)
+        {
+            foreach (var domainEvent in domainEvents)
+            {
+                ApplyEvent(domainEvent);
+            }
+        }
 
         private void HandleEvent(IDomainEvent domainEvent)
         {

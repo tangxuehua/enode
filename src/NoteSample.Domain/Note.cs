@@ -20,9 +20,7 @@ namespace NoteSample.Domain
         }
         public void TestEvents()
         {
-            ApplyEvent(new Event1(this));
-            ApplyEvent(new Event2(this));
-            ApplyEvent(new Event3(this));
+            ApplyEvents(new Event1(this), new Event2(this), new Event3(this));
         }
 
         private void Handle(NoteCreated evnt)
