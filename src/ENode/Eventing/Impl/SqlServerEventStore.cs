@@ -41,18 +41,18 @@ namespace ENode.Eventing.Impl
             var configSetting = ENodeConfiguration.Instance.Setting;
             var setting = configSetting.SqlServerEventStoreSetting;
             Ensure.NotNull(setting, "SqlServerEventStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "SqlServerEventStoreSetting.ConnectionString");
-            Ensure.NotNull(setting.TableName, "SqlServerEventStoreSetting.TableName");
-            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerEventStoreSetting.PrimaryKeyName");
-            Ensure.Positive(configSetting.SqlServerBulkCopyBatchSize, "SqlServerBulkCopyBatchSize");
-            Ensure.Positive(configSetting.SqlServerBulkCopyTimeout, "SqlServerBulkCopyTimeout");
+            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
+            Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
+            Ensure.NotNull(setting.GetOptionValue<string>("PrimaryKeyName"), "PrimaryKeyName");
+            Ensure.Positive(setting.GetOptionValue<int>("BulkCopyBatchSize"), "BulkCopyBatchSize");
+            Ensure.Positive(setting.GetOptionValue<int>("BulkCopyTimeout"), "BulkCopyTimeout");
 
             _connectionString = setting.ConnectionString;
-            _eventTable = setting.TableName;
-            _primaryKeyName = setting.PrimaryKeyName;
-            _commandIndexName = setting.CommandIndexName;
-            _bulkCopyBatchSize = configSetting.SqlServerBulkCopyBatchSize;
-            _bulkCopyTimeout = configSetting.SqlServerBulkCopyTimeout;
+            _eventTable = setting.GetOptionValue<string>("TableName");
+            _primaryKeyName = setting.GetOptionValue<string>("PrimaryKeyName");
+            _commandIndexName = setting.GetOptionValue<string>("CommandIndexName");
+            _bulkCopyBatchSize = setting.GetOptionValue<int>("BulkCopyBatchSize");
+            _bulkCopyTimeout = setting.GetOptionValue<int>("BulkCopyTimeout");
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();

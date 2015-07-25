@@ -28,13 +28,13 @@ namespace ENode.Infrastructure.Impl.SQL
         {
             var setting = ENodeConfiguration.Instance.Setting.SqlServerSequenceMessagePublishedVersionStoreSetting;
             Ensure.NotNull(setting, "SqlServerSequenceMessagePublishedVersionStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "SqlServerSequenceMessagePublishedVersionStoreSetting.ConnectionString");
-            Ensure.NotNull(setting.TableName, "SqlServerSequenceMessagePublishedVersionStoreSetting.TableName");
-            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerSequenceMessagePublishedVersionStoreSetting.PrimaryKeyName");
+            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
+            Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
+            Ensure.NotNull(setting.GetOptionValue<string>("PrimaryKeyName"), "PrimaryKeyName");
 
             _connectionString = setting.ConnectionString;
-            _tableName = setting.TableName;
-            _primaryKeyName = setting.PrimaryKeyName;
+            _tableName = setting.GetOptionValue<string>("TableName");
+            _primaryKeyName = setting.GetOptionValue<string>("PrimaryKeyName");
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 

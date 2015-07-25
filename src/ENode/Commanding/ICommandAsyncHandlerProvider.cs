@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
@@ -11,6 +12,6 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="commandType"></param>
         /// <returns></returns>
-        IEnumerable<ICommandAsyncHandlerProxy> GetHandlers(Type commandType);
+        IEnumerable<MessageHandlerData<ICommandAsyncHandlerProxy>> GetHandlers(Type commandType);
     }
 }

@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestEventsCommandHandler.cs" />
     <Compile Include="ChangeNoteTitleCommandHandler.cs" />
     <Compile Include="CreateNoteCommandHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -113,7 +113,13 @@ namespace ENode.Commanding.Impl
                 return null;
             }
 
-            return commandHandlers.SingleOrDefault();
+            var handlerData = commandHandlers.SingleOrDefault();
+            if (handlerData != null)
+            {
+                return handlerData.ListHandlers.Single();
+            }
+
+            return null;
         }
         private void HandleCommand(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler)
         {
@@ -304,7 +310,12 @@ namespace ENode.Commanding.Impl
                 return null;
             }
 
-            return commandAsyncHandlers.SingleOrDefault();
+            var handlerData = commandAsyncHandlers.SingleOrDefault();
+            if (handlerData != null)
+            {
+                return handlerData.ListHandlers.Single();
+            }
+            return null;
         }
         private void ProcessCommand(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandAsyncHandler, int retryTimes)
         {

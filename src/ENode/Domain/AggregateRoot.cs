@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ECommon.Components;
 using ENode.Eventing;
 
@@ -86,6 +87,10 @@ namespace ENode.Domain
             if (_uncommittedEvents == null)
             {
                 _uncommittedEvents = new Queue<IDomainEvent>();
+            }
+            if (_uncommittedEvents.Any(x => x.GetType() == domainEvent.GetType()))
+            {
+                throw new InvalidOperationException("Cannot apply duplicated domain event type:" + domainEvent.GetType().FullName);
             }
             _uncommittedEvents.Enqueue(domainEvent);
         }

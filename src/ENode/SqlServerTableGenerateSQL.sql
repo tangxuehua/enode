@@ -43,6 +43,36 @@ CREATE TABLE [dbo].[MessageHandleRecord] (
     CONSTRAINT [PK_MessageHandleRecord] PRIMARY KEY CLUSTERED ([MessageId] ASC, [HandlerTypeCode] ASC)
 )
 GO
+CREATE TABLE [dbo].[TwoMessageHandleRecord] (
+    [Sequence]                  BIGINT IDENTITY (1, 1) NOT NULL,
+    [MessageId1]                NVARCHAR (36)          NOT NULL,
+    [MessageId2]                NVARCHAR (36)          NOT NULL,
+    [HandlerTypeCode]           INT                    NOT NULL,
+    [Message1TypeCode]          INT                    NOT NULL,
+    [Message2TypeCode]          INT                    NOT NULL,
+    [AggregateRootTypeCode]     INT                    NOT NULL,
+    [AggregateRootId]           NVARCHAR (36)          NULL,
+    [Version]                   INT                    NULL,
+    [Timestamp]                 DATETIME               NOT NULL,
+    CONSTRAINT [PK_TwoMessageHandleRecord] PRIMARY KEY CLUSTERED ([MessageId1] ASC, [MessageId2] ASC, [HandlerTypeCode] ASC)
+)
+GO
+CREATE TABLE [dbo].[ThreeMessageHandleRecord] (
+    [Sequence]                  BIGINT IDENTITY (1, 1) NOT NULL,
+    [MessageId1]                NVARCHAR (36)          NOT NULL,
+    [MessageId2]                NVARCHAR (36)          NOT NULL,
+    [MessageId3]                NVARCHAR (36)          NOT NULL,
+    [HandlerTypeCode]           INT                    NOT NULL,
+    [Message1TypeCode]          INT                    NOT NULL,
+    [Message2TypeCode]          INT                    NOT NULL,
+    [Message3TypeCode]          INT                    NOT NULL,
+    [AggregateRootTypeCode]     INT                    NOT NULL,
+    [AggregateRootId]           NVARCHAR (36)          NULL,
+    [Version]                   INT                    NULL,
+    [Timestamp]                 DATETIME               NOT NULL,
+    CONSTRAINT [PK_ThreeMessageHandleRecord] PRIMARY KEY CLUSTERED ([MessageId1] ASC, [MessageId2] ASC, [MessageId3] ASC, [HandlerTypeCode] ASC)
+)
+GO
 CREATE TABLE [dbo].[Snapshot] (
     [Sequence]               BIGINT IDENTITY (1, 1)  NOT NULL,
     [AggregateRootTypeCode]  INT                     NOT NULL,
