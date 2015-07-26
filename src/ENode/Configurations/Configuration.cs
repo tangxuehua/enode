@@ -251,7 +251,10 @@ namespace ENode.Configurations
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetTypes().Where(x => x.IsClass && (typeof(IMessage).IsAssignableFrom(x))))
+                foreach (var type in assembly.GetTypes().Where(x => x.IsClass && (
+                    typeof(ICommand).IsAssignableFrom(x) ||
+                    typeof(IDomainEvent).IsAssignableFrom(x) ||
+                    typeof(IApplicationMessage).IsAssignableFrom(x))))
                 {
                     if (!type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Any(x => x.GetParameters().Count() == 0))
                     {
