@@ -3,7 +3,6 @@ using ENode.Eventing;
 
 namespace NoteSample.Domain
 {
-    [Serializable]
     public class NoteTitleChanged : DomainEvent<string>
     {
         public string Title { get; private set; }
@@ -21,7 +20,6 @@ namespace NoteSample.Domain
         {
         }
     }
-    [Serializable]
     public class Event2 : DomainEvent<string>
     {
         private Event2() { }
@@ -29,7 +27,6 @@ namespace NoteSample.Domain
         {
         }
     }
-    [Serializable]
     public class Event3 : DomainEvent<string>
     {
         private Event3() { }
