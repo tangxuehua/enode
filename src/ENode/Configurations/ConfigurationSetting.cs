@@ -26,7 +26,7 @@ namespace ENode.Configurations
             ImmediatelyRetryTimes = 3;
             RetryIntervalForIOException = 1000;
 
-            DomainEventStreamMessageHandlerName = "DefaultDomainEventStreamMessageHandler";
+            DomainEventStreamMessageHandlerName = "DefaultEventHandler";
 
             SqlServerLockServiceSetting = new DbTableSetting(this);
             SqlServerCommandStoreSetting = new DbTableSetting(this);
