@@ -79,10 +79,16 @@
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Eventing\Impl\DomainEventStreamMessageHandler.cs" />
+    <Compile Include="Infrastructure\MessageHandlerData.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultThreeMessageHandlerProvider.cs" />
+    <Compile Include="Infrastructure\Impl\ManyType.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultTwoMessageHandlerProvider.cs" />
     <Compile Include="Infrastructure\ISequenceProcessingMessage.cs" />
     <Compile Include="Infrastructure\IHandlerProxy.cs" />
     <Compile Include="Infrastructure\Impl\AbstractHandlerProvider.cs" />
     <Compile Include="Infrastructure\ApplicationMessage.cs" />
+    <Compile Include="Infrastructure\ThreeMessageHandleRecord.cs" />
+    <Compile Include="Infrastructure\TwoMessageHandleRecord.cs" />
     <Compile Include="Infrastructure\MessageHandleRecord.cs" />
     <Compile Include="Infrastructure\Impl\DefaultProcessingMessageHandler.cs" />
     <Compile Include="Infrastructure\Impl\DefaultMessageProcessor.cs" />
@@ -91,6 +97,7 @@
     <Compile Include="Infrastructure\IProcessingMessageHandler.cs" />
     <Compile Include="Infrastructure\IProcessingMessageScheduler.cs" />
     <Compile Include="Infrastructure\IProcessingMessage.cs" />
+    <Compile Include="Infrastructure\PriorityAttribute.cs" />
     <Compile Include="Infrastructure\ProcessingPublishableExceptionMessage.cs" />
     <Compile Include="Infrastructure\ProcessingDomainEventStreamMessage.cs" />
     <Compile Include="Infrastructure\ProcessingMessageMailbox.cs" />

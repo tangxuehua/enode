@@ -25,12 +25,12 @@ namespace ENode.Infrastructure.Impl.SQL
         {
             var setting = ENodeConfiguration.Instance.Setting.SqlServerLockServiceSetting;
             Ensure.NotNull(setting, "SqlServerLockServiceSetting");
-            Ensure.NotNull(setting.ConnectionString, "SqlServerLockServiceSetting.ConnectionString");
-            Ensure.NotNull(setting.TableName, "SqlServerLockServiceSetting.TableName");
+            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
+            Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
 
             _connectionString = setting.ConnectionString;
-            _lockKeyTable = setting.TableName;
-            _lockKeySqlFormat = "SELECT * FROM [" + setting.TableName + "] WITH (UPDLOCK) WHERE [LockKey] = '{0}'";
+            _lockKeyTable = setting.GetOptionValue<string>("TableName");
+            _lockKeySqlFormat = "SELECT * FROM [" + _lockKeyTable + "] WITH (UPDLOCK) WHERE [LockKey] = '{0}'";
         }
 
         #endregion

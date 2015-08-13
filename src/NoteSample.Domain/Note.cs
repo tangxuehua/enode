@@ -3,7 +3,6 @@ using ENode.Domain;
 
 namespace NoteSample.Domain
 {
-    [Serializable]
     public class Note : AggregateRoot<string>
     {
         private string _title;
@@ -19,6 +18,10 @@ namespace NoteSample.Domain
         {
             ApplyEvent(new NoteTitleChanged(this, title));
         }
+        public void TestEvents()
+        {
+            ApplyEvents(new Event1(this), new Event2(this), new Event3(this));
+        }
 
         private void Handle(NoteCreated evnt)
         {
@@ -28,6 +31,15 @@ namespace NoteSample.Domain
         private void Handle(NoteTitleChanged evnt)
         {
             _title = evnt.Title;
+        }
+        private void Handle(Event1 evnt)
+        {
+        }
+        private void Handle(Event2 evnt)
+        {
+        }
+        private void Handle(Event3 evnt)
+        {
         }
     }
 }

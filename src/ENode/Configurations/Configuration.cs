@@ -77,6 +77,8 @@ namespace ENode.Configurations
         {
             _configuration.SetDefault<ITypeCodeProvider, DefaultTypeCodeProvider>();
             _configuration.SetDefault<IMessageHandlerProvider, DefaultMessageHandlerProvider>();
+            _configuration.SetDefault<ITwoMessageHandlerProvider, DefaultTwoMessageHandlerProvider>();
+            _configuration.SetDefault<IThreeMessageHandlerProvider, DefaultThreeMessageHandlerProvider>();
 
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
@@ -123,6 +125,8 @@ namespace ENode.Configurations
 
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(ITwoMessageHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(IThreeMessageHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(ICommandAsyncHandlerProvider));
 
@@ -233,7 +237,7 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration InitializeBusinessAssemblies(params Assembly[] assemblies)
         {
-            ValidateSerializableTypes(assemblies);
+            ValidateTypes(assemblies);
             foreach (var assemblyInitializer in _assemblyInitializerServiceTypes.Select(ObjectContainer.Resolve).OfType<IAssemblyInitializer>())
             {
                 assemblyInitializer.Initialize(assemblies);
@@ -243,20 +247,18 @@ namespace ENode.Configurations
 
         #region Private Methods
 
-        private static void ValidateSerializableTypes(params Assembly[] assemblies)
+        private static void ValidateTypes(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetTypes().Where(
-                    x => x.IsClass && (
-                        typeof(ICommand).IsAssignableFrom(x) ||
-                        typeof(IApplicationMessage).IsAssignableFrom(x) ||
-                        typeof(IDomainEvent).IsAssignableFrom(x) ||
-                        typeof(IAggregateRoot).IsAssignableFrom(x))))
+                foreach (var type in assembly.GetTypes().Where(x => x.IsClass && (
+                    typeof(ICommand).IsAssignableFrom(x) ||
+                    typeof(IDomainEvent).IsAssignableFrom(x) ||
+                    typeof(IApplicationMessage).IsAssignableFrom(x))))
                 {
-                    if (!type.IsSerializable)
+                    if (!type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Any(x => x.GetParameters().Count() == 0))
                     {
-                        throw new Exception(string.Format("{0} should be marked as serializable.", type.FullName));
+                        throw new Exception(string.Format("{0} must have a default constructor.", type.FullName));
                     }
                 }
             }

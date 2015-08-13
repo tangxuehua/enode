@@ -5,11 +5,32 @@ namespace ENode.Infrastructure
 {
     /// <summary>Represents a message handler proxy.
     /// </summary>
-    public interface IMessageHandlerProxy : IHandlerProxy
+    public interface IMessageHandlerProxy1 : IHandlerProxy
     {
-        /// <summary>Handle the given message.
+        /// <summary>Handle the given message async.
         /// </summary>
         /// <param name="message"></param>
         Task<AsyncTaskResult> HandleAsync(IMessage message);
+    }
+    /// <summary>Represents a message handler proxy.
+    /// </summary>
+    public interface IMessageHandlerProxy2 : IHandlerProxy
+    {
+        /// <summary>Handle the given messages async.
+        /// </summary>
+        /// <param name="message1"></param>
+        /// <param name="message2"></param>
+        Task<AsyncTaskResult> HandleAsync(IMessage message1, IMessage message2);
+    }
+    /// <summary>Represents a message handler proxy.
+    /// </summary>
+    public interface IMessageHandlerProxy3 : IHandlerProxy
+    {
+        /// <summary>Handle the given messages async.
+        /// </summary>
+        /// <param name="message1"></param>
+        /// <param name="message2"></param>
+        /// <param name="message3"></param>
+        Task<AsyncTaskResult> HandleAsync(IMessage message1, IMessage message2, IMessage message3);
     }
 }

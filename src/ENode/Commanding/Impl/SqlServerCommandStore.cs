@@ -33,13 +33,13 @@ namespace ENode.Commanding.Impl
         {
             var setting = ENodeConfiguration.Instance.Setting.SqlServerCommandStoreSetting;
             Ensure.NotNull(setting, "SqlServerCommandStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "SqlServerCommandStoreSetting.ConnectionString");
-            Ensure.NotNull(setting.TableName, "SqlServerCommandStoreSetting.TableName");
-            Ensure.NotNull(setting.PrimaryKeyName, "SqlServerCommandStoreSetting.PrimaryKeyName");
+            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
+            Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
+            Ensure.NotNull(setting.GetOptionValue<string>("PrimaryKeyName"), "PrimaryKeyName");
 
             _connectionString = setting.ConnectionString;
-            _commandTable = setting.TableName;
-            _primaryKeyName = setting.PrimaryKeyName;
+            _commandTable = setting.GetOptionValue<string>("TableName");
+            _primaryKeyName = setting.GetOptionValue<string>("PrimaryKeyName");
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
