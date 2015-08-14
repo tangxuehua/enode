@@ -39,7 +39,7 @@ namespace ENode.Eventing.Impl
         public SqlServerEventStore()
         {
             var configSetting = ENodeConfiguration.Instance.Setting;
-            var setting = configSetting.SqlServerEventStoreSetting;
+            var setting = configSetting.SqlEventStoreSetting;
             Ensure.NotNull(setting, "SqlServerEventStoreSetting");
             Ensure.NotNull(setting.ConnectionString, "ConnectionString");
             Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");

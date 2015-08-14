@@ -29,7 +29,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
         public SqlServerMessageHandleRecordStore()
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerMessageHandleRecordStoreSetting;
+            var setting = ENodeConfiguration.Instance.Setting.SqlMessageHandleRecordStoreSetting;
             Ensure.NotNull(setting, "SqlServerMessageHandleRecordStoreSetting");
             Ensure.NotNull(setting.ConnectionString, "ConnectionString");
             Ensure.NotNull(setting.GetOptionValue<string>("OneMessageTableName"), "OneMessageTableName");

@@ -26,7 +26,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
         public SqlServerSequenceMessagePublishedVersionStore()
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerSequenceMessagePublishedVersionStoreSetting;
+            var setting = ENodeConfiguration.Instance.Setting.SqlSequenceMessagePublishedVersionStoreSetting;
             Ensure.NotNull(setting, "SqlServerSequenceMessagePublishedVersionStoreSetting");
             Ensure.NotNull(setting.ConnectionString, "ConnectionString");
             Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");

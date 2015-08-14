@@ -9,14 +9,14 @@ namespace ENode.Configurations
         public int GroupCommitMaxSize { get; set; }
         public int ImmediatelyRetryTimes { get; set; }
         public int RetryIntervalForIOException { get; set; }
-        public string SqlDefaultConnectionString { get; set; }
         public string DomainEventStreamMessageHandlerName { get; set; }
 
-        public DbTableSetting SqlServerLockServiceSetting { get; set; }
-        public DbTableSetting SqlServerCommandStoreSetting { get; set; }
-        public DbTableSetting SqlServerEventStoreSetting { get; set; }
-        public DbTableSetting SqlServerSequenceMessagePublishedVersionStoreSetting { get; set; }
-        public DbTableSetting SqlServerMessageHandleRecordStoreSetting { get; set; }
+        public string SqlDefaultConnectionString { get; set; }
+        public DbTableSetting SqlLockServiceSetting { get; set; }
+        public DbTableSetting SqlCommandStoreSetting { get; set; }
+        public DbTableSetting SqlEventStoreSetting { get; set; }
+        public DbTableSetting SqlSequenceMessagePublishedVersionStoreSetting { get; set; }
+        public DbTableSetting SqlMessageHandleRecordStoreSetting { get; set; }
 
         public ConfigurationSetting()
         {
@@ -28,32 +28,32 @@ namespace ENode.Configurations
 
             DomainEventStreamMessageHandlerName = "DefaultEventHandler";
 
-            SqlServerLockServiceSetting = new DbTableSetting(this);
-            SqlServerCommandStoreSetting = new DbTableSetting(this);
-            SqlServerEventStoreSetting = new DbTableSetting(this);
-            SqlServerSequenceMessagePublishedVersionStoreSetting = new DbTableSetting(this);
-            SqlServerMessageHandleRecordStoreSetting = new DbTableSetting(this);
+            SqlLockServiceSetting = new DbTableSetting(this);
+            SqlCommandStoreSetting = new DbTableSetting(this);
+            SqlEventStoreSetting = new DbTableSetting(this);
+            SqlSequenceMessagePublishedVersionStoreSetting = new DbTableSetting(this);
+            SqlMessageHandleRecordStoreSetting = new DbTableSetting(this);
 
-            SqlServerLockServiceSetting.SetOptionValue("TableName", "LockKey");
+            SqlLockServiceSetting.SetOptionValue("TableName", "LockKey");
 
-            SqlServerCommandStoreSetting.SetOptionValue("TableName", "Command");
-            SqlServerCommandStoreSetting.SetOptionValue("PrimaryKeyName", "PK_Command");
+            SqlCommandStoreSetting.SetOptionValue("TableName", "Command");
+            SqlCommandStoreSetting.SetOptionValue("PrimaryKeyName", "PK_Command");
 
-            SqlServerEventStoreSetting.SetOptionValue("TableName", "EventStream");
-            SqlServerEventStoreSetting.SetOptionValue("PrimaryKeyName", "PK_EventStream");
-            SqlServerEventStoreSetting.SetOptionValue("CommandIndexName", "IX_EventStream_AggId_CommandId");
-            SqlServerEventStoreSetting.SetOptionValue("BulkCopyBatchSize", 1000);
-            SqlServerEventStoreSetting.SetOptionValue("BulkCopyTimeout", 60);
+            SqlEventStoreSetting.SetOptionValue("TableName", "EventStream");
+            SqlEventStoreSetting.SetOptionValue("PrimaryKeyName", "PK_EventStream");
+            SqlEventStoreSetting.SetOptionValue("CommandIndexName", "IX_EventStream_AggId_CommandId");
+            SqlEventStoreSetting.SetOptionValue("BulkCopyBatchSize", 1000);
+            SqlEventStoreSetting.SetOptionValue("BulkCopyTimeout", 60);
 
-            SqlServerSequenceMessagePublishedVersionStoreSetting.SetOptionValue("TableName", "SequenceMessagePublishedVersion");
-            SqlServerSequenceMessagePublishedVersionStoreSetting.SetOptionValue("PrimaryKeyName", "PK_SequenceMessagePublishedVersion");
+            SqlSequenceMessagePublishedVersionStoreSetting.SetOptionValue("TableName", "SequenceMessagePublishedVersion");
+            SqlSequenceMessagePublishedVersionStoreSetting.SetOptionValue("PrimaryKeyName", "PK_SequenceMessagePublishedVersion");
 
-            SqlServerMessageHandleRecordStoreSetting.SetOptionValue("OneMessageTableName", "MessageHandleRecord");
-            SqlServerMessageHandleRecordStoreSetting.SetOptionValue("TwoMessageTableName", "TwoMessageHandleRecord");
-            SqlServerMessageHandleRecordStoreSetting.SetOptionValue("ThreeMessageTableName", "ThreeMessageHandleRecord");
-            SqlServerMessageHandleRecordStoreSetting.SetOptionValue("OneMessageTablePrimaryKeyName", "PK_MessageHandleRecord");
-            SqlServerMessageHandleRecordStoreSetting.SetOptionValue("TwoMessageTablePrimaryKeyName", "PK_TwoMessageHandleRecord");
-            SqlServerMessageHandleRecordStoreSetting.SetOptionValue("ThreeMessageTablePrimaryKeyName", "PK_ThreeMessageHandleRecord");
+            SqlMessageHandleRecordStoreSetting.SetOptionValue("OneMessageTableName", "MessageHandleRecord");
+            SqlMessageHandleRecordStoreSetting.SetOptionValue("TwoMessageTableName", "TwoMessageHandleRecord");
+            SqlMessageHandleRecordStoreSetting.SetOptionValue("ThreeMessageTableName", "ThreeMessageHandleRecord");
+            SqlMessageHandleRecordStoreSetting.SetOptionValue("OneMessageTablePrimaryKeyName", "PK_MessageHandleRecord");
+            SqlMessageHandleRecordStoreSetting.SetOptionValue("TwoMessageTablePrimaryKeyName", "PK_TwoMessageHandleRecord");
+            SqlMessageHandleRecordStoreSetting.SetOptionValue("ThreeMessageTablePrimaryKeyName", "PK_ThreeMessageHandleRecord");
         }
     }
 }

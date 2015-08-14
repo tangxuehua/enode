@@ -31,7 +31,7 @@ namespace ENode.Commanding.Impl
         /// </summary>
         public SqlServerCommandStore()
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerCommandStoreSetting;
+            var setting = ENodeConfiguration.Instance.Setting.SqlCommandStoreSetting;
             Ensure.NotNull(setting, "SqlServerCommandStoreSetting");
             Ensure.NotNull(setting.ConnectionString, "ConnectionString");
             Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");

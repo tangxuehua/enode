@@ -23,7 +23,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
         public SqlServerLockService()
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerLockServiceSetting;
+            var setting = ENodeConfiguration.Instance.Setting.SqlLockServiceSetting;
             Ensure.NotNull(setting, "SqlServerLockServiceSetting");
             Ensure.NotNull(setting.ConnectionString, "ConnectionString");
             Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
