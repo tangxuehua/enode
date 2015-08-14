@@ -54,7 +54,7 @@ namespace ENode.Infrastructure.Impl.SQL
                             AggregateRootTypeCode = aggregateRootTypeCode,
                             AggregateRootId = aggregateRootId,
                             PublishedVersion = 1,
-                            Timestamp = DateTime.Now
+                            CreatedOn = DateTime.Now
                         }, _tableName);
                         return AsyncTaskResult.Success;
                     }
@@ -84,7 +84,7 @@ namespace ENode.Infrastructure.Impl.SQL
                         new
                         {
                             PublishedVersion = publishedVersion,
-                            Timestamp = DateTime.Now
+                            CreatedOn = DateTime.Now
                         },
                         new
                         {

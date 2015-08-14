@@ -123,9 +123,9 @@ namespace ENode.Commanding.Impl
             {
                 CommandId = handledCommand.CommandId,
                 AggregateRootId = handledCommand.AggregateRootId,
-                Message = handledCommand.Message != null ? _jsonSerializer.Serialize(handledCommand.Message) : null,
+                MessagePayload = handledCommand.Message != null ? _jsonSerializer.Serialize(handledCommand.Message) : null,
                 MessageTypeCode = handledCommand.Message != null ? _typeCodeProvider.GetTypeCode(handledCommand.Message.GetType()) : 0,
-                Timestamp = DateTime.Now,
+                CreatedOn = DateTime.Now,
             };
         }
         private HandledCommand ConvertFrom(CommandRecord record)
@@ -135,7 +135,7 @@ namespace ENode.Commanding.Impl
             if (record.MessageTypeCode > 0)
             {
                 var messageType = _typeCodeProvider.GetType(record.MessageTypeCode);
-                message = _jsonSerializer.Deserialize(record.Message, messageType) as IApplicationMessage;
+                message = _jsonSerializer.Deserialize(record.MessagePayload, messageType) as IApplicationMessage;
             }
 
             return new HandledCommand(record.CommandId, record.AggregateRootId, message);
@@ -147,9 +147,9 @@ namespace ENode.Commanding.Impl
         {
             public string CommandId { get; set; }
             public string AggregateRootId { get; set; }
-            public string Message { get; set; }
+            public string MessagePayload { get; set; }
             public int MessageTypeCode { get; set; }
-            public DateTime Timestamp { get; set; }
+            public DateTime CreatedOn { get; set; }
         }
     }
 }

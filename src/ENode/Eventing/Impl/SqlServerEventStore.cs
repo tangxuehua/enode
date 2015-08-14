@@ -323,7 +323,7 @@ namespace ENode.Eventing.Impl
                 record.AggregateRootId,
                 record.AggregateRootTypeCode,
                 record.Version,
-                record.Timestamp,
+                record.CreatedOn,
                 _eventSerializer.Deserialize<IDomainEvent>(_jsonSerializer.Deserialize<IDictionary<int, string>>(record.Events)));
         }
         private StreamRecord ConvertTo(DomainEventStream eventStream)
@@ -334,7 +334,7 @@ namespace ENode.Eventing.Impl
                 AggregateRootId = eventStream.AggregateRootId,
                 AggregateRootTypeCode = eventStream.AggregateRootTypeCode,
                 Version = eventStream.Version,
-                Timestamp = eventStream.Timestamp,
+                CreatedOn = eventStream.Timestamp,
                 Events = _jsonSerializer.Serialize(_eventSerializer.Serialize(eventStream.Events))
             };
         }
@@ -358,7 +358,7 @@ namespace ENode.Eventing.Impl
             public string AggregateRootId { get; set; }
             public int Version { get; set; }
             public string CommandId { get; set; }
-            public DateTime Timestamp { get; set; }
+            public DateTime CreatedOn { get; set; }
             public string Events { get; set; }
         }
     }

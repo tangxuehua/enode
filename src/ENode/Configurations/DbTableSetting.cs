@@ -15,7 +15,7 @@ namespace ENode.Configurations
             {
                 if (string.IsNullOrEmpty(_connectionString))
                 {
-                    _connectionString = _configurationSetting.SqlServerDefaultConnectionString;
+                    _connectionString = _configurationSetting.SqlDefaultConnectionString;
                 }
                 return _connectionString;
             }

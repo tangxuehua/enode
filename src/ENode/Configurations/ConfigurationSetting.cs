@@ -9,7 +9,7 @@ namespace ENode.Configurations
         public int GroupCommitMaxSize { get; set; }
         public int ImmediatelyRetryTimes { get; set; }
         public int RetryIntervalForIOException { get; set; }
-        public string SqlServerDefaultConnectionString { get; set; }
+        public string SqlDefaultConnectionString { get; set; }
         public string DomainEventStreamMessageHandlerName { get; set; }
 
         public DbTableSetting SqlServerLockServiceSetting { get; set; }
@@ -34,7 +34,7 @@ namespace ENode.Configurations
             SqlServerSequenceMessagePublishedVersionStoreSetting = new DbTableSetting(this);
             SqlServerMessageHandleRecordStoreSetting = new DbTableSetting(this);
 
-            SqlServerLockServiceSetting.SetOptionValue("TableName", "Lock");
+            SqlServerLockServiceSetting.SetOptionValue("TableName", "LockKey");
 
             SqlServerCommandStoreSetting.SetOptionValue("TableName", "Command");
             SqlServerCommandStoreSetting.SetOptionValue("PrimaryKeyName", "PK_Command");

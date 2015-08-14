@@ -30,7 +30,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
             _connectionString = setting.ConnectionString;
             _lockKeyTable = setting.GetOptionValue<string>("TableName");
-            _lockKeySqlFormat = "SELECT * FROM [" + _lockKeyTable + "] WITH (UPDLOCK) WHERE [LockKey] = '{0}'";
+            _lockKeySqlFormat = "SELECT * FROM [" + _lockKeyTable + "] WITH (UPDLOCK) WHERE [Name] = '{0}'";
         }
 
         #endregion
@@ -39,10 +39,10 @@ namespace ENode.Infrastructure.Impl.SQL
         {
             using (var connection = GetConnection())
             {
-                var count = connection.QueryList(new { LockKey = lockKey }, _lockKeyTable).Count();
+                var count = connection.QueryList(new { Name = lockKey }, _lockKeyTable).Count();
                 if (count == 0)
                 {
-                    connection.Insert(new { LockKey = lockKey }, _lockKeyTable);
+                    connection.Insert(new { Name = lockKey }, _lockKeyTable);
                 }
             }
         }
