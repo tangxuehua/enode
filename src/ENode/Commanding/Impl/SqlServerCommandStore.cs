@@ -18,7 +18,7 @@ namespace ENode.Commanding.Impl
         #region Private Variables
 
         private readonly string _connectionString;
-        private readonly string _commandTable;
+        private readonly string _tableName;
         private readonly string _primaryKeyName;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeCodeProvider _typeCodeProvider;
@@ -27,19 +27,20 @@ namespace ENode.Commanding.Impl
 
         #region Constructors
 
-        /// <summary>Parameterized constructor.
+        /// <summary>Default constructor.
         /// </summary>
-        public SqlServerCommandStore()
+        public SqlServerCommandStore(OptionSetting optionSetting)
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlCommandStoreSetting;
-            Ensure.NotNull(setting, "SqlServerCommandStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
-            Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
-            Ensure.NotNull(setting.GetOptionValue<string>("PrimaryKeyName"), "PrimaryKeyName");
+            Ensure.NotNull(optionSetting, "optionSetting");
 
-            _connectionString = setting.ConnectionString;
-            _commandTable = setting.GetOptionValue<string>("TableName");
-            _primaryKeyName = setting.GetOptionValue<string>("PrimaryKeyName");
+            _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
+            _tableName = optionSetting.GetOptionValue<string>("TableName");
+            _primaryKeyName = optionSetting.GetOptionValue<string>("PrimaryKeyName");
+
+            Ensure.NotNull(_connectionString, "_connectionString");
+            Ensure.NotNull(_tableName, "_tableName");
+            Ensure.NotNull(_primaryKeyName, "_primaryKeyName");
+
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
@@ -62,7 +63,7 @@ namespace ENode.Commanding.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        await connection.InsertAsync(record, _commandTable);
+                        await connection.InsertAsync(record, _tableName);
                         return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, CommandAddResult.Success);
                     }
                 }
@@ -90,7 +91,7 @@ namespace ENode.Commanding.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        var result = await connection.QueryListAsync<CommandRecord>(new { CommandId = commandId }, _commandTable);
+                        var result = await connection.QueryListAsync<CommandRecord>(new { CommandId = commandId }, _tableName);
                         var record = result.SingleOrDefault();
                         var handledCommand = record != null ? ConvertFrom(record) : null;
                         return new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Success, handledCommand);

@@ -22,7 +22,7 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private readonly string _connectionString;
-        private readonly string _eventTable;
+        private readonly string _tableName;
         private readonly string _primaryKeyName;
         private readonly string _commandIndexName;
         private readonly int _bulkCopyBatchSize;
@@ -36,23 +36,24 @@ namespace ENode.Eventing.Impl
 
         #region Constructors
 
-        public SqlServerEventStore()
+        public SqlServerEventStore(OptionSetting optionSetting)
         {
-            var configSetting = ENodeConfiguration.Instance.Setting;
-            var setting = configSetting.SqlEventStoreSetting;
-            Ensure.NotNull(setting, "SqlServerEventStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
-            Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
-            Ensure.NotNull(setting.GetOptionValue<string>("PrimaryKeyName"), "PrimaryKeyName");
-            Ensure.Positive(setting.GetOptionValue<int>("BulkCopyBatchSize"), "BulkCopyBatchSize");
-            Ensure.Positive(setting.GetOptionValue<int>("BulkCopyTimeout"), "BulkCopyTimeout");
+            Ensure.NotNull(optionSetting, "optionSetting");
 
-            _connectionString = setting.ConnectionString;
-            _eventTable = setting.GetOptionValue<string>("TableName");
-            _primaryKeyName = setting.GetOptionValue<string>("PrimaryKeyName");
-            _commandIndexName = setting.GetOptionValue<string>("CommandIndexName");
-            _bulkCopyBatchSize = setting.GetOptionValue<int>("BulkCopyBatchSize");
-            _bulkCopyTimeout = setting.GetOptionValue<int>("BulkCopyTimeout");
+            _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
+            _tableName = optionSetting.GetOptionValue<string>("TableName");
+            _primaryKeyName = optionSetting.GetOptionValue<string>("PrimaryKeyName");
+            _commandIndexName = optionSetting.GetOptionValue<string>("CommandIndexName");
+            _bulkCopyBatchSize = optionSetting.GetOptionValue<int>("BulkCopyBatchSize");
+            _bulkCopyTimeout = optionSetting.GetOptionValue<int>("BulkCopyTimeout");
+
+            Ensure.NotNull(_connectionString, "_connectionString");
+            Ensure.NotNull(_tableName, "_tableName");
+            Ensure.NotNull(_primaryKeyName, "_primaryKeyName");
+            Ensure.NotNull(_commandIndexName, "_commandIndexName");
+            Ensure.Positive(_bulkCopyBatchSize, "_bulkCopyBatchSize");
+            Ensure.Positive(_bulkCopyTimeout, "_bulkCopyTimeout");
+
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
@@ -73,7 +74,7 @@ namespace ENode.Eventing.Impl
             {
                 using (var connection = GetConnection())
                 {
-                    var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _eventTable);
+                    var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _tableName);
                     return connection.Query<StreamRecord>(sql, new
                     {
                         AggregateRootId = aggregateRootId,
@@ -91,7 +92,7 @@ namespace ENode.Eventing.Impl
             {
                 using (var connection = GetConnection())
                 {
-                    return connection.QueryPaged<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
+                    return connection.QueryPaged<StreamRecord>(null, _tableName, "Sequence", pageIndex, pageSize);
                 }
             }, "QueryByPage");
 
@@ -119,7 +120,7 @@ namespace ENode.Eventing.Impl
                         {
                             copy.BatchSize = _bulkCopyBatchSize;
                             copy.BulkCopyTimeout = _bulkCopyTimeout;
-                            copy.DestinationTableName = _eventTable;
+                            copy.DestinationTableName = _tableName;
                             copy.ColumnMappings.Add("CommandId", "CommandId");
                             copy.ColumnMappings.Add("AggregateRootId", "AggregateRootId");
                             copy.ColumnMappings.Add("AggregateRootTypeCode", "AggregateRootTypeCode");
@@ -164,7 +165,7 @@ namespace ENode.Eventing.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        await connection.InsertAsync(record, _eventTable);
+                        await connection.InsertAsync(record, _tableName);
                         return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.Success);
                     }
                 }
@@ -196,7 +197,7 @@ namespace ENode.Eventing.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _eventTable);
+                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, _tableName);
                         var record = result.SingleOrDefault();
                         var stream = record != null ? ConvertFrom(record) : null;
                         return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, stream);
@@ -222,7 +223,7 @@ namespace ENode.Eventing.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _eventTable);
+                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, _tableName);
                         var record = result.SingleOrDefault();
                         var stream = record != null ? ConvertFrom(record) : null;
                         return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, stream);
@@ -248,7 +249,7 @@ namespace ENode.Eventing.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _eventTable);
+                        var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", _tableName);
                         var result = await connection.QueryAsync<StreamRecord>(sql, new
                         {
                             AggregateRootId = aggregateRootId,
@@ -279,7 +280,7 @@ namespace ENode.Eventing.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        var result = await connection.QueryPagedAsync<StreamRecord>(null, _eventTable, "Sequence", pageIndex, pageSize);
+                        var result = await connection.QueryPagedAsync<StreamRecord>(null, _tableName, "Sequence", pageIndex, pageSize);
                         var streams = result.Select(record => ConvertFrom(record));
                         return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, streams);
                     }

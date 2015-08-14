@@ -158,41 +158,62 @@ namespace ENode.Configurations
         /// <summary>Use the SqlServerLockService as the ILockService.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerLockService()
+        public ENodeConfiguration UseSqlServerLockService(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<ILockService, SqlServerLockService>();
+            _configuration.SetDefault<ILockService, SqlServerLockService>(new SqlServerLockService(optionSetting ?? new OptionSetting(
+                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
+                new KeyValuePair<string, object>("TableName", "LockKey"))));
             return this;
         }
         /// <summary>Use the SqlServerCommandStore as the ICommandStore.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerCommandStore()
+        public ENodeConfiguration UseSqlServerCommandStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<ICommandStore, SqlServerCommandStore>();
+            _configuration.SetDefault<ICommandStore, SqlServerCommandStore>(new SqlServerCommandStore(optionSetting ?? new OptionSetting(
+                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
+                new KeyValuePair<string, object>("TableName", "Command"),
+                new KeyValuePair<string, object>("PrimaryKeyName", "PK_Command"))));
             return this;
         }
         /// <summary>Use the SqlServerEventStore as the IEventStore.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventStore()
+        public ENodeConfiguration UseSqlServerEventStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<IEventStore, SqlServerEventStore>();
+            _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(optionSetting ?? new OptionSetting(
+                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
+                new KeyValuePair<string, object>("TableName", "EventStream"),
+                new KeyValuePair<string, object>("PrimaryKeyName", "PK_EventStream"),
+                new KeyValuePair<string, object>("CommandIndexName", "IX_EventStream_AggId_CommandId"),
+                new KeyValuePair<string, object>("BulkCopyBatchSize", 1000),
+                new KeyValuePair<string, object>("BulkCopyTimeout", 60))));
             return this;
         }
         /// <summary>Use the SqlServerSequenceMessagePublishedVersionStore as the ISequenceMessagePublishedVersionStore.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerSequenceMessagePublishedVersionStore()
+        public ENodeConfiguration UseSqlServerSequenceMessagePublishedVersionStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<ISequenceMessagePublishedVersionStore, SqlServerSequenceMessagePublishedVersionStore>();
+            _configuration.SetDefault<ISequenceMessagePublishedVersionStore, SqlServerSequenceMessagePublishedVersionStore>(new SqlServerSequenceMessagePublishedVersionStore(optionSetting ?? new OptionSetting(
+                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
+                new KeyValuePair<string, object>("TableName", "SequenceMessagePublishedVersion"),
+                new KeyValuePair<string, object>("PrimaryKeyName", "PK_SequenceMessagePublishedVersion"))));
             return this;
         }
         /// <summary>Use the SqlServerMessageHandleRecordStore as the IMessageHandleRecordStore.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerMessageHandleRecordStore()
+        public ENodeConfiguration UseSqlServerMessageHandleRecordStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<IMessageHandleRecordStore, SqlServerMessageHandleRecordStore>();
+            _configuration.SetDefault<IMessageHandleRecordStore, SqlServerMessageHandleRecordStore>(new SqlServerMessageHandleRecordStore(optionSetting ?? new OptionSetting(
+                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
+                new KeyValuePair<string, object>("OneMessageTableName", "MessageHandleRecord"),
+                new KeyValuePair<string, object>("OneMessageTablePrimaryKeyName", "PK_MessageHandleRecord"),
+                new KeyValuePair<string, object>("TwoMessageTableName", "TwoMessageHandleRecord"),
+                new KeyValuePair<string, object>("TwoMessageTablePrimaryKeyName", "PK_TwoMessageHandleRecord"),
+                new KeyValuePair<string, object>("ThreeMessageTableName", "ThreeMessageHandleRecord"),
+                new KeyValuePair<string, object>("ThreeMessageTablePrimaryKeyName", "PK_ThreeMessageHandleRecord"))));
             return this;
         }
         /// <summary>Set the concurrent level for command scheduler.
