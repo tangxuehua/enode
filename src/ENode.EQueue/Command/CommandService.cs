@@ -104,6 +104,7 @@ namespace ENode.EQueue
 
         private EQueueMessage BuildCommandMessage(ICommand command)
         {
+            Ensure.NotNull(command.AggregateRootId, "aggregateRootId");
             var commandData = _jsonSerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
             var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());

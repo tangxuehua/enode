@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.IO;
 using ECommon.Serializing;
+using ECommon.Utilities;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
@@ -57,6 +58,7 @@ namespace ENode.EQueue
 
         private EQueueMessage CreateEQueueMessage(DomainEventStreamMessage eventStream)
         {
+            Ensure.NotNull(eventStream.AggregateRootId, "aggregateRootId");
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _jsonSerializer.Serialize(eventMessage);
