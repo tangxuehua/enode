@@ -86,7 +86,7 @@ namespace ENode.CommandProcessorPerfTests
         {
             var setting = new ConfigurationSetting
             {
-                SqlServerDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
+                SqlDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
                 EnableGroupCommitEvent = bool.Parse(ConfigurationManager.AppSettings["batchCommit"]),
                 GroupCommitMaxSize = int.Parse(ConfigurationManager.AppSettings["batchSize"])
             };

@@ -103,7 +103,7 @@ namespace ENode.EventStorePerfTests
         {
             var setting = new ConfigurationSetting
             {
-                SqlServerDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
+                SqlDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
                 EnableGroupCommitEvent = true
             };
             var assemblies = new[]

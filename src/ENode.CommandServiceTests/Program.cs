@@ -42,7 +42,7 @@ namespace ENode.CommandServiceTests
         {
             var setting = new ConfigurationSetting
             {
-                SqlServerDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
+                SqlDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
                 EnableGroupCommitEvent = false
             };
             var assemblies = new[]

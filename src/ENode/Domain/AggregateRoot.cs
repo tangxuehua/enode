@@ -61,6 +61,12 @@ namespace ENode.Domain
             return actor;
         }
         /// <summary>Apply a domain event to the current aggregate root.
+        /// <remarks>
+        /// ENode will first call the corresponding Handle method of the current aggregate to apply the changes of the current event,
+        /// then append the current domain event into the current aggregate's internal queues.
+        /// After the whole command handler is completed, ENode will pop all the events from the aggregate,
+        /// and then persist the event to event store, and at last publish it to the query side.
+        /// </remarks>
         /// </summary>
         /// <param name="domainEvent"></param>
         protected void ApplyEvent(IDomainEvent domainEvent)
