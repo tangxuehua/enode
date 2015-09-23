@@ -115,7 +115,7 @@ namespace ENode.EQueue
                 CommandData = commandData,
                 ReplyAddress = replyAddress
             });
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, Encoding.UTF8.GetBytes(messageData));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, command.AggregateRootId, Encoding.UTF8.GetBytes(messageData));
         }
     }
 }

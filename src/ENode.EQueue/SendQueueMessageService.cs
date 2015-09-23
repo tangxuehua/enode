@@ -16,7 +16,7 @@ namespace ENode.EQueue
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
         }
 
-        public void SendMessage(Producer producer, EQueueMessage message, object routingKey)
+        public void SendMessage(Producer producer, EQueueMessage message, string routingKey)
         {
             _ioHelper.TryIOAction(() =>
             {
@@ -27,7 +27,7 @@ namespace ENode.EQueue
                 }
             }, "SendQueueMessage");
         }
-        public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, EQueueMessage message, object routingKey)
+        public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, EQueueMessage message, string routingKey)
         {
             try
             {
