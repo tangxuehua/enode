@@ -116,7 +116,7 @@ namespace ENode.Eventing.Impl
         {
             if (_enableGroupCommit && _eventStore.SupportBatchAppend)
             {
-                _scheduleService.ScheduleTask("TryBatchPersistEvents", TryBatchPersistEvents, _groupCommitInterval, _groupCommitInterval);
+                _scheduleService.StartTask("TryBatchPersistEvents", TryBatchPersistEvents, _groupCommitInterval, _groupCommitInterval);
                 _processSuccessPersistedEventsWorker.Start();
                 _processFailedPersistedEventsWorker.Start();
             }

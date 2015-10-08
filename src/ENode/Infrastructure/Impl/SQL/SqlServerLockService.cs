@@ -14,23 +14,24 @@ namespace ENode.Infrastructure.Impl.SQL
         #region Private Variables
 
         private readonly string _connectionString;
-        private readonly string _lockKeyTable;
+        private readonly string _tableName;
         private readonly string _lockKeySqlFormat;
 
         #endregion
 
         #region Constructors
 
-        public SqlServerLockService()
+        public SqlServerLockService(OptionSetting optionSetting)
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerLockServiceSetting;
-            Ensure.NotNull(setting, "SqlServerLockServiceSetting");
-            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
-            Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
+            Ensure.NotNull(optionSetting, "optionSetting");
 
-            _connectionString = setting.ConnectionString;
-            _lockKeyTable = setting.GetOptionValue<string>("TableName");
-            _lockKeySqlFormat = "SELECT * FROM [" + _lockKeyTable + "] WITH (UPDLOCK) WHERE [LockKey] = '{0}'";
+            _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
+            _tableName = optionSetting.GetOptionValue<string>("TableName");
+
+            Ensure.NotNull(_connectionString, "_connectionString");
+            Ensure.NotNull(_tableName, "_tableName");
+
+            _lockKeySqlFormat = "SELECT * FROM [" + _tableName + "] WITH (UPDLOCK) WHERE [Name] = '{0}'";
         }
 
         #endregion
@@ -39,10 +40,10 @@ namespace ENode.Infrastructure.Impl.SQL
         {
             using (var connection = GetConnection())
             {
-                var count = connection.QueryList(new { LockKey = lockKey }, _lockKeyTable).Count();
+                var count = connection.QueryList(new { Name = lockKey }, _tableName).Count();
                 if (count == 0)
                 {
-                    connection.Insert(new { LockKey = lockKey }, _lockKeyTable);
+                    connection.Insert(new { Name = lockKey }, _tableName);
                 }
             }
         }

@@ -68,7 +68,7 @@ namespace ENode.EQueue
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
             });
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.ExceptionMessage, exception.Id, Encoding.UTF8.GetBytes(data));
         }
     }
 }

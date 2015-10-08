@@ -7,7 +7,6 @@ namespace BankTransferSample.Domain
 {
     /// <summary>银行账户聚合根，封装银行账户余额变动的数据一致性
     /// </summary>
-    [Serializable]
     public class BankAccount : AggregateRoot<string>
     {
         #region Private Variables

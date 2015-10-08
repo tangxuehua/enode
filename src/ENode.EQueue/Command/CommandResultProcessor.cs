@@ -102,7 +102,7 @@ namespace ENode.EQueue.Commanding
             {
                 _logger.ErrorFormat("Invalid remoting request code: {0}", remotingRequest.Code);
             }
-            return new RemotingResponse(Constants.SuccessResponseCode, remotingRequest.Sequence, ByteArray);
+            return new RemotingResponse(remotingRequest.Code, Constants.SuccessResponseCode, remotingRequest.Type, ByteArray, remotingRequest.Sequence);
         }
 
         private void ProcessExecutedCommandMessage(CommandExecutedMessage message)

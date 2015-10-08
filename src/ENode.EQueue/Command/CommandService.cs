@@ -104,6 +104,7 @@ namespace ENode.EQueue
 
         private EQueueMessage BuildCommandMessage(ICommand command)
         {
+            Ensure.NotNull(command.AggregateRootId, "aggregateRootId");
             var commandData = _jsonSerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
             var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
@@ -114,7 +115,7 @@ namespace ENode.EQueue
                 CommandData = commandData,
                 ReplyAddress = replyAddress
             });
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, Encoding.UTF8.GetBytes(messageData));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, command.AggregateRootId, Encoding.UTF8.GetBytes(messageData));
         }
     }
 }

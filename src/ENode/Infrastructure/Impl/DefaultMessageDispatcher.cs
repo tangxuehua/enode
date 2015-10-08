@@ -250,7 +250,7 @@ namespace ENode.Infrastructure.Impl
                     MessageId = message.Id,
                     MessageTypeCode = messageTypeCode,
                     HandlerTypeCode = handlerTypeCode,
-                    Timestamp = DateTime.Now
+                    CreatedOn = DateTime.Now
                 };
                 var sequenceMessage = message as ISequenceMessage;
                 if (sequenceMessage != null)
@@ -287,7 +287,7 @@ namespace ENode.Infrastructure.Impl
                     Message1TypeCode = message1TypeCode,
                     Message2TypeCode = message2TypeCode,
                     HandlerTypeCode = handlerTypeCode,
-                    Timestamp = DateTime.Now
+                    CreatedOn = DateTime.Now
                 };
                 var sequenceMessage = message1 as ISequenceMessage;
                 if (sequenceMessage != null)
@@ -328,7 +328,7 @@ namespace ENode.Infrastructure.Impl
                     Message2TypeCode = message2TypeCode,
                     Message3TypeCode = message3TypeCode,
                     HandlerTypeCode = handlerTypeCode,
-                    Timestamp = DateTime.Now
+                    CreatedOn = DateTime.Now
                 };
                 var sequenceMessage = message1 as ISequenceMessage;
                 if (sequenceMessage != null)

@@ -4,6 +4,7 @@ using System.Threading;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
+using ECommon.Socketing;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
@@ -102,7 +103,7 @@ namespace NoteSample.QuickStart
             var scheduleService = ObjectContainer.Resolve<IScheduleService>();
             var waitHandle = new ManualResetEvent(false);
             logger.Info("Waiting for all consumer load balance complete, please wait for a moment...");
-            var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
+            scheduleService.StartTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
                 var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
@@ -113,7 +114,7 @@ namespace NoteSample.QuickStart
             }, 1000, 1000);
 
             waitHandle.WaitOne();
-            scheduleService.ShutdownTask(taskId);
+            scheduleService.StopTask("WaitAllConsumerLoadBalanceComplete");
             logger.Info("All consumer load balance completed.");
         }
     }

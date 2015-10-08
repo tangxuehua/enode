@@ -51,7 +51,7 @@ namespace ENode.EQueue
             var messageTypeCode = _messageTypeCodeProvider.GetTypeCode(message.GetType());
             var topic = _messageTopicProvider.GetTopic(message);
             var data = _jsonSerializer.Serialize(message);
-            return new EQueueMessage(topic, messageTypeCode, Encoding.UTF8.GetBytes(data));
+            return new EQueueMessage(topic, messageTypeCode, message.Id, Encoding.UTF8.GetBytes(data));
         }
     }
 }

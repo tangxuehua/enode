@@ -24,17 +24,18 @@ namespace ENode.Infrastructure.Impl.SQL
 
         #region Constructors
 
-        public SqlServerSequenceMessagePublishedVersionStore()
+        public SqlServerSequenceMessagePublishedVersionStore(OptionSetting optionSetting)
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerSequenceMessagePublishedVersionStoreSetting;
-            Ensure.NotNull(setting, "SqlServerSequenceMessagePublishedVersionStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
-            Ensure.NotNull(setting.GetOptionValue<string>("TableName"), "TableName");
-            Ensure.NotNull(setting.GetOptionValue<string>("PrimaryKeyName"), "PrimaryKeyName");
+            Ensure.NotNull(optionSetting, "optionSetting");
 
-            _connectionString = setting.ConnectionString;
-            _tableName = setting.GetOptionValue<string>("TableName");
-            _primaryKeyName = setting.GetOptionValue<string>("PrimaryKeyName");
+            _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
+            _tableName = optionSetting.GetOptionValue<string>("TableName");
+            _primaryKeyName = optionSetting.GetOptionValue<string>("PrimaryKeyName");
+
+            Ensure.NotNull(_connectionString, "_connectionString");
+            Ensure.NotNull(_tableName, "_tableName");
+            Ensure.NotNull(_primaryKeyName, "_primaryKeyName");
+
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
@@ -54,7 +55,7 @@ namespace ENode.Infrastructure.Impl.SQL
                             AggregateRootTypeCode = aggregateRootTypeCode,
                             AggregateRootId = aggregateRootId,
                             PublishedVersion = 1,
-                            Timestamp = DateTime.Now
+                            CreatedOn = DateTime.Now
                         }, _tableName);
                         return AsyncTaskResult.Success;
                     }
@@ -84,7 +85,7 @@ namespace ENode.Infrastructure.Impl.SQL
                         new
                         {
                             PublishedVersion = publishedVersion,
-                            Timestamp = DateTime.Now
+                            CreatedOn = DateTime.Now
                         },
                         new
                         {

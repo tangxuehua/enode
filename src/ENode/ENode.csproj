@@ -67,7 +67,7 @@
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
     <Compile Include="Commanding\ICommandProcessor.cs" />
     <Compile Include="Configurations\Configuration.cs" />
-    <Compile Include="Configurations\DbTableSetting.cs" />
+    <Compile Include="Configurations\OptionSetting.cs" />
     <Compile Include="Configurations\ConfigurationSetting.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
@@ -173,7 +173,7 @@
       <HintPath>..\..\packages\Dapper.1.38\lib\net45\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="ECommon">
-      <HintPath>..\..\packages\ecommon.1.4.9\lib\net45\ECommon.dll</HintPath>
+      <HintPath>..\..\packages\ecommon.1.5.0\lib\net45\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Dapper">
       <HintPath>..\..\packages\ECommon.Dapper.1.4.2\lib\net45\ECommon.Dapper.dll</HintPath>

@@ -14,6 +14,6 @@ namespace ENode.Infrastructure
         public int AggregateRootTypeCode { get; set; }
         public string AggregateRootId { get; set; }
         public int Version { get; set; }
-        public DateTime Timestamp { get; set; }
+        public DateTime CreatedOn { get; set; }
     }
 }

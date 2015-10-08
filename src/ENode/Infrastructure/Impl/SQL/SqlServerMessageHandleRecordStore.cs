@@ -27,25 +27,26 @@ namespace ENode.Infrastructure.Impl.SQL
 
         #region Constructors
 
-        public SqlServerMessageHandleRecordStore()
+        public SqlServerMessageHandleRecordStore(OptionSetting optionSetting)
         {
-            var setting = ENodeConfiguration.Instance.Setting.SqlServerMessageHandleRecordStoreSetting;
-            Ensure.NotNull(setting, "SqlServerMessageHandleRecordStoreSetting");
-            Ensure.NotNull(setting.ConnectionString, "ConnectionString");
-            Ensure.NotNull(setting.GetOptionValue<string>("OneMessageTableName"), "OneMessageTableName");
-            Ensure.NotNull(setting.GetOptionValue<string>("TwoMessageTableName"), "TwoMessageTableName");
-            Ensure.NotNull(setting.GetOptionValue<string>("ThreeMessageTableName"), "ThreeMessageTableName");
-            Ensure.NotNull(setting.GetOptionValue<string>("OneMessageTablePrimaryKeyName"), "OneMessageTablePrimaryKeyName");
-            Ensure.NotNull(setting.GetOptionValue<string>("TwoMessageTablePrimaryKeyName"), "TwoMessageTablePrimaryKeyName");
-            Ensure.NotNull(setting.GetOptionValue<string>("ThreeMessageTablePrimaryKeyName"), "ThreeMessageTablePrimaryKeyName");
+            Ensure.NotNull(optionSetting, "optionSetting");
 
-            _connectionString = setting.ConnectionString;
-            _oneMessageTableName = setting.GetOptionValue<string>("OneMessageTableName");
-            _oneMessageTablePrimaryKeyName = setting.GetOptionValue<string>("OneMessageTablePrimaryKeyName");
-            _twoMessageTableName = setting.GetOptionValue<string>("TwoMessageTableName");
-            _twoMessageTablePrimaryKeyName = setting.GetOptionValue<string>("TwoMessageTablePrimaryKeyName");
-            _threeMessageTableName = setting.GetOptionValue<string>("ThreeMessageTableName");
-            _threeMessageTablePrimaryKeyName = setting.GetOptionValue<string>("ThreeMessageTablePrimaryKeyName");
+            _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
+            _oneMessageTableName = optionSetting.GetOptionValue<string>("OneMessageTableName");
+            _oneMessageTablePrimaryKeyName = optionSetting.GetOptionValue<string>("OneMessageTablePrimaryKeyName");
+            _twoMessageTableName = optionSetting.GetOptionValue<string>("TwoMessageTableName");
+            _twoMessageTablePrimaryKeyName = optionSetting.GetOptionValue<string>("TwoMessageTablePrimaryKeyName");
+            _threeMessageTableName = optionSetting.GetOptionValue<string>("ThreeMessageTableName");
+            _threeMessageTablePrimaryKeyName = optionSetting.GetOptionValue<string>("ThreeMessageTablePrimaryKeyName");
+
+            Ensure.NotNull(_connectionString, "_connectionString");
+            Ensure.NotNull(_oneMessageTableName, "_oneMessageTableName");
+            Ensure.NotNull(_oneMessageTablePrimaryKeyName, "_oneMessageTablePrimaryKeyName");
+            Ensure.NotNull(_twoMessageTableName, "_twoMessageTableName");
+            Ensure.NotNull(_twoMessageTablePrimaryKeyName, "_twoMessageTablePrimaryKeyName");
+            Ensure.NotNull(_threeMessageTableName, "_threeMessageTableName");
+            Ensure.NotNull(_threeMessageTablePrimaryKeyName, "_threeMessageTablePrimaryKeyName");
+
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
