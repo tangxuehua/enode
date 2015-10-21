@@ -23,7 +23,6 @@ namespace ENode.EQueue
         private TaskFactory _taskFactory;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
-        private readonly IList<int> _taskIds;
         private const int MaxNotActiveTimeSeconds = 60;
         private const int ScanNotActiveClientInterval = 5000;
 
@@ -35,21 +34,17 @@ namespace ENode.EQueue
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _sendReplyRemotingClientDict = new ConcurrentDictionary<string, SocketRemotingClientWrapper>();
             _taskFactory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(Environment.ProcessorCount));
-            _taskIds = new List<int>();
         }
 
         public void Start()
         {
-            _taskIds.Add(_scheduleService.ScheduleTask("RemoveNotActiveRemotingClient", RemoveNotActiveRemotingClient, ScanNotActiveClientInterval, ScanNotActiveClientInterval));
+            _scheduleService.StartTask("RemoveNotActiveRemotingClient", RemoveNotActiveRemotingClient, ScanNotActiveClientInterval, ScanNotActiveClientInterval);
         }
         public void Shutdown()
         {
-            foreach (var taskId in _taskIds)
-            {
-                _scheduleService.ShutdownTask(taskId);
-            }
+            _scheduleService.StopTask("RemoveNotActiveRemotingClient");
         }
-        public void SendReplyAsync(int replyType, object replyData, string replyAddress)
+        public void SendReplyAsync(short replyType, object replyData, string replyAddress)
         {
             _taskFactory.StartNew(obj =>
             {
@@ -68,7 +63,7 @@ namespace ENode.EQueue
                     {
                         _ioHelper.TryIOAction(() =>
                         {
-                            var remotingResponse = remotingClientWrapper.RemotingClient.InvokeSync(remotingRequest);
+                            var remotingResponse = remotingClientWrapper.RemotingClient.InvokeSync(remotingRequest, 5000);
                             if (remotingResponse.Code != Constants.SuccessResponseCode)
                             {
                                 throw new IOException("Send command reply failed, remotingResponseCode: {0}", remotingResponse.Code);
@@ -134,7 +129,7 @@ namespace ENode.EQueue
         {
             return _sendReplyRemotingClientDict.GetOrAdd(replyEndpoint.ToString(), key =>
             {
-                var remotingClient = new SocketRemotingClient(replyEndpoint).Start();
+                var remotingClient = new SocketRemotingClient("SendReplyService", replyEndpoint).Start();
                 return new SocketRemotingClientWrapper
                 {
                     ReplyEndpoint = replyEndpoint,
@@ -146,11 +141,11 @@ namespace ENode.EQueue
 
         class SendReplyRequest
         {
-            public int ReplyType { get; private set; }
+            public short ReplyType { get; private set; }
             public object ReplyData { get; private set; }
             public string ReplyAddress { get; private set; }
 
-            public SendReplyRequest(int replyType, object replyData, string replyAddress)
+            public SendReplyRequest(short replyType, object replyData, string replyAddress)
             {
                 ReplyType = replyType;
                 ReplyData = replyData;

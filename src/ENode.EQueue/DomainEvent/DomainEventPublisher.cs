@@ -62,7 +62,7 @@ namespace ENode.EQueue
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _jsonSerializer.Serialize(eventMessage);
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, Encoding.UTF8.GetBytes(data));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, eventStream.AggregateRootId, Encoding.UTF8.GetBytes(data));
         }
         private EventStreamMessage CreateEventMessage(DomainEventStreamMessage eventStream)
         {

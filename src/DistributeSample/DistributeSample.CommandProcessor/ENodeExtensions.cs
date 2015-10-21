@@ -68,7 +68,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
             var scheduleService = ObjectContainer.Resolve<IScheduleService>();
             var waitHandle = new ManualResetEvent(false);
             logger.Info("Waiting for all consumer load balance complete, please wait for a moment...");
-            var taskId = scheduleService.ScheduleTask("WaitAllConsumerLoadBalanceComplete", () =>
+            scheduleService.StartTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
                 var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
                 if (commandConsumerAllocatedQueues.Count() == 8)
@@ -78,7 +78,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
             }, 1000, 1000);
 
             waitHandle.WaitOne();
-            scheduleService.ShutdownTask(taskId);
+            scheduleService.StopTask("WaitAllConsumerLoadBalanceComplete");
             logger.Info("All consumer load balance completed.");
         }
     }
