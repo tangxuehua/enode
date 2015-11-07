@@ -12,7 +12,6 @@ namespace ENode.EQueue
 {
     public class DomainEventConsumer : IQueueMessageHandler
     {
-        private const string DefaultEventConsumerId = "EventConsumer";
         private const string DefaultEventConsumerGroup = "EventConsumerGroup";
         private readonly Consumer _consumer;
         private readonly SendReplyService _sendReplyService;
@@ -24,13 +23,9 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public DomainEventConsumer(string id = null, string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
+        public DomainEventConsumer(string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
         {
-            var consumerId = id ?? DefaultEventConsumerId;
-            _consumer = new Consumer(consumerId, groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
-            {
-                MessageHandleMode = MessageHandleMode.Sequential
-            });
+            _consumer = new Consumer(groupName ?? DefaultEventConsumerGroup, setting);
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();

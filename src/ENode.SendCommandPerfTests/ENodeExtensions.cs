@@ -1,4 +1,5 @@
-﻿using ECommon.Components;
+﻿using System.IO;
+using ECommon.Components;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
@@ -18,6 +19,13 @@ namespace ENode.SendCommandPerfTests
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
+            var brokerStorePath = @"d:\equeue-store";
+
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
             configuration.RegisterEQueueComponents();
             _broker = BrokerController.Create();
             _commandService = new CommandService();

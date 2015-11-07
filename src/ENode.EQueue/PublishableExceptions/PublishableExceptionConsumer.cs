@@ -11,7 +11,6 @@ namespace ENode.EQueue
 {
     public class PublishableExceptionConsumer : IQueueMessageHandler
     {
-        private const string DefaultExceptionConsumerId = "ExceptionConsumer";
         private const string DefaultExceptionConsumerGroup = "ExceptionConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
@@ -22,11 +21,7 @@ namespace ENode.EQueue
 
         public PublishableExceptionConsumer(string id = null, string groupName = null, ConsumerSetting setting = null)
         {
-            var consumerId = id ?? DefaultExceptionConsumerId;
-            _consumer = new Consumer(consumerId, groupName ?? DefaultExceptionConsumerGroup, setting ?? new ConsumerSetting
-            {
-                MessageHandleMode = MessageHandleMode.Sequential
-            });
+            _consumer = new Consumer(groupName ?? DefaultExceptionConsumerGroup, setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
             _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();

@@ -16,7 +16,6 @@ namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
-        private const string DefaultCommandServiceProcuderId = "CommandService";
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<ICommand> _commandTopicProvider;
@@ -30,10 +29,10 @@ namespace ENode.EQueue
         public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
 
-        public CommandService(CommandResultProcessor commandResultProcessor = null, string id = null, ProducerSetting setting = null)
+        public CommandService(CommandResultProcessor commandResultProcessor = null, ProducerSetting setting = null)
         {
             _commandResultProcessor = commandResultProcessor;
-            _producer = new Producer(id ?? DefaultCommandServiceProcuderId, setting ?? new ProducerSetting());
+            _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
             _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
@@ -115,7 +114,7 @@ namespace ENode.EQueue
                 CommandData = commandData,
                 ReplyAddress = replyAddress
             });
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, command.AggregateRootId, Encoding.UTF8.GetBytes(messageData));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, Encoding.UTF8.GetBytes(messageData));
         }
     }
 }

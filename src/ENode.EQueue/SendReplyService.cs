@@ -129,7 +129,7 @@ namespace ENode.EQueue
         {
             return _sendReplyRemotingClientDict.GetOrAdd(replyEndpoint.ToString(), key =>
             {
-                var remotingClient = new SocketRemotingClient("SendReplyService", replyEndpoint).Start();
+                var remotingClient = new SocketRemotingClient(replyEndpoint).Start();
                 return new SocketRemotingClientWrapper
                 {
                     ReplyEndpoint = replyEndpoint,

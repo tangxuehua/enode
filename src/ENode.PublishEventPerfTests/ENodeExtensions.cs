@@ -1,4 +1,5 @@
-﻿using ECommon.Components;
+﻿using System.IO;
+using ECommon.Components;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.Eventing;
@@ -18,6 +19,13 @@ namespace ENode.PublishEventPerfTests
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
+            var brokerStorePath = @"d:\equeue-store";
+
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
             configuration.RegisterEQueueComponents();
             _broker = BrokerController.Create();
             _eventPublisher = new DomainEventPublisher();

@@ -14,7 +14,6 @@ namespace ENode.EQueue
 {
     public class DomainEventPublisher : IMessagePublisher<DomainEventStreamMessage>
     {
-        private const string DefaultEventPublisherProcuderId = "EventPublisher";
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IDomainEvent> _eventTopicProvider;
         private readonly ITypeCodeProvider _eventTypeCodeProvider;
@@ -24,9 +23,9 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public DomainEventPublisher(string id = null, ProducerSetting setting = null)
+        public DomainEventPublisher(ProducerSetting setting = null)
         {
-            _producer = new Producer(id ?? DefaultEventPublisherProcuderId, setting ?? new ProducerSetting());
+            _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IDomainEvent>>();
             _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
@@ -62,7 +61,7 @@ namespace ENode.EQueue
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _jsonSerializer.Serialize(eventMessage);
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, eventStream.AggregateRootId, Encoding.UTF8.GetBytes(data));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, Encoding.UTF8.GetBytes(data));
         }
         private EventStreamMessage CreateEventMessage(DomainEventStreamMessage eventStream)
         {

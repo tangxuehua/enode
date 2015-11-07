@@ -18,6 +18,7 @@ using NoteSample.Commands;
 using NoteSample.Domain;
 using ENode.MultiEventAndPriorityTests.EventHandlers;
 using ECommon.Socketing;
+using System.IO;
 
 namespace ENode.MultiEventAndPriorityTests
 {
@@ -33,6 +34,12 @@ namespace ENode.MultiEventAndPriorityTests
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
+            var brokerStorePath = @"d:\equeue-store";
+
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
 
             configuration.RegisterEQueueComponents();
 

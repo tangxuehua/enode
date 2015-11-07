@@ -11,7 +11,6 @@ namespace ENode.EQueue
 {
     public class ApplicationMessagePublisher : IMessagePublisher<IApplicationMessage>
     {
-        private const string DefaultMessagePublisherProcuderId = "ApplicationMessagePublisher";
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IApplicationMessage> _messageTopicProvider;
         private readonly ITypeCodeProvider _messageTypeCodeProvider;
@@ -20,9 +19,9 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public ApplicationMessagePublisher(string id = null, ProducerSetting setting = null)
+        public ApplicationMessagePublisher(ProducerSetting setting = null)
         {
-            _producer = new Producer(id ?? DefaultMessagePublisherProcuderId, setting ?? new ProducerSetting());
+            _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _messageTopicProvider = ObjectContainer.Resolve<ITopicProvider<IApplicationMessage>>();
             _messageTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
@@ -51,7 +50,7 @@ namespace ENode.EQueue
             var messageTypeCode = _messageTypeCodeProvider.GetTypeCode(message.GetType());
             var topic = _messageTopicProvider.GetTopic(message);
             var data = _jsonSerializer.Serialize(message);
-            return new EQueueMessage(topic, messageTypeCode, message.Id, Encoding.UTF8.GetBytes(data));
+            return new EQueueMessage(topic, messageTypeCode, Encoding.UTF8.GetBytes(data));
         }
     }
 }

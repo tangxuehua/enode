@@ -141,10 +141,10 @@ namespace ENode.Configurations
                 foreach (var type in assembly.GetTypes().Where(ENode.Infrastructure.TypeUtils.IsComponent))
                 {
                     var life = ParseComponentLife(type);
-                    ObjectContainer.RegisterType(type, life);
+                    ObjectContainer.RegisterType(type, null, life);
                     foreach (var interfaceType in type.GetInterfaces())
                     {
-                        ObjectContainer.RegisterType(interfaceType, type, life);
+                        ObjectContainer.RegisterType(interfaceType, type, null, life);
                     }
                     if (IsAssemblyInitializer(type))
                     {

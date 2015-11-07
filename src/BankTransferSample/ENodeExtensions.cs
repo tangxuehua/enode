@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using BankTransferSample.ApplicationMessages;
@@ -10,7 +11,6 @@ using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ECommon.Socketing;
-using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
@@ -19,6 +19,7 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
 using EQueue.Broker;
+using EQueue.Clients.Consumers;
 using EQueue.Configurations;
 
 namespace BankTransferSample
@@ -39,6 +40,12 @@ namespace BankTransferSample
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
+            var brokerStorePath = @"d:\equeue-store";
+
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
 
             configuration.RegisterEQueueComponents();
 

@@ -10,7 +10,6 @@ namespace ENode.EQueue
 {
     public class ApplicationMessageConsumer : IQueueMessageHandler
     {
-        private const string DefaultMessageConsumerId = "ApplicationMessageConsumer";
         private const string DefaultMessageConsumerGroup = "ApplicationMessageConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
@@ -19,13 +18,9 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public ApplicationMessageConsumer(string id = null, string groupName = null, ConsumerSetting setting = null)
+        public ApplicationMessageConsumer(string groupName = null, ConsumerSetting setting = null)
         {
-            var consumerId = id ?? DefaultMessageConsumerId;
-            _consumer = new Consumer(consumerId, groupName ?? DefaultMessageConsumerGroup, setting ?? new ConsumerSetting
-            {
-                MessageHandleMode = MessageHandleMode.Sequential
-            });
+            _consumer = new Consumer(groupName ?? DefaultMessageConsumerGroup, setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage, bool>>();
             _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();

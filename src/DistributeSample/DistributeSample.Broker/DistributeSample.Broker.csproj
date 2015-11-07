@@ -38,29 +38,29 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Autofac">
-      <HintPath>..\..\..\packages\Autofac.3.4.0\lib\net40\Autofac.dll</HintPath>
+      <HintPath>..\..\..\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
     </Reference>
     <Reference Include="Dapper">
-      <HintPath>..\..\..\packages\Dapper.1.38\lib\net45\Dapper.dll</HintPath>
+      <HintPath>..\..\..\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="ECommon">
-      <HintPath>..\..\..\packages\ECommon.1.5.0\lib\net45\ECommon.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.1.5.5\lib\net45\ECommon.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Autofac">
-      <HintPath>..\..\..\packages\ECommon.Autofac.1.4.2\lib\net45\ECommon.Autofac.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.Autofac.1.5.5\lib\net45\ECommon.Autofac.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Dapper">
-      <HintPath>..\..\..\packages\ECommon.Dapper.1.4.2\lib\net45\ECommon.Dapper.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.Dapper.1.5.5\lib\net45\ECommon.Dapper.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.JsonNet">
-      <HintPath>..\..\..\packages\ECommon.JsonNet.1.4.2\lib\net45\ECommon.JsonNet.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.JsonNet.1.5.5\lib\net45\ECommon.JsonNet.dll</HintPath>
     </Reference>
     <Reference Include="ECommon.Log4Net">
-      <HintPath>..\..\..\packages\ECommon.Log4Net.1.4.2\lib\net45\ECommon.Log4Net.dll</HintPath>
+      <HintPath>..\..\..\packages\ECommon.Log4Net.1.5.5\lib\net45\ECommon.Log4Net.dll</HintPath>
     </Reference>
-    <Reference Include="EQueue, Version=1.4.8.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="EQueue, Version=2.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\EQueue.1.4.8\lib\net45\EQueue.dll</HintPath>
+      <HintPath>..\..\..\packages\EQueue.2.0.2\lib\net45\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -69,7 +69,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Newtonsoft.Json.5.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\..\packages\Newtonsoft.Json.7.0.1\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -51,7 +51,7 @@ namespace ENode.SendCommandPerfTests
                 var current = Interlocked.Increment(ref sequence);
                 if (current % printSize == 0)
                 {
-                    Console.WriteLine("----Sent {0} commands async, time spent: {1}ms, threadId:{2}", current, watch.ElapsedMilliseconds, Thread.CurrentThread.ManagedThreadId);
+                    Console.WriteLine("----Sent {0} commands async, time spent: {1}ms", current, watch.ElapsedMilliseconds);
                 }
                 if (current == commandCount)
                 {

@@ -12,7 +12,6 @@ namespace ENode.EQueue
 {
     public class PublishableExceptionPublisher : IMessagePublisher<IPublishableException>
     {
-        private const string DefaultExceptionPublisherProcuderId = "ExceptionPublisher";
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IPublishableException> _exceptionTopicProvider;
         private readonly ITypeCodeProvider _exceptionTypeCodeProvider;
@@ -21,9 +20,9 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public PublishableExceptionPublisher(string id = null, ProducerSetting setting = null)
+        public PublishableExceptionPublisher(ProducerSetting setting = null)
         {
-            _producer = new Producer(id ?? DefaultExceptionPublisherProcuderId, setting ?? new ProducerSetting());
+            _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
             _exceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
@@ -68,7 +67,7 @@ namespace ENode.EQueue
                 ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
             });
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.ExceptionMessage, exception.Id, Encoding.UTF8.GetBytes(data));
+            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
         }
     }
 }

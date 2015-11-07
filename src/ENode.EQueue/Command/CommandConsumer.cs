@@ -16,7 +16,6 @@ namespace ENode.EQueue
 {
     public class CommandConsumer : IQueueMessageHandler
     {
-        private const string DefaultCommandConsumerId = "CommandConsumer";
         private const string DefaultCommandConsumerGroup = "CommandConsumerGroup";
         private readonly Consumer _consumer;
         private readonly SendReplyService _sendReplyService;
@@ -28,15 +27,9 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public CommandConsumer(
-            string id = null,
-            string groupName = null,
-            ConsumerSetting setting = null)
+        public CommandConsumer(string groupName = null, ConsumerSetting setting = null)
         {
-            _consumer = new Consumer(id ?? DefaultCommandConsumerId, groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting
-            {
-                MessageHandleMode = MessageHandleMode.Sequential
-            });
+            _consumer = new Consumer(groupName ?? DefaultCommandConsumerGroup, setting);
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();

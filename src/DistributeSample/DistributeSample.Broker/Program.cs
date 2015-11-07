@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
@@ -15,6 +16,14 @@ namespace DistributeSample.Broker
         static void Main(string[] args)
         {
             InitializeEQueue();
+
+            var brokerStorePath = @"d:\equeue-store";
+
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
             BrokerController.Create().Start();
 
             ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Program).Name).Info("Broker started, press Enter to exit...");
