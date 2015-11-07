@@ -27,7 +27,7 @@ namespace ENode.SendCommandPerfTests
             }
 
             configuration.RegisterEQueueComponents();
-            _broker = BrokerController.Create();
+            _broker = BrokerController.Create(new BrokerSetting { NotifyWhenMessageArrived = false });
             _commandService = new CommandService();
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             return enodeConfiguration;

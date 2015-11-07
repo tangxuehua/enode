@@ -27,7 +27,7 @@ namespace ENode.PublishEventPerfTests
             }
 
             configuration.RegisterEQueueComponents();
-            _broker = BrokerController.Create();
+            _broker = BrokerController.Create(new BrokerSetting { NotifyWhenMessageArrived = false });
             _eventPublisher = new DomainEventPublisher();
             configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_eventPublisher);
             return enodeConfiguration;
