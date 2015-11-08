@@ -106,7 +106,6 @@ namespace ENode.CommandProcessorPerfTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode(setting)
                 .RegisterENodeComponents()
-                .RegisterAllTypeCodes()
                 .UseSqlServerEventStore()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies);

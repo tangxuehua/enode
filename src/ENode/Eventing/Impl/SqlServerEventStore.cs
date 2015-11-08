@@ -121,11 +121,11 @@ namespace ENode.Eventing.Impl
                             copy.BatchSize = _bulkCopyBatchSize;
                             copy.BulkCopyTimeout = _bulkCopyTimeout;
                             copy.DestinationTableName = _tableName;
-                            copy.ColumnMappings.Add("CommandId", "CommandId");
                             copy.ColumnMappings.Add("AggregateRootId", "AggregateRootId");
                             copy.ColumnMappings.Add("AggregateRootTypeCode", "AggregateRootTypeCode");
+                            copy.ColumnMappings.Add("CommandId", "CommandId");
                             copy.ColumnMappings.Add("Version", "Version");
-                            copy.ColumnMappings.Add("Timestamp", "Timestamp");
+                            copy.ColumnMappings.Add("CreatedOn", "CreatedOn");
                             copy.ColumnMappings.Add("Events", "Events");
 
                             try
@@ -305,11 +305,11 @@ namespace ENode.Eventing.Impl
         private DataTable BuildEventTable()
         {
             var table = new DataTable();
-            table.Columns.Add("CommandId", typeof(string));
             table.Columns.Add("AggregateRootId", typeof(string));
             table.Columns.Add("AggregateRootTypeCode", typeof(int));
             table.Columns.Add("Version", typeof(int));
-            table.Columns.Add("Timestamp", typeof(DateTime));
+            table.Columns.Add("CommandId", typeof(string));
+            table.Columns.Add("CreatedOn", typeof(DateTime));
             table.Columns.Add("Events", typeof(string));
             return table;
         }
@@ -342,11 +342,11 @@ namespace ENode.Eventing.Impl
         private void AddDataRow(DataTable table, DomainEventStream eventStream)
         {
             var row = table.NewRow();
-            row["CommandId"] = eventStream.CommandId;
             row["AggregateRootId"] = eventStream.AggregateRootId;
             row["AggregateRootTypeCode"] = eventStream.AggregateRootTypeCode;
+            row["CommandId"] = eventStream.CommandId;
             row["Version"] = eventStream.Version;
-            row["Timestamp"] = eventStream.Timestamp;
+            row["CreatedOn"] = eventStream.Timestamp;
             row["Events"] = _jsonSerializer.Serialize(_eventSerializer.Serialize(eventStream.Events));
             table.Rows.Add(row);
         }

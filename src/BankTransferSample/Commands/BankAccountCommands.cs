@@ -1,12 +1,14 @@
 ﻿using System;
 using BankTransferSample.Domain;
 using ENode.Commanding;
+using ENode.Infrastructure;
 
 namespace BankTransferSample.Commands
 {
     /// <summary>开户（创建一个账户）
     /// </summary>
     [Serializable]
+    [Code(100)]
     public class CreateAccountCommand : Command
     {
         public string Owner { get; set; }
@@ -20,6 +22,7 @@ namespace BankTransferSample.Commands
     /// <summary>验证账户是否合法
     /// </summary>
     [Serializable]
+    [Code(101)]
     public class ValidateAccountCommand : Command
     {
         public string TransactionId { get; set; }
@@ -33,6 +36,7 @@ namespace BankTransferSample.Commands
     /// <summary>向账户添加一笔预操作
     /// </summary>
     [Serializable]
+    [Code(102)]
     public class AddTransactionPreparationCommand : Command
     {
         public string TransactionId { get; set; }
@@ -53,6 +57,7 @@ namespace BankTransferSample.Commands
     /// <summary>提交预操作
     /// </summary>
     [Serializable]
+    [Code(103)]
     public class CommitTransactionPreparationCommand : Command
     {
         public string TransactionId { get; set; }

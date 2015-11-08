@@ -83,27 +83,6 @@ namespace NoteSample.QuickStart
             return enodeConfiguration;
         }
 
-        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
-        {
-            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
-
-            //aggregates
-            provider.RegisterType<Note>(1000);
-
-            //commands
-            provider.RegisterType<CreateNoteCommand>(2000);
-            provider.RegisterType<ChangeNoteTitleCommand>(2001);
-
-            //events
-            provider.RegisterType<NoteCreated>(3000);
-            provider.RegisterType<NoteTitleChanged>(3001);
-
-            //event handlers
-            provider.RegisterType<NoteEventHandler>(4000);
-
-            return enodeConfiguration;
-        }
-
         private static void WaitAllConsumerLoadBalanceComplete()
         {
             var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);

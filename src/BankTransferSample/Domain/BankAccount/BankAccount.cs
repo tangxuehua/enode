@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using ENode.Domain;
+using ENode.Infrastructure;
 
 namespace BankTransferSample.Domain
 {
     /// <summary>银行账户聚合根，封装银行账户余额变动的数据一致性
     /// </summary>
+    [Code(10)]
     public class BankAccount : AggregateRoot<string>
     {
         #region Private Variables

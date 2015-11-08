@@ -44,15 +44,5 @@ namespace ENode.PublishEventPerfTests
             _broker.Shutdown();
             return enodeConfiguration;
         }
-
-        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
-        {
-            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
-
-            //events
-            provider.RegisterType<NoteCreated>(1000);
-
-            return enodeConfiguration;
-        }
     }
 }

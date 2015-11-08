@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using DistributeSample.CommandProcessor.EQueueIntegrations;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
@@ -39,7 +38,6 @@ namespace DistributeSample.CommandProcessor
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .RegisterAllTypeCodes()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();

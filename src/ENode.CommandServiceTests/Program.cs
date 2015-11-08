@@ -49,6 +49,7 @@ namespace ENode.CommandServiceTests
             {
                 Assembly.Load("NoteSample.Domain"),
                 Assembly.Load("NoteSample.CommandHandlers"),
+                Assembly.Load("NoteSample.Commands"),
                 Assembly.GetExecutingAssembly()
             };
             _configuration = ECommonConfiguration
@@ -60,7 +61,6 @@ namespace ENode.CommandServiceTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode(setting)
                 .RegisterENodeComponents()
-                .RegisterAllTypeCodes()
                 .UseSqlServerEventStore()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)

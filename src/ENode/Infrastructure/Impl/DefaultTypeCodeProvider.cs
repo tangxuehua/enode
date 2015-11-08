@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using ENode.Commanding;
+using ENode.Domain;
+using ENode.Eventing;
 
 namespace ENode.Infrastructure.Impl
 {
-    public class DefaultTypeCodeProvider : ITypeCodeProvider
+    public class DefaultTypeCodeProvider : ITypeCodeProvider, IAssemblyInitializer
     {
         private IDictionary<int, Type> _codeTypeDict = new Dictionary<int, Type>();
         private IDictionary<Type, int> _typeCodeDict = new Dictionary<Type, int>();
@@ -33,6 +38,21 @@ namespace ENode.Infrastructure.Impl
         {
             _codeTypeDict.Add(code, type);
             _typeCodeDict.Add(type, code);
+        }
+
+        public void Initialize(params Assembly[] assemblies)
+        {
+            foreach (var type in assemblies.SelectMany(assembly => assembly.GetTypes().Where(x => x.IsClass && (
+                    typeof(IAggregateRoot).IsAssignableFrom(x) ||
+                    typeof(ICommand).IsAssignableFrom(x) ||
+                    typeof(IDomainEvent).IsAssignableFrom(x) ||
+                    typeof(IApplicationMessage).IsAssignableFrom(x) ||
+                    typeof(IPublishableException).IsAssignableFrom(x) ||
+                    typeof(IMessageHandler).IsAssignableFrom(x)))))
+            {
+                var code = type.GetCustomAttributes<CodeAttribute>(false).Single().Code;
+                RegisterType(code, type);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.IO;
+using System.Net;
 using ECommon.Components;
 using ECommon.Socketing;
 using ECommon.Utilities;
@@ -26,6 +27,13 @@ namespace ENode.CommandServiceTests
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
+            var brokerStorePath = @"d:\equeue-store";
+
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
             configuration.RegisterEQueueComponents();
             _broker = BrokerController.Create();
             _commandService = new CommandService(new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
@@ -47,23 +55,6 @@ namespace ENode.CommandServiceTests
             _commandService.Shutdown();
             _commandConsumer.Shutdown();
             _broker.Shutdown();
-            return enodeConfiguration;
-        }
-        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
-        {
-            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
-
-            //commands
-            provider.RegisterType<CreateNoteCommand>(1000);
-            provider.RegisterType<ChangeNoteTitleCommand>(1001);
-
-            //aggregates
-            provider.RegisterType<Note>(100);
-
-            //events
-            provider.RegisterType<NoteCreated>(2000);
-            provider.RegisterType<NoteTitleChanged>(2001);
-
             return enodeConfiguration;
         }
     }

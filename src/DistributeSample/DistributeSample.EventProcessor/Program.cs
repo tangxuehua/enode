@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using DistributeSample.EventProcessor.EQueueIntegrations;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
@@ -21,7 +20,11 @@ namespace DistributeSample.EventProcessor
 
         static void InitializeENodeFramework()
         {
-            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+            var assemblies = new[]
+            {
+                Assembly.Load("NoteSample.Domain"),
+                Assembly.GetExecutingAssembly()
+            };
 
             Configuration
                 .Create()
@@ -33,7 +36,6 @@ namespace DistributeSample.EventProcessor
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .RegisterAllTypeCodes()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();

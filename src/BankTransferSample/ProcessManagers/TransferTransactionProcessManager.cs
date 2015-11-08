@@ -13,6 +13,7 @@ namespace BankTransferSample.ProcessManagers
     /// <summary>银行转账交易流程管理器，用于协调银行转账交易流程中各个参与者聚合根之间的消息交互。
     /// </summary>
     [Component]
+    [Code(10004)]
     public class TransferTransactionProcessManager :
         IMessageHandler<TransferTransactionStartedEvent>,                  //转账交易已开始
         IMessageHandler<AccountValidatePassedMessage>,                     //账户验证已通过

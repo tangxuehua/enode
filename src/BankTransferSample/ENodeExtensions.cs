@@ -2,11 +2,6 @@
 using System.Linq;
 using System.Net;
 using System.Threading;
-using BankTransferSample.ApplicationMessages;
-using BankTransferSample.Commands;
-using BankTransferSample.Domain;
-using BankTransferSample.EventHandlers;
-using BankTransferSample.ProcessManagers;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
@@ -17,9 +12,7 @@ using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
-using ENode.Infrastructure.Impl;
 using EQueue.Broker;
-using EQueue.Clients.Consumers;
 using EQueue.Configurations;
 
 namespace BankTransferSample
@@ -96,71 +89,6 @@ namespace BankTransferSample
             _eventConsumer.Shutdown();
             _exceptionConsumer.Shutdown();
             _broker.Shutdown();
-            return enodeConfiguration;
-        }
-
-        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
-        {
-            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
-
-            //aggregates
-            provider.RegisterType<BankAccount>(100);
-            provider.RegisterType<DepositTransaction>(101);
-            provider.RegisterType<TransferTransaction>(102);
-
-            //commands
-            provider.RegisterType<CreateAccountCommand>(200);
-            provider.RegisterType<ValidateAccountCommand>(201);
-            provider.RegisterType<AddTransactionPreparationCommand>(202);
-            provider.RegisterType<CommitTransactionPreparationCommand>(203);
-
-            provider.RegisterType<StartDepositTransactionCommand>(204);
-            provider.RegisterType<ConfirmDepositPreparationCommand>(205);
-            provider.RegisterType<ConfirmDepositCommand>(206);
-
-            provider.RegisterType<StartTransferTransactionCommand>(207);
-            provider.RegisterType<ConfirmAccountValidatePassedCommand>(208);
-            provider.RegisterType<ConfirmTransferOutPreparationCommand>(209);
-            provider.RegisterType<ConfirmTransferInPreparationCommand>(210);
-            provider.RegisterType<ConfirmTransferOutCommand>(211);
-            provider.RegisterType<ConfirmTransferInCommand>(212);
-            provider.RegisterType<CancelTransferTransactionCommand>(213);
-
-            //application messages
-            provider.RegisterType<AccountValidatePassedMessage>(300);
-            provider.RegisterType<AccountValidateFailedMessage>(301);
-
-            //domain events
-            provider.RegisterType<AccountCreatedEvent>(400);
-            provider.RegisterType<TransactionPreparationAddedEvent>(401);
-            provider.RegisterType<TransactionPreparationCommittedEvent>(402);
-            provider.RegisterType<TransactionPreparationCanceledEvent>(403);
-
-            provider.RegisterType<DepositTransactionStartedEvent>(404);
-            provider.RegisterType<DepositTransactionPreparationCompletedEvent>(405);
-            provider.RegisterType<DepositTransactionCompletedEvent>(406);
-
-            provider.RegisterType<TransferTransactionStartedEvent>(407);
-            provider.RegisterType<SourceAccountValidatePassedConfirmedEvent>(408);
-            provider.RegisterType<TargetAccountValidatePassedConfirmedEvent>(409);
-            provider.RegisterType<AccountValidatePassedConfirmCompletedEvent>(410);
-            provider.RegisterType<TransferOutPreparationConfirmedEvent>(411);
-            provider.RegisterType<TransferInPreparationConfirmedEvent>(412);
-            provider.RegisterType<TransferOutConfirmedEvent>(413);
-            provider.RegisterType<TransferInConfirmedEvent>(414);
-            provider.RegisterType<TransferTransactionCompletedEvent>(415);
-            provider.RegisterType<TransferTransactionCanceledEvent>(416);
-
-            //publishable exceptions
-            provider.RegisterType<InsufficientBalanceException>(500);
-
-            //application message and domain event handlers
-            provider.RegisterType<DepositTransactionProcessManager>(600);
-            provider.RegisterType<TransferTransactionProcessManager>(601);
-            provider.RegisterType<ConsoleLogger>(602);
-            provider.RegisterType<SyncHelper>(603);
-            provider.RegisterType<CountSyncHelper>(604);
-
             return enodeConfiguration;
         }
 

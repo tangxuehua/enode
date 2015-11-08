@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Reflection;
-using DistributeSample.CommandProducer.EQueueIntegrations;
+using System.Threading;
 using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
-using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.JsonNet;
 using ECommon.Log4Net;
@@ -25,18 +24,21 @@ namespace DistributeSample.CommandProducer
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
+            var sentCount = 0;
 
             for (var index = 1; index <= 10; index++)
             {
-                var result = commandService.ExecuteAsync(new CreateNoteCommand { AggregateRootId = ObjectId.GenerateNewStringId(), Title = "Sample Note" + index }).WaitResult<AsyncTaskResult<CommandResult>>(5000000);
-                if (result.Data.Status == CommandStatus.Success)
+                commandService.SendAsync(new CreateNoteCommand { AggregateRootId = ObjectId.GenerateNewStringId(), Title = "Sample Note" + index }).ContinueWith(t =>
                 {
-                    _logger.InfoFormat("Execute command success, title: {0}", "Sample Note" + index);
-                }
-                else
-                {
-                    _logger.ErrorFormat("Execute command failed, title: {0}, errorMsg: {1}", "Sample Note" + index, result.Data.ErrorMessage);
-                }
+                    if (t.Result.Status == AsyncTaskStatus.Success)
+                    {
+                        _logger.InfoFormat("Send command success, sentCount: {0}", Interlocked.Increment(ref sentCount));
+                    }
+                    else
+                    {
+                        _logger.InfoFormat("Send command failed, errorMessage: {0}", t.Result.ErrorMessage);
+                    }
+                });
             }
 
             Console.ReadLine();
@@ -44,7 +46,11 @@ namespace DistributeSample.CommandProducer
 
         static void InitializeENodeFramework()
         {
-            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+            var assemblies = new[]
+            {
+                Assembly.Load("NoteSample.Commands"),
+                Assembly.GetExecutingAssembly()
+            };
 
             Configuration
                 .Create()
@@ -56,7 +62,6 @@ namespace DistributeSample.CommandProducer
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .RegisterAllTypeCodes()
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();

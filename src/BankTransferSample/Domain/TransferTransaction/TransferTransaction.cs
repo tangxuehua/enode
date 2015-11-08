@@ -1,11 +1,13 @@
 ﻿using System;
 using ENode.Domain;
+using ENode.Infrastructure;
 
 namespace BankTransferSample.Domain
 {
     /// <summary>聚合根，表示一笔银行内账户之间的转账交易
     /// </summary>
     [Serializable]
+    [Code(12)]
     public class TransferTransaction : AggregateRoot<string>
     {
         #region Private Variables

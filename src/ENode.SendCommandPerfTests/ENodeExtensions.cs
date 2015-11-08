@@ -44,15 +44,5 @@ namespace ENode.SendCommandPerfTests
             _broker.Shutdown();
             return enodeConfiguration;
         }
-
-        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
-        {
-            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
-
-            //commands
-            provider.RegisterType<CreateNoteCommand>(1000);
-
-            return enodeConfiguration;
-        }
     }
 }

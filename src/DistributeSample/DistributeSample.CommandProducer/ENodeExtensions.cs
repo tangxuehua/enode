@@ -11,7 +11,7 @@ using ENode.Infrastructure.Impl;
 using EQueue.Configurations;
 using NoteSample.Commands;
 
-namespace DistributeSample.CommandProducer.EQueueIntegrations
+namespace DistributeSample.CommandProducer
 {
     public static class ENodeExtensions
     {
@@ -34,16 +34,6 @@ namespace DistributeSample.CommandProducer.EQueueIntegrations
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
             _commandService.Start();
-            return enodeConfiguration;
-        }
-
-        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
-        {
-            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
-
-            //commands
-            provider.RegisterType<CreateNoteCommand>(2000);
-
             return enodeConfiguration;
         }
     }

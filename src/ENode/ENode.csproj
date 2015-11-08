@@ -87,6 +87,7 @@
     <Compile Include="Infrastructure\IHandlerProxy.cs" />
     <Compile Include="Infrastructure\Impl\AbstractHandlerProvider.cs" />
     <Compile Include="Infrastructure\ApplicationMessage.cs" />
+    <Compile Include="Infrastructure\CodeAttribute.cs" />
     <Compile Include="Infrastructure\ThreeMessageHandleRecord.cs" />
     <Compile Include="Infrastructure\TwoMessageHandleRecord.cs" />
     <Compile Include="Infrastructure\MessageHandleRecord.cs" />

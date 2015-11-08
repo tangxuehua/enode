@@ -83,39 +83,6 @@ namespace ENode.MultiEventAndPriorityTests
             return enodeConfiguration;
         }
 
-        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
-        {
-            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
-
-            //aggregates
-            provider.RegisterType<Note>(1000);
-
-            //commands
-            provider.RegisterType<CreateNoteCommand>(2000);
-            provider.RegisterType<TestEventsCommand>(2001);
-
-            //events
-            provider.RegisterType<NoteCreated>(3001);
-            provider.RegisterType<Event1>(3002);
-            provider.RegisterType<Event2>(3003);
-            provider.RegisterType<Event3>(3004);
-
-            //event handlers
-            provider.RegisterType<Handler1>(4001);
-            provider.RegisterType<Handler2>(4002);
-            provider.RegisterType<Handler3>(4003);
-
-            provider.RegisterType<Handler121>(4004);
-            provider.RegisterType<Handler122>(4005);
-            provider.RegisterType<Handler123>(4006);
-
-            provider.RegisterType<Handler1231>(4007);
-            provider.RegisterType<Handler1232>(4008);
-            provider.RegisterType<Handler1233>(4009);
-
-            return enodeConfiguration;
-        }
-
         private static void WaitAllConsumerLoadBalanceComplete()
         {
             var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);

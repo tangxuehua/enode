@@ -3,7 +3,7 @@ using ECommon.Components;
 using ENode.Commanding;
 using ENode.EQueue;
 
-namespace DistributeSample.CommandProducer.Providers
+namespace DistributeSample.CommandProducer
 {
     [Component]
     public class CommandTopicProvider : AbstractTopicProvider<ICommand>

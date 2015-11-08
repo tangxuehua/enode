@@ -25,7 +25,10 @@ namespace ENode.EQueue
 
         public DomainEventConsumer(string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
         {
-            _consumer = new Consumer(groupName ?? DefaultEventConsumerGroup, setting);
+            _consumer = new Consumer(groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
+            {
+                MessageHandleMode = MessageHandleMode.Sequential
+            });
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();

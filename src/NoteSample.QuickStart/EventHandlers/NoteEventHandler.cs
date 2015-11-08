@@ -7,6 +7,7 @@ using NoteSample.Domain;
 
 namespace NoteSample.QuickStart.EventHandlers
 {
+    [Code(3000)]
     [Component]
     public class NoteEventHandler : IMessageHandler<NoteCreated>, IMessageHandler<NoteTitleChanged>
     {
@@ -19,12 +20,12 @@ namespace NoteSample.QuickStart.EventHandlers
 
         public Task<AsyncTaskResult> HandleAsync(NoteCreated evnt)
         {
-            _logger.InfoFormat("Note Created, Id:{0}, Title：{1}, Version: {2}", evnt.AggregateRootId, evnt.Title, evnt.Version);
+            _logger.InfoFormat("Note denormalizered, title：{0}, Version: {1}", evnt.Title, evnt.Version);
             return Task.FromResult(AsyncTaskResult.Success);
         }
         public Task<AsyncTaskResult> HandleAsync(NoteTitleChanged evnt)
         {
-            _logger.InfoFormat("Note Updated, Id:{0}, Title：{1}, Version: {2}", evnt.AggregateRootId, evnt.Title, evnt.Version);
+            _logger.InfoFormat("Note denormalizered, title：{0}, Version: {1}", evnt.Title, evnt.Version);
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }

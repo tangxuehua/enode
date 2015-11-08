@@ -5,7 +5,10 @@ namespace ENode.Infrastructure
 {
     /// <summary>Represents a message handler.
     /// </summary>
-    public interface IMessageHandler<in T> where T : class, IMessage
+    public interface IMessageHandler { }
+    /// <summary>Represents a message handler.
+    /// </summary>
+    public interface IMessageHandler<in T> : IMessageHandler where T : class, IMessage
     {
         /// <summary>Handle the given message async.
         /// </summary>
@@ -14,7 +17,7 @@ namespace ENode.Infrastructure
     }
     /// <summary>Represents a message handler.
     /// </summary>
-    public interface IMessageHandler<in T1, in T2>
+    public interface IMessageHandler<in T1, in T2> : IMessageHandler
         where T1 : class, IMessage
         where T2 : class, IMessage
     {
@@ -26,7 +29,7 @@ namespace ENode.Infrastructure
     }
     /// <summary>Represents a message handler.
     /// </summary>
-    public interface IMessageHandler<in T1, in T2, in T3>
+    public interface IMessageHandler<in T1, in T2, in T3> : IMessageHandler
         where T1 : class, IMessage
         where T2 : class, IMessage
         where T3 : class, IMessage

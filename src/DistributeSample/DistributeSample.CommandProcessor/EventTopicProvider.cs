@@ -3,7 +3,7 @@ using ECommon.Components;
 using ENode.EQueue;
 using ENode.Eventing;
 
-namespace DistributeSample.CommandProcessor.Providers
+namespace DistributeSample.CommandProcessor
 {
     [Component]
     public class EventTopicProvider : AbstractTopicProvider<IDomainEvent>

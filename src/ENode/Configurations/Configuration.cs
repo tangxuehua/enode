@@ -123,6 +123,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DefaultMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
             _configuration.SetDefault<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
 
+            _assemblyInitializerServiceTypes.Add(typeof(ITypeCodeProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(ITwoMessageHandlerProvider));
@@ -216,43 +217,6 @@ namespace ENode.Configurations
                 new KeyValuePair<string, object>("ThreeMessageTablePrimaryKeyName", "PK_ThreeMessageHandleRecord"))));
             return this;
         }
-        /// <summary>Set the concurrent level for command scheduler.
-        /// </summary>
-        /// <param name="concurrentLevel"></param>
-        /// <returns></returns>
-        public ENodeConfiguration SetCommandSchedulerConcurrentLevel(int concurrentLevel)
-        {
-            ObjectContainer.Resolve<IProcessingMessageScheduler<ProcessingCommand, ICommand, CommandResult>>().SetConcurrencyLevel(concurrentLevel);
-            return this;
-        }
-        /// <summary>Set the concurrent level for application message scheduler.
-        /// </summary>
-        /// <param name="concurrentLevel"></param>
-        /// <returns></returns>
-        public ENodeConfiguration SetApplicationMessageSchedulerConcurrentLevel(int concurrentLevel)
-        {
-            ObjectContainer.Resolve<IProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage, bool>>().SetConcurrencyLevel(concurrentLevel);
-            return this;
-        }
-        /// <summary>Set the concurrent level for domain event scheduler.
-        /// </summary>
-        /// <param name="concurrentLevel"></param>
-        /// <returns></returns>
-        public ENodeConfiguration SetDomainEventSchedulerConcurrentLevel(int concurrentLevel)
-        {
-            ObjectContainer.Resolve<IProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>().SetConcurrencyLevel(concurrentLevel);
-            return this;
-        }
-        /// <summary>Set the concurrent level for exception scheduler.
-        /// </summary>
-        /// <param name="concurrentLevel"></param>
-        /// <returns></returns>
-        public ENodeConfiguration SetExceptionSchedulerConcurrentLevel(int concurrentLevel)
-        {
-            ObjectContainer.Resolve<IProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException, bool>>().SetConcurrencyLevel(concurrentLevel);
-            return this;
-        }
-
         /// <summary>Initialize all the assembly initializers with the given business assemblies.
         /// </summary>
         /// <returns></returns>
@@ -280,6 +244,19 @@ namespace ENode.Configurations
                     if (!type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Any(x => x.GetParameters().Count() == 0))
                     {
                         throw new Exception(string.Format("{0} must have a default constructor.", type.FullName));
+                    }
+                }
+                foreach (var type in assembly.GetTypes().Where(x => x.IsClass && (
+                    typeof(IAggregateRoot).IsAssignableFrom(x) ||
+                    typeof(ICommand).IsAssignableFrom(x) ||
+                    typeof(IDomainEvent).IsAssignableFrom(x) ||
+                    typeof(IApplicationMessage).IsAssignableFrom(x) ||
+                    typeof(IPublishableException).IsAssignableFrom(x) ||
+                    typeof(IMessageHandler).IsAssignableFrom(x))))
+                {
+                    if (!type.GetCustomAttributes<CodeAttribute>(false).Any())
+                    {
+                        throw new Exception(string.Format("{0} must have CodeAttribute.", type.FullName));
                     }
                 }
             }

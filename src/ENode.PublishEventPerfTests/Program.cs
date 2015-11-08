@@ -83,7 +83,6 @@ namespace ENode.PublishEventPerfTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()
                 .RegisterENodeComponents()
-                .RegisterAllTypeCodes()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)
                 .UseEQueue()

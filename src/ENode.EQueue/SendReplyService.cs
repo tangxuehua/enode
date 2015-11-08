@@ -20,7 +20,6 @@ namespace ENode.EQueue
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IScheduleService _scheduleService;
         private readonly ConcurrentDictionary<string, SocketRemotingClientWrapper> _sendReplyRemotingClientDict;
-        private TaskFactory _taskFactory;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
         private const int MaxNotActiveTimeSeconds = 60;
@@ -33,12 +32,11 @@ namespace ENode.EQueue
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _sendReplyRemotingClientDict = new ConcurrentDictionary<string, SocketRemotingClientWrapper>();
-            _taskFactory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(Environment.ProcessorCount));
         }
 
         public void Start()
         {
-            _scheduleService.StartTask("RemoveNotActiveRemotingClient", RemoveNotActiveRemotingClient, ScanNotActiveClientInterval, ScanNotActiveClientInterval);
+            _scheduleService.StartTask("RemoveNotActiveRemotingClient", RemoveNotActiveRemotingClient, 1000, ScanNotActiveClientInterval);
         }
         public void Shutdown()
         {
@@ -46,7 +44,7 @@ namespace ENode.EQueue
         }
         public void SendReplyAsync(short replyType, object replyData, string replyAddress)
         {
-            _taskFactory.StartNew(obj =>
+            Task.Factory.StartNew(obj =>
             {
                 var request = obj as SendReplyRequest;
                 try

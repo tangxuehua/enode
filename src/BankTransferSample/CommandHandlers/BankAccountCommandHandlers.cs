@@ -12,6 +12,7 @@ namespace BankTransferSample.CommandHandlers
     /// <summary>银行账户相关命令处理
     /// </summary>
     [Component]
+    [Code(1000)]
     public class BankAccountCommandHandlers :
         ICommandHandler<CreateAccountCommand>,                       //开户
         ICommandAsyncHandler<ValidateAccountCommand>,                //验证账户是否合法

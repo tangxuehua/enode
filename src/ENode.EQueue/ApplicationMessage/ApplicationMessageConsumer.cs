@@ -20,7 +20,10 @@ namespace ENode.EQueue
 
         public ApplicationMessageConsumer(string groupName = null, ConsumerSetting setting = null)
         {
-            _consumer = new Consumer(groupName ?? DefaultMessageConsumerGroup, setting);
+            _consumer = new Consumer(groupName ?? DefaultMessageConsumerGroup, setting ?? new ConsumerSetting
+            {
+                MessageHandleMode = MessageHandleMode.Sequential
+            });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage, bool>>();
             _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();

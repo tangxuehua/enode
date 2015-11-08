@@ -3,12 +3,14 @@ using BankTransferSample.Domain;
 using ECommon.Components;
 using ECommon.Utilities;
 using ENode.Commanding;
+using ENode.Infrastructure;
 
 namespace BankTransferSample.CommandHandlers
 {
     /// <summary>银行存款交易相关命令处理
     /// </summary>
     [Component]
+    [Code(1001)]
     public class DepositTransactionCommandHandlers :
         ICommandHandler<StartDepositTransactionCommand>,                      //开始交易
         ICommandHandler<ConfirmDepositPreparationCommand>,                    //确认预存款

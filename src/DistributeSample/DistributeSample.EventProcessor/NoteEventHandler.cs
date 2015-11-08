@@ -5,9 +5,10 @@ using ECommon.IO;
 using ENode.Infrastructure;
 using NoteSample.Domain;
 
-namespace DistributeSample.EventProcessor.EventHandlers
+namespace DistributeSample.EventProcessor
 {
     [Component]
+    [Code(10000)]
     public class NoteEventHandler : IMessageHandler<NoteCreated>
     {
         private ILogger _logger;
@@ -19,7 +20,7 @@ namespace DistributeSample.EventProcessor.EventHandlers
 
         public Task<AsyncTaskResult> HandleAsync(NoteCreated evnt)
         {
-            _logger.InfoFormat("Note Created, Id:{0}, Title：{1}, Version: {2}", evnt.AggregateRootId, evnt.Title, evnt.Version);
+            _logger.InfoFormat("Note denormalizered, title：{0}", evnt.Title);
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }

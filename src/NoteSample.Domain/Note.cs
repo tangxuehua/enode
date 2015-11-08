@@ -1,11 +1,16 @@
 ﻿using System;
+using ECommon.Components;
+using ECommon.Logging;
 using ENode.Domain;
+using ENode.Infrastructure;
 
 namespace NoteSample.Domain
 {
+    [Code(100)]
     public class Note : AggregateRoot<string>
     {
         private string _title;
+        private static ILogger _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(Note).Name);
 
         public string Title { get { return _title; } }
 
@@ -27,10 +32,18 @@ namespace NoteSample.Domain
         {
             _id = evnt.AggregateRootId;
             _title = evnt.Title;
+            if (_logger.IsDebugEnabled)
+            {
+                _logger.DebugFormat("Note created, title: {0}", _title);
+            }
         }
         private void Handle(NoteTitleChanged evnt)
         {
             _title = evnt.Title;
+            if (_logger.IsDebugEnabled)
+            {
+                _logger.DebugFormat("Note updated, title: {0}", _title);
+            }
         }
         private void Handle(Event1 evnt)
         {

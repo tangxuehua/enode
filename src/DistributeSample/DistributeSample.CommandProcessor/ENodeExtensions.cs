@@ -8,11 +8,13 @@ using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
+using EQueue.Clients.Consumers;
 using EQueue.Configurations;
+using EQueue.Protocols;
 using NoteSample.Commands;
 using NoteSample.Domain;
 
-namespace DistributeSample.CommandProcessor.EQueueIntegrations
+namespace DistributeSample.CommandProcessor
 {
     public static class ENodeExtensions
     {
@@ -29,7 +31,7 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
 
             configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_domainEventPublisher);
 
-            _commandConsumer = new CommandConsumer();
+            _commandConsumer = new CommandConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset });
 
             _commandConsumer.Subscribe("NoteCommandTopic1");
             _commandConsumer.Subscribe("NoteCommandTopic2");
@@ -42,22 +44,6 @@ namespace DistributeSample.CommandProcessor.EQueueIntegrations
             _domainEventPublisher.Start();
 
             WaitAllConsumerLoadBalanceComplete();
-
-            return enodeConfiguration;
-        }
-
-        public static ENodeConfiguration RegisterAllTypeCodes(this ENodeConfiguration enodeConfiguration)
-        {
-            var provider = ObjectContainer.Resolve<ITypeCodeProvider>() as DefaultTypeCodeProvider;
-
-            //aggregates
-            provider.RegisterType<Note>(1000);
-
-            //commands
-            provider.RegisterType<CreateNoteCommand>(2000);
-
-            //events
-            provider.RegisterType<NoteCreated>(3000);
 
             return enodeConfiguration;
         }

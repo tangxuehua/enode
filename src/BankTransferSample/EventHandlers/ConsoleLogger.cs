@@ -9,6 +9,7 @@ using ENode.Infrastructure;
 namespace BankTransferSample.EventHandlers
 {
     [Component]
+    [Code(10000)]
     public class ConsoleLogger :
         IMessageHandler<AccountCreatedEvent>,
         IMessageHandler<AccountValidatePassedMessage>,
