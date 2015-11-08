@@ -50,8 +50,11 @@ namespace ENode.Infrastructure.Impl
                     typeof(IPublishableException).IsAssignableFrom(x) ||
                     typeof(IMessageHandler).IsAssignableFrom(x)))))
             {
-                var code = type.GetCustomAttributes<CodeAttribute>(false).Single().Code;
-                RegisterType(code, type);
+                var codeAttribute = type.GetCustomAttributes<CodeAttribute>(false).SingleOrDefault();
+                if (codeAttribute != null)
+                {
+                    RegisterType(codeAttribute.Code, type);
+                }
             }
         }
     }

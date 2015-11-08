@@ -246,19 +246,6 @@ namespace ENode.Configurations
                         throw new Exception(string.Format("{0} must have a default constructor.", type.FullName));
                     }
                 }
-                foreach (var type in assembly.GetTypes().Where(x => x.IsClass && (
-                    typeof(IAggregateRoot).IsAssignableFrom(x) ||
-                    typeof(ICommand).IsAssignableFrom(x) ||
-                    typeof(IDomainEvent).IsAssignableFrom(x) ||
-                    typeof(IApplicationMessage).IsAssignableFrom(x) ||
-                    typeof(IPublishableException).IsAssignableFrom(x) ||
-                    typeof(IMessageHandler).IsAssignableFrom(x))))
-                {
-                    if (!type.GetCustomAttributes<CodeAttribute>(false).Any())
-                    {
-                        throw new Exception(string.Format("{0} must have CodeAttribute.", type.FullName));
-                    }
-                }
             }
         }
         private static LifeStyle ParseComponentLife(Type type)
