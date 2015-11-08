@@ -59,7 +59,7 @@
       <HintPath>..\..\packages\ecommon.log4net.1.5.5\lib\net45\ECommon.Log4Net.dll</HintPath>
     </Reference>
     <Reference Include="EQueue">
-      <HintPath>..\..\packages\EQueue.2.0.2\lib\net45\EQueue.dll</HintPath>
+      <HintPath>..\..\packages\EQueue.2.0.3\lib\net45\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

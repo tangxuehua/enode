@@ -45,9 +45,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\ECommon.1.5.5\lib\net45\ECommon.dll</HintPath>
     </Reference>
-    <Reference Include="EQueue, Version=2.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="EQueue, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\equeue.2.0.2\lib\net45\EQueue.dll</HintPath>
+      <HintPath>..\..\packages\equeue.2.0.3\lib\net45\EQueue.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -81,7 +81,9 @@
     <Compile Include="SendReplyService.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ENode\ENode.csproj">
