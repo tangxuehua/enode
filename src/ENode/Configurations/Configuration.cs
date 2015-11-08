@@ -232,7 +232,7 @@ namespace ENode.Configurations
 
         #region Private Methods
 
-        private static void ValidateTypes(params Assembly[] assemblies)
+        private void ValidateTypes(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {
@@ -244,6 +244,22 @@ namespace ENode.Configurations
                     if (!type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Any(x => x.GetParameters().Count() == 0))
                     {
                         throw new Exception(string.Format("{0} must have a default constructor.", type.FullName));
+                    }
+                }
+                if (Setting.UseCodeAttribute)
+                {
+                    foreach (var type in assembly.GetTypes().Where(x => x.IsClass && (
+                        typeof(IAggregateRoot).IsAssignableFrom(x) ||
+                        typeof(ICommand).IsAssignableFrom(x) ||
+                        typeof(IDomainEvent).IsAssignableFrom(x) ||
+                        typeof(IApplicationMessage).IsAssignableFrom(x) ||
+                        typeof(IPublishableException).IsAssignableFrom(x) ||
+                        typeof(IMessageHandler).IsAssignableFrom(x))))
+                    {
+                        if (!type.GetCustomAttributes<CodeAttribute>(false).Any())
+                        {
+                            throw new Exception(string.Format("{0} must have CodeAttribute.", type.FullName));
+                        }
                     }
                 }
             }

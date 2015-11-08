@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using ENode.Commanding;
+using ENode.Configurations;
 using ENode.Domain;
 using ENode.Eventing;
 
@@ -54,6 +55,10 @@ namespace ENode.Infrastructure.Impl
                 if (codeAttribute != null)
                 {
                     RegisterType(codeAttribute.Code, type);
+                }
+                else if (ENodeConfiguration.Instance.Setting.UseCodeAttribute)
+                {
+                    throw new Exception("Code attribute cannot be null for type: " + type.FullName);
                 }
             }
         }
