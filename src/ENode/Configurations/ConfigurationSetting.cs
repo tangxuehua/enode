@@ -11,7 +11,6 @@ namespace ENode.Configurations
         public int RetryIntervalForIOException { get; set; }
         public string DomainEventStreamMessageHandlerName { get; set; }
         public string SqlDefaultConnectionString { get; set; }
-        public bool UseCodeAttribute { get; set; }
 
         public ConfigurationSetting()
         {
@@ -21,7 +20,6 @@ namespace ENode.Configurations
             ImmediatelyRetryTimes = 3;
             RetryIntervalForIOException = 1000;
             DomainEventStreamMessageHandlerName = "DefaultEventHandler";
-            UseCodeAttribute = true;
         }
     }
 }
