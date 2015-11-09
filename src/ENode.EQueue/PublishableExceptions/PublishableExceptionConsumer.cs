@@ -49,7 +49,7 @@ namespace ENode.EQueue
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
             var exceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
-            var exceptionType = _publishableExceptionTypeCodeProvider.GetType(exceptionMessage.ExceptionTypeCode);
+            var exceptionType = _publishableExceptionTypeCodeProvider.GetType<IPublishableException>(exceptionMessage.ExceptionTypeCode);
             var exception = FormatterServices.GetUninitializedObject(exceptionType) as IPublishableException;
             exception.Id = exceptionMessage.UniqueId;
             exception.Timestamp = exceptionMessage.Timestamp;

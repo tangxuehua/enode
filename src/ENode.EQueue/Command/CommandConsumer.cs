@@ -60,7 +60,7 @@ namespace ENode.EQueue
         {
             var commandItems = new Dictionary<string, string>();
             var commandMessage = _jsonSerializer.Deserialize<CommandMessage>(Encoding.UTF8.GetString(queueMessage.Body));
-            var commandType = _typeCodeProvider.GetType(commandMessage.CommandTypeCode);
+            var commandType = _typeCodeProvider.GetType<ICommand>(commandMessage.CommandTypeCode);
             var command = _jsonSerializer.Deserialize(commandMessage.CommandData, commandType) as ICommand;
             var commandExecuteContext = new CommandExecuteContext(_repository, queueMessage, context, commandMessage, _sendReplyService);
             commandItems["CommandReplyAddress"] = commandMessage.ReplyAddress;

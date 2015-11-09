@@ -6,7 +6,7 @@ namespace BankTransferSample.ApplicationMessages
     /// <summary>账户验证已通过
     /// </summary>
     [Serializable]
-    [Code(100001)]
+    [Code(11)]
     public class AccountValidatePassedMessage : ApplicationMessage
     {
         public string AccountId { get; set; }

@@ -34,7 +34,7 @@ namespace ENode.Eventing.Impl
 
             foreach (var entry in data)
             {
-                var eventType = _typeCodeProvider.GetType(entry.Key);
+                var eventType = _typeCodeProvider.GetType<IDomainEvent>(entry.Key);
                 var evnt = _jsonSerializer.Deserialize(entry.Value, eventType) as TEvent;
                 evnts.Add(evnt);
             }

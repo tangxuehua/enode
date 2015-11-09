@@ -9,7 +9,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
 {
     [Component]
     [Priority(1)]
-    [Code(10000)]
+    [Code(1)]
     public class Handler1 : IMessageHandler<Event1>
     {
         private ILogger _logger;
@@ -28,7 +28,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
     }
     [Component]
     [Priority(3)]
-    [Code(10001)]
+    [Code(2)]
     public class Handler2 : IMessageHandler<Event1>
     {
         private ILogger _logger;
@@ -46,7 +46,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
     }
     [Component]
     [Priority(2)]
-    [Code(10002)]
+    [Code(3)]
     public class Handler3 : IMessageHandler<Event1>
     {
         private ILogger _logger;
@@ -65,7 +65,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
 
     [Component]
     [Priority(3)]
-    [Code(10003)]
+    [Code(4)]
     public class Handler121 : IMessageHandler<Event1, Event2>
     {
         private ILogger _logger;
@@ -83,7 +83,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
     }
     [Component]
     [Priority(2)]
-    [Code(10004)]
+    [Code(5)]
     public class Handler122 : IMessageHandler<Event1, Event2>
     {
         private ILogger _logger;
@@ -101,7 +101,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
     }
     [Component]
     [Priority(1)]
-    [Code(10005)]
+    [Code(6)]
     public class Handler123 : IMessageHandler<Event1, Event2>
     {
         private ILogger _logger;
@@ -121,7 +121,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
 
     [Component]
     [Priority(3)]
-    [Code(10006)]
+    [Code(7)]
     public class Handler1231 : IMessageHandler<Event1, Event2, Event3>
     {
         private ILogger _logger;
@@ -139,7 +139,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
     }
     [Component]
     [Priority(2)]
-    [Code(10007)]
+    [Code(8)]
     public class Handler1232 : IMessageHandler<Event1, Event2, Event3>
     {
         private ILogger _logger;
@@ -157,7 +157,7 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
     }
     [Component]
     [Priority(1)]
-    [Code(10008)]
+    [Code(9)]
     public class Handler1233 : IMessageHandler<Event1, Event2, Event3>
     {
         private ILogger _logger;

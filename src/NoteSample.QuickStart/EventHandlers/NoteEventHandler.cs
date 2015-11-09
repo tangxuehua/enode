@@ -5,9 +5,9 @@ using ECommon.Logging;
 using ENode.Infrastructure;
 using NoteSample.Domain;
 
-namespace NoteSample.QuickStart.EventHandlers
+namespace NoteSample.QuickStart
 {
-    [Code(3000)]
+    [Code(100)]
     [Component]
     public class NoteEventHandler : IMessageHandler<NoteCreated>, IMessageHandler<NoteTitleChanged>
     {

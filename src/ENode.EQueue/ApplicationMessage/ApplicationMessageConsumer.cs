@@ -47,7 +47,7 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var messageType = _typeCodeProvider.GetType(queueMessage.Code);
+            var messageType = _typeCodeProvider.GetType<IApplicationMessage>(queueMessage.Code);
             var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), messageType) as IApplicationMessage;
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingApplicationMessage(message, processContext);

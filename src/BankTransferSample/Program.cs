@@ -82,7 +82,7 @@ namespace BankTransferSample
             commandService.Send(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account2, account1, 500D)));
             syncHelper.WaitOne();
 
-            Thread.Sleep(500);
+            Thread.Sleep(200);
             Console.WriteLine(string.Empty);
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();

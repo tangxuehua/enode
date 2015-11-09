@@ -9,7 +9,7 @@ using ENode.Infrastructure;
 namespace BankTransferSample.EventHandlers
 {
     [Component]
-    [Code(10002)]
+    [Code(12)]
     public class SyncHelper :
         IMessageHandler<DepositTransactionCompletedEvent>,
         IMessageHandler<TransferTransactionCompletedEvent>,

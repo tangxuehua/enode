@@ -1,4 +1,5 @@
 ﻿using System;
+using ENode.Infrastructure.Impl;
 
 namespace ENode.Infrastructure
 {
@@ -13,8 +14,9 @@ namespace ENode.Infrastructure
         int GetTypeCode(Type type);
         /// <summary>Get the type of the given type code.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="typeCode"></param>
         /// <returns></returns>
-        Type GetType(int typeCode);
+        Type GetType<T>(int typeCode);
     }
 }

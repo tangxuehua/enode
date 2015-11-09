@@ -135,7 +135,7 @@ namespace ENode.Commanding.Impl
 
             if (record.MessageTypeCode > 0)
             {
-                var messageType = _typeCodeProvider.GetType(record.MessageTypeCode);
+                var messageType = _typeCodeProvider.GetType<IApplicationMessage>(record.MessageTypeCode);
                 message = _jsonSerializer.Deserialize(record.MessagePayload, messageType) as IApplicationMessage;
             }
 

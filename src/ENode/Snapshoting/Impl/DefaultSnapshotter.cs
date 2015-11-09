@@ -45,7 +45,7 @@ namespace ENode.Snapshoting.Impl
                 throw new ArgumentNullException("snapshot"); ;
             }
 
-            var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(snapshot.AggregateRootTypeCode);
+            var aggregateRootType = _aggregateRootTypeCodeProvider.GetType<IAggregateRoot>(snapshot.AggregateRootTypeCode);
             return _binarySerializer.Deserialize(snapshot.Payload, aggregateRootType) as IAggregateRoot;
         }
     }

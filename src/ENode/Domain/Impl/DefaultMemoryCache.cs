@@ -59,7 +59,7 @@ namespace ENode.Domain.Impl
         {
             try
             {
-                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(aggregateRootTypeCode);
+                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType<IAggregateRoot>(aggregateRootTypeCode);
                 if (aggregateRootType == null)
                 {
                     _logger.ErrorFormat("Could not find aggregate root type by aggregate root type code [{0}].", aggregateRootTypeCode);

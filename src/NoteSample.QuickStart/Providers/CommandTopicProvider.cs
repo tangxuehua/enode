@@ -2,7 +2,7 @@
 using ENode.Commanding;
 using ENode.EQueue;
 
-namespace NoteSample.QuickStart.Providers
+namespace NoteSample.QuickStart
 {
     [Component]
     public class CommandTopicProvider : AbstractTopicProvider<ICommand>

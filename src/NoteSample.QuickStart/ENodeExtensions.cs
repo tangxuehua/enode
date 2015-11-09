@@ -18,7 +18,6 @@ using EQueue.Broker;
 using EQueue.Configurations;
 using NoteSample.Commands;
 using NoteSample.Domain;
-using NoteSample.QuickStart.EventHandlers;
 
 namespace NoteSample.QuickStart
 {

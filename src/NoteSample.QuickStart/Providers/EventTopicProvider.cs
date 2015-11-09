@@ -2,7 +2,7 @@
 using ENode.EQueue;
 using ENode.Eventing;
 
-namespace NoteSample.QuickStart.Providers
+namespace NoteSample.QuickStart
 {
     [Component]
     public class EventTopicProvider : AbstractTopicProvider<IDomainEvent>

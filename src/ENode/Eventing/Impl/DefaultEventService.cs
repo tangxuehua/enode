@@ -324,7 +324,7 @@ namespace ENode.Eventing.Impl
         {
             try
             {
-                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType(aggregateFirstEventStream.AggregateRootTypeCode);
+                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType<IAggregateRoot>(aggregateFirstEventStream.AggregateRootTypeCode);
                 var aggregateRoot = _memoryCache.Get(aggregateFirstEventStream.AggregateRootId, aggregateRootType);
                 if (aggregateRoot == null)
                 {

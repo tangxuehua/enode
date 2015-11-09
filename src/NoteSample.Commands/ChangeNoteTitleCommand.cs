@@ -4,7 +4,7 @@ using ENode.Infrastructure;
 
 namespace NoteSample.Commands
 {
-    [Code(1001)]
+    [Code(101)]
     public class ChangeNoteTitleCommand : Command<string>
     {
         public string Title { get; set; }
