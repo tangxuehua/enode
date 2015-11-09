@@ -56,7 +56,7 @@ namespace ENode.EQueue
             _consumer.Shutdown();
             if (_sendEventHandledMessage)
             {
-                _sendReplyService.Shutdown();
+                _sendReplyService.Stop();
             }
             return this;
         }
@@ -110,7 +110,7 @@ namespace ENode.EQueue
                     return;
                 }
 
-                _eventConsumer._sendReplyService.SendReplyAsync((int)CommandReplyType.DomainEventHandled, new DomainEventHandledMessage
+                _eventConsumer._sendReplyService.SendReply((int)CommandReplyType.DomainEventHandled, new DomainEventHandledMessage
                 {
                     CommandId = _domainEventStreamMessage.CommandId,
                     AggregateRootId = _domainEventStreamMessage.AggregateRootId

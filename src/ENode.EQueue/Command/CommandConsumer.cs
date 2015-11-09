@@ -52,7 +52,7 @@ namespace ENode.EQueue
         public CommandConsumer Shutdown()
         {
             _consumer.Shutdown();
-            _sendReplyService.Shutdown();
+            _sendReplyService.Stop();
             return this;
         }
 
@@ -104,7 +104,7 @@ namespace ENode.EQueue
                     ErrorMessage = commandResult.ErrorMessage,
                 };
 
-                _sendReplyService.SendReplyAsync((int)CommandReplyType.CommandExecuted, message, _commandMessage.ReplyAddress);
+                _sendReplyService.SendReply((int)CommandReplyType.CommandExecuted, message, _commandMessage.ReplyAddress);
             }
             public void Add(IAggregateRoot aggregateRoot)
             {
