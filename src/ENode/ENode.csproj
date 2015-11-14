@@ -140,7 +140,7 @@
     <Compile Include="Infrastructure\Impl\DefaultTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />
-    <Compile Include="Domain\Impl\EventSourcingRepository.cs" />
+    <Compile Include="Domain\Impl\DefaultRepository.cs" />
     <Compile Include="Domain\IRepository.cs" />
     <Compile Include="Commanding\Impl\CommandHandlerProxy.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandHandlerProvider.cs" />
