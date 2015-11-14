@@ -21,7 +21,7 @@ namespace ENode.EQueue
         private readonly IScheduleService _scheduleService;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
-        private const int MaxNotActiveTimeSeconds = 60;
+        private const int MaxNotActiveTimeSeconds = 300;
         private const int ScanNotActiveClientInterval = 5000;
 
         public SendReplyService()

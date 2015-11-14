@@ -55,7 +55,7 @@ namespace ENode.Eventing.Impl
         {
             var setting = ENodeConfiguration.Instance.Setting;
             _enableGroupCommit = setting.EnableGroupCommitEvent;
-            _groupCommitInterval = setting.GroupCommitEventInterval;
+            _groupCommitInterval = setting.GroupCommitEventIntervalMilliseconds;
             _groupCommitMaxSize = setting.GroupCommitMaxSize;
             _ioHelper = ioHelper;
             Ensure.Positive(_groupCommitInterval, "_groupCommitInterval");
