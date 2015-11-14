@@ -21,14 +21,27 @@ namespace ENode.EQueue
 
         public void SendMessage(Producer producer, EQueueMessage message, string routingKey)
         {
-            _ioHelper.TryIOAction(() =>
+            try
             {
-                var result = producer.Send(message, routingKey);
-                if (result.SendStatus != SendStatus.Success)
+                _ioHelper.TryIOAction(() =>
                 {
-                    throw new IOException(result.ErrorMessage);
-                }
-            }, "SendQueueMessage");
+                    var result = producer.Send(message, routingKey);
+                    if (result.SendStatus != SendStatus.Success)
+                    {
+                        _logger.ErrorFormat("EQueue message synch send failed, sendResult: {0}, routingKey: {1}", result, routingKey);
+                        throw new IOException(result.ErrorMessage);
+                    }
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("EQueue message synch send success, sendResult: {0}, routingKey: {1}", result, routingKey);
+                    }
+                }, "SendQueueMessage");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("EQueue message synch send has exception, message: {0}, routingKey: {1}", message, routingKey), ex);
+                throw;
+            }
         }
         public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, EQueueMessage message, string routingKey)
         {
@@ -37,15 +50,18 @@ namespace ENode.EQueue
                 var result = await producer.SendAsync(message, routingKey);
                 if (result.SendStatus != SendStatus.Success)
                 {
-                    _logger.ErrorFormat("EQueue message send failed, sendResult: {0}, routingKey: {1}", result, routingKey);
+                    _logger.ErrorFormat("EQueue message async send failed, sendResult: {0}, routingKey: {1}", result, routingKey);
                     return new AsyncTaskResult(AsyncTaskStatus.IOException, result.ErrorMessage);
                 }
-                _logger.InfoFormat("EQueue message send success, sendResult: {0}, routingKey: {1}", result, routingKey);
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.DebugFormat("EQueue message async send success, sendResult: {0}, routingKey: {1}", result, routingKey);
+                }
                 return AsyncTaskResult.Success;
             }
             catch (Exception ex)
             {
-                _logger.ErrorFormat("EQueue message send has exception, message: {0}, routingKey: {1}", message, routingKey);
+                _logger.Error(string.Format("EQueue message async send has exception, message: {0}, routingKey: {1}", message, routingKey), ex);
                 return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
             }
         }
