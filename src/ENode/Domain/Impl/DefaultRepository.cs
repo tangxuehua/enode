@@ -2,12 +2,12 @@
 
 namespace ENode.Domain.Impl
 {
-    public class EventSourcingRepository : IRepository
+    public class DefaultRepository : IRepository
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IAggregateStorage _aggregateRootStorage;
 
-        public EventSourcingRepository(IMemoryCache memoryCache, IAggregateStorage aggregateRootStorage)
+        public DefaultRepository(IMemoryCache memoryCache, IAggregateStorage aggregateRootStorage)
         {
             _memoryCache = memoryCache;
             _aggregateRootStorage = aggregateRootStorage;
