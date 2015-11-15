@@ -168,7 +168,7 @@ namespace ENode.Infrastructure.Impl
 
         public void Initialize(params Assembly[] assemblies)
         {
-            foreach (var type in assemblies.SelectMany(assembly => assembly.GetTypes().Where(x => x.IsClass && (
+            foreach (var type in assemblies.SelectMany(assembly => assembly.GetTypes().Where(x => x.IsClass && !x.IsAbstract && (
                     typeof(IAggregateRoot).IsAssignableFrom(x) ||
                     typeof(ICommand).IsAssignableFrom(x) ||
                     typeof(IDomainEvent).IsAssignableFrom(x) ||

@@ -19,7 +19,7 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public PublishableExceptionConsumer(string id = null, string groupName = null, ConsumerSetting setting = null)
+        public PublishableExceptionConsumer(string groupName = null, ConsumerSetting setting = null)
         {
             _consumer = new Consumer(groupName ?? DefaultExceptionConsumerGroup, setting ?? new ConsumerSetting
             {
