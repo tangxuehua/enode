@@ -43,12 +43,6 @@ namespace ENode.EQueue
             _producer.Shutdown();
             return this;
         }
-
-        public void Publish(DomainEventStreamMessage eventStream)
-        {
-            var message = CreateEQueueMessage(eventStream);
-            _sendMessageService.SendMessage(_producer, message, eventStream.AggregateRootId);
-        }
         public Task<AsyncTaskResult> PublishAsync(DomainEventStreamMessage eventStream)
         {
             var message = CreateEQueueMessage(eventStream);

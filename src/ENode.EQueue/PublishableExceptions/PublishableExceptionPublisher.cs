@@ -39,12 +39,6 @@ namespace ENode.EQueue
             _producer.Shutdown();
             return this;
         }
-
-        public void Publish(IPublishableException exception)
-        {
-            var message = CreateEQueueMessage(exception);
-            _sendMessageService.SendMessage(_producer, message, exception.Id);
-        }
         public Task<AsyncTaskResult> PublishAsync(IPublishableException exception)
         {
             var message = CreateEQueueMessage(exception);
