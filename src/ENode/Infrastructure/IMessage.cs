@@ -19,5 +19,9 @@ namespace ENode.Infrastructure
         /// </summary>
         /// <returns></returns>
         string GetRoutingKey();
+        /// <summary>Represents the type name of the message.
+        /// </summary>
+        /// <returns></returns>
+        string GetTypeName();
     }
 }

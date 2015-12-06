@@ -6,10 +6,10 @@ namespace ENode.Infrastructure
     {
         public string MessageId1 { get; set; }
         public string MessageId2 { get; set; }
-        public int Message1TypeCode { get; set; }
-        public int Message2TypeCode { get; set; }
-        public int HandlerTypeCode { get; set; }
-        public int AggregateRootTypeCode { get; set; }
+        public string Message1TypeName { get; set; }
+        public string Message2TypeName { get; set; }
+        public string HandlerTypeName { get; set; }
+        public string AggregateRootTypeName { get; set; }
         public string AggregateRootId { get; set; }
         public int Version { get; set; }
         public DateTime CreatedOn { get; set; }

@@ -7,8 +7,6 @@ namespace BankTransferSample.Domain
 {
     /// <summary>存款交易已开始
     /// </summary>
-    [Serializable]
-    [Code(1000005)]
     public class DepositTransactionStartedEvent : DomainEvent<string>
     {
         public string AccountId { get; private set; }
@@ -24,8 +22,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>存款交易预存款已确认
     /// </summary>
-    [Serializable]
-    [Code(1000006)]
     public class DepositTransactionPreparationCompletedEvent : DomainEvent<string>
     {
         public string AccountId { get; private set; }
@@ -39,8 +35,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>存款交易已完成
     /// </summary>
-    [Serializable]
-    [Code(1000007)]
     public class DepositTransactionCompletedEvent : DomainEvent<string>
     {
         public string AccountId { get; private set; }

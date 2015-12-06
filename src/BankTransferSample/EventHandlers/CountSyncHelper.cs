@@ -8,7 +8,6 @@ using ENode.Infrastructure;
 namespace BankTransferSample.EventHandlers
 {
     [Component]
-    [Code(11)]
     public class CountSyncHelper : IMessageHandler<TransferTransactionCompletedEvent>
     {
         private ManualResetEvent _waitHandle = new ManualResetEvent(false);

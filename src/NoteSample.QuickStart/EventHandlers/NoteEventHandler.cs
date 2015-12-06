@@ -7,7 +7,6 @@ using NoteSample.Domain;
 
 namespace NoteSample.QuickStart
 {
-    [Code(100)]
     [Component]
     public class NoteEventHandler : IMessageHandler<NoteCreated>, IMessageHandler<NoteTitleChanged>
     {

@@ -29,7 +29,7 @@ namespace ENode.Eventing.Impl
         {
             get { return false; }
         }
-        public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             var eventStreams = new List<DomainEventStream>();
 
@@ -66,9 +66,9 @@ namespace ENode.Eventing.Impl
         {
             return Task.FromResult(new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, null, Find(aggregateRootId, commandId)));
         }
-        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
-            return Task.FromResult(new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, null, QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, minVersion, maxVersion)));
+            return Task.FromResult(new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, null, QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion)));
         }
         public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize)
         {

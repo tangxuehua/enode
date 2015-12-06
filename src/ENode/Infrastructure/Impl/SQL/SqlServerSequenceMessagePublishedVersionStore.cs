@@ -41,7 +41,7 @@ namespace ENode.Infrastructure.Impl.SQL
 
         #endregion
 
-        public async Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId, int publishedVersion)
+        public async Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId, int publishedVersion)
         {
             if (publishedVersion == 1)
             {
@@ -52,7 +52,7 @@ namespace ENode.Infrastructure.Impl.SQL
                         await connection.InsertAsync(new
                         {
                             ProcessorName = processorName,
-                            AggregateRootTypeCode = aggregateRootTypeCode,
+                            AggregateRootTypeName = aggregateRootTypeName,
                             AggregateRootId = aggregateRootId,
                             PublishedVersion = 1,
                             CreatedOn = DateTime.Now
@@ -108,7 +108,7 @@ namespace ENode.Infrastructure.Impl.SQL
                 }
             }
         }
-        public async Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, int aggregateRootTypeCode, string aggregateRootId)
+        public async Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId)
         {
             try
             {

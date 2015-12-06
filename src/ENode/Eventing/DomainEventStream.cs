@@ -7,11 +7,11 @@ namespace ENode.Eventing
     [Serializable]
     public class DomainEventStream
     {
-        public DomainEventStream(string commandId, string aggregateRootId, int aggregateRootTypeCode, int version, DateTime timestamp, IEnumerable<IDomainEvent> events, IDictionary<string, string> items = null)
+        public DomainEventStream(string commandId, string aggregateRootId, string aggregateRootTypeName, int version, DateTime timestamp, IEnumerable<IDomainEvent> events, IDictionary<string, string> items = null)
         {
             CommandId = commandId;
             AggregateRootId = aggregateRootId;
-            AggregateRootTypeCode = aggregateRootTypeCode;
+            AggregateRootTypeName = aggregateRootTypeName;
             Version = version;
             Timestamp = timestamp;
             Events = events;
@@ -19,13 +19,13 @@ namespace ENode.Eventing
             var sequence = 1;
             foreach (var evnt in Events)
             {
-                evnt.AggregateRootTypeCode = aggregateRootTypeCode;
+                evnt.AggregateRootTypeName = aggregateRootTypeName;
                 evnt.Sequence = sequence++;
             }
         }
 
         public string CommandId { get; private set; }
-        public int AggregateRootTypeCode { get; private set; }
+        public string AggregateRootTypeName { get; private set; }
         public string AggregateRootId { get; private set; }
         public int Version { get; private set; }
         public IEnumerable<IDomainEvent> Events { get; private set; }
@@ -34,10 +34,10 @@ namespace ENode.Eventing
 
         public override string ToString()
         {
-            var format = "[CommandId={0},AggregateRootTypeCode={1},AggregateRootId={2},Version={3},Timestamp={4},Events={5},Items={6}]";
+            var format = "[CommandId={0},AggregateRootTypeName={1},AggregateRootId={2},Version={3},Timestamp={4},Events={5},Items={6}]";
             return string.Format(format,
                 CommandId,
-                AggregateRootTypeCode,
+                AggregateRootTypeName,
                 AggregateRootId,
                 Version,
                 Timestamp,

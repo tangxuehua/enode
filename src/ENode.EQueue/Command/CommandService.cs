@@ -19,7 +19,7 @@ namespace ENode.EQueue
         private readonly ILogger _logger;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<ICommand> _commandTopicProvider;
-        private readonly ITypeCodeProvider _commandTypeCodeProvider;
+        private readonly ITypeNameProvider _typeNameProvider;
         private readonly ICommandRoutingKeyProvider _commandRouteKeyProvider;
         private readonly SendQueueMessageService _sendMessageService;
         private readonly CommandResultProcessor _commandResultProcessor;
@@ -35,7 +35,7 @@ namespace ENode.EQueue
             _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
-            _commandTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
+            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRoutingKeyProvider>();
             _sendMessageService = new SendQueueMessageService();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
@@ -62,13 +62,13 @@ namespace ENode.EQueue
         }
         public void Send(ICommand command)
         {
-            _sendMessageService.SendMessage(_producer, BuildCommandMessage(command), _commandRouteKeyProvider.GetRoutingKey(command));
+            _sendMessageService.SendMessage(_producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command));
         }
         public Task<AsyncTaskResult> SendAsync(ICommand command)
         {
             try
             {
-                return _sendMessageService.SendMessageAsync(_producer, BuildCommandMessage(command), _commandRouteKeyProvider.GetRoutingKey(command));
+                return _sendMessageService.SendMessageAsync(_producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command));
             }
             catch (Exception ex)
             {
@@ -87,7 +87,7 @@ namespace ENode.EQueue
                 var taskCompletionSource = new TaskCompletionSource<AsyncTaskResult<CommandResult>>();
                 _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
 
-                var result = await SendAsync(command).ConfigureAwait(false);
+                var result = await _sendMessageService.SendMessageAsync(_producer, BuildCommandMessage(command, true), _commandRouteKeyProvider.GetRoutingKey(command)).ConfigureAwait(false);
                 if (result.Status == AsyncTaskStatus.Success)
                 {
                     return await taskCompletionSource.Task.ConfigureAwait(false);
@@ -101,20 +101,22 @@ namespace ENode.EQueue
             }
         }
 
-        private EQueueMessage BuildCommandMessage(ICommand command)
+        private EQueueMessage BuildCommandMessage(ICommand command, bool needReply = false)
         {
             Ensure.NotNull(command.AggregateRootId, "aggregateRootId");
             var commandData = _jsonSerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
-            var commandTypeCode = _commandTypeCodeProvider.GetTypeCode(command.GetType());
-            var replyAddress = _commandResultProcessor != null ? _commandResultProcessor.BindingAddress.ToString() : null;
+            var replyAddress = needReply && _commandResultProcessor != null ? _commandResultProcessor.BindingAddress.ToString() : null;
             var messageData = _jsonSerializer.Serialize(new CommandMessage
             {
-                CommandTypeCode = commandTypeCode,
                 CommandData = commandData,
                 ReplyAddress = replyAddress
             });
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.CommandMessage, Encoding.UTF8.GetBytes(messageData));
+            return new EQueueMessage(
+                topic, 
+                (int)EQueueMessageTypeCode.CommandMessage,
+                Encoding.UTF8.GetBytes(messageData),
+                _typeNameProvider.GetTypeName(command.GetType()));
         }
     }
 }

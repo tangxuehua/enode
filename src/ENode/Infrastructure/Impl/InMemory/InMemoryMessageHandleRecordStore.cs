@@ -11,30 +11,30 @@ namespace ENode.Infrastructure.Impl.InMemory
 
         Task<AsyncTaskResult> IMessageHandleRecordStore.AddRecordAsync(MessageHandleRecord record)
         {
-            _dict.TryAdd(record.MessageId + record.HandlerTypeCode.ToString(), 0);
+            _dict.TryAdd(record.MessageId + record.HandlerTypeName, 0);
             return _successTask;
         }
         public Task<AsyncTaskResult> AddRecordAsync(TwoMessageHandleRecord record)
         {
-            _dict.TryAdd(record.MessageId1 + record.MessageId2 + record.HandlerTypeCode.ToString(), 0);
+            _dict.TryAdd(record.MessageId1 + record.MessageId2 + record.HandlerTypeName, 0);
             return _successTask;
         }
         public Task<AsyncTaskResult> AddRecordAsync(ThreeMessageHandleRecord record)
         {
-            _dict.TryAdd(record.MessageId1 + record.MessageId2 + record.MessageId3 + record.HandlerTypeCode.ToString(), 0);
+            _dict.TryAdd(record.MessageId1 + record.MessageId2 + record.MessageId3 + record.HandlerTypeName, 0);
             return _successTask;
         }
-        Task<AsyncTaskResult<bool>> IMessageHandleRecordStore.IsRecordExistAsync(string messageId, int handlerTypeCode, int aggregateRootTypeCode)
+        Task<AsyncTaskResult<bool>> IMessageHandleRecordStore.IsRecordExistAsync(string messageId, string handlerTypeName, string aggregateRootTypeName)
         {
-            return Task.FromResult(new AsyncTaskResult<bool>(AsyncTaskStatus.Success, _dict.ContainsKey(messageId + handlerTypeCode.ToString())));
+            return Task.FromResult(new AsyncTaskResult<bool>(AsyncTaskStatus.Success, _dict.ContainsKey(messageId + handlerTypeName)));
         }
-        public Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId1, string messageId2, int handlerTypeCode, int aggregateRootTypeCode)
+        public Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId1, string messageId2, string handlerTypeName, string aggregateRootTypeName)
         {
-            return Task.FromResult(new AsyncTaskResult<bool>(AsyncTaskStatus.Success, _dict.ContainsKey(messageId1 + messageId2 + handlerTypeCode.ToString())));
+            return Task.FromResult(new AsyncTaskResult<bool>(AsyncTaskStatus.Success, _dict.ContainsKey(messageId1 + messageId2 + handlerTypeName)));
         }
-        public Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId1, string messageId2, string messageId3, int handlerTypeCode, int aggregateRootTypeCode)
+        public Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId1, string messageId2, string messageId3, string handlerTypeName, string aggregateRootTypeName)
         {
-            return Task.FromResult(new AsyncTaskResult<bool>(AsyncTaskStatus.Success, _dict.ContainsKey(messageId1 + messageId2 + messageId3 + handlerTypeCode.ToString())));
+            return Task.FromResult(new AsyncTaskResult<bool>(AsyncTaskStatus.Success, _dict.ContainsKey(messageId1 + messageId2 + messageId3 + handlerTypeName)));
         }
     }
 }

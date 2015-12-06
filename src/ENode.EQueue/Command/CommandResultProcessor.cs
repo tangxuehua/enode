@@ -19,7 +19,7 @@ namespace ENode.EQueue.Commanding
         private readonly byte[] ByteArray = new byte[0];
         private readonly SocketRemotingServer _remotingServer;
         private readonly ConcurrentDictionary<string, CommandTaskCompletionSource> _commandTaskDict;
-        private readonly BlockingCollection<CommandExecutedMessage> _commandExecutedMessageLocalQueue;
+        private readonly BlockingCollection<CommandResult> _commandExecutedMessageLocalQueue;
         private readonly BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
         private readonly Worker _commandExecutedMessageWorker;
         private readonly Worker _domainEventHandledMessageWorker;
@@ -33,7 +33,7 @@ namespace ENode.EQueue.Commanding
         {
             _remotingServer = new SocketRemotingServer("CommandResultProcessor.RemotingServer", bindingAddress);
             _commandTaskDict = new ConcurrentDictionary<string, CommandTaskCompletionSource>();
-            _commandExecutedMessageLocalQueue = new BlockingCollection<CommandExecutedMessage>(new ConcurrentQueue<CommandExecutedMessage>());
+            _commandExecutedMessageLocalQueue = new BlockingCollection<CommandResult>(new ConcurrentQueue<CommandResult>());
             _domainEventHandledMessageLocalQueue = new BlockingCollection<DomainEventHandledMessage>(new ConcurrentQueue<DomainEventHandledMessage>());
             _commandExecutedMessageWorker = new Worker("ProcessExecutedCommandMessage", () => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
             _domainEventHandledMessageWorker = new Worker("ProcessDomainEventHandledMessage", () => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
@@ -54,7 +54,7 @@ namespace ENode.EQueue.Commanding
             CommandTaskCompletionSource commandTaskCompletionSource;
             if (_commandTaskDict.TryRemove(command.Id, out commandTaskCompletionSource))
             {
-                var commandResult = new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "CommandSendFailed", "Failed to send the command.");
+                var commandResult = new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Failed to send the command.", typeof(string).FullName);
                 commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult));
             }
         }
@@ -89,8 +89,8 @@ namespace ENode.EQueue.Commanding
             if (remotingRequest.Code == (int)CommandReplyType.CommandExecuted)
             {
                 var json = Encoding.UTF8.GetString(remotingRequest.Body);
-                var message = _jsonSerializer.Deserialize<CommandExecutedMessage>(json);
-                _commandExecutedMessageLocalQueue.Add(message);
+                var result = _jsonSerializer.Deserialize<CommandResult>(json);
+                _commandExecutedMessageLocalQueue.Add(result);
             }
             else if (remotingRequest.Code == (int)CommandReplyType.DomainEventHandled)
             {
@@ -102,37 +102,36 @@ namespace ENode.EQueue.Commanding
             {
                 _logger.ErrorFormat("Invalid remoting request code: {0}", remotingRequest.Code);
             }
-            return new RemotingResponse(remotingRequest.Code, Constants.SuccessResponseCode, remotingRequest.Type, ByteArray, remotingRequest.Sequence);
+            return null;
         }
 
-        private void ProcessExecutedCommandMessage(CommandExecutedMessage message)
+        private void ProcessExecutedCommandMessage(CommandResult commandResult)
         {
             CommandTaskCompletionSource commandTaskCompletionSource;
-            if (_commandTaskDict.TryGetValue(message.CommandId, out commandTaskCompletionSource))
+            if (_commandTaskDict.TryGetValue(commandResult.CommandId, out commandTaskCompletionSource))
             {
                 if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.CommandExecuted)
                 {
-                    _commandTaskDict.Remove(message.CommandId);
-                    var commandResult = new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage);
+                    _commandTaskDict.Remove(commandResult.CommandId);
                     if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
                     {
-                        _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}", message.CommandId, message.CommandStatus, message.AggregateRootId);
+                        if (_logger.IsDebugEnabled)
+                        {
+                            _logger.DebugFormat("Command result return, {0}", commandResult);
+                        }
                     }
                 }
                 else if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
                 {
-                    if (message.CommandStatus == CommandStatus.Failed || message.CommandStatus == CommandStatus.NothingChanged)
+                    if (commandResult.Status == CommandStatus.Failed || commandResult.Status == CommandStatus.NothingChanged)
                     {
-                        _commandTaskDict.Remove(message.CommandId);
-                        var commandResult = new CommandResult(message.CommandStatus, message.CommandId, message.AggregateRootId, message.ExceptionTypeName, message.ErrorMessage);
+                        _commandTaskDict.Remove(commandResult.CommandId);
                         if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
                         {
-                            _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}, exceptionTypeName:{3}, errorMessage:{4}",
-                                message.CommandId,
-                                message.CommandStatus,
-                                message.AggregateRootId,
-                                message.ExceptionTypeName,
-                                message.ErrorMessage);
+                            if (_logger.IsDebugEnabled)
+                            {
+                                _logger.DebugFormat("Command result return, {0}", commandResult);
+                            }
                         }
                     }
                 }
@@ -143,10 +142,13 @@ namespace ENode.EQueue.Commanding
             CommandTaskCompletionSource commandTaskCompletionSource;
             if (_commandTaskDict.TryRemove(message.CommandId, out commandTaskCompletionSource))
             {
-                var commandResult = new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, null, null);
+                var commandResult = new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, message.CommandResult, message.CommandResult != null ? typeof(string).FullName : null);
                 if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
                 {
-                    _logger.DebugFormat("Command result setted, commandId:{0}, commandStatus:{1}, aggregateRootId:{2}", message.CommandId, CommandStatus.Success, message.AggregateRootId);
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("Command result return, {0}", commandResult);
+                    }
                 }
             }
         }

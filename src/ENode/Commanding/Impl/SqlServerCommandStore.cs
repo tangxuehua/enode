@@ -21,7 +21,7 @@ namespace ENode.Commanding.Impl
         private readonly string _tableName;
         private readonly string _primaryKeyName;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider _typeCodeProvider;
+        private readonly ITypeNameProvider _typeNameProvider;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
 
@@ -42,7 +42,7 @@ namespace ENode.Commanding.Impl
             Ensure.NotNull(_primaryKeyName, "_primaryKeyName");
 
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _typeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
+            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
@@ -125,7 +125,7 @@ namespace ENode.Commanding.Impl
                 CommandId = handledCommand.CommandId,
                 AggregateRootId = handledCommand.AggregateRootId,
                 MessagePayload = handledCommand.Message != null ? _jsonSerializer.Serialize(handledCommand.Message) : null,
-                MessageTypeCode = handledCommand.Message != null ? _typeCodeProvider.GetTypeCode(handledCommand.Message.GetType()) : 0,
+                MessageTypeName = handledCommand.Message != null ? _typeNameProvider.GetTypeName(handledCommand.Message.GetType()) : null,
                 CreatedOn = DateTime.Now,
             };
         }
@@ -133,9 +133,9 @@ namespace ENode.Commanding.Impl
         {
             var message = default(IApplicationMessage);
 
-            if (record.MessageTypeCode > 0)
+            if (!string.IsNullOrEmpty(record.MessageTypeName))
             {
-                var messageType = _typeCodeProvider.GetType<IApplicationMessage>(record.MessageTypeCode);
+                var messageType = _typeNameProvider.GetType(record.MessageTypeName);
                 message = _jsonSerializer.Deserialize(record.MessagePayload, messageType) as IApplicationMessage;
             }
 
@@ -149,7 +149,7 @@ namespace ENode.Commanding.Impl
             public string CommandId { get; set; }
             public string AggregateRootId { get; set; }
             public string MessagePayload { get; set; }
-            public int MessageTypeCode { get; set; }
+            public string MessageTypeName { get; set; }
             public DateTime CreatedOn { get; set; }
         }
     }

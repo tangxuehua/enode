@@ -23,6 +23,6 @@ namespace ENode.Domain
         void Set(IAggregateRoot aggregateRoot);
         /// <summary>Refresh the aggregate memory cache by replaying events of event store.
         /// </summary>
-        void RefreshAggregateFromEventStore(int aggregateRootTypeCode, string aggregateRootId);
+        void RefreshAggregateFromEventStore(string aggregateRootTypeName, string aggregateRootId);
     }
 }

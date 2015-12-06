@@ -17,22 +17,25 @@ namespace ENode.Commanding
         /// <summary>Represents the aggregate root id associated with the command.
         /// </summary>
         public string AggregateRootId { get; private set; }
-        /// <summary>Represents the exception type name if the command has any exception.
+        /// <summary>Represents the command result data.
         /// </summary>
-        public string ExceptionTypeName { get; private set; }
-        /// <summary>Represents the error message if the command is failed.
+        public string Result { get; private set; }
+        /// <summary>Represents the command result data type.
         /// </summary>
-        public string ErrorMessage { get; private set; }
+        public string ResultType { get; private set; }
 
+        /// <summary>Default constructor.
+        /// </summary>
+        public CommandResult() { }
         /// <summary>Parameterized constructor.
         /// </summary>
-        public CommandResult(CommandStatus status, string commandId, string aggregateRootId, string exceptionTypeName, string errorMessage)
+        public CommandResult(CommandStatus status, string commandId, string aggregateRootId, string result = null, string resultType = null)
         {
             Status = status;
             CommandId = commandId;
             AggregateRootId = aggregateRootId;
-            ExceptionTypeName = exceptionTypeName;
-            ErrorMessage = errorMessage;
+            Result = result;
+            ResultType = resultType;
         }
 
         /// <summary>Overrides to return the command result info.
@@ -40,12 +43,12 @@ namespace ENode.Commanding
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("[CommandId={0},Status={1},AggregateRootId={2},ExceptionTypeName={3},ErrorMessage={4}]",
+            return string.Format("[CommandId={0},Status={1},AggregateRootId={2},Result={3},ResultType={4}]",
                 CommandId,
                 Status,
                 AggregateRootId,
-                ExceptionTypeName,
-                ErrorMessage);
+                Result,
+                ResultType);
         }
     }
     /// <summary>Represents the command result status enum.

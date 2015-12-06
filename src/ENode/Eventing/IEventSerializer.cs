@@ -11,12 +11,12 @@ namespace ENode.Eventing
         /// </summary>
         /// <param name="evnts"></param>
         /// <returns></returns>
-        IDictionary<int, string> Serialize(IEnumerable<IDomainEvent> evnts);
+        IDictionary<string, string> Serialize(IEnumerable<IDomainEvent> evnts);
         /// <summary>Deserialize the given data to events.
         /// </summary>
         /// <typeparam name="TEvent"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
-        IEnumerable<TEvent> Deserialize<TEvent>(IDictionary<int, string> data) where TEvent : class, IDomainEvent;
+        IEnumerable<TEvent> Deserialize<TEvent>(IDictionary<string, string> data) where TEvent : class, IDomainEvent;
     }
 }

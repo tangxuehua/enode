@@ -46,7 +46,7 @@ namespace ENode.Test
                 ObjectId.GenerateNewStringId(),
                 aggregateRoot.UniqueId,
                 aggregateRoot.Version + 1,
-                100,
+                aggregateRoot.GetType().FullName,
                 aggregateRoot.GetChanges(),
                 new Dictionary<string, string>());
         }

@@ -7,8 +7,6 @@ namespace BankTransferSample.Domain
 {
     /// <summary>已开户
     /// </summary>
-    [Serializable]
-    [Code(1000001)]
     public class AccountCreatedEvent : DomainEvent<string>
     {
         /// <summary>账户拥有者
@@ -24,8 +22,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>账户预操作已添加
     /// </summary>
-    [Serializable]
-    [Code(1000002)]
     public class TransactionPreparationAddedEvent : DomainEvent<string>
     {
         public TransactionPreparation TransactionPreparation { get; private set; }
@@ -39,8 +35,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>账户预操作已执行
     /// </summary>
-    [Serializable]
-    [Code(1000003)]
     public class TransactionPreparationCommittedEvent : DomainEvent<string>
     {
         public double CurrentBalance { get; private set; }
@@ -56,8 +50,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>账户预操作已取消
     /// </summary>
-    [Serializable]
-    [Code(1000004)]
     public class TransactionPreparationCanceledEvent : DomainEvent<string>
     {
         public TransactionPreparation TransactionPreparation { get; private set; }

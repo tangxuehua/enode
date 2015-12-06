@@ -13,5 +13,8 @@ namespace ENode.EQueue
         /// <summary>Represents the aggregate root created or modified by the command.
         /// </summary>
         public string AggregateRootId { get; set; }
+        /// <summary>Represents the command result data.
+        /// </summary>
+        public string CommandResult { get; set; }
     }
 }

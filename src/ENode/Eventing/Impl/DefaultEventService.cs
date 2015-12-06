@@ -6,6 +6,7 @@ using System.Threading;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Scheduling;
+using ECommon.Serializing;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
@@ -20,8 +21,9 @@ namespace ENode.Eventing.Impl
 
         private IProcessingMessageHandler<ProcessingCommand, ICommand, CommandResult> _processingCommandHandler;
         private int _isBatchPersistingEvents;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly IScheduleService _scheduleService;
-        private readonly ITypeCodeProvider _aggregateRootTypeCodeProvider;
+        private readonly ITypeNameProvider _typeNameProvider;
         private readonly IMemoryCache _memoryCache;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IAggregateStorage _aggregateStorage;
@@ -43,8 +45,9 @@ namespace ENode.Eventing.Impl
         #region Constructors
 
         public DefaultEventService(
+            IJsonSerializer jsonSerializer,
             IScheduleService scheduleService,
-            ITypeCodeProvider aggregateRootTypeCodeProvider,
+            ITypeNameProvider typeNameProvider,
             IMemoryCache memoryCache,
             IAggregateRootFactory aggregateRootFactory,
             IAggregateStorage aggregateStorage,
@@ -65,8 +68,9 @@ namespace ENode.Eventing.Impl
             _successPersistedContextQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
             _failedPersistedContextQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
 
+            _jsonSerializer = jsonSerializer;
             _scheduleService = scheduleService;
-            _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
+            _typeNameProvider = typeNameProvider;
             _memoryCache = memoryCache;
             _aggregateRootFactory = aggregateRootFactory;
             _aggregateStorage = aggregateStorage;
@@ -104,7 +108,7 @@ namespace ENode.Eventing.Impl
             {
                 eventStream.Items = processingCommand.Items;
             }
-            var eventStreamMessage = new DomainEventStreamMessage(processingCommand.Message.Id, eventStream.AggregateRootId, eventStream.Version, eventStream.AggregateRootTypeCode, eventStream.Events, eventStream.Items);
+            var eventStreamMessage = new DomainEventStreamMessage(processingCommand.Message.Id, eventStream.AggregateRootId, eventStream.Version, eventStream.AggregateRootTypeName, eventStream.Events, eventStream.Items);
             PublishDomainEventAsync(processingCommand, eventStreamMessage, 0);
         }
 
@@ -152,7 +156,10 @@ namespace ENode.Eventing.Impl
             result =>
             {
                 _successPersistedContextQueue.Add(contextList);
-                _logger.DebugFormat("Batch persist event stream success, persisted event stream count:{0}", contextList.Count());
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.DebugFormat("Batch persist event stream success, persisted event stream count:{0}", contextList.Count());
+                }
                 if (_toCommitContextQueue.Count >= _groupCommitMaxSize)
                 {
                     BatchPersistEventsAsync(DequeueContexts(), 0);
@@ -207,7 +214,10 @@ namespace ENode.Eventing.Impl
             {
                 if (result.Data == EventAppendResult.Success)
                 {
-                    _logger.DebugFormat("Persist events success, {0}", context.EventStream);
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("Persist events success, {0}", context.EventStream);
+                    }
                     RefreshAggregateMemoryCache(context);
                     PublishDomainEventAsync(context.ProcessingCommand, context.EventStream);
                 }
@@ -221,7 +231,7 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[eventStream:{0}]", context.EventStream),
-            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, null, errorMessage ?? "Persist event async failed.")),
+            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, errorMessage ?? "Persist event async failed.", typeof(string).FullName)),
             retryTimes);
         }
         private void HandleDuplicateCommandResult(EventCommittingContext context, int retryTimes)
@@ -252,11 +262,11 @@ namespace ENode.Eventing.Impl
                         command.Id,
                         command.AggregateRootId);
                     _logger.Error(errorMessage);
-                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, null, "Duplicate command execution."));
+                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Duplicate command execution.", typeof(string).FullName));
                 }
             },
             () => string.Format("[aggregateRootId:{0}, commandId:{1}]", command.AggregateRootId, command.Id),
-            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, null, "Find event stream by commandId failed.")),
+            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Find event stream by commandId failed.", typeof(string).FullName)),
             retryTimes);
         }
         private void HandleDuplicateEventResult(EventCommittingContext context)
@@ -270,7 +280,7 @@ namespace ENode.Eventing.Impl
             //那么我们需要先将聚合根的最新状态更新到内存，然后重试command；
             else
             {
-                UpdateAggregateToLatestVersion(context.EventStream.AggregateRootTypeCode, context.EventStream.AggregateRootId);
+                UpdateAggregateToLatestVersion(context.EventStream.AggregateRootTypeName, context.EventStream.AggregateRootId);
                 RetryConcurrentCommand(context);
             }
         }
@@ -297,41 +307,44 @@ namespace ENode.Eventing.Impl
                     else
                     {
                         //如果不是同一个command，则认为是两个不同的command重复创建ID相同的聚合根，我们需要记录错误日志，然后通知当前command的处理完成；
-                        var errorMessage = string.Format("Duplicate aggregate creation. current commandId:{0}, existing commandId:{1}, aggregateRootId:{2}, aggregateRootTypeCode:{3}",
+                        var errorMessage = string.Format("Duplicate aggregate creation. current commandId:{0}, existing commandId:{1}, aggregateRootId:{2}, aggregateRootTypeName:{3}",
                             context.ProcessingCommand.Message.Id,
                             eventStream.CommandId,
                             eventStream.AggregateRootId,
-                            eventStream.AggregateRootTypeCode);
+                            eventStream.AggregateRootTypeName);
                         _logger.Error(errorMessage);
-                        context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, null, "Duplicate aggregate creation."));
+                        context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation.", typeof(string).FullName));
                     }
                 }
                 else
                 {
-                    var errorMessage = string.Format("Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeCode:{2}",
+                    var errorMessage = string.Format("Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeName:{2}",
                         eventStream.CommandId,
                         eventStream.AggregateRootId,
-                        eventStream.AggregateRootTypeCode);
+                        eventStream.AggregateRootTypeName);
                     _logger.Error(errorMessage);
-                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, null, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore."));
+                    context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore.", typeof(string).FullName));
                 }
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, null, errorMessage ?? "Persist the first version of event duplicated, but try to get the first version of domain event async failed.")),
+            errorMessage => context.ProcessingCommand.Complete(new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, errorMessage ?? "Persist the first version of event duplicated, but try to get the first version of domain event async failed.", typeof(string).FullName)),
             retryTimes);
         }
         private void RefreshAggregateMemoryCache(DomainEventStream aggregateFirstEventStream)
         {
             try
             {
-                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType<IAggregateRoot>(aggregateFirstEventStream.AggregateRootTypeCode);
+                var aggregateRootType = _typeNameProvider.GetType(aggregateFirstEventStream.AggregateRootTypeName);
                 var aggregateRoot = _memoryCache.Get(aggregateFirstEventStream.AggregateRootId, aggregateRootType);
                 if (aggregateRoot == null)
                 {
                     aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
                     aggregateRoot.ReplayEvents(new DomainEventStream[] { aggregateFirstEventStream });
                     _memoryCache.Set(aggregateRoot);
-                    _logger.DebugFormat("Aggregate added into memory, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", aggregateFirstEventStream.CommandId, aggregateRootType.Name, aggregateRoot.UniqueId, aggregateRoot.Version);
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("Aggregate added into memory, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", aggregateFirstEventStream.CommandId, aggregateRootType.Name, aggregateRoot.UniqueId, aggregateRoot.Version);
+                    }
                 }
             }
             catch (Exception ex)
@@ -345,16 +358,19 @@ namespace ENode.Eventing.Impl
             {
                 context.AggregateRoot.AcceptChanges(context.EventStream.Version);
                 _memoryCache.Set(context.AggregateRoot);
-                _logger.DebugFormat("Refreshed aggregate memory cache, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", context.EventStream.CommandId, context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.DebugFormat("Refreshed aggregate memory cache, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", context.EventStream.CommandId, context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
+                }
             }
             catch (Exception ex)
             {
                 _logger.Error(string.Format("Refresh memory cache failed by event stream:{0}", context.EventStream), ex);
             }
         }
-        private void UpdateAggregateToLatestVersion(int aggregateRootTypeCode, string aggregateRootId)
+        private void UpdateAggregateToLatestVersion(string aggregateRootTypeName, string aggregateRootId)
         {
-            _memoryCache.RefreshAggregateFromEventStore(aggregateRootTypeCode, aggregateRootId);
+            _memoryCache.RefreshAggregateFromEventStore(aggregateRootTypeName, aggregateRootId);
         }
         private void RetryConcurrentCommand(EventCommittingContext context)
         {
@@ -372,11 +388,15 @@ namespace ENode.Eventing.Impl
             currentRetryTimes => PublishDomainEventAsync(processingCommand, eventStream, currentRetryTimes),
             result =>
             {
-                _logger.DebugFormat("Publish domain events success, {0}", eventStream);
-                processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Message.Id, eventStream.AggregateRootId, null, null));
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.DebugFormat("Publish domain events success, {0}", eventStream);
+                }
+                var commandHandleResult = processingCommand.CommandExecuteContext.GetResult();
+                processingCommand.Complete(new CommandResult(CommandStatus.Success, processingCommand.Message.Id, eventStream.AggregateRootId, commandHandleResult, typeof(string).FullName));
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            errorMessage => processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Message.Id, eventStream.AggregateRootId, null, errorMessage ?? "Publish domain event async failed.")),
+            errorMessage => processingCommand.Complete(new CommandResult(CommandStatus.Failed, processingCommand.Message.Id, eventStream.AggregateRootId, errorMessage ?? "Publish domain event async failed.", typeof(string).FullName)),
             retryTimes);
         }
 

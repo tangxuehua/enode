@@ -68,7 +68,7 @@ namespace ENode.Eventing.Impl
         {
             get { return true; }
         }
-        public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             var records = _ioHelper.TryIOFunc(() =>
             {
@@ -241,7 +241,7 @@ namespace ENode.Eventing.Impl
                 }
             }, "FindEventByCommandIdAsync");
         }
-        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion)
+        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             return _ioHelper.TryIOFuncAsync<AsyncTaskResult<IEnumerable<DomainEventStream>>>(async () =>
             {
@@ -322,10 +322,10 @@ namespace ENode.Eventing.Impl
             return new DomainEventStream(
                 record.CommandId,
                 record.AggregateRootId,
-                record.AggregateRootTypeCode,
+                record.AggregateRootTypeName,
                 record.Version,
                 record.CreatedOn,
-                _eventSerializer.Deserialize<IDomainEvent>(_jsonSerializer.Deserialize<IDictionary<int, string>>(record.Events)));
+                _eventSerializer.Deserialize<IDomainEvent>(_jsonSerializer.Deserialize<IDictionary<string, string>>(record.Events)));
         }
         private StreamRecord ConvertTo(DomainEventStream eventStream)
         {
@@ -333,7 +333,7 @@ namespace ENode.Eventing.Impl
             {
                 CommandId = eventStream.CommandId,
                 AggregateRootId = eventStream.AggregateRootId,
-                AggregateRootTypeCode = eventStream.AggregateRootTypeCode,
+                AggregateRootTypeName = eventStream.AggregateRootTypeName,
                 Version = eventStream.Version,
                 CreatedOn = eventStream.Timestamp,
                 Events = _jsonSerializer.Serialize(_eventSerializer.Serialize(eventStream.Events))
@@ -343,7 +343,7 @@ namespace ENode.Eventing.Impl
         {
             var row = table.NewRow();
             row["AggregateRootId"] = eventStream.AggregateRootId;
-            row["AggregateRootTypeCode"] = eventStream.AggregateRootTypeCode;
+            row["AggregateRootTypeName"] = eventStream.AggregateRootTypeName;
             row["CommandId"] = eventStream.CommandId;
             row["Version"] = eventStream.Version;
             row["CreatedOn"] = eventStream.Timestamp;
@@ -355,7 +355,7 @@ namespace ENode.Eventing.Impl
 
         class StreamRecord
         {
-            public int AggregateRootTypeCode { get; set; }
+            public string AggregateRootTypeName { get; set; }
             public string AggregateRootId { get; set; }
             public int Version { get; set; }
             public string CommandId { get; set; }

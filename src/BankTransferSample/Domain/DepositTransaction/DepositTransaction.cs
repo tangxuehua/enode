@@ -6,8 +6,6 @@ namespace BankTransferSample.Domain
 {
     /// <summary>聚合根，表示一笔银行存款交易
     /// </summary>
-    [Serializable]
-    [Code(11)]
     public class DepositTransaction : AggregateRoot<string>
     {
         #region Private Variables

@@ -14,7 +14,7 @@ namespace ENode.EQueue
     {
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IPublishableException> _exceptionTopicProvider;
-        private readonly ITypeCodeProvider _exceptionTypeCodeProvider;
+        private readonly ITypeNameProvider _typeNameProvider;
         private readonly Producer _producer;
         private readonly SendQueueMessageService _sendMessageService;
 
@@ -25,7 +25,7 @@ namespace ENode.EQueue
             _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
-            _exceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
+            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _sendMessageService = new SendQueueMessageService();
         }
 
@@ -47,7 +47,6 @@ namespace ENode.EQueue
 
         private EQueueMessage CreateEQueueMessage(IPublishableException exception)
         {
-            var exceptionTypeCode = _exceptionTypeCodeProvider.GetTypeCode(exception.GetType());
             var topic = _exceptionTopicProvider.GetTopic(exception);
             var serializableInfo = new Dictionary<string, string>();
             exception.SerializeTo(serializableInfo);
@@ -55,13 +54,16 @@ namespace ENode.EQueue
             var data = _jsonSerializer.Serialize(new PublishableExceptionMessage
             {
                 UniqueId = exception.Id,
-                AggregateRootTypeCode = sequenceMessage != null ? sequenceMessage.AggregateRootTypeCode : 0,
+                AggregateRootTypeName = sequenceMessage != null ? sequenceMessage.AggregateRootTypeName : null,
                 AggregateRootId = sequenceMessage != null ? sequenceMessage.AggregateRootId : null,
                 Timestamp = exception.Timestamp,
-                ExceptionTypeCode = exceptionTypeCode,
                 SerializableInfo = serializableInfo
             });
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.ExceptionMessage, Encoding.UTF8.GetBytes(data));
+            return new EQueueMessage(
+                topic,
+                (int)EQueueMessageTypeCode.ExceptionMessage,
+                Encoding.UTF8.GetBytes(data),
+                _typeNameProvider.GetTypeName(exception.GetType()));
         }
     }
 }

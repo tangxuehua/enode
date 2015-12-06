@@ -22,14 +22,14 @@ namespace ENode.Domain.Impl
         }
         private readonly ConcurrentDictionary<string, AggregateRootInfo> _aggregateRootInfoDict = new ConcurrentDictionary<string, AggregateRootInfo>();
         private readonly IAggregateStorage _aggregateStorage;
-        private readonly ITypeCodeProvider _aggregateRootTypeCodeProvider;
+        private readonly ITypeNameProvider _typeNameProvider;
         private readonly IScheduleService _scheduleService;
         private readonly ILogger _logger;
         private readonly int TimeoutSeconds = 1800;
 
-        public DefaultMemoryCache(ITypeCodeProvider aggregateRootTypeCodeProvider, IAggregateStorage aggregateStorage, IScheduleService scheduleService, ILoggerFactory loggerFactory)
+        public DefaultMemoryCache(ITypeNameProvider typeNameProvider, IAggregateStorage aggregateStorage, IScheduleService scheduleService, ILoggerFactory loggerFactory)
         {
-            _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
+            _typeNameProvider = typeNameProvider;
             _aggregateStorage = aggregateStorage;
             _scheduleService = scheduleService;
             _logger = loggerFactory.Create(GetType().FullName);
@@ -69,14 +69,14 @@ namespace ENode.Domain.Impl
         {
             SetInternal(aggregateRoot);
         }
-        public void RefreshAggregateFromEventStore(int aggregateRootTypeCode, string aggregateRootId)
+        public void RefreshAggregateFromEventStore(string aggregateRootTypeName, string aggregateRootId)
         {
             try
             {
-                var aggregateRootType = _aggregateRootTypeCodeProvider.GetType<IAggregateRoot>(aggregateRootTypeCode);
+                var aggregateRootType = _typeNameProvider.GetType(aggregateRootTypeName);
                 if (aggregateRootType == null)
                 {
-                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root type code [{0}].", aggregateRootTypeCode);
+                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root type name [{0}].", aggregateRootTypeName);
                     return;
                 }
                 var aggregateRoot = _aggregateStorage.Get(aggregateRootType, aggregateRootId);
@@ -87,7 +87,7 @@ namespace ENode.Domain.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Exception raised when refreshing aggregate from event store, aggregateRootTypeCode:{0}, aggregateRootId:{1}", aggregateRootTypeCode, aggregateRootId), ex);
+                _logger.Error(string.Format("Exception raised when refreshing aggregate from event store, aggregateRootTypeName:{0}, aggregateRootId:{1}", aggregateRootTypeName, aggregateRootId), ex);
             }
         }
 

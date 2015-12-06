@@ -79,6 +79,8 @@
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Eventing\Impl\DomainEventStreamMessageHandler.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultTypeNameProvider.cs" />
+    <Compile Include="Infrastructure\ITypeNameProvider.cs" />
     <Compile Include="Infrastructure\MessageHandlerData.cs" />
     <Compile Include="Infrastructure\Impl\DefaultThreeMessageHandlerProvider.cs" />
     <Compile Include="Infrastructure\Impl\ManyType.cs" />
@@ -87,7 +89,6 @@
     <Compile Include="Infrastructure\IHandlerProxy.cs" />
     <Compile Include="Infrastructure\Impl\AbstractHandlerProvider.cs" />
     <Compile Include="Infrastructure\ApplicationMessage.cs" />
-    <Compile Include="Infrastructure\CodeAttribute.cs" />
     <Compile Include="Infrastructure\ThreeMessageHandleRecord.cs" />
     <Compile Include="Infrastructure\TwoMessageHandleRecord.cs" />
     <Compile Include="Infrastructure\MessageHandleRecord.cs" />
@@ -121,7 +122,6 @@
     <Compile Include="Infrastructure\IMessagePublisher.cs" />
     <Compile Include="Infrastructure\Impl\SQL\SqlServerLockService.cs" />
     <Compile Include="Infrastructure\ILockService.cs" />
-    <Compile Include="Infrastructure\ITypeCodeProvider.cs" />
     <Compile Include="Eventing\IEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventService.cs" />
     <Compile Include="Eventing\Impl\InMemoryEventStore.cs" />
@@ -137,7 +137,6 @@
     <Compile Include="Infrastructure\Impl\InMemory\InMemoryMessageHandleRecordStore.cs" />
     <Compile Include="Infrastructure\ISequenceMessagePublishVersionStore.cs" />
     <Compile Include="Infrastructure\IMessageHandleRecordStore.cs" />
-    <Compile Include="Infrastructure\Impl\DefaultTypeCodeProvider.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />
     <Compile Include="Domain\Impl\DefaultRepository.cs" />

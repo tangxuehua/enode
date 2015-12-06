@@ -14,7 +14,7 @@ namespace ENode.EQueue
         private const string DefaultExceptionConsumerGroup = "ExceptionConsumerGroup";
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeCodeProvider _publishableExceptionTypeCodeProvider;
+        private readonly ITypeNameProvider _typeNameProvider;
         private readonly IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool> _publishableExceptionProcessor;
 
         public Consumer Consumer { get { return _consumer; } }
@@ -27,7 +27,7 @@ namespace ENode.EQueue
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
-            _publishableExceptionTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
+            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
         }
 
         public PublishableExceptionConsumer Start()
@@ -49,7 +49,7 @@ namespace ENode.EQueue
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
             var exceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
-            var exceptionType = _publishableExceptionTypeCodeProvider.GetType<IPublishableException>(exceptionMessage.ExceptionTypeCode);
+            var exceptionType = _typeNameProvider.GetType(queueMessage.Tag);
             var exception = FormatterServices.GetUninitializedObject(exceptionType) as IPublishableException;
             exception.Id = exceptionMessage.UniqueId;
             exception.Timestamp = exceptionMessage.Timestamp;
@@ -57,7 +57,7 @@ namespace ENode.EQueue
             var sequenceMessage = exception as ISequenceMessage;
             if (sequenceMessage != null)
             {
-                sequenceMessage.AggregateRootTypeCode = exceptionMessage.AggregateRootTypeCode;
+                sequenceMessage.AggregateRootTypeName = exceptionMessage.AggregateRootTypeName;
                 sequenceMessage.AggregateRootId = exceptionMessage.AggregateRootId;
             }
             var processContext = new EQueueProcessContext(queueMessage, context);

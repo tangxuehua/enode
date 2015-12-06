@@ -7,8 +7,6 @@ namespace BankTransferSample.Domain
 {
     /// <summary>转账交易已开始
     /// </summary>
-    [Serializable]
-    [Code(1000008)]
     public abstract class AbstractTransferTransactionEvent : DomainEvent<string>
     {
         public TransferTransactionInfo TransactionInfo { get; private set; }
@@ -22,8 +20,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>转账交易已开始
     /// </summary>
-    [Serializable]
-    [Code(1000009)]
     public class TransferTransactionStartedEvent : AbstractTransferTransactionEvent
     {
         public TransferTransactionStartedEvent() { }
@@ -32,8 +28,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>源账户验证通过事件已确认
     /// </summary>
-    [Serializable]
-    [Code(1000010)]
     public class SourceAccountValidatePassedConfirmedEvent : AbstractTransferTransactionEvent
     {
         public SourceAccountValidatePassedConfirmedEvent() { }
@@ -44,8 +38,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>目标账户验证通过事件已确认
     /// </summary>
-    [Serializable]
-    [Code(1000011)]
     public class TargetAccountValidatePassedConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TargetAccountValidatePassedConfirmedEvent() { }
@@ -56,8 +48,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>源账户和目标账户验证通过事件都已确认
     /// </summary>
-    [Serializable]
-    [Code(1000012)]
     public class AccountValidatePassedConfirmCompletedEvent : AbstractTransferTransactionEvent
     {
         public AccountValidatePassedConfirmCompletedEvent() { }
@@ -68,8 +58,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>转账交易预转出已确认
     /// </summary>
-    [Serializable]
-    [Code(1000013)]
     public class TransferOutPreparationConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TransferOutPreparationConfirmedEvent() { }
@@ -80,8 +68,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>转账交易预转入已确认
     /// </summary>
-    [Serializable]
-    [Code(1000014)]
     public class TransferInPreparationConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TransferInPreparationConfirmedEvent() { }
@@ -92,8 +78,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>转账交易转出已确认
     /// </summary>
-    [Serializable]
-    [Code(1000015)]
     public class TransferOutConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TransferOutConfirmedEvent() { }
@@ -102,8 +86,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>转账交易转入已确认
     /// </summary>
-    [Serializable]
-    [Code(1000016)]
     public class TransferInConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TransferInConfirmedEvent() { }
@@ -112,8 +94,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>转账交易已完成
     /// </summary>
-    [Serializable]
-    [Code(1000017)]
     public class TransferTransactionCompletedEvent : DomainEvent<string>
     {
         public TransferTransactionCompletedEvent() { }
@@ -122,8 +102,6 @@ namespace BankTransferSample.Domain
     }
     /// <summary>转账交易已取消（结束），交易已失败
     /// </summary>
-    [Serializable]
-    [Code(1000018)]
     public class TransferTransactionCanceledEvent : DomainEvent<string>
     {
         public TransferTransactionCanceledEvent() { }

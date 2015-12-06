@@ -15,7 +15,7 @@ namespace ENode.Infrastructure
         public string AggregateRootStringId { get; set; }
         /// <summary>Represents the aggregte root type code of the sequence message.
         /// </summary>
-        public int AggregateRootTypeCode { get; set; }
+        public string AggregateRootTypeName { get; set; }
         /// <summary>Represents the version of the sequence message.
         /// </summary>
         public int Version { get; set; }
@@ -25,7 +25,7 @@ namespace ENode.Infrastructure
         public SequenceMessage() : base() { }
         /// <summary>Parameterized constructor.
         /// </summary>
-        public SequenceMessage(TAggregateRootId aggregateRootId, int version, int aggregateRootTypeCode = 0) : base()
+        public SequenceMessage(TAggregateRootId aggregateRootId, int version, string aggregateRootTypeName = null) : base()
         {
             if (aggregateRootId == null)
             {
@@ -37,7 +37,7 @@ namespace ENode.Infrastructure
             }
 
             AggregateRootId = aggregateRootId;
-            AggregateRootTypeCode = aggregateRootTypeCode;
+            AggregateRootTypeName = aggregateRootTypeName;
             Version = version;
             if (!object.Equals(aggregateRootId, default(TAggregateRootId)))
             {

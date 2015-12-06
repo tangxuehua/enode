@@ -127,13 +127,13 @@ namespace ENode.Infrastructure.Impl.SQL
                 return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
             }
         }
-        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId, int handlerTypeCode, int aggregateRootTypeCode)
+        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId, string handlerTypeName, string aggregateRootTypeName)
         {
             try
             {
                 using (var connection = GetConnection())
                 {
-                    var count = await connection.GetCountAsync(new { MessageId = messageId, HandlerTypeCode = handlerTypeCode }, _oneMessageTableName);
+                    var count = await connection.GetCountAsync(new { MessageId = messageId, HandlerTypeName = handlerTypeName }, _oneMessageTableName);
                     return new AsyncTaskResult<bool>(AsyncTaskStatus.Success, count > 0);
                 }
             }
@@ -148,13 +148,13 @@ namespace ENode.Infrastructure.Impl.SQL
                 return new AsyncTaskResult<bool>(AsyncTaskStatus.Failed, ex.Message);
             }
         }
-        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId1, string messageId2, int handlerTypeCode, int aggregateRootTypeCode)
+        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId1, string messageId2, string handlerTypeName, string aggregateRootTypeName)
         {
             try
             {
                 using (var connection = GetConnection())
                 {
-                    var count = await connection.GetCountAsync(new { MessageId1 = messageId1, MessageId2 = messageId2, HandlerTypeCode = handlerTypeCode }, _twoMessageTableName);
+                    var count = await connection.GetCountAsync(new { MessageId1 = messageId1, MessageId2 = messageId2, HandlerTypeName = handlerTypeName }, _twoMessageTableName);
                     return new AsyncTaskResult<bool>(AsyncTaskStatus.Success, count > 0);
                 }
             }
@@ -169,13 +169,13 @@ namespace ENode.Infrastructure.Impl.SQL
                 return new AsyncTaskResult<bool>(AsyncTaskStatus.Failed, ex.Message);
             }
         }
-        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId1, string messageId2, string messageId3, int handlerTypeCode, int aggregateRootTypeCode)
+        public async Task<AsyncTaskResult<bool>> IsRecordExistAsync(string messageId1, string messageId2, string messageId3, string handlerTypeName, string aggregateRootTypeName)
         {
             try
             {
                 using (var connection = GetConnection())
                 {
-                    var count = await connection.GetCountAsync(new { MessageId1 = messageId1, MessageId2 = messageId2, MessageId3 = messageId3, HandlerTypeCode = handlerTypeCode }, _threeMessageTableName);
+                    var count = await connection.GetCountAsync(new { MessageId1 = messageId1, MessageId2 = messageId2, MessageId3 = messageId3, HandlerTypeName = handlerTypeName }, _threeMessageTableName);
                     return new AsyncTaskResult<bool>(AsyncTaskStatus.Success, count > 0);
                 }
             }

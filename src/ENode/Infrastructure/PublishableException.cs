@@ -29,5 +29,12 @@ namespace ENode.Infrastructure
         {
             return null;
         }
+        /// <summary>Returns the full type name of the current exception.
+        /// </summary>
+        /// <returns></returns>
+        public string GetTypeName()
+        {
+            return this.GetType().FullName;
+        }
     }
 }

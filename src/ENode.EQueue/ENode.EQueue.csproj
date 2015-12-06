@@ -71,7 +71,6 @@
     <Compile Include="Command\CommandConsumer.cs" />
     <Compile Include="Command\CommandMessage.cs" />
     <Compile Include="DomainEvent\DomainEventHandledMessage.cs" />
-    <Compile Include="Command\CommandExecutedMessage.cs" />
     <Compile Include="Command\CommandResultProcessor.cs" />
     <Compile Include="DomainEvent\DomainEventConsumer.cs" />
     <Compile Include="DomainEvent\DomainEventPublisher.cs" />

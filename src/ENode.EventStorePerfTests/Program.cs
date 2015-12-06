@@ -38,7 +38,7 @@ namespace ENode.EventStorePerfTests
                 var current = 0;
                 for (var i = 1; i <= count; i++)
                 {
-                    eventStore.AppendAsync(new DomainEventStream(ObjectId.GenerateNewStringId(), note.Id, 100, i, DateTime.Now, evnts)).ContinueWith(t =>
+                    eventStore.AppendAsync(new DomainEventStream(ObjectId.GenerateNewStringId(), note.Id, note.GetType().FullName, i, DateTime.Now, evnts)).ContinueWith(t =>
                     {
                         if (t.Result.Data == EventAppendResult.DuplicateEvent)
                         {
@@ -80,7 +80,7 @@ namespace ENode.EventStorePerfTests
                     }
                     else
                     {
-                        batch.Add(new DomainEventStream(ObjectId.GenerateNewStringId(), note.Id, 100, i, DateTime.Now, evnts));
+                        batch.Add(new DomainEventStream(ObjectId.GenerateNewStringId(), note.Id, note.GetType().FullName, i, DateTime.Now, evnts));
                     }
                 }
                 if (batch.Count > 0)

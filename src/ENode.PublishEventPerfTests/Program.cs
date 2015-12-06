@@ -40,7 +40,7 @@ namespace ENode.PublishEventPerfTests
 
             for (var i = 1; i <= eventCount; i++)
             {
-                eventStreams.Add(new DomainEventStreamMessage(commandId, note.Id, 1, 100, evnts, new Dictionary<string, string>()));
+                eventStreams.Add(new DomainEventStreamMessage(commandId, note.Id, 1, note.GetType().FullName, evnts, new Dictionary<string, string>()));
             }
 
             var watch = Stopwatch.StartNew();

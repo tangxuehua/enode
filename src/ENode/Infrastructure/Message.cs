@@ -34,5 +34,12 @@ namespace ENode.Infrastructure
         {
             return null;
         }
+        /// <summary>Returns the full type name of the current message.
+        /// </summary>
+        /// <returns></returns>
+        public string GetTypeName()
+        {
+            return this.GetType().FullName;
+        }
     }
 }

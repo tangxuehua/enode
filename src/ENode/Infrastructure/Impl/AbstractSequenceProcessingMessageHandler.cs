@@ -41,7 +41,7 @@ namespace ENode.Infrastructure.Impl
             var message = processingMessage.Message;
 
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<int>>("GetPublishedVersionAsync",
-            () => _publishedVersionStore.GetPublishedVersionAsync(Name, message.AggregateRootTypeCode, message.AggregateRootId),
+            () => _publishedVersionStore.GetPublishedVersionAsync(Name, message.AggregateRootTypeName, message.AggregateRootId),
             currentRetryTimes => HandleMessageAsync(processingMessage, currentRetryTimes),
             result =>
             {
@@ -52,7 +52,10 @@ namespace ENode.Infrastructure.Impl
                 }
                 else if (publishedVersion + 1 < message.Version)
                 {
-                    _logger.DebugFormat("The sequence message cannot be process now as the version is not the next version, it will be handle later. contextInfo [aggregateRootId={0},lastPublishedVersion={1},messageVersion={2}]", message.AggregateRootId, publishedVersion, message.Version);
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("The sequence message cannot be process now as the version is not the next version, it will be handle later. contextInfo [aggregateRootId={0},lastPublishedVersion={1},messageVersion={2}]", message.AggregateRootId, publishedVersion, message.Version);
+                    }
                     processingMessage.AddToWaitingList();
                 }
                 else
@@ -82,7 +85,7 @@ namespace ENode.Infrastructure.Impl
         private void UpdatePublishedVersionAsync(X processingMessage, int retryTimes)
         {
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("UpdatePublishedVersionAsync",
-            () => _publishedVersionStore.UpdatePublishedVersionAsync(Name, processingMessage.Message.AggregateRootTypeCode, processingMessage.Message.AggregateRootId, processingMessage.Message.Version),
+            () => _publishedVersionStore.UpdatePublishedVersionAsync(Name, processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, processingMessage.Message.Version),
             currentRetryTimes => UpdatePublishedVersionAsync(processingMessage, currentRetryTimes),
             result =>
             {

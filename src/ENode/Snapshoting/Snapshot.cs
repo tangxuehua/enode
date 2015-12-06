@@ -8,14 +8,14 @@ namespace ENode.Snapshoting
     {
         /// <summary>Parameterized constructor.
         /// </summary>
-        /// <param name="aggregateRootTypeCode"></param>
+        /// <param name="aggregateRootTypeName"></param>
         /// <param name="aggregateRootId"></param>
         /// <param name="version"></param>
         /// <param name="payload"></param>
         /// <param name="createdOn"></param>
-        public Snapshot(int aggregateRootTypeCode, string aggregateRootId, int version, byte[] payload, DateTime createdOn)
+        public Snapshot(string aggregateRootTypeName, string aggregateRootId, int version, byte[] payload, DateTime createdOn)
         {
-            AggregateRootTypeCode = aggregateRootTypeCode;
+            AggregateRootTypeName = aggregateRootTypeName;
             AggregateRootId = aggregateRootId;
             Version = version;
             Payload = payload;
@@ -25,9 +25,9 @@ namespace ENode.Snapshoting
         /// <summary>The aggregate root id.
         /// </summary>
         public string AggregateRootId { get; set; }
-        /// <summary>The aggregate root type code.
+        /// <summary>The aggregate root type name.
         /// </summary>
-        public int AggregateRootTypeCode { get; set; }
+        public string AggregateRootTypeName { get; set; }
         /// <summary>The aggregate root version when creating this snapshot.
         /// </summary>
         public int Version { get; set; }

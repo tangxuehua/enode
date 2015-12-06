@@ -11,7 +11,7 @@ namespace ENode.Infrastructure
         string AggregateRootId { get; set; }
         /// <summary>Represents the aggregate root type code of the sequence message.
         /// </summary>
-        int AggregateRootTypeCode { get; set; }
+        string AggregateRootTypeName { get; set; }
         /// <summary>Represents the main version of the sequence message.
         /// </summary>
         int Version { get; set; }

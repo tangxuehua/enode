@@ -76,7 +76,7 @@ namespace ENode.EQueue
                 message.CommandId,
                 message.AggregateRootId,
                 message.Version,
-                message.AggregateRootTypeCode,
+                message.AggregateRootTypeName,
                 _eventSerializer.Deserialize<IDomainEvent>(message.Events),
                 message.Items);
             domainEventStreamMessage.Timestamp = message.Timestamp;
@@ -109,11 +109,14 @@ namespace ENode.EQueue
                 {
                     return;
                 }
+                string commandResult;
+                _domainEventStreamMessage.Items.TryGetValue("CommandResult", out commandResult);
 
                 _eventConsumer._sendReplyService.SendReply((int)CommandReplyType.DomainEventHandled, new DomainEventHandledMessage
                 {
                     CommandId = _domainEventStreamMessage.CommandId,
-                    AggregateRootId = _domainEventStreamMessage.AggregateRootId
+                    AggregateRootId = _domainEventStreamMessage.AggregateRootId,
+                    CommandResult = commandResult
                 }, replyAddress);
             }
         }

@@ -116,6 +116,7 @@ namespace ENode.CommandProcessorPerfTests
         {
             private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRoots;
             private readonly int _printSize;
+            private string _result;
 
             public CommandExecuteContext()
             {
@@ -181,7 +182,15 @@ namespace ENode.CommandProcessorPerfTests
             public void Clear()
             {
                 _aggregateRoots.Clear();
-
+                _result = null;
+            }
+            public void SetResult(string result)
+            {
+                _result = result;
+            }
+            public string GetResult()
+            {
+                return _result;
             }
         }
     }

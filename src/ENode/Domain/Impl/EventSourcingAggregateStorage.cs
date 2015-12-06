@@ -15,20 +15,20 @@ namespace ENode.Domain.Impl
         private readonly IEventStore _eventStore;
         private readonly ISnapshotStore _snapshotStore;
         private readonly ISnapshotter _snapshotter;
-        private readonly ITypeCodeProvider _aggregateRootTypeCodeProvider;
+        private readonly ITypeNameProvider _typeNameProvider;
 
         public EventSourcingAggregateStorage(
             IAggregateRootFactory aggregateRootFactory,
             IEventStore eventStore,
             ISnapshotStore snapshotStore,
             ISnapshotter snapshotter,
-            ITypeCodeProvider aggregateRootTypeCodeProvider)
+            ITypeNameProvider typeNameProvider)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _eventStore = eventStore;
             _snapshotStore = snapshotStore;
             _snapshotter = snapshotter;
-            _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
+            _typeNameProvider = typeNameProvider;
         }
 
         public IAggregateRoot Get(Type aggregateRootType, string aggregateRootId)
@@ -42,8 +42,8 @@ namespace ENode.Domain.Impl
                 return aggregateRoot;
             }
 
-            var aggregateRootTypeCode = _aggregateRootTypeCodeProvider.GetTypeCode(aggregateRootType);
-            var eventStreams = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, minVersion, maxVersion);
+            var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
+            var eventStreams = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion);
             aggregateRoot = RebuildAggregateRoot(aggregateRootType, eventStreams);
 
             return aggregateRoot;
@@ -66,8 +66,8 @@ namespace ENode.Domain.Impl
                 throw new Exception(string.Format("Aggregate root restored from snapshot not valid as the aggregate root id not matched. Snapshot aggregate root id:{0}, expected aggregate root id:{1}", aggregateRoot.UniqueId, aggregateRootId));
             }
 
-            var aggregateRootTypeCode = _aggregateRootTypeCodeProvider.GetTypeCode(aggregateRootType);
-            var eventStreamsAfterSnapshot = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeCode, snapshot.Version + 1, int.MaxValue);
+            var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
+            var eventStreamsAfterSnapshot = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, snapshot.Version + 1, int.MaxValue);
             aggregateRoot.ReplayEvents(eventStreamsAfterSnapshot);
             return true;
         }

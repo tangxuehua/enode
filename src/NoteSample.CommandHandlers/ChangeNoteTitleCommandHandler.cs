@@ -10,7 +10,7 @@ namespace NoteSample.CommandHandlers
     {
         public void Handle(ICommandContext context, ChangeNoteTitleCommand command)
         {
-            context.Get<Note>(command.AggregateRootId).ChangeTitle(command.Title);
+            context.SetResult(context.Get<Note>(command.AggregateRootId).ChangeTitle(command.Title));
         }
     }
 }

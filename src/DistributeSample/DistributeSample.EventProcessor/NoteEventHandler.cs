@@ -8,7 +8,6 @@ using NoteSample.Domain;
 namespace DistributeSample.EventProcessor
 {
     [Component]
-    [Code(10000)]
     public class NoteEventHandler : IMessageHandler<NoteCreated>
     {
         private ILogger _logger;

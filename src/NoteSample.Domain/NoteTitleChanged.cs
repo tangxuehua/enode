@@ -4,7 +4,6 @@ using ENode.Infrastructure;
 
 namespace NoteSample.Domain
 {
-    [Code(101)]
     public class NoteTitleChanged : DomainEvent<string>
     {
         public string Title { get; private set; }
@@ -15,7 +14,6 @@ namespace NoteSample.Domain
             Title = title;
         }
     }
-    [Code(102)]
     public class Event1 : DomainEvent<string>
     {
         private Event1() { }
@@ -23,7 +21,6 @@ namespace NoteSample.Domain
         {
         }
     }
-    [Code(103)]
     public class Event2 : DomainEvent<string>
     {
         private Event2() { }
@@ -31,7 +28,6 @@ namespace NoteSample.Domain
         {
         }
     }
-    [Code(104)]
     public class Event3 : DomainEvent<string>
     {
         private Event3() { }

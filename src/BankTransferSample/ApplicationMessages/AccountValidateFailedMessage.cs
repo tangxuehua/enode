@@ -5,8 +5,6 @@ namespace BankTransferSample.ApplicationMessages
 {
     /// <summary>账户验证未通过
     /// </summary>
-    [Serializable]
-    [Code(10)]
     public class AccountValidateFailedMessage : ApplicationMessage
     {
         public string AccountId { get; set; }

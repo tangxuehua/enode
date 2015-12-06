@@ -16,7 +16,6 @@ namespace ENode.EQueue
     {
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITopicProvider<IDomainEvent> _eventTopicProvider;
-        private readonly ITypeCodeProvider _eventTypeCodeProvider;
         private readonly IEventSerializer _eventSerializer;
         private readonly Producer _producer;
         private readonly SendQueueMessageService _sendMessageService;
@@ -28,7 +27,6 @@ namespace ENode.EQueue
             _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IDomainEvent>>();
-            _eventTypeCodeProvider = ObjectContainer.Resolve<ITypeCodeProvider>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _sendMessageService = new SendQueueMessageService();
         }
@@ -62,7 +60,7 @@ namespace ENode.EQueue
             var message = new EventStreamMessage();
 
             message.CommandId = eventStream.CommandId;
-            message.AggregateRootTypeCode = eventStream.AggregateRootTypeCode;
+            message.AggregateRootTypeName = eventStream.AggregateRootTypeName;
             message.AggregateRootId = eventStream.AggregateRootId;
             message.Timestamp = eventStream.Timestamp;
             message.Version = eventStream.Version;

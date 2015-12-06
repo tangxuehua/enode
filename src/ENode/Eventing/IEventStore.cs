@@ -14,7 +14,7 @@ namespace ENode.Eventing
         bool SupportBatchAppend { get; }
         /// <summary>Query a range of event streams of a single aggregate from event store.
         /// </summary>
-        IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion);
+        IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion);
         /// <summary>Query a range of event streams from event store by page.
         /// </summary>
         /// <returns></returns>
@@ -36,7 +36,7 @@ namespace ENode.Eventing
         Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId);
         /// <summary>Query a range of event streams of a single aggregate from event store async.
         /// </summary>
-        Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, int aggregateRootTypeCode, int minVersion, int maxVersion);
+        Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion);
         /// <summary>Query a range of event streams from event store by page async.
         /// </summary>
         /// <returns></returns>

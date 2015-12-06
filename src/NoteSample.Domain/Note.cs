@@ -6,7 +6,6 @@ using ENode.Infrastructure;
 
 namespace NoteSample.Domain
 {
-    [Code(100)]
     public class Note : AggregateRoot<string>
     {
         private string _title;
@@ -19,9 +18,11 @@ namespace NoteSample.Domain
             ApplyEvent(new NoteCreated(this, title));
         }
 
-        public void ChangeTitle(string title)
+        public string ChangeTitle(string title)
         {
             ApplyEvent(new NoteTitleChanged(this, title));
+
+            return "";
         }
         public void TestEvents()
         {

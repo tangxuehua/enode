@@ -90,7 +90,10 @@ namespace BankTransferSample
         }
         static void PerformanceTest()
         {
-            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+            var assemblies = new[]
+            {
+                Assembly.GetExecutingAssembly()
+            };
 
             _configuration = Configuration
                 .Create()

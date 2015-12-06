@@ -3,7 +3,6 @@ using ENode.Infrastructure;
 
 namespace BankTransferSample.Domain
 {
-    [Code(10000001)]
     public class InsufficientBalanceException : PublishableException
     {
         /// <summary>账户ID

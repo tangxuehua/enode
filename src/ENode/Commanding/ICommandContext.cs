@@ -16,5 +16,13 @@ namespace ENode.Commanding
         /// <param name="id"></param>
         /// <returns></returns>
         T Get<T>(object id) where T : class, IAggregateRoot;
+        /// <summary>Set the command handle result.
+        /// </summary>
+        /// <param name="result"></param>
+        void SetResult(string result);
+        /// <summary>Get the command handle result.
+        /// </summary>
+        /// <returns></returns>
+        string GetResult();
     }
 }

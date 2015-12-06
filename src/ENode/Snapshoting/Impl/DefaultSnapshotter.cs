@@ -10,17 +10,17 @@ namespace ENode.Snapshoting.Impl
         #region Private Variables
 
         private readonly IAggregateRootFactory _aggregateRootFactory;
-        private readonly ITypeCodeProvider _aggregateRootTypeCodeProvider;
+        private readonly ITypeNameProvider _typeNameProvider;
         private readonly IBinarySerializer _binarySerializer;
 
         #endregion
 
         #region Constructors
 
-        public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, ITypeCodeProvider aggregateRootTypeCodeProvider, IBinarySerializer binarySerializer)
+        public DefaultSnapshotter(IAggregateRootFactory aggregateRootFactory, ITypeNameProvider typeNameProvider, IBinarySerializer binarySerializer)
         {
             _aggregateRootFactory = aggregateRootFactory;
-            _aggregateRootTypeCodeProvider = aggregateRootTypeCodeProvider;
+            _typeNameProvider = typeNameProvider;
             _binarySerializer = binarySerializer;
         }
 
@@ -34,9 +34,9 @@ namespace ENode.Snapshoting.Impl
             }
 
             var payload = _binarySerializer.Serialize(aggregateRoot);
-            var aggregateRootTypeCode = _aggregateRootTypeCodeProvider.GetTypeCode(aggregateRoot.GetType());
+            var typeName = _typeNameProvider.GetTypeName(aggregateRoot.GetType());
 
-            return new Snapshot(aggregateRootTypeCode, aggregateRoot.UniqueId, aggregateRoot.Version, payload, DateTime.Now);
+            return new Snapshot(typeName, aggregateRoot.UniqueId, aggregateRoot.Version, payload, DateTime.Now);
         }
         public IAggregateRoot RestoreFromSnapshot(Snapshot snapshot)
         {
@@ -45,7 +45,7 @@ namespace ENode.Snapshoting.Impl
                 throw new ArgumentNullException("snapshot"); ;
             }
 
-            var aggregateRootType = _aggregateRootTypeCodeProvider.GetType<IAggregateRoot>(snapshot.AggregateRootTypeCode);
+            var aggregateRootType = _typeNameProvider.GetType(snapshot.AggregateRootTypeName);
             return _binarySerializer.Deserialize(snapshot.Payload, aggregateRootType) as IAggregateRoot;
         }
     }

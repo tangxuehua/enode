@@ -75,7 +75,7 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
-            _configuration.SetDefault<ITypeCodeProvider, DefaultTypeCodeProvider>();
+            _configuration.SetDefault<ITypeNameProvider, DefaultTypeNameProvider>();
             _configuration.SetDefault<IMessageHandlerProvider, DefaultMessageHandlerProvider>();
             _configuration.SetDefault<ITwoMessageHandlerProvider, DefaultTwoMessageHandlerProvider>();
             _configuration.SetDefault<IThreeMessageHandlerProvider, DefaultThreeMessageHandlerProvider>();
@@ -123,7 +123,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DefaultMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
             _configuration.SetDefault<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
 
-            _assemblyInitializerServiceTypes.Add(typeof(ITypeCodeProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(ITypeNameProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(ITwoMessageHandlerProvider));
