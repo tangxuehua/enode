@@ -122,7 +122,7 @@ namespace ENode.Eventing.Impl
                             copy.BulkCopyTimeout = _bulkCopyTimeout;
                             copy.DestinationTableName = _tableName;
                             copy.ColumnMappings.Add("AggregateRootId", "AggregateRootId");
-                            copy.ColumnMappings.Add("AggregateRootTypeCode", "AggregateRootTypeCode");
+                            copy.ColumnMappings.Add("AggregateRootTypeName", "AggregateRootTypeName");
                             copy.ColumnMappings.Add("CommandId", "CommandId");
                             copy.ColumnMappings.Add("Version", "Version");
                             copy.ColumnMappings.Add("CreatedOn", "CreatedOn");
@@ -306,7 +306,7 @@ namespace ENode.Eventing.Impl
         {
             var table = new DataTable();
             table.Columns.Add("AggregateRootId", typeof(string));
-            table.Columns.Add("AggregateRootTypeCode", typeof(int));
+            table.Columns.Add("AggregateRootTypeName", typeof(string));
             table.Columns.Add("Version", typeof(int));
             table.Columns.Add("CommandId", typeof(string));
             table.Columns.Add("CreatedOn", typeof(DateTime));
