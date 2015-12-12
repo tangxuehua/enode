@@ -15,8 +15,6 @@ using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
 using ENode.Infrastructure.Impl.InMemory;
 using ENode.Infrastructure.Impl.SQL;
-using ENode.Snapshoting;
-using ENode.Snapshoting.Impl;
 
 namespace ENode.Configurations
 {
@@ -81,14 +79,12 @@ namespace ENode.Configurations
             _configuration.SetDefault<IThreeMessageHandlerProvider, DefaultThreeMessageHandlerProvider>();
 
             _configuration.SetDefault<IAggregateRootInternalHandlerProvider, DefaultAggregateRootInternalHandlerProvider>();
+            _configuration.SetDefault<IAggregateRepositoryProvider, DefaultAggregateRepositoryProvider>();
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
+            _configuration.SetDefault<IAggregateSnapshotter, DefaultAggregateSnapshotter>();
             _configuration.SetDefault<IAggregateStorage, EventSourcingAggregateStorage>();
             _configuration.SetDefault<IRepository, DefaultRepository>();
-
-            _configuration.SetDefault<ISnapshotter, DefaultSnapshotter>();
-            _configuration.SetDefault<ISnapshotPolicy, NoSnapshotPolicy>();
-            _configuration.SetDefault<ISnapshotStore, EmptySnapshotStore>();
 
             _configuration.SetDefault<ICommandAsyncHandlerProvider, DefaultCommandAsyncHandlerProvider>();
             _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
@@ -125,6 +121,7 @@ namespace ENode.Configurations
 
             _assemblyInitializerServiceTypes.Add(typeof(ITypeNameProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
+            _assemblyInitializerServiceTypes.Add(typeof(IAggregateRepositoryProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IMessageHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(ITwoMessageHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IThreeMessageHandlerProvider));
@@ -156,6 +153,14 @@ namespace ENode.Configurations
             return this;
         }
 
+        /// <summary>Use the SnapshotOnlyAggregateStorage as the IAggregateStorage.
+        /// </summary>
+        /// <returns></returns>
+        public ENodeConfiguration UseSnapshotOnlyAggregateStorage()
+        {
+            _configuration.SetDefault<IAggregateStorage, SnapshotOnlyAggregateStorage>();
+            return this;
+        }
         /// <summary>Use the SqlServerLockService as the ILockService.
         /// </summary>
         /// <returns></returns>

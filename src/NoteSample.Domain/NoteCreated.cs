@@ -1,6 +1,4 @@
-﻿using System;
-using ENode.Eventing;
-using ENode.Infrastructure;
+﻿using ENode.Eventing;
 
 namespace NoteSample.Domain
 {
@@ -8,8 +6,8 @@ namespace NoteSample.Domain
     {
         public string Title { get; private set; }
 
-        private NoteCreated() { }
-        public NoteCreated(Note note, string title) : base(note)
+        public NoteCreated() { }
+        public NoteCreated(string title)
         {
             Title = title;
         }

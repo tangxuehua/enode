@@ -22,7 +22,7 @@ namespace ENode.Configurations
         /// <summary>当使用默认的MemoryCache时，该属性用于配置扫描过期的聚合根的时间间隔，默认为5秒；
         /// </summary>
         public int ScanExpiredAggregateIntervalMilliseconds { get; set; }
-        /// <summary>当使用默认的MemoryCache时，该属性用于配置聚合根的最长允许的不活跃时间，超过这个时间就认为是过期，就可以从内存清除了；然后下次如果再需要用的时候再重新加载进来；默认为1800秒，即30分钟；
+        /// <summary>当使用默认的MemoryCache时，该属性用于配置聚合根的最长允许的不活跃时间，超过这个时间就认为是过期，就可以从内存清除了；然后下次如果再需要用的时候再重新加载进来；默认为3天；
         /// </summary>
         public int AggregateRootMaxInactiveSeconds { get; set; }
 
@@ -33,7 +33,7 @@ namespace ENode.Configurations
             GroupCommitMaxSize = 1000;
             DomainEventStreamMessageHandlerName = "DefaultEventHandler";
             ScanExpiredAggregateIntervalMilliseconds = 5000;
-            AggregateRootMaxInactiveSeconds = 1800;
+            AggregateRootMaxInactiveSeconds = 3600 * 24 * 3;
         }
     }
 }

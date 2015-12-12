@@ -2,11 +2,9 @@
 using System.Configuration;
 using System.Reflection;
 using System.Threading;
-using ECommon.Autofac;
 using ECommon.Components;
+using ECommon.Configurations;
 using ECommon.IO;
-using ECommon.JsonNet;
-using ECommon.Log4Net;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;

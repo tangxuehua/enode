@@ -41,7 +41,7 @@ namespace ENode.Infrastructure.Impl
             var message = processingMessage.Message;
 
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<int>>("GetPublishedVersionAsync",
-            () => _publishedVersionStore.GetPublishedVersionAsync(Name, message.AggregateRootTypeName, message.AggregateRootId),
+            () => _publishedVersionStore.GetPublishedVersionAsync(Name, message.AggregateRootTypeName, message.AggregateRootStringId),
             currentRetryTimes => HandleMessageAsync(processingMessage, currentRetryTimes),
             result =>
             {
@@ -54,7 +54,7 @@ namespace ENode.Infrastructure.Impl
                 {
                     if (_logger.IsDebugEnabled)
                     {
-                        _logger.DebugFormat("The sequence message cannot be process now as the version is not the next version, it will be handle later. contextInfo [aggregateRootId={0},lastPublishedVersion={1},messageVersion={2}]", message.AggregateRootId, publishedVersion, message.Version);
+                        _logger.DebugFormat("The sequence message cannot be process now as the version is not the next version, it will be handle later. contextInfo [aggregateRootId={0},lastPublishedVersion={1},messageVersion={2}]", message.AggregateRootStringId, publishedVersion, message.Version);
                     }
                     processingMessage.AddToWaitingList();
                 }
@@ -63,7 +63,7 @@ namespace ENode.Infrastructure.Impl
                     processingMessage.Complete(default(Z));
                 }
             },
-            () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", message.Id, message.GetType().Name, message.AggregateRootId, message.Version),
+            () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", message.Id, message.GetType().Name, message.AggregateRootStringId, message.Version),
             null,
             retryTimes,
             true);
@@ -77,7 +77,7 @@ namespace ENode.Infrastructure.Impl
             {
                 UpdatePublishedVersionAsync(processingMessage, 0);
             },
-            () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootId, processingMessage.Message.Version),
+            () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootStringId, processingMessage.Message.Version),
             null,
             retryTimes,
             true);
@@ -85,13 +85,13 @@ namespace ENode.Infrastructure.Impl
         private void UpdatePublishedVersionAsync(X processingMessage, int retryTimes)
         {
             _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("UpdatePublishedVersionAsync",
-            () => _publishedVersionStore.UpdatePublishedVersionAsync(Name, processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, processingMessage.Message.Version),
+            () => _publishedVersionStore.UpdatePublishedVersionAsync(Name, processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootStringId, processingMessage.Message.Version),
             currentRetryTimes => UpdatePublishedVersionAsync(processingMessage, currentRetryTimes),
             result =>
             {
                 processingMessage.Complete(default(Z));
             },
-            () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootId, processingMessage.Message.Version),
+            () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootStringId, processingMessage.Message.Version),
             null,
             retryTimes,
             true);

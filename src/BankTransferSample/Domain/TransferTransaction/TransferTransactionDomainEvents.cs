@@ -1,7 +1,4 @@
-﻿using System;
-using BankTransferSample.Domain;
-using ENode.Eventing;
-using ENode.Infrastructure;
+﻿using ENode.Eventing;
 
 namespace BankTransferSample.Domain
 {
@@ -12,8 +9,7 @@ namespace BankTransferSample.Domain
         public TransferTransactionInfo TransactionInfo { get; private set; }
 
         public AbstractTransferTransactionEvent() { }
-        public AbstractTransferTransactionEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction)
+        public AbstractTransferTransactionEvent(TransferTransactionInfo transactionInfo)
         {
             TransactionInfo = transactionInfo;
         }
@@ -23,16 +19,16 @@ namespace BankTransferSample.Domain
     public class TransferTransactionStartedEvent : AbstractTransferTransactionEvent
     {
         public TransferTransactionStartedEvent() { }
-        public TransferTransactionStartedEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction, transactionInfo) { }
+        public TransferTransactionStartedEvent(TransferTransactionInfo transactionInfo)
+            : base(transactionInfo) { }
     }
     /// <summary>源账户验证通过事件已确认
     /// </summary>
     public class SourceAccountValidatePassedConfirmedEvent : AbstractTransferTransactionEvent
     {
         public SourceAccountValidatePassedConfirmedEvent() { }
-        public SourceAccountValidatePassedConfirmedEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction, transactionInfo)
+        public SourceAccountValidatePassedConfirmedEvent(TransferTransactionInfo transactionInfo)
+            : base(transactionInfo)
         {
         }
     }
@@ -41,8 +37,8 @@ namespace BankTransferSample.Domain
     public class TargetAccountValidatePassedConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TargetAccountValidatePassedConfirmedEvent() { }
-        public TargetAccountValidatePassedConfirmedEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction, transactionInfo)
+        public TargetAccountValidatePassedConfirmedEvent(TransferTransactionInfo transactionInfo)
+            : base(transactionInfo)
         {
         }
     }
@@ -51,8 +47,8 @@ namespace BankTransferSample.Domain
     public class AccountValidatePassedConfirmCompletedEvent : AbstractTransferTransactionEvent
     {
         public AccountValidatePassedConfirmCompletedEvent() { }
-        public AccountValidatePassedConfirmCompletedEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction, transactionInfo)
+        public AccountValidatePassedConfirmCompletedEvent(TransferTransactionInfo transactionInfo)
+            : base(transactionInfo)
         {
         }
     }
@@ -61,8 +57,8 @@ namespace BankTransferSample.Domain
     public class TransferOutPreparationConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TransferOutPreparationConfirmedEvent() { }
-        public TransferOutPreparationConfirmedEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction, transactionInfo)
+        public TransferOutPreparationConfirmedEvent(TransferTransactionInfo transactionInfo)
+            : base(transactionInfo)
         {
         }
     }
@@ -71,8 +67,8 @@ namespace BankTransferSample.Domain
     public class TransferInPreparationConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TransferInPreparationConfirmedEvent() { }
-        public TransferInPreparationConfirmedEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction, transactionInfo)
+        public TransferInPreparationConfirmedEvent(TransferTransactionInfo transactionInfo)
+            : base(transactionInfo)
         {
         }
     }
@@ -81,31 +77,21 @@ namespace BankTransferSample.Domain
     public class TransferOutConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TransferOutConfirmedEvent() { }
-        public TransferOutConfirmedEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction, transactionInfo) { }
+        public TransferOutConfirmedEvent(TransferTransactionInfo transactionInfo)
+            : base(transactionInfo) { }
     }
     /// <summary>转账交易转入已确认
     /// </summary>
     public class TransferInConfirmedEvent : AbstractTransferTransactionEvent
     {
         public TransferInConfirmedEvent() { }
-        public TransferInConfirmedEvent(TransferTransaction transaction, TransferTransactionInfo transactionInfo)
-            : base(transaction, transactionInfo) { }
+        public TransferInConfirmedEvent(TransferTransactionInfo transactionInfo)
+            : base(transactionInfo) { }
     }
     /// <summary>转账交易已完成
     /// </summary>
-    public class TransferTransactionCompletedEvent : DomainEvent<string>
-    {
-        public TransferTransactionCompletedEvent() { }
-        public TransferTransactionCompletedEvent(TransferTransaction transaction)
-            : base(transaction) { }
-    }
+    public class TransferTransactionCompletedEvent : DomainEvent<string> { }
     /// <summary>转账交易已取消（结束），交易已失败
     /// </summary>
-    public class TransferTransactionCanceledEvent : DomainEvent<string>
-    {
-        public TransferTransactionCanceledEvent() { }
-        public TransferTransactionCanceledEvent(TransferTransaction transaction)
-            : base(transaction) { }
-    }
+    public class TransferTransactionCanceledEvent : DomainEvent<string> { }
 }

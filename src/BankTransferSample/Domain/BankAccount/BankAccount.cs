@@ -24,7 +24,7 @@ namespace BankTransferSample.Domain
         /// </summary>
         public BankAccount(string accountId, string owner) : base(accountId)
         {
-            ApplyEvent(new AccountCreatedEvent(this, owner));
+            ApplyEvent(new AccountCreatedEvent(owner));
         }
 
         #endregion
@@ -41,7 +41,7 @@ namespace BankTransferSample.Domain
                 throw new InsufficientBalanceException(Id, transactionId, transactionType, amount, _balance, availableBalance);
             }
 
-            ApplyEvent(new TransactionPreparationAddedEvent(this, new TransactionPreparation(Id, transactionId, transactionType, preparationType, amount)));
+            ApplyEvent(new TransactionPreparationAddedEvent(new TransactionPreparation(Id, transactionId, transactionType, preparationType, amount)));
         }
         /// <summary>提交一笔预操作
         /// </summary>
@@ -57,13 +57,13 @@ namespace BankTransferSample.Domain
             {
                 currentBalance += transactionPreparation.Amount;
             }
-            ApplyEvent(new TransactionPreparationCommittedEvent(this, currentBalance, transactionPreparation));
+            ApplyEvent(new TransactionPreparationCommittedEvent(currentBalance, transactionPreparation));
         }
         /// <summary>取消一笔预操作
         /// </summary>
         public void CancelTransactionPreparation(string transactionId)
         {
-            ApplyEvent(new TransactionPreparationCanceledEvent(this, GetTransactionPreparation(transactionId)));
+            ApplyEvent(new TransactionPreparationCanceledEvent(GetTransactionPreparation(transactionId)));
         }
 
         #endregion
@@ -109,7 +109,6 @@ namespace BankTransferSample.Domain
 
         private void Handle(AccountCreatedEvent evnt)
         {
-            _id = evnt.AggregateRootId;
             _owner = evnt.Owner;
             _transactionPreparations = new Dictionary<string, TransactionPreparation>();
         }

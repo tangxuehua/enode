@@ -117,7 +117,7 @@ namespace ENode.Infrastructure.Impl
                 }
             }
         }
-        private void DispatchMultiMessage<T>(IEnumerable<IMessage> messages, IEnumerable<MessageHandlerData<T>> messageHandlerDataList, RootDisptaching rootDispatching, Action<MultiMessageDisptaching, T, QueuedHandler<T>, int> dispatchAction) where T : class, IHandlerProxy
+        private void DispatchMultiMessage<T>(IEnumerable<IMessage> messages, IEnumerable<MessageHandlerData<T>> messageHandlerDataList, RootDisptaching rootDispatching, Action<MultiMessageDisptaching, T, QueuedHandler<T>, int> dispatchAction) where T : class, IObjectProxy
         {
             foreach (var messageHandlerData in messageHandlerDataList)
             {
@@ -143,7 +143,7 @@ namespace ENode.Infrastructure.Impl
         {
             var message = singleMessageDispatching.Message;
             var messageTypeName = _typeNameProvider.GetTypeName(message.GetType());
-            var handlerType = handlerProxy.GetInnerHandler().GetType();
+            var handlerType = handlerProxy.GetInnerObject().GetType();
             var handlerTypeName = _typeNameProvider.GetTypeName(handlerType);
             var aggregateRootTypeName = message is ISequenceMessage ? ((ISequenceMessage)message).AggregateRootTypeName : null;
 
@@ -175,7 +175,7 @@ namespace ENode.Infrastructure.Impl
             var messages = multiMessageDispatching.Messages;
             var message1 = messages[0];
             var message2 = messages[1];
-            var handlerType = handlerProxy.GetInnerHandler().GetType();
+            var handlerType = handlerProxy.GetInnerObject().GetType();
             var handlerTypeName = _typeNameProvider.GetTypeName(handlerType);
             var aggregateRootTypeName = message1 is ISequenceMessage ? ((ISequenceMessage)message1).AggregateRootTypeName : null;
 
@@ -197,7 +197,7 @@ namespace ENode.Infrastructure.Impl
                     HandleTwoMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, 0);
                 }
             },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerHandler().GetType().Name),
+            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
             retryTimes,
             true);
@@ -208,7 +208,7 @@ namespace ENode.Infrastructure.Impl
             var message1 = messages[0];
             var message2 = messages[1];
             var message3 = messages[2];
-            var handlerType = handlerProxy.GetInnerHandler().GetType();
+            var handlerType = handlerProxy.GetInnerObject().GetType();
             var handlerTypeName = _typeNameProvider.GetTypeName(handlerType);
             var aggregateRootTypeName = message1 is ISequenceMessage ? ((ISequenceMessage)message1).AggregateRootTypeName : null;
 
@@ -230,7 +230,7 @@ namespace ENode.Infrastructure.Impl
                     HandleThreeMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, 0);
                 }
             },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerHandler().GetType().Name),
+            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
             retryTimes,
             true);
@@ -256,13 +256,13 @@ namespace ENode.Infrastructure.Impl
                 if (sequenceMessage != null)
                 {
                     messageHandleRecord.AggregateRootTypeName = sequenceMessage.AggregateRootTypeName;
-                    messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootId;
+                    messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootStringId;
                     messageHandleRecord.Version = sequenceMessage.Version;
                 }
 
-                AddMessageHandledRecordAsync(singleMessageDispatching, messageHandleRecord, handlerProxy.GetInnerHandler().GetType(), handlerTypeName, handlerProxy, queueHandler, 0);
+                AddMessageHandledRecordAsync(singleMessageDispatching, messageHandleRecord, handlerProxy.GetInnerObject().GetType(), handlerTypeName, handlerProxy, queueHandler, 0);
             },
-            () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerProxy.GetInnerHandler().GetType().Name),
+            () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerProxy.GetInnerObject().GetType().Name),
             null,
             retryTimes,
             true);
@@ -293,13 +293,13 @@ namespace ENode.Infrastructure.Impl
                 if (sequenceMessage != null)
                 {
                     messageHandleRecord.AggregateRootTypeName = sequenceMessage.AggregateRootTypeName;
-                    messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootId;
+                    messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootStringId;
                     messageHandleRecord.Version = sequenceMessage.Version;
                 }
 
                 AddTwoMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, 0);
             },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerHandler().GetType().Name),
+            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
             retryTimes,
             true);
@@ -334,13 +334,13 @@ namespace ENode.Infrastructure.Impl
                 if (sequenceMessage != null)
                 {
                     messageHandleRecord.AggregateRootTypeName = sequenceMessage.AggregateRootTypeName;
-                    messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootId;
+                    messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootStringId;
                     messageHandleRecord.Version = sequenceMessage.Version;
                 }
 
                 AddThreeMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, 0);
             },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerHandler().GetType().Name),
+            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
             retryTimes,
             true);
@@ -386,10 +386,10 @@ namespace ENode.Infrastructure.Impl
                 }
                 if (_logger.IsDebugEnabled)
                 {
-                    _logger.DebugFormat("TwoMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerHandler().GetType().Name);
+                    _logger.DebugFormat("TwoMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name);
                 }
             },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerHandler().GetType().Name),
+            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
             retryTimes,
             true);
@@ -410,10 +410,10 @@ namespace ENode.Infrastructure.Impl
                 }
                 if (_logger.IsDebugEnabled)
                 {
-                    _logger.DebugFormat("ThreeMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerHandler().GetType().Name);
+                    _logger.DebugFormat("ThreeMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name);
                 }
             },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerHandler().GetType().Name),
+            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
             retryTimes,
             true);
@@ -493,7 +493,7 @@ namespace ENode.Infrastructure.Impl
         class MultiMessageDisptaching
         {
             private IMessage[] _messages;
-            private ConcurrentDictionary<string, IHandlerProxy> _handlerDict;
+            private ConcurrentDictionary<string, IObjectProxy> _handlerDict;
             private RootDisptaching _rootDispatching;
 
             public IMessage[] Messages
@@ -501,18 +501,18 @@ namespace ENode.Infrastructure.Impl
                 get { return _messages; }
             }
 
-            public MultiMessageDisptaching(IEnumerable<IMessage> messages, IEnumerable<IHandlerProxy> handlers, RootDisptaching rootDispatching, ITypeNameProvider typeNameProvider)
+            public MultiMessageDisptaching(IEnumerable<IMessage> messages, IEnumerable<IObjectProxy> handlers, RootDisptaching rootDispatching, ITypeNameProvider typeNameProvider)
             {
                 _messages = messages.ToArray();
-                _handlerDict = new ConcurrentDictionary<string, IHandlerProxy>();
-                handlers.ForEach(x => _handlerDict.TryAdd(typeNameProvider.GetTypeName(x.GetInnerHandler().GetType()), x));
+                _handlerDict = new ConcurrentDictionary<string, IObjectProxy>();
+                handlers.ForEach(x => _handlerDict.TryAdd(typeNameProvider.GetTypeName(x.GetInnerObject().GetType()), x));
                 _rootDispatching = rootDispatching;
                 _rootDispatching.AddChildDispatching(this);
             }
 
             public void RemoveHandledHandler(string handlerTypeName)
             {
-                IHandlerProxy handler;
+                IObjectProxy handler;
                 if (_handlerDict.TryRemove(handlerTypeName, out handler))
                 {
                     if (_handlerDict.IsEmpty)
@@ -524,22 +524,22 @@ namespace ENode.Infrastructure.Impl
         }
         class SingleMessageDisptaching
         {
-            private ConcurrentDictionary<string, IHandlerProxy> _handlerDict;
+            private ConcurrentDictionary<string, IObjectProxy> _handlerDict;
             private QueueMessageDisptaching _queueMessageDispatching;
 
             public IMessage Message { get; private set; }
 
-            public SingleMessageDisptaching(IMessage message, QueueMessageDisptaching queueMessageDispatching, IEnumerable<IHandlerProxy> handlers, ITypeNameProvider typeNameProvider)
+            public SingleMessageDisptaching(IMessage message, QueueMessageDisptaching queueMessageDispatching, IEnumerable<IObjectProxy> handlers, ITypeNameProvider typeNameProvider)
             {
                 Message = message;
                 _queueMessageDispatching = queueMessageDispatching;
-                _handlerDict = new ConcurrentDictionary<string, IHandlerProxy>();
-                handlers.ForEach(x => _handlerDict.TryAdd(typeNameProvider.GetTypeName(x.GetInnerHandler().GetType()), x));
+                _handlerDict = new ConcurrentDictionary<string, IObjectProxy>();
+                handlers.ForEach(x => _handlerDict.TryAdd(typeNameProvider.GetTypeName(x.GetInnerObject().GetType()), x));
             }
 
             public void RemoveHandledHandler(string handlerTypeName)
             {
-                IHandlerProxy handler;
+                IObjectProxy handler;
                 if (_handlerDict.TryRemove(handlerTypeName, out handler))
                 {
                     if (_handlerDict.IsEmpty)
@@ -549,7 +549,7 @@ namespace ENode.Infrastructure.Impl
                 }
             }
         }
-        class QueuedHandler<T> where T : class, IHandlerProxy
+        class QueuedHandler<T> where T : class, IObjectProxy
         {
             private Action<QueuedHandler<T>, T> _dispatchToNextHandler;
             private ConcurrentQueue<T> _handlerQueue;

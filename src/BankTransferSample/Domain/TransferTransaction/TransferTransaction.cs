@@ -1,6 +1,4 @@
-﻿using System;
-using ENode.Domain;
-using ENode.Infrastructure;
+﻿using ENode.Domain;
 
 namespace BankTransferSample.Domain
 {
@@ -28,7 +26,7 @@ namespace BankTransferSample.Domain
         public TransferTransaction(string transactionId, TransferTransactionInfo transactionInfo)
             : base(transactionId)
         {
-            ApplyEvent(new TransferTransactionStartedEvent(this, transactionInfo));
+            ApplyEvent(new TransferTransactionStartedEvent(transactionInfo));
         }
 
         #endregion
@@ -45,10 +43,10 @@ namespace BankTransferSample.Domain
                 {
                     if (!_isSourceAccountValidatePassed)
                     {
-                        ApplyEvent(new SourceAccountValidatePassedConfirmedEvent(this, _transactionInfo));
+                        ApplyEvent(new SourceAccountValidatePassedConfirmedEvent(_transactionInfo));
                         if (_isTargetAccountValidatePassed)
                         {
-                            ApplyEvent(new AccountValidatePassedConfirmCompletedEvent(this, _transactionInfo));
+                            ApplyEvent(new AccountValidatePassedConfirmCompletedEvent(_transactionInfo));
                         }
                     }
                 }
@@ -56,10 +54,10 @@ namespace BankTransferSample.Domain
                 {
                     if (!_isTargetAccountValidatePassed)
                     {
-                        ApplyEvent(new TargetAccountValidatePassedConfirmedEvent(this, _transactionInfo));
+                        ApplyEvent(new TargetAccountValidatePassedConfirmedEvent(_transactionInfo));
                         if (_isSourceAccountValidatePassed)
                         {
-                            ApplyEvent(new AccountValidatePassedConfirmCompletedEvent(this, _transactionInfo));
+                            ApplyEvent(new AccountValidatePassedConfirmCompletedEvent(_transactionInfo));
                         }
                     }
                 }
@@ -73,7 +71,7 @@ namespace BankTransferSample.Domain
             {
                 if (!_isTransferOutPreparationConfirmed)
                 {
-                    ApplyEvent(new TransferOutPreparationConfirmedEvent(this, _transactionInfo));
+                    ApplyEvent(new TransferOutPreparationConfirmedEvent(_transactionInfo));
                 }
             }
         }
@@ -85,7 +83,7 @@ namespace BankTransferSample.Domain
             {
                 if (!_isTransferInPreparationConfirmed)
                 {
-                    ApplyEvent(new TransferInPreparationConfirmedEvent(this, _transactionInfo));
+                    ApplyEvent(new TransferInPreparationConfirmedEvent(_transactionInfo));
                 }
             }
         }
@@ -97,10 +95,10 @@ namespace BankTransferSample.Domain
             {
                 if (!_isTransferOutConfirmed)
                 {
-                    ApplyEvent(new TransferOutConfirmedEvent(this, _transactionInfo));
+                    ApplyEvent(new TransferOutConfirmedEvent(_transactionInfo));
                     if (_isTransferInConfirmed)
                     {
-                        ApplyEvent(new TransferTransactionCompletedEvent(this));
+                        ApplyEvent(new TransferTransactionCompletedEvent());
                     }
                 }
             }
@@ -113,10 +111,10 @@ namespace BankTransferSample.Domain
             {
                 if (!_isTransferInConfirmed)
                 {
-                    ApplyEvent(new TransferInConfirmedEvent(this, _transactionInfo));
+                    ApplyEvent(new TransferInConfirmedEvent(_transactionInfo));
                     if (_isTransferOutConfirmed)
                     {
-                        ApplyEvent(new TransferTransactionCompletedEvent(this));
+                        ApplyEvent(new TransferTransactionCompletedEvent());
                     }
                 }
             }
@@ -125,7 +123,7 @@ namespace BankTransferSample.Domain
         /// </summary>
         public void Cancel()
         {
-            ApplyEvent(new TransferTransactionCanceledEvent(this));
+            ApplyEvent(new TransferTransactionCanceledEvent());
         }
 
         #endregion
@@ -134,7 +132,6 @@ namespace BankTransferSample.Domain
 
         private void Handle(TransferTransactionStartedEvent evnt)
         {
-            _id = evnt.AggregateRootId;
             _transactionInfo = evnt.TransactionInfo;
             _status = TransactionStatus.Started;
         }

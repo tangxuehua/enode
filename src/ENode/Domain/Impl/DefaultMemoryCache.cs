@@ -90,6 +90,12 @@ namespace ENode.Domain.Impl
                 _logger.Error(string.Format("Exception raised when refreshing aggregate from event store, aggregateRootTypeName:{0}, aggregateRootId:{1}", aggregateRootTypeName, aggregateRootId), ex);
             }
         }
+        public bool Remove(object aggregateRootId)
+        {
+            if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
+            AggregateRootInfo aggregateRootInfo;
+            return _aggregateRootInfoDict.TryRemove(aggregateRootId.ToString(), out aggregateRootInfo);
+        }
 
         private void SetInternal(IAggregateRoot aggregateRoot)
         {

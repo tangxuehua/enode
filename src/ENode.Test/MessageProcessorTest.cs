@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using ECommon.Components;
 using ECommon.Utilities;
@@ -7,16 +6,13 @@ using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using NoteSample.Domain;
-using NUnit.Framework;
 
 namespace ENode.Test
 {
-    [TestFixture]
-    public class MessageProcessorTest : TestBase
+    public class MessageProcessorTest
     {
         private static ManualResetEvent _waitHandle = new ManualResetEvent(false);
 
-        [Test]
         public void test_sequence_domain_event_process()
         {
             var processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
@@ -60,7 +56,7 @@ namespace ENode.Test
             }
             public void NotifyMessageProcessed()
             {
-                _logger.InfoFormat("Domain event processed, aggregateId:{0}, version:{1}", _domainEventStreamMessage.AggregateRootId, _domainEventStreamMessage.Version);
+                Program.Logger.InfoFormat("Domain event processed, aggregateId:{0}, version:{1}", _domainEventStreamMessage.AggregateRootId, _domainEventStreamMessage.Version);
                 if (_domainEventStreamMessage.Version == 3)
                 {
                     _waitHandle.Set();

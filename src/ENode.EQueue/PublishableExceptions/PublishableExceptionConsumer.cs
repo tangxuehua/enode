@@ -58,7 +58,7 @@ namespace ENode.EQueue
             if (sequenceMessage != null)
             {
                 sequenceMessage.AggregateRootTypeName = exceptionMessage.AggregateRootTypeName;
-                sequenceMessage.AggregateRootId = exceptionMessage.AggregateRootId;
+                sequenceMessage.AggregateRootStringId = exceptionMessage.AggregateRootId;
             }
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingPublishableExceptionMessage(exception, processContext);

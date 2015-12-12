@@ -15,7 +15,7 @@ namespace ENode.Commanding.Impl
         {
             _commandHandler.Handle(context, command as TCommand);
         }
-        public object GetInnerHandler()
+        public object GetInnerObject()
         {
             return _commandHandler;
         }

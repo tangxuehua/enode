@@ -137,7 +137,7 @@ namespace ENode.Commanding.Impl
                 if (_logger.IsDebugEnabled)
                 {
                     _logger.DebugFormat("Handle command success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
-                        commandHandler.GetInnerHandler().GetType().Name,
+                        commandHandler.GetInnerObject().GetType().Name,
                         command.GetType().Name,
                         command.Id,
                         command.AggregateRootId);
@@ -296,7 +296,7 @@ namespace ENode.Commanding.Impl
         {
             var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}",
                 exception.GetType().Name,
-                commandHandler.GetInnerHandler().GetType().Name,
+                commandHandler.GetInnerObject().GetType().Name,
                 processingCommand.Message.GetType().Name,
                 processingCommand.Message.Id,
                 processingCommand.Message.AggregateRootId);
@@ -363,7 +363,7 @@ namespace ENode.Commanding.Impl
                 if (_logger.IsDebugEnabled)
                 {
                     _logger.DebugFormat("Handle command async success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
-                        commandHandler.GetInnerHandler().GetType().Name,
+                        commandHandler.GetInnerObject().GetType().Name,
                         command.GetType().Name,
                         command.Id,
                         command.AggregateRootId);
@@ -377,7 +377,7 @@ namespace ENode.Commanding.Impl
                     CommitChangesAsync(processingCommand, result.Data, 0);
                 }
             },
-            () => string.Format("[command:[id:{0},type:{1}],handlerType:{2}]", command.Id, command.GetType().Name, commandHandler.GetInnerHandler().GetType().Name),
+            () => string.Format("[command:[id:{0},type:{1}],handlerType:{2}]", command.Id, command.GetType().Name, commandHandler.GetInnerObject().GetType().Name),
             errorMessage => HandleFaildCommandAsync(processingCommand, commandHandler, 0),
             retryTimes);
         }

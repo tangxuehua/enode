@@ -2,18 +2,13 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
-using ECommon.Autofac;
 using ECommon.Components;
+using ECommon.Configurations;
 using ECommon.IO;
-using ECommon.JsonNet;
-using ECommon.Log4Net;
 using ECommon.Utilities;
 using ENode.Configurations;
-using ENode.Domain;
 using ENode.Eventing;
-using NoteSample.Domain;
 using ECommonConfiguration = ECommon.Configurations.Configuration;
 
 namespace ENode.EventStorePerfTests
@@ -22,23 +17,36 @@ namespace ENode.EventStorePerfTests
     {
         static ENodeConfiguration _configuration;
 
+        class TestEvent : DomainEvent<string>
+        {
+            public TestEvent() { }
+            public TestEvent(string id, int version) : base(id, version) { }
+        }
+
         static void Main(string[] args)
         {
             InitializeENodeFramework();
 
-            var note = new Note(ObjectId.GenerateNewStringId(), "Sample Note Title");
-            var evnts = (note as IAggregateRoot).GetChanges();
+            var aggreagateRootId = ObjectId.GenerateNewStringId();
             var count = int.Parse(ConfigurationManager.AppSettings["count"]);
             var mode = ConfigurationManager.AppSettings["mode"];
             var eventStore = ObjectContainer.Resolve<IEventStore>();
             var watch = Stopwatch.StartNew();
 
+            var crateEventStream = new Func<int, DomainEventStream>(version =>
+            {
+                var evnt = new TestEvent(aggreagateRootId, version);
+                var eventStream = new DomainEventStream(ObjectId.GenerateNewStringId(), aggreagateRootId, "SampleAggregateRootTypeName", version, DateTime.Now, new IDomainEvent[] { evnt });
+                return eventStream;
+            });
+
             if (mode == "async")
             {
                 var current = 0;
+
                 for (var i = 1; i <= count; i++)
                 {
-                    eventStore.AppendAsync(new DomainEventStream(ObjectId.GenerateNewStringId(), note.Id, note.GetType().FullName, i, DateTime.Now, evnts)).ContinueWith(t =>
+                    eventStore.AppendAsync(crateEventStream(i)).ContinueWith(t =>
                     {
                         if (t.Result.Data == EventAppendResult.DuplicateEvent)
                         {
@@ -80,7 +88,7 @@ namespace ENode.EventStorePerfTests
                     }
                     else
                     {
-                        batch.Add(new DomainEventStream(ObjectId.GenerateNewStringId(), note.Id, note.GetType().FullName, i, DateTime.Now, evnts));
+                        batch.Add(crateEventStream(i));
                     }
                 }
                 if (batch.Count > 0)
@@ -106,10 +114,6 @@ namespace ENode.EventStorePerfTests
                 SqlDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
                 EnableGroupCommitEvent = true
             };
-            var assemblies = new[]
-            {
-                Assembly.Load("NoteSample.Domain")
-            };
             _configuration = ECommonConfiguration
                 .Create()
                 .UseAutofac()
@@ -119,9 +123,7 @@ namespace ENode.EventStorePerfTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode(setting)
                 .RegisterENodeComponents()
-                .UseSqlServerEventStore()
-                .RegisterBusinessComponents(assemblies)
-                .InitializeBusinessAssemblies(assemblies);
+                .UseSqlServerEventStore();
 
             Console.WriteLine("ENode started...");
         }

@@ -16,7 +16,7 @@ namespace ENode.Infrastructure.Impl
         {
             return _handler.HandleAsync(message as T);
         }
-        public object GetInnerHandler()
+        public object GetInnerObject()
         {
             return _handler;
         }
@@ -43,7 +43,7 @@ namespace ENode.Infrastructure.Impl
                 return _handler.HandleAsync(message2 as T1, message1 as T2);
             }
         }
-        public object GetInnerHandler()
+        public object GetInnerObject()
         {
             return _handler;
         }
@@ -107,7 +107,7 @@ namespace ENode.Infrastructure.Impl
 
             return _handler.HandleAsync(t1, t2, t3);
         }
-        public object GetInnerHandler()
+        public object GetInnerObject()
         {
             return _handler;
         }

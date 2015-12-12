@@ -1,5 +1,4 @@
-﻿using System;
-using ENode.Infrastructure;
+﻿using ENode.Infrastructure;
 
 namespace BankTransferSample.ApplicationMessages
 {

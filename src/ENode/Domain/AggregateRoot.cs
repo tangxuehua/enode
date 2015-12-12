@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ECommon.Components;
+using ECommon.Utilities;
 using ENode.Eventing;
 
 namespace ENode.Domain
@@ -25,16 +26,21 @@ namespace ENode.Domain
             protected set { _id = value; }
         }
 
+        /// <summary>Default constructor.
+        /// </summary>
+        protected AggregateRoot()
+        {
+            _uncommittedEvents = new Queue<IDomainEvent>();
+        }
         /// <summary>Parameterized constructor.
         /// </summary>
-        protected AggregateRoot(TAggregateRootId id)
+        protected AggregateRoot(TAggregateRootId id) : this()
         {
             if (id == null)
             {
                 throw new ArgumentNullException("id");
             }
             _id = id;
-            _uncommittedEvents = new Queue<IDomainEvent>();
         }
         /// <summary>Parameterized constructor.
         /// </summary>
@@ -79,15 +85,21 @@ namespace ENode.Domain
         /// </remarks>
         /// </summary>
         /// <param name="domainEvent"></param>
-        protected void ApplyEvent(IDomainEvent domainEvent)
+        protected void ApplyEvent(IDomainEvent<TAggregateRootId> domainEvent)
         {
+            if (Equals(this._id, default(TAggregateRootId)))
+            {
+                throw new Exception("Aggregate root id cannot be null.");
+            }
+            domainEvent.AggregateRootId = _id;
+            domainEvent.Version = _version + 1;
             HandleEvent(domainEvent);
             AppendUncommittedEvent(domainEvent);
         }
         /// <summary>Apply multiple domain events to the current aggregate root.
         /// </summary>
         /// <param name="domainEvent"></param>
-        protected void ApplyEvents(params IDomainEvent[] domainEvents)
+        protected void ApplyEvents(params IDomainEvent<TAggregateRootId>[] domainEvents)
         {
             foreach (var domainEvent in domainEvents)
             {
@@ -106,9 +118,13 @@ namespace ENode.Domain
             {
                 throw new Exception(string.Format("Could not find event handler for [{0}] of [{1}]", domainEvent.GetType().FullName, GetType().FullName));
             }
+            if (Equals(this._id, default(TAggregateRootId)) && domainEvent.Version == 1)
+            {
+                this._id = TypeUtils.ConvertType<TAggregateRootId>(domainEvent.AggregateRootStringId);
+            }
             handler(this, domainEvent);
         }
-        private void AppendUncommittedEvent(IDomainEvent domainEvent)
+        private void AppendUncommittedEvent(IDomainEvent<TAggregateRootId> domainEvent)
         {
             if (_uncommittedEvents == null)
             {

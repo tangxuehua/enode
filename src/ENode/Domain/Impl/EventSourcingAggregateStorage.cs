@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ENode.Eventing;
 using ENode.Infrastructure;
-using ENode.Snapshoting;
 
 namespace ENode.Domain.Impl
 {
@@ -13,26 +12,24 @@ namespace ENode.Domain.Impl
         private const int maxVersion = int.MaxValue;
         private readonly IAggregateRootFactory _aggregateRootFactory;
         private readonly IEventStore _eventStore;
-        private readonly ISnapshotStore _snapshotStore;
-        private readonly ISnapshotter _snapshotter;
+        private readonly IAggregateSnapshotter _aggregateSnapshotter;
         private readonly ITypeNameProvider _typeNameProvider;
 
         public EventSourcingAggregateStorage(
             IAggregateRootFactory aggregateRootFactory,
             IEventStore eventStore,
-            ISnapshotStore snapshotStore,
-            ISnapshotter snapshotter,
+            IAggregateSnapshotter aggregateSnapshotter,
             ITypeNameProvider typeNameProvider)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _eventStore = eventStore;
-            _snapshotStore = snapshotStore;
-            _snapshotter = snapshotter;
+            _aggregateSnapshotter = aggregateSnapshotter;
             _typeNameProvider = typeNameProvider;
         }
 
         public IAggregateRoot Get(Type aggregateRootType, string aggregateRootId)
         {
+            if (aggregateRootType == null) throw new ArgumentNullException("aggregateRootType");
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
 
             var aggregateRoot = default(IAggregateRoot);
@@ -53,22 +50,23 @@ namespace ENode.Domain.Impl
 
         private bool TryGetFromSnapshot(string aggregateRootId, Type aggregateRootType, out IAggregateRoot aggregateRoot)
         {
-            aggregateRoot = null;
+            aggregateRoot = _aggregateSnapshotter.RestoreFromSnapshot(aggregateRootType, aggregateRootId);
 
-            var snapshot = _snapshotStore.GetLastestSnapshot(aggregateRootId, aggregateRootType);
-            if (snapshot == null) return false;
-
-            aggregateRoot = _snapshotter.RestoreFromSnapshot(snapshot);
             if (aggregateRoot == null) return false;
 
-            if (aggregateRoot.UniqueId != aggregateRootId)
+            if (aggregateRoot.GetType() != aggregateRootType || aggregateRoot.UniqueId != aggregateRootId)
             {
-                throw new Exception(string.Format("Aggregate root restored from snapshot not valid as the aggregate root id not matched. Snapshot aggregate root id:{0}, expected aggregate root id:{1}", aggregateRoot.UniqueId, aggregateRootId));
+                throw new Exception(string.Format("AggregateRoot recovery from snapshot is invalid as the aggregateRootType or aggregateRootId is not matched. Snapshot: [aggregateRootType:{0},aggregateRootId:{1}], expected: [aggregateRootType:{2},aggregateRootId:{3}]",
+                    aggregateRoot.GetType(),
+                    aggregateRoot.UniqueId,
+                    aggregateRootType,
+                    aggregateRootId));
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var eventStreamsAfterSnapshot = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, snapshot.Version + 1, int.MaxValue);
+            var eventStreamsAfterSnapshot = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, aggregateRoot.Version + 1, int.MaxValue);
             aggregateRoot.ReplayEvents(eventStreamsAfterSnapshot);
+
             return true;
         }
         private IAggregateRoot RebuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> eventStreams)

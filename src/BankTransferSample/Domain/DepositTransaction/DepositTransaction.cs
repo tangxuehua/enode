@@ -23,7 +23,7 @@ namespace BankTransferSample.Domain
         public DepositTransaction(string transactionId, string accountId, double amount)
             : base(transactionId)
         {
-            ApplyEvent(new DepositTransactionStartedEvent(this, accountId, amount));
+            ApplyEvent(new DepositTransactionStartedEvent(accountId, amount));
         }
 
         #endregion
@@ -36,7 +36,7 @@ namespace BankTransferSample.Domain
         {
             if (_status == TransactionStatus.Started)
             {
-                ApplyEvent(new DepositTransactionPreparationCompletedEvent(this, _accountId));
+                ApplyEvent(new DepositTransactionPreparationCompletedEvent(_accountId));
             }
         }
         /// <summary>确认存款
@@ -45,7 +45,7 @@ namespace BankTransferSample.Domain
         {
             if (_status == TransactionStatus.PreparationCompleted)
             {
-                ApplyEvent(new DepositTransactionCompletedEvent(this, _accountId));
+                ApplyEvent(new DepositTransactionCompletedEvent(_accountId));
             }
         }
 
@@ -55,7 +55,6 @@ namespace BankTransferSample.Domain
 
         private void Handle(DepositTransactionStartedEvent evnt)
         {
-            _id = evnt.AggregateRootId;
             _accountId = evnt.AccountId;
             _amount = evnt.Amount;
             _status = TransactionStatus.Started;

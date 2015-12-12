@@ -3,11 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
-using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
-using ECommon.JsonNet;
-using ECommon.Log4Net;
 using ECommon.Utilities;
 using ENode.Configurations;
 using ENode.Eventing;
@@ -27,6 +24,17 @@ namespace ENode.PublishEventPerfTests
             Console.ReadLine();
         }
 
+        public class TestEvent : DomainEvent<string>
+        {
+            public string Title { get; private set; }
+
+            public TestEvent() { }
+            public TestEvent(string id, string title) : base(id, 1)
+            {
+                Title = title;
+            }
+        }
+
         static void PublishEventAsync(int eventCount)
         {
             var printSize = eventCount / 10;
@@ -34,7 +42,7 @@ namespace ENode.PublishEventPerfTests
             var eventStreams = new List<DomainEventStreamMessage>();
             var commandId = ObjectId.GenerateNewStringId();
             var note = new Note(ObjectId.GenerateNewStringId(), "Sample Note");
-            var evnt = new NoteCreated(note, "Sample Note");
+            var evnt = new TestEvent(note.Id, "Sample Note");
             var evnts = new List<IDomainEvent> { evnt };
             var waitHandle = new ManualResetEvent(false);
 

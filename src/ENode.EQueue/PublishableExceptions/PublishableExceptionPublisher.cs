@@ -55,7 +55,7 @@ namespace ENode.EQueue
             {
                 UniqueId = exception.Id,
                 AggregateRootTypeName = sequenceMessage != null ? sequenceMessage.AggregateRootTypeName : null,
-                AggregateRootId = sequenceMessage != null ? sequenceMessage.AggregateRootId : null,
+                AggregateRootId = sequenceMessage != null ? sequenceMessage.AggregateRootStringId : null,
                 Timestamp = exception.Timestamp,
                 SerializableInfo = serializableInfo
             });

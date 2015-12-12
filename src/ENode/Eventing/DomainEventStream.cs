@@ -19,6 +19,14 @@ namespace ENode.Eventing
             var sequence = 1;
             foreach (var evnt in Events)
             {
+                if (evnt.Version != this.Version)
+                {
+                    throw new Exception(string.Format("Invalid domain event version, aggregateRootTypeName: {0} aggregateRootId: {1} expected version: {2}, but was: {3}",
+                        this.AggregateRootTypeName,
+                        this.AggregateRootId,
+                        this.Version,
+                        evnt.Version));
+                }
                 evnt.AggregateRootTypeName = aggregateRootTypeName;
                 evnt.Sequence = sequence++;
             }

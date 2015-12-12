@@ -6,18 +6,14 @@ using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ECommon.Socketing;
-using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
-using ENode.Infrastructure.Impl;
 using EQueue.Broker;
 using EQueue.Configurations;
-using NoteSample.Commands;
-using NoteSample.Domain;
 
 namespace NoteSample.QuickStart
 {

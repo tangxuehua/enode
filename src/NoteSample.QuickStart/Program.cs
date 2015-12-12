@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Reflection;
-using ECommon.Autofac;
 using ECommon.Components;
 using ECommon.Configurations;
-using ECommon.JsonNet;
-using ECommon.Log4Net;
 using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Commanding;
@@ -23,7 +20,6 @@ namespace NoteSample.QuickStart
             InitializeENodeFramework();
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
-
             var noteId = ObjectId.GenerateNewStringId();
             var command1 = new CreateNoteCommand { AggregateRootId = noteId, Title = "Sample Title1" };
             var command2 = new ChangeNoteTitleCommand { AggregateRootId = noteId, Title = "Sample Title2" };

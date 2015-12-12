@@ -5,7 +5,7 @@ namespace ENode.Infrastructure
 {
     /// <summary>Represents a message handler proxy.
     /// </summary>
-    public interface IMessageHandlerProxy1 : IHandlerProxy
+    public interface IMessageHandlerProxy1 : IObjectProxy
     {
         /// <summary>Handle the given message async.
         /// </summary>
@@ -14,7 +14,7 @@ namespace ENode.Infrastructure
     }
     /// <summary>Represents a message handler proxy.
     /// </summary>
-    public interface IMessageHandlerProxy2 : IHandlerProxy
+    public interface IMessageHandlerProxy2 : IObjectProxy
     {
         /// <summary>Handle the given messages async.
         /// </summary>
@@ -24,7 +24,7 @@ namespace ENode.Infrastructure
     }
     /// <summary>Represents a message handler proxy.
     /// </summary>
-    public interface IMessageHandlerProxy3 : IHandlerProxy
+    public interface IMessageHandlerProxy3 : IObjectProxy
     {
         /// <summary>Handle the given messages async.
         /// </summary>

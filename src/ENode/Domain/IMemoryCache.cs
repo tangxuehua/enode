@@ -24,5 +24,9 @@ namespace ENode.Domain
         /// <summary>Refresh the aggregate memory cache by replaying events of event store.
         /// </summary>
         void RefreshAggregateFromEventStore(string aggregateRootTypeName, string aggregateRootId);
+        /// <summary>Remove an aggregate from memory.
+        /// </summary>
+        /// <param name="aggregateRootId"></param>
+        bool Remove(object aggregateRootId);
     }
 }

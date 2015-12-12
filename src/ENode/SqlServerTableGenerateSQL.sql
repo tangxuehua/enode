@@ -73,16 +73,6 @@ CREATE TABLE [dbo].[ThreeMessageHandleRecord] (
     CONSTRAINT [PK_ThreeMessageHandleRecord] PRIMARY KEY CLUSTERED ([MessageId1] ASC, [MessageId2] ASC, [MessageId3] ASC, [HandlerTypeName] ASC)
 )
 GO
-CREATE TABLE [dbo].[Snapshot] (
-    [Sequence]               BIGINT IDENTITY (1, 1)  NOT NULL,
-    [AggregateRootTypeName]  NVARCHAR (512)         NOT NULL,
-    [AggregateRootId]        NVARCHAR (36)           NOT NULL,
-    [Version]                INT                     NOT NULL,
-    [Payload]                VARBINARY (MAX)         NOT NULL,
-    [CreatedOn]              DATETIME                NOT NULL,
-    CONSTRAINT [PK_Snapshot] PRIMARY KEY CLUSTERED ([AggregateRootId] ASC, [Version] ASC)
-)
-GO
 CREATE TABLE [dbo].[LockKey] (
     [Name]                   NVARCHAR (128)          NOT NULL,
     CONSTRAINT [PK_LockKey] PRIMARY KEY CLUSTERED ([Name] ASC)

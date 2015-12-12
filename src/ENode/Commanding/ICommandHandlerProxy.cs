@@ -4,7 +4,7 @@ namespace ENode.Commanding
 {
     /// <summary>Represents a command handler proxy.
     /// </summary>
-    public interface ICommandHandlerProxy : IHandlerProxy
+    public interface ICommandHandlerProxy : IObjectProxy
     {
         /// <summary>Handle the given command.
         /// </summary>

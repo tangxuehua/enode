@@ -2,7 +2,7 @@
 
 namespace ENode.Infrastructure
 {
-    public class MessageHandlerData<T> where T : IHandlerProxy
+    public class MessageHandlerData<T> where T : IObjectProxy
     {
         public IEnumerable<T> AllHandlers = new List<T>();
         public IEnumerable<T> ListHandlers = new List<T>();

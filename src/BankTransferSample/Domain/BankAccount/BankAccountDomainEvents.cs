@@ -14,8 +14,7 @@ namespace BankTransferSample.Domain
         public string Owner { get; private set; }
 
         public AccountCreatedEvent() { }
-        public AccountCreatedEvent(BankAccount account, string owner)
-            : base(account)
+        public AccountCreatedEvent(string owner)
         {
             Owner = owner;
         }
@@ -27,8 +26,7 @@ namespace BankTransferSample.Domain
         public TransactionPreparation TransactionPreparation { get; private set; }
 
         public TransactionPreparationAddedEvent() { }
-        public TransactionPreparationAddedEvent(BankAccount account, TransactionPreparation transactionPreparation)
-            : base(account)
+        public TransactionPreparationAddedEvent(TransactionPreparation transactionPreparation)
         {
             TransactionPreparation = transactionPreparation;
         }
@@ -41,8 +39,7 @@ namespace BankTransferSample.Domain
         public TransactionPreparation TransactionPreparation { get; private set; }
 
         public TransactionPreparationCommittedEvent() { }
-        public TransactionPreparationCommittedEvent(BankAccount account, double currentBalance, TransactionPreparation transactionPreparation)
-            : base(account)
+        public TransactionPreparationCommittedEvent(double currentBalance, TransactionPreparation transactionPreparation)
         {
             CurrentBalance = currentBalance;
             TransactionPreparation = transactionPreparation;
@@ -55,8 +52,7 @@ namespace BankTransferSample.Domain
         public TransactionPreparation TransactionPreparation { get; private set; }
 
         public TransactionPreparationCanceledEvent() { }
-        public TransactionPreparationCanceledEvent(BankAccount account, TransactionPreparation transactionPreparation)
-            : base(account)
+        public TransactionPreparationCanceledEvent(TransactionPreparation transactionPreparation)
         {
             TransactionPreparation = transactionPreparation;
         }

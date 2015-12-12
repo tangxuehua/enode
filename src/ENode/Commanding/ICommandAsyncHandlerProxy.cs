@@ -6,7 +6,7 @@ namespace ENode.Commanding
 {
     /// <summary>Represents an async handler proxy for command.
     /// </summary>
-    public interface ICommandAsyncHandlerProxy : IHandlerProxy
+    public interface ICommandAsyncHandlerProxy : IObjectProxy
     {
         /// <summary>Handle the given application command async.
         /// </summary>
