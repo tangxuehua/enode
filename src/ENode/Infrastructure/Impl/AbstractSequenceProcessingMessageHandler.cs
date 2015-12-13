@@ -52,10 +52,7 @@ namespace ENode.Infrastructure.Impl
                 }
                 else if (publishedVersion + 1 < message.Version)
                 {
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.DebugFormat("The sequence message cannot be process now as the version is not the next version, it will be handle later. contextInfo [aggregateRootId={0},lastPublishedVersion={1},messageVersion={2}]", message.AggregateRootStringId, publishedVersion, message.Version);
-                    }
+                    _logger.InfoFormat("The sequence message cannot be process now as the version is not the next version, it will be handle later. contextInfo [aggregateRootId={0},lastPublishedVersion={1},messageVersion={2}]", message.AggregateRootStringId, publishedVersion, message.Version);
                     processingMessage.AddToWaitingList();
                 }
                 else
