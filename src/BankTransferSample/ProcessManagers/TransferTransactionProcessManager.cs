@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using BankTransferSample.ApplicationMessages;
 using BankTransferSample.Commands;
 using BankTransferSample.Domain;
-using ECommon.Components;
 using ECommon.IO;
 using ENode.Commanding;
 using ENode.Infrastructure;
@@ -12,7 +11,6 @@ namespace BankTransferSample.ProcessManagers
 {
     /// <summary>银行转账交易流程管理器，用于协调银行转账交易流程中各个参与者聚合根之间的消息交互。
     /// </summary>
-    [Component]
     public class TransferTransactionProcessManager :
         IMessageHandler<TransferTransactionStartedEvent>,                  //转账交易已开始
         IMessageHandler<AccountValidatePassedMessage>,                     //账户验证已通过

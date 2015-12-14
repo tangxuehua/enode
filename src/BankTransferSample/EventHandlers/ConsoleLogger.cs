@@ -2,13 +2,11 @@
 using System.Threading.Tasks;
 using BankTransferSample.ApplicationMessages;
 using BankTransferSample.Domain;
-using ECommon.Components;
 using ECommon.IO;
 using ENode.Infrastructure;
 
 namespace BankTransferSample.EventHandlers
 {
-    [Component]
     public class ConsoleLogger :
         IMessageHandler<AccountCreatedEvent>,
         IMessageHandler<AccountValidatePassedMessage>,

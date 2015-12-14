@@ -1,13 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using BankTransferSample.Domain;
-using ECommon.Components;
 using ECommon.IO;
 using ENode.Infrastructure;
 
 namespace BankTransferSample.EventHandlers
 {
-    [Component]
     public class CountSyncHelper : IMessageHandler<TransferTransactionCompletedEvent>
     {
         private ManualResetEvent _waitHandle = new ManualResetEvent(false);

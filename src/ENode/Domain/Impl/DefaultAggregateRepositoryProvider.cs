@@ -24,10 +24,6 @@ namespace ENode.Domain.Impl
         {
             foreach (var aggregateRepositoryType in assemblies.SelectMany(assembly => assembly.GetTypes().Where(IsAggregateRepositoryType)))
             {
-                if (!TypeUtils.IsComponent(aggregateRepositoryType))
-                {
-                    throw new Exception(string.Format("AggregateRepository [type={0}] should be marked as component.", aggregateRepositoryType.FullName));
-                }
                 RegisterAggregateRepository(aggregateRepositoryType);
             }
         }

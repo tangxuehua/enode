@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using ECommon.Components;
 using ECommon.IO;
 using ECommon.Logging;
 using ENode.Infrastructure;
@@ -7,7 +6,6 @@ using NoteSample.Domain;
 
 namespace ENode.MultiEventAndPriorityTests.EventHandlers
 {
-    [Component]
     [Priority(1)]
     public class Handler1 : IMessageHandler<Event1>
     {
@@ -25,7 +23,6 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
-    [Component]
     [Priority(3)]
     public class Handler2 : IMessageHandler<Event1>
     {
@@ -42,7 +39,6 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
-    [Component]
     [Priority(2)]
     public class Handler3 : IMessageHandler<Event1>
     {
@@ -60,7 +56,6 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
         }
     }
 
-    [Component]
     [Priority(3)]
     public class Handler121 : IMessageHandler<Event1, Event2>
     {
@@ -77,7 +72,6 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
-    [Component]
     [Priority(2)]
     public class Handler122 : IMessageHandler<Event1, Event2>
     {
@@ -94,7 +88,6 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
-    [Component]
     [Priority(1)]
     public class Handler123 : IMessageHandler<Event1, Event2>
     {
@@ -113,7 +106,6 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
         }
     }
 
-    [Component]
     [Priority(3)]
     public class Handler1231 : IMessageHandler<Event1, Event2, Event3>
     {
@@ -130,7 +122,6 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
-    [Component]
     [Priority(2)]
     public class Handler1232 : IMessageHandler<Event1, Event2, Event3>
     {
@@ -147,7 +138,6 @@ namespace ENode.MultiEventAndPriorityTests.EventHandlers
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
-    [Component]
     [Priority(1)]
     public class Handler1233 : IMessageHandler<Event1, Event2, Event3>
     {

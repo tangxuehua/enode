@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using ECommon.Components;
 using ECommon.IO;
 using ECommon.Logging;
 using ENode.Infrastructure;
@@ -7,7 +6,6 @@ using NoteSample.Domain;
 
 namespace NoteSample.QuickStart
 {
-    [Component]
     public class NoteEventHandler : IMessageHandler<NoteCreated>, IMessageHandler<NoteTitleChanged>
     {
         private ILogger _logger;

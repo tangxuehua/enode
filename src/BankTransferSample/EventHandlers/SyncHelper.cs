@@ -1,14 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using BankTransferSample.Domain;
-using ECommon.Components;
 using ECommon.IO;
-using ENode.Eventing;
 using ENode.Infrastructure;
 
 namespace BankTransferSample.EventHandlers
 {
-    [Component]
     public class SyncHelper :
         IMessageHandler<DepositTransactionCompletedEvent>,
         IMessageHandler<TransferTransactionCompletedEvent>,

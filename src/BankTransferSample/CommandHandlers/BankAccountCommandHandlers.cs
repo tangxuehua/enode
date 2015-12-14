@@ -2,7 +2,6 @@
 using BankTransferSample.ApplicationMessages;
 using BankTransferSample.Commands;
 using BankTransferSample.Domain;
-using ECommon.Components;
 using ECommon.IO;
 using ENode.Commanding;
 using ENode.Infrastructure;
@@ -11,7 +10,6 @@ namespace BankTransferSample.CommandHandlers
 {
     /// <summary>银行账户相关命令处理
     /// </summary>
-    [Component]
     public class BankAccountCommandHandlers :
         ICommandHandler<CreateAccountCommand>,                       //开户
         ICommandAsyncHandler<ValidateAccountCommand>,                //验证账户是否合法

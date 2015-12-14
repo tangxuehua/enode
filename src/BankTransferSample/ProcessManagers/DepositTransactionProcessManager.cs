@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using BankTransferSample.Commands;
 using BankTransferSample.Domain;
-using ECommon.Components;
 using ECommon.IO;
 using ENode.Commanding;
 using ENode.Infrastructure;
@@ -10,7 +9,6 @@ namespace BankTransferSample.ProcessManagers
 {
     /// <summary>银行存款交易流程管理器，用于协调银行存款交易流程中各个参与者聚合根之间的消息交互。
     /// </summary>
-    [Component]
     public class DepositTransactionProcessManager :
         IMessageHandler<DepositTransactionStartedEvent>,                    //存款交易已开始
         IMessageHandler<DepositTransactionPreparationCompletedEvent>,       //存款交易已提交

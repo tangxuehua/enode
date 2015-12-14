@@ -1,15 +1,11 @@
 ﻿using BankTransferSample.Commands;
 using BankTransferSample.Domain;
-using ECommon.Components;
-using ECommon.Utilities;
 using ENode.Commanding;
-using ENode.Infrastructure;
 
 namespace BankTransferSample.CommandHandlers
 {
     /// <summary>银行转账交易相关命令处理
     /// </summary>
-    [Component]
     public class TransferTransactionCommandHandlers :
         ICommandHandler<StartTransferTransactionCommand>,                       //开始转账交易
         ICommandHandler<ConfirmAccountValidatePassedCommand>,                   //确认账户验证已通过

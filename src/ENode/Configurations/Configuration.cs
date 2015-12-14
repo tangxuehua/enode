@@ -9,6 +9,7 @@ using ENode.Commanding;
 using ENode.Commanding.Impl;
 using ENode.Domain;
 using ENode.Domain.Impl;
+using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Eventing.Impl;
 using ENode.Infrastructure;
@@ -134,25 +135,24 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterBusinessComponents(params Assembly[] assemblies)
         {
+            var registeredTypes = new List<Type>();
             foreach (var assembly in assemblies)
             {
-                foreach (var type in assembly.GetTypes().Where(ENode.Infrastructure.TypeUtils.IsComponent))
+                foreach (var type in assembly.GetTypes().Where(x => IsENodeComponentType(x)))
                 {
-                    var life = ParseComponentLife(type);
-                    ObjectContainer.RegisterType(type, null, life);
-                    foreach (var interfaceType in type.GetInterfaces())
+                    RegisterComponentType(type);
+                    registeredTypes.Add(type);
+                }
+                foreach (var type in assembly.GetTypes().Where(Infrastructure.TypeUtils.IsComponent))
+                {
+                    if (!registeredTypes.Contains(type))
                     {
-                        ObjectContainer.RegisterType(interfaceType, type, null, life);
-                    }
-                    if (IsAssemblyInitializer(type))
-                    {
-                        _assemblyInitializerServiceTypes.Add(type);
+                        RegisterComponentType(type);
                     }
                 }
             }
             return this;
         }
-
         /// <summary>Use the SnapshotOnlyAggregateStorage as the IAggregateStorage.
         /// </summary>
         /// <returns></returns>
@@ -237,6 +237,30 @@ namespace ENode.Configurations
 
         #region Private Methods
 
+        private void RegisterComponentType(Type type)
+        {
+            var life = ParseComponentLife(type);
+            ObjectContainer.RegisterType(type, null, life);
+            foreach (var interfaceType in type.GetInterfaces())
+            {
+                ObjectContainer.RegisterType(interfaceType, type, null, life);
+            }
+            if (IsAssemblyInitializer(type))
+            {
+                _assemblyInitializerServiceTypes.Add(type);
+            }
+        }
+        private bool IsENodeComponentType(Type type)
+        {
+            return type.IsClass && !type.IsAbstract && type.GetInterfaces().Any(x => x.IsGenericType &&
+            (x.GetGenericTypeDefinition() == typeof(ICommandHandler<>)
+            || x.GetGenericTypeDefinition() == typeof(ICommandAsyncHandler<>)
+            || x.GetGenericTypeDefinition() == typeof(IMessageHandler<>)
+            || x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>)
+            || x.GetGenericTypeDefinition() == typeof(IMessageHandler<,,>)
+            || x.GetGenericTypeDefinition() == typeof(IAggregateRepository<>)
+            || x.GetGenericTypeDefinition() == typeof(ITopicProvider<>)));
+        }
         private void ValidateTypes(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
@@ -255,7 +279,12 @@ namespace ENode.Configurations
         }
         private static LifeStyle ParseComponentLife(Type type)
         {
-            return ((ComponentAttribute)type.GetCustomAttributes(typeof(ComponentAttribute), false)[0]).LifeStyle;
+            var attributes = type.GetCustomAttributes<ComponentAttribute>(false);
+            if (attributes != null && attributes.Any())
+            {
+                return attributes.First().LifeStyle;
+            }
+            return LifeStyle.Singleton;
         }
         private static bool IsAssemblyInitializer<T>()
         {

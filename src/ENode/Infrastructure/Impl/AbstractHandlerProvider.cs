@@ -22,10 +22,6 @@ namespace ENode.Infrastructure.Impl
         {
             foreach (var handlerType in assemblies.SelectMany(assembly => assembly.GetTypes().Where(IsHandlerType)))
             {
-                if (!TypeUtils.IsComponent(handlerType))
-                {
-                    throw new Exception(string.Format("Handler [type={0}] should be marked as component.", handlerType.FullName));
-                }
                 RegisterHandler(handlerType);
             }
             InitializeHandlerPriority();
