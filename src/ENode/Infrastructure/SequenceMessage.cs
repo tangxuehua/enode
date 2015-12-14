@@ -30,27 +30,6 @@ namespace ENode.Infrastructure
         /// </summary>
         public int Version { get; set; }
 
-        /// <summary>Default constructor.
-        /// </summary>
-        public SequenceMessage() : base() { }
-        /// <summary>Parameterized constructor.
-        /// </summary>
-        public SequenceMessage(TAggregateRootId aggregateRootId, int version, string aggregateRootTypeName = null) : base()
-        {
-            if (aggregateRootId == null)
-            {
-                throw new ArgumentNullException("aggregateRootId");
-            }
-            if (version <= 0)
-            {
-                throw new ArgumentException("version cannot be small or equal than zero.");
-            }
-
-            AggregateRootId = aggregateRootId;
-            AggregateRootTypeName = aggregateRootTypeName;
-            Version = version;
-        }
-
         /// <summary>Returns the aggregate root id by default.
         /// </summary>
         /// <returns></returns>

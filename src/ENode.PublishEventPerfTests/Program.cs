@@ -26,13 +26,7 @@ namespace ENode.PublishEventPerfTests
 
         public class TestEvent : DomainEvent<string>
         {
-            public string Title { get; private set; }
-
-            public TestEvent() { }
-            public TestEvent(string id, string title) : base(id, 1)
-            {
-                Title = title;
-            }
+            public string Title { get; set; }
         }
 
         static void PublishEventAsync(int eventCount)
@@ -42,7 +36,12 @@ namespace ENode.PublishEventPerfTests
             var eventStreams = new List<DomainEventStreamMessage>();
             var commandId = ObjectId.GenerateNewStringId();
             var note = new Note(ObjectId.GenerateNewStringId(), "Sample Note");
-            var evnt = new TestEvent(note.Id, "Sample Note");
+            var evnt = new TestEvent
+            {
+                AggregateRootId = note.Id,
+                Title = "Sample Note",
+                Version = 1
+            };
             var evnts = new List<IDomainEvent> { evnt };
             var waitHandle = new ManualResetEvent(false);
 

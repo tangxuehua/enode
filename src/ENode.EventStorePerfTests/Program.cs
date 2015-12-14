@@ -17,11 +17,7 @@ namespace ENode.EventStorePerfTests
     {
         static ENodeConfiguration _configuration;
 
-        class TestEvent : DomainEvent<string>
-        {
-            public TestEvent() { }
-            public TestEvent(string id, int version) : base(id, version) { }
-        }
+        class TestEvent : DomainEvent<string> { }
 
         static void Main(string[] args)
         {
@@ -33,9 +29,13 @@ namespace ENode.EventStorePerfTests
             var eventStore = ObjectContainer.Resolve<IEventStore>();
             var watch = Stopwatch.StartNew();
 
-            var crateEventStream = new Func<int, DomainEventStream>(version =>
+            var createEventStream = new Func<int, DomainEventStream>(version =>
             {
-                var evnt = new TestEvent(aggreagateRootId, version);
+                var evnt = new TestEvent
+                {
+                    AggregateRootId = aggreagateRootId,
+                    Version = version
+                };
                 var eventStream = new DomainEventStream(ObjectId.GenerateNewStringId(), aggreagateRootId, "SampleAggregateRootTypeName", version, DateTime.Now, new IDomainEvent[] { evnt });
                 return eventStream;
             });
@@ -46,7 +46,7 @@ namespace ENode.EventStorePerfTests
 
                 for (var i = 1; i <= count; i++)
                 {
-                    eventStore.AppendAsync(crateEventStream(i)).ContinueWith(t =>
+                    eventStore.AppendAsync(createEventStream(i)).ContinueWith(t =>
                     {
                         if (t.Result.Data == EventAppendResult.DuplicateEvent)
                         {
@@ -88,7 +88,7 @@ namespace ENode.EventStorePerfTests
                     }
                     else
                     {
-                        batch.Add(crateEventStream(i));
+                        batch.Add(createEventStream(i));
                     }
                 }
                 if (batch.Count > 0)

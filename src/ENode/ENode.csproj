@@ -198,12 +198,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ECommon.2.0.1\lib\net45\ECommon.dll</HintPath>
+    <Reference Include="ECommon, Version=2.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\ECommon.2.0.2\lib\net45\ECommon.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EQueue, Version=2.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\EQueue.2.0.6\lib\net45\EQueue.dll</HintPath>
+    <Reference Include="EQueue, Version=2.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EQueue.2.0.7\lib\net45\EQueue.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">

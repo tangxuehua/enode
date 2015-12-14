@@ -14,9 +14,11 @@ namespace ENode.Eventing
 
         public DomainEventStreamMessage() { }
         public DomainEventStreamMessage(string commandId, string aggregateRootId, int version, string aggregateRootTypeName, IEnumerable<IDomainEvent> events, IDictionary<string, string> items)
-            : base(aggregateRootId, version, aggregateRootTypeName)
         {
             CommandId = commandId;
+            AggregateRootId = aggregateRootId;
+            Version = version;
+            AggregateRootTypeName = aggregateRootTypeName;
             Events = events;
             Items = items;
         }
