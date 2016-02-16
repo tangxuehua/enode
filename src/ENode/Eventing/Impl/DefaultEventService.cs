@@ -20,7 +20,6 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private IProcessingMessageHandler<ProcessingCommand, ICommand, CommandResult> _processingCommandHandler;
-        private int _isBatchPersistingEvents;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IScheduleService _scheduleService;
         private readonly ITypeNameProvider _typeNameProvider;
@@ -31,14 +30,6 @@ namespace ENode.Eventing.Impl
         private readonly IMessagePublisher<DomainEventStreamMessage> _domainEventPublisher;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
-        private readonly bool _enableGroupCommit;
-        private readonly int _groupCommitInterval;
-        private readonly int _groupCommitMaxSize;
-        private readonly ConcurrentQueue<EventCommittingContext> _toCommitContextQueue;
-        private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _successPersistedContextQueue;
-        private readonly BlockingCollection<IEnumerable<EventCommittingContext>> _failedPersistedContextQueue;
-        private readonly Worker _processSuccessPersistedEventsWorker;
-        private readonly Worker _processFailedPersistedEventsWorker;
 
         #endregion
 
@@ -56,18 +47,7 @@ namespace ENode.Eventing.Impl
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
-            var setting = ENodeConfiguration.Instance.Setting;
-            _enableGroupCommit = setting.EnableGroupCommitEvent;
-            _groupCommitInterval = setting.GroupCommitEventIntervalMilliseconds;
-            _groupCommitMaxSize = setting.GroupCommitMaxSize;
             _ioHelper = ioHelper;
-            Ensure.Positive(_groupCommitInterval, "_groupCommitInterval");
-            Ensure.Positive(_groupCommitMaxSize, "_groupCommitMaxSize");
-
-            _toCommitContextQueue = new ConcurrentQueue<EventCommittingContext>();
-            _successPersistedContextQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
-            _failedPersistedContextQueue = new BlockingCollection<IEnumerable<EventCommittingContext>>();
-
             _jsonSerializer = jsonSerializer;
             _scheduleService = scheduleService;
             _typeNameProvider = typeNameProvider;
@@ -77,10 +57,6 @@ namespace ENode.Eventing.Impl
             _eventStore = eventStore;
             _domainEventPublisher = domainEventPublisher;
             _logger = loggerFactory.Create(GetType().FullName);
-            _processSuccessPersistedEventsWorker = new Worker("ProcessSuccessPersistedEvents", ProcessSuccessPersistedEvents);
-            _processFailedPersistedEventsWorker = new Worker("ProcessFailedPersistedEvents", ProcessFailedPersistedEvents);
-
-            Start();
         }
 
         #endregion
@@ -93,14 +69,7 @@ namespace ENode.Eventing.Impl
         }
         public void CommitDomainEventAsync(EventCommittingContext context)
         {
-            if (_enableGroupCommit && _eventStore.SupportBatchAppend)
-            {
-                _toCommitContextQueue.Enqueue(context);
-            }
-            else
-            {
-                CommitEventAsync(context, 0);
-            }
+            CommitEventAsync(context, 0);
         }
         public void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
@@ -115,95 +84,6 @@ namespace ENode.Eventing.Impl
         #endregion
 
         #region Private Methods
-
-        private void Start()
-        {
-            if (_enableGroupCommit && _eventStore.SupportBatchAppend)
-            {
-                _scheduleService.StartTask("TryBatchPersistEvents", TryBatchPersistEvents, _groupCommitInterval, _groupCommitInterval);
-                _processSuccessPersistedEventsWorker.Start();
-                _processFailedPersistedEventsWorker.Start();
-            }
-        }
-        private bool EnterBatchPersistingEvents()
-        {
-            return Interlocked.CompareExchange(ref _isBatchPersistingEvents, 1, 0) == 0;
-        }
-        private void ExitBatchPersistingEvents()
-        {
-            Interlocked.Exchange(ref _isBatchPersistingEvents, 0);
-        }
-        private void TryBatchPersistEvents()
-        {
-            if (EnterBatchPersistingEvents())
-            {
-                var contextList = DequeueContexts();
-                if (contextList.Count() > 0)
-                {
-                    BatchPersistEventsAsync(contextList, 0);
-                }
-                else
-                {
-                    ExitBatchPersistingEvents();
-                }
-            }
-        }
-        private void BatchPersistEventsAsync(IEnumerable<EventCommittingContext> contextList, int retryTimes)
-        {
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("BatchPersistEventAsync",
-            () => _eventStore.BatchAppendAsync(contextList.Select(x => x.EventStream)),
-            currentRetryTimes => BatchPersistEventsAsync(contextList, currentRetryTimes),
-            result =>
-            {
-                _successPersistedContextQueue.Add(contextList);
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("Batch persist event stream success, persisted event stream count:{0}", contextList.Count());
-                }
-                if (_toCommitContextQueue.Count >= _groupCommitMaxSize)
-                {
-                    BatchPersistEventsAsync(DequeueContexts(), 0);
-                }
-                else
-                {
-                    ExitBatchPersistingEvents();
-                }
-            },
-            () => string.Format("[contextListCount:{0}]", contextList.Count()),
-            errorMessage =>
-            {
-                _failedPersistedContextQueue.Add(contextList);
-                ExitBatchPersistingEvents();
-            },
-            retryTimes);
-        }
-        private IEnumerable<EventCommittingContext> DequeueContexts()
-        {
-            var contextList = new List<EventCommittingContext>();
-            EventCommittingContext context;
-
-            while (contextList.Count < _groupCommitMaxSize && _toCommitContextQueue.TryDequeue(out context))
-            {
-                contextList.Add(context);
-            }
-
-            return contextList;
-        }
-        private void ProcessSuccessPersistedEvents()
-        {
-            foreach (var context in _successPersistedContextQueue.Take())
-            {
-                RefreshAggregateMemoryCache(context);
-                PublishDomainEventAsync(context.ProcessingCommand, context.EventStream);
-            }
-        }
-        private void ProcessFailedPersistedEvents()
-        {
-            foreach (var context in _failedPersistedContextQueue.Take())
-            {
-                CommitEventAsync(context, 0);
-            }
-        }
 
         private void CommitEventAsync(EventCommittingContext context, int retryTimes)
         {

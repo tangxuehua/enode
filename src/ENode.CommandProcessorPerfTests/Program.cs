@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
@@ -47,12 +48,12 @@ namespace ENode.CommandProcessorPerfTests
                 {
                     AggregateRootId = noteId,
                     Title = "Sample Note"
-                }, new CommandExecuteContext(), new Dictionary<string, string>()));
+                }, new CommandExecuteContext(_commandCount), new Dictionary<string, string>()));
                 updateCommands.Add(new ProcessingCommand(new ChangeNoteTitleCommand
                 {
                     AggregateRootId = noteId,
                     Title = "Changed Note Title"
-                }, new CommandExecuteContext(), new Dictionary<string, string>()));
+                }, new CommandExecuteContext(_commandCount), new Dictionary<string, string>()));
             }
 
             _waitHandle = new ManualResetEvent(false);
@@ -82,12 +83,6 @@ namespace ENode.CommandProcessorPerfTests
 
         static void InitializeENodeFramework()
         {
-            var setting = new ConfigurationSetting
-            {
-                SqlDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
-                EnableGroupCommitEvent = bool.Parse(ConfigurationManager.AppSettings["batchCommit"]),
-                GroupCommitMaxSize = int.Parse(ConfigurationManager.AppSettings["batchSize"])
-            };
             var assemblies = new[]
             {
                 Assembly.Load("NoteSample.Domain"),
@@ -102,9 +97,8 @@ namespace ENode.CommandProcessorPerfTests
                 .UseLog4Net()
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
-                .CreateENode(setting)
+                .CreateENode()
                 .RegisterENodeComponents()
-                .UseSqlServerEventStore()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies);
 
@@ -116,10 +110,10 @@ namespace ENode.CommandProcessorPerfTests
             private readonly int _printSize;
             private string _result;
 
-            public CommandExecuteContext()
+            public CommandExecuteContext(int commandCount)
             {
                 _aggregateRoots = new ConcurrentDictionary<string, IAggregateRoot>();
-                _printSize = _commandCount / 10;
+                _printSize = commandCount / 10;
             }
 
             public void OnCommandExecuted(CommandResult commandResult)

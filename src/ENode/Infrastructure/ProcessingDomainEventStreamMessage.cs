@@ -23,7 +23,7 @@ namespace ENode.Infrastructure
         public void AddToWaitingList()
         {
             Ensure.NotNull(_mailbox, "_mailbox");
-            _mailbox.AddWaitingForRetryMessage(this);
+            _mailbox.AddWaitingMessage(this);
         }
         public void Complete(bool result)
         {

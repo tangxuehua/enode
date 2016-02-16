@@ -4,15 +4,6 @@ namespace ENode.Configurations
 {
     public class ConfigurationSetting
     {
-        /// <summary>是否支持批量持久化事件，默认为False；
-        /// </summary>
-        public bool EnableGroupCommitEvent { get; set; }
-        /// <summary>批量持久化事件的时间间隔，毫秒为单位，默认为100毫秒；
-        /// </summary>
-        public int GroupCommitEventIntervalMilliseconds { get; set; }
-        /// <summary>批量持久化一次最大持久化的事件数，默认为1000个；
-        /// </summary>
-        public int GroupCommitMaxSize { get; set; }
         /// <summary>处理领域事件的处理器的名字，默认为DefaultEventHandler
         /// </summary>
         public string DomainEventStreamMessageHandlerName { get; set; }
@@ -28,9 +19,6 @@ namespace ENode.Configurations
 
         public ConfigurationSetting()
         {
-            EnableGroupCommitEvent = false;
-            GroupCommitEventIntervalMilliseconds = 100;
-            GroupCommitMaxSize = 1000;
             DomainEventStreamMessageHandlerName = "DefaultEventHandler";
             ScanExpiredAggregateIntervalMilliseconds = 5000;
             AggregateRootMaxInactiveSeconds = 3600 * 24 * 3;

@@ -25,7 +25,6 @@ namespace ENode.EventStorePerfTests
 
             var aggreagateRootId = ObjectId.GenerateNewStringId();
             var count = int.Parse(ConfigurationManager.AppSettings["count"]);
-            var mode = ConfigurationManager.AppSettings["mode"];
             var eventStore = ObjectContainer.Resolve<IEventStore>();
             var watch = Stopwatch.StartNew();
 
@@ -40,69 +39,28 @@ namespace ENode.EventStorePerfTests
                 return eventStream;
             });
 
-            if (mode == "async")
-            {
-                var current = 0;
+            var current = 0;
 
-                for (var i = 1; i <= count; i++)
-                {
-                    eventStore.AppendAsync(createEventStream(i)).ContinueWith(t =>
-                    {
-                        if (t.Result.Data == EventAppendResult.DuplicateEvent)
-                        {
-                            Console.WriteLine("duplicated event stream.");
-                            return;
-                        }
-                        else if (t.Result.Data == EventAppendResult.DuplicateCommand)
-                        {
-                            Console.WriteLine("duplicated command execution.");
-                            return;
-                        }
-                        var local = Interlocked.Increment(ref current);
-                        if (local % 1000 == 0)
-                        {
-                            Console.WriteLine("{0}, time:{1}", local, watch.ElapsedMilliseconds);
-                        }
-                    });
-                }
-            }
-            else if (mode == "batchAsync")
+            for (var i = 1; i <= count; i++)
             {
-                var current = 0;
-                var batchSize = 1000;
-                var batch = new List<DomainEventStream>();
-                for (var i = 1; i <= count; i++)
+                eventStore.AppendAsync(createEventStream(i)).ContinueWith(t =>
                 {
-                    if (i % batchSize == 0)
+                    if (t.Result.Data == EventAppendResult.DuplicateEvent)
                     {
-                        eventStore.BatchAppendAsync(batch).ContinueWith(t =>
-                        {
-                            if (t.Result.Status != AsyncTaskStatus.Success)
-                            {
-                                Console.WriteLine(t.Result.ErrorMessage);
-                                return;
-                            }
-                            Console.WriteLine("{0}, time:{1}", Interlocked.Increment(ref current) * batchSize, watch.ElapsedMilliseconds);
-                        });
-                        batch = new List<DomainEventStream>();
+                        Console.WriteLine("duplicated event stream.");
+                        return;
                     }
-                    else
+                    else if (t.Result.Data == EventAppendResult.DuplicateCommand)
                     {
-                        batch.Add(createEventStream(i));
+                        Console.WriteLine("duplicated command execution.");
+                        return;
                     }
-                }
-                if (batch.Count > 0)
-                {
-                    eventStore.BatchAppendAsync(batch).ContinueWith(t =>
+                    var local = Interlocked.Increment(ref current);
+                    if (local % 1000 == 0)
                     {
-                        if (t.Result.Status != AsyncTaskStatus.Success)
-                        {
-                            Console.WriteLine(t.Result.ErrorMessage);
-                            return;
-                        }
-                        Console.WriteLine("{0}, time:{1}", Interlocked.Increment(ref current) * batchSize, watch.ElapsedMilliseconds);
-                    });
-                }
+                        Console.WriteLine("{0}, time:{1}", local, watch.ElapsedMilliseconds);
+                    }
+                });
             }
 
             Console.ReadLine();
@@ -111,8 +69,7 @@ namespace ENode.EventStorePerfTests
         {
             var setting = new ConfigurationSetting
             {
-                SqlDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"],
-                EnableGroupCommitEvent = true
+                SqlDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"]
             };
             _configuration = ECommonConfiguration
                 .Create()

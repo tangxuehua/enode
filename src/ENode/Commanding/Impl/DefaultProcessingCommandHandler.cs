@@ -175,33 +175,35 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Message;
             var context = processingCommand.CommandExecuteContext;
             var trackedAggregateRoots = context.GetTrackedAggregateRoots();
-            var dirtyAggregateRootChanges = trackedAggregateRoots.ToDictionary(x => x, x => x.GetChanges()).Where(x => x.Value.Any());
-            var dirtyAggregateRootCount = dirtyAggregateRootChanges.Count();
+            var dirtyAggregateRootCount = 0;
+            var dirtyAggregateRoot = default(IAggregateRoot);
+            var changedEvents = default(IEnumerable<IDomainEvent>);
+            foreach (var aggregateRoot in trackedAggregateRoots)
+            {
+                var events = aggregateRoot.GetChanges();
+                if (events.Any())
+                {
+                    dirtyAggregateRootCount++;
+                    if (dirtyAggregateRootCount > 1)
+                    {
+                        var errorMessage = string.Format("Detected more than one aggregate created or modified by command. commandType:{0}, commandId:{1}",
+                            command.GetType().Name,
+                            command.Id);
+                        _logger.ErrorFormat(errorMessage);
+                        NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                        return;
+                    }
+                    dirtyAggregateRoot = aggregateRoot;
+                    changedEvents = events;
+                }
+            }
 
             //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
             if (dirtyAggregateRootCount == 0)
             {
-                _logger.InfoFormat("No aggregate created or modified by command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
                 NotifyCommandExecuted(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
             }
-            //如果被创建或修改的聚合根多于一个，则认为当前command处理失败，一个command只能创建或修改一个聚合根；
-            else if (dirtyAggregateRootCount > 1)
-            {
-                var dirtyAggregateTypes = string.Join("|", dirtyAggregateRootChanges.Select(x => x.Key.GetType().Name));
-                var errorMessage = string.Format("Detected more than one aggregate created or modified by command. commandType:{0}, commandId:{1}, dirty aggregate types:{2}",
-                    command.GetType().Name,
-                    command.Id,
-                    dirtyAggregateTypes);
-                _logger.ErrorFormat(errorMessage);
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
-                return;
-            }
-
-            //获取当前被修改的聚合根
-            var dirtyAggregateRootChange = dirtyAggregateRootChanges.Single();
-            var dirtyAggregateRoot = dirtyAggregateRootChange.Key;
-            var changedEvents = dirtyAggregateRootChange.Value;
 
             //构造出一个事件流对象
             var eventStream = BuildDomainEventStream(dirtyAggregateRoot, changedEvents, processingCommand);

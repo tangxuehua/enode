@@ -64,10 +64,6 @@ namespace ENode.Eventing.Impl
 
         #region Public Methods
 
-        public bool SupportBatchAppend
-        {
-            get { return true; }
-        }
         public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             var records = _ioHelper.TryIOFunc(() =>
@@ -85,75 +81,6 @@ namespace ENode.Eventing.Impl
             }, "QueryAggregateEvents");
 
             return records.Select(record => ConvertFrom(record));
-        }
-        public IEnumerable<DomainEventStream> QueryByPage(int pageIndex, int pageSize)
-        {
-            var records = _ioHelper.TryIOFunc(() =>
-            {
-                using (var connection = GetConnection())
-                {
-                    return connection.QueryPaged<StreamRecord>(null, _tableName, "Sequence", pageIndex, pageSize);
-                }
-            }, "QueryByPage");
-
-            return records.Select(record => ConvertFrom(record));
-        }
-
-        public Task<AsyncTaskResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
-        {
-            var table = BuildEventTable();
-            foreach (var eventStream in eventStreams)
-            {
-                AddDataRow(table, eventStream);
-            }
-
-            return _ioHelper.TryIOFuncAsync<AsyncTaskResult>(async () =>
-            {
-                try
-                {
-                    using (var connection = GetConnection())
-                    {
-                        await connection.OpenAsync();
-                        var transaction = await Task.Run<SqlTransaction>(() => connection.BeginTransaction());
-
-                        using (var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
-                        {
-                            copy.BatchSize = _bulkCopyBatchSize;
-                            copy.BulkCopyTimeout = _bulkCopyTimeout;
-                            copy.DestinationTableName = _tableName;
-                            copy.ColumnMappings.Add("AggregateRootId", "AggregateRootId");
-                            copy.ColumnMappings.Add("AggregateRootTypeName", "AggregateRootTypeName");
-                            copy.ColumnMappings.Add("CommandId", "CommandId");
-                            copy.ColumnMappings.Add("Version", "Version");
-                            copy.ColumnMappings.Add("CreatedOn", "CreatedOn");
-                            copy.ColumnMappings.Add("Events", "Events");
-
-                            try
-                            {
-                                await copy.WriteToServerAsync(table);
-                                await Task.Run(() => transaction.Commit());
-                                return AsyncTaskResult.Success;
-                            }
-                            catch (Exception ex)
-                            {
-                                try { transaction.Rollback(); }
-                                catch { }
-                                return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
-                            }
-                        }
-                    }
-                }
-                catch (SqlException ex)
-                {
-                    _logger.Error("Batch append event has sql exception.", ex);
-                    return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error("Batch append event has unknown exception.", ex);
-                    return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
-                }
-            }, "BatchAppendEventsAsync");
         }
         public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
         {
@@ -271,31 +198,6 @@ namespace ENode.Eventing.Impl
                     return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Failed, ex.Message);
                 }
             }, "QueryAggregateEventsAsync");
-        }
-        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize)
-        {
-            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<IEnumerable<DomainEventStream>>>(async () =>
-            {
-                try
-                {
-                    using (var connection = GetConnection())
-                    {
-                        var result = await connection.QueryPagedAsync<StreamRecord>(null, _tableName, "Sequence", pageIndex, pageSize);
-                        var streams = result.Select(record => ConvertFrom(record));
-                        return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, streams);
-                    }
-                }
-                catch (SqlException ex)
-                {
-                    _logger.Error(string.Format("Query events by page has sql exception, pageIndex: {0}, pageSize: {1}", pageIndex, pageSize), ex);
-                    return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.IOException, ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Query events by page has unknown exception, pageIndex: {0}, pageSize: {1}", pageIndex, pageSize), ex);
-                    return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Failed, ex.Message);
-                }
-            }, "QueryByPageAsync");
         }
 
         #endregion

@@ -14,21 +14,14 @@ namespace ENode.Eventing.Impl
         private const int Editing = 1;
         private const int UnEditing = 0;
         private readonly ConcurrentDictionary<string, AggregateInfo> _aggregateInfoDict;
-        private readonly ConcurrentDictionary<long, DomainEventStream> _eventDict;
         private readonly ILogger _logger;
-        private long _sequence;
 
         public InMemoryEventStore(ILoggerFactory loggerFactory)
         {
             _aggregateInfoDict = new ConcurrentDictionary<string, AggregateInfo>();
-            _eventDict = new ConcurrentDictionary<long, DomainEventStream>();
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
-        public bool SupportBatchAppend
-        {
-            get { return false; }
-        }
         public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             var eventStreams = new List<DomainEventStream>();
@@ -43,16 +36,6 @@ namespace ENode.Eventing.Impl
             var max = maxVersion < aggregateInfo.CurrentVersion ? maxVersion : aggregateInfo.CurrentVersion;
 
             return aggregateInfo.EventDict.Where(x => x.Key >= min && x.Key <= max).Select(x => x.Value).ToList();
-        }
-        public IEnumerable<DomainEventStream> QueryByPage(int pageIndex, int pageSize)
-        {
-            var start = pageIndex * pageSize;
-            return _eventDict.Skip(start).Take(pageSize).Select(x => x.Value).ToList();
-        }
-
-        public Task<AsyncTaskResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
-        {
-            throw new NotImplementedException();
         }
         public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
         {
@@ -70,15 +53,10 @@ namespace ENode.Eventing.Impl
         {
             return Task.FromResult(new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, null, QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion)));
         }
-        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryByPageAsync(int pageIndex, int pageSize)
-        {
-            return Task.FromResult(new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, null, QueryByPage(pageIndex, pageSize)));
-        }
-
 
         private EventAppendResult Append(DomainEventStream eventStream)
         {
-            var aggregateInfo = _aggregateInfoDict.GetOrAdd(eventStream.AggregateRootId, new AggregateInfo());
+            var aggregateInfo = _aggregateInfoDict.GetOrAdd(eventStream.AggregateRootId, x => new AggregateInfo());
             var originalStatus = Interlocked.CompareExchange(ref aggregateInfo.Status, Editing, UnEditing);
 
             if (originalStatus == aggregateInfo.Status)
@@ -93,7 +71,6 @@ namespace ENode.Eventing.Impl
                     aggregateInfo.EventDict[eventStream.Version] = eventStream;
                     aggregateInfo.CommandDict[eventStream.CommandId] = eventStream;
                     aggregateInfo.CurrentVersion = eventStream.Version;
-                    _eventDict.TryAdd(Interlocked.Increment(ref _sequence), eventStream);
                     return EventAppendResult.Success;
                 }
                 return EventAppendResult.DuplicateEvent;

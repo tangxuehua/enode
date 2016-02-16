@@ -8,17 +8,17 @@ namespace ENode.Infrastructure
         where X : class, IProcessingMessage<X, Y, Z>
         where Y : IMessage
     {
-        private readonly ConcurrentDictionary<int, X> _waitingToRetryMessageDict;
+        private ConcurrentDictionary<int, X> _waitingMessageDict;
         private readonly ConcurrentQueue<X> _messageQueue;
-        private readonly IProcessingMessageScheduler<X, Y, Z> _mailboxScheduler;
+        private readonly IProcessingMessageScheduler<X, Y, Z> _scheduler;
         private readonly IProcessingMessageHandler<X, Y, Z> _messageHandler;
         private int _isHandlingMessage;
+        private readonly object _lockObj = new object();
 
         public ProcessingMessageMailbox(IProcessingMessageScheduler<X, Y, Z> scheduler, IProcessingMessageHandler<X, Y, Z> messageHandler)
         {
-            _waitingToRetryMessageDict = new ConcurrentDictionary<int, X>();
             _messageQueue = new ConcurrentQueue<X>();
-            _mailboxScheduler = scheduler;
+            _scheduler = scheduler;
             _messageHandler = messageHandler;
         }
 
@@ -35,18 +35,30 @@ namespace ENode.Infrastructure
         {
             Interlocked.Exchange(ref _isHandlingMessage, 0);
         }
-        public void AddWaitingForRetryMessage(X processingMessage)
+        public void AddWaitingMessage(X waitingMessage)
         {
-            var sequenceMessage = processingMessage.Message as ISequenceMessage;
-            Ensure.NotNull(sequenceMessage, "processingMessage");
-            _waitingToRetryMessageDict.TryAdd(sequenceMessage.Version, processingMessage);
+            var sequenceMessage = waitingMessage.Message as ISequenceMessage;
+            Ensure.NotNull(sequenceMessage, "sequenceMessage");
+
+            if (_waitingMessageDict == null)
+            {
+                lock (_lockObj)
+                {
+                    if (_waitingMessageDict == null)
+                    {
+                        _waitingMessageDict = new ConcurrentDictionary<int, X>();
+                    }
+                }
+            }
+
+            _waitingMessageDict.TryAdd(sequenceMessage.Version, waitingMessage);
 
             ExitHandlingMessage();
             RegisterForExecution();
         }
         public void CompleteMessage(X processingMessage)
         {
-            if (!TryExecuteNextMessage(processingMessage))
+            if (!TryExecuteWaitingMessage(processingMessage))
             {
                 ExitHandlingMessage();
                 RegisterForExecution();
@@ -75,22 +87,22 @@ namespace ENode.Infrastructure
             }
         }
 
-        private bool TryExecuteNextMessage(X currentCompletedMessage)
+        private bool TryExecuteWaitingMessage(X currentCompletedMessage)
         {
             var sequenceMessage = currentCompletedMessage.Message as ISequenceMessage;
             if (sequenceMessage == null) return false;
 
             X nextMessage;
-            if (_waitingToRetryMessageDict.TryRemove(sequenceMessage.Version + 1, out nextMessage))
+            if (_waitingMessageDict != null && _waitingMessageDict.TryRemove(sequenceMessage.Version + 1, out nextMessage))
             {
-                _mailboxScheduler.ScheduleMessage(nextMessage);
+                _scheduler.ScheduleMessage(nextMessage);
                 return true;
             }
             return false;
         }
         private void RegisterForExecution()
         {
-            _mailboxScheduler.ScheduleMailbox(this);
+            _scheduler.ScheduleMailbox(this);
         }
     }
 }
