@@ -144,7 +144,7 @@ namespace ENode.CommandProcessorPerfTests
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
             }
-            public T Get<T>(object id) where T : class, IAggregateRoot
+            public T Get<T>(object id, bool firstFormCache = true) where T : class, IAggregateRoot
             {
                 if (id == null)
                 {

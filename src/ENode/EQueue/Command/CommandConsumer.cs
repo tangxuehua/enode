@@ -23,6 +23,7 @@ namespace ENode.EQueue
         private readonly ITypeNameProvider _typeNameProvider;
         private readonly IMessageProcessor<ProcessingCommand, ICommand, CommandResult> _processor;
         private readonly IRepository _repository;
+        private readonly IAggregateStorage _aggregateRootStorage;
         private readonly ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
@@ -35,6 +36,7 @@ namespace ENode.EQueue
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingCommand, ICommand, CommandResult>>();
             _repository = ObjectContainer.Resolve<IRepository>();
+            _aggregateRootStorage = ObjectContainer.Resolve<IAggregateStorage>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
@@ -62,7 +64,7 @@ namespace ENode.EQueue
             var commandMessage = _jsonSerializer.Deserialize<CommandMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var commandType = _typeNameProvider.GetType(queueMessage.Tag);
             var command = _jsonSerializer.Deserialize(commandMessage.CommandData, commandType) as ICommand;
-            var commandExecuteContext = new CommandExecuteContext(_repository, queueMessage, context, commandMessage, _sendReplyService);
+            var commandExecuteContext = new CommandExecuteContext(_repository, _aggregateRootStorage, queueMessage, context, commandMessage, _sendReplyService);
             commandItems["CommandReplyAddress"] = commandMessage.ReplyAddress;
             _processor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
@@ -72,15 +74,17 @@ namespace ENode.EQueue
             private string _result;
             private readonly ConcurrentDictionary<string, IAggregateRoot> _trackingAggregateRootDict;
             private readonly IRepository _repository;
+            private readonly IAggregateStorage _aggregateRootStorage;
             private readonly SendReplyService _sendReplyService;
             private readonly QueueMessage _queueMessage;
             private readonly IMessageContext _messageContext;
             private readonly CommandMessage _commandMessage;
 
-            public CommandExecuteContext(IRepository repository, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, SendReplyService sendReplyService)
+            public CommandExecuteContext(IRepository repository, IAggregateStorage aggregateRootStorage, QueueMessage queueMessage, IMessageContext messageContext, CommandMessage commandMessage, SendReplyService sendReplyService)
             {
                 _trackingAggregateRootDict = new ConcurrentDictionary<string, IAggregateRoot>();
                 _repository = repository;
+                _aggregateRootStorage = aggregateRootStorage;
                 _sendReplyService = sendReplyService;
                 _queueMessage = queueMessage;
                 _commandMessage = commandMessage;
@@ -109,20 +113,28 @@ namespace ENode.EQueue
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
             }
-            public T Get<T>(object id) where T : class, IAggregateRoot
+            public T Get<T>(object id, bool firstFromCache = true) where T : class, IAggregateRoot
             {
                 if (id == null)
                 {
                     throw new ArgumentNullException("id");
                 }
 
+                var aggregateRootId = id.ToString();
                 IAggregateRoot aggregateRoot = null;
-                if (_trackingAggregateRootDict.TryGetValue(id.ToString(), out aggregateRoot))
+                if (_trackingAggregateRootDict.TryGetValue(aggregateRootId, out aggregateRoot))
                 {
                     return aggregateRoot as T;
                 }
 
-                aggregateRoot = _repository.Get<T>(id);
+                if (firstFromCache)
+                {
+                    aggregateRoot = _repository.Get<T>(id);
+                }
+                else
+                {
+                    aggregateRoot = _aggregateRootStorage.Get(typeof(T), aggregateRootId);
+                }
 
                 if (aggregateRoot != null)
                 {
