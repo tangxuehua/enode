@@ -243,7 +243,7 @@ namespace ENode.Commanding.Impl
                     //之所以要这样做是因为虽然该command产生的事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
                     //因为有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
                     _memoryCache.RefreshAggregateFromEventStore(existingEventStream.AggregateRootTypeName, existingEventStream.AggregateRootId);
-                    _eventService.PublishDomainEventAsync(processingCommand, existingEventStream);
+                    _eventService.PublishDomainEventAsync(processingCommand, existingEventStream, false);
                 }
                 else
                 {

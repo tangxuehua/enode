@@ -19,6 +19,7 @@ namespace ENode.Eventing
         /// </summary>
         /// <param name="processingCommand"></param>
         /// <param name="eventStream"></param>
-        void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream);
+        /// <param name="tryCommitNextEvent"></param>
+        void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream, bool tryCommitNextEvent = true);
     }
 }
