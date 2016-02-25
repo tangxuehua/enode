@@ -16,6 +16,14 @@ namespace ENode.Eventing.Impl
         private readonly ConcurrentDictionary<string, AggregateInfo> _aggregateInfoDict;
         private readonly ILogger _logger;
 
+        public bool SupportBatchAppendEvent
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public InMemoryEventStore(ILoggerFactory loggerFactory)
         {
             _aggregateInfoDict = new ConcurrentDictionary<string, AggregateInfo>();
@@ -36,6 +44,10 @@ namespace ENode.Eventing.Impl
             var max = maxVersion < aggregateInfo.CurrentVersion ? maxVersion : aggregateInfo.CurrentVersion;
 
             return aggregateInfo.EventDict.Where(x => x.Key >= min && x.Key <= max).Select(x => x.Value).ToList();
+        }
+        public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
+        {
+            throw new NotImplementedException("InMemoryEventStore not support batch append event.");
         }
         public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
         {

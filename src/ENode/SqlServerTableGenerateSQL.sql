@@ -9,15 +9,17 @@ CREATE TABLE [dbo].[Command] (
 )
 GO
 CREATE TABLE [dbo].[EventStream] (
-    [Sequence]                BIGINT IDENTITY (1, 1) NOT NULL,
-    [AggregateRootTypeName]   NVARCHAR (256)         NOT NULL,
-    [AggregateRootId]         NVARCHAR (36)          NOT NULL,
-    [Version]                 INT                    NOT NULL,
-    [CommandId]               NVARCHAR (36)          NOT NULL,
-    [CreatedOn]               DATETIME               NOT NULL,
-    [Events]                  NVARCHAR (MAX)         NOT NULL,
-    CONSTRAINT [PK_EventStream] PRIMARY KEY CLUSTERED ([AggregateRootId] ASC, [Version] ASC)
+    [Sequence]              BIGINT         IDENTITY (1, 1) NOT NULL,
+    [AggregateRootTypeName] NVARCHAR (256) NOT NULL,
+    [AggregateRootId]       NVARCHAR (36)  NOT NULL,
+    [Version]               INT            NOT NULL,
+    [CommandId]             NVARCHAR (36)  NOT NULL,
+    [CreatedOn]             DATETIME       NOT NULL,
+    [Events]                NVARCHAR (MAX) NOT NULL, 
+    CONSTRAINT [PK_EventStream] PRIMARY KEY ([Sequence])
 )
+GO
+CREATE UNIQUE INDEX [IX_EventStream_AggId_Version]   ON [dbo].[EventStream] ([AggregateRootId], [Version])
 GO
 CREATE UNIQUE INDEX [IX_EventStream_AggId_CommandId] ON [dbo].[EventStream] ([AggregateRootId], [CommandId])
 GO

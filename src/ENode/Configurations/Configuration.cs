@@ -105,17 +105,17 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DoNothingPublisher>();
             _configuration.SetDefault<IMessagePublisher<IPublishableException>, DoNothingPublisher>();
 
-            _configuration.SetDefault<IProcessingMessageHandler<ProcessingCommand, ICommand, CommandResult>, DefaultProcessingCommandHandler>();
+            _configuration.SetDefault<IProcessingCommandHandler, DefaultProcessingCommandHandler>();
             _configuration.SetDefault<IProcessingMessageHandler<ProcessingApplicationMessage, IApplicationMessage, bool>, DefaultProcessingMessageHandler<ProcessingApplicationMessage, IApplicationMessage, bool>>();
             _configuration.SetDefault<IProcessingMessageHandler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DomainEventStreamMessageHandler>();
             _configuration.SetDefault<IProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
 
-            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingCommand, ICommand, CommandResult>, DefaultProcessingMessageScheduler<ProcessingCommand, ICommand, CommandResult>>();
+            _configuration.SetDefault<IProcessingCommandScheduler, DefaultProcessingCommandScheduler>();
             _configuration.SetDefault<IProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage, bool>, DefaultProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage, bool>>();
             _configuration.SetDefault<IProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DefaultProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
             _configuration.SetDefault<IProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
 
-            _configuration.SetDefault<IMessageProcessor<ProcessingCommand, ICommand, CommandResult>, DefaultMessageProcessor<ProcessingCommand, ICommand, CommandResult>>();
+            _configuration.SetDefault<ICommandProcessor, DefaultCommandProcessor>();
             _configuration.SetDefault<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage, bool>, DefaultMessageProcessor<ProcessingApplicationMessage, IApplicationMessage, bool>>();
             _configuration.SetDefault<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DefaultMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
             _configuration.SetDefault<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
@@ -190,7 +190,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(optionSetting ?? new OptionSetting(
                 new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
                 new KeyValuePair<string, object>("TableName", "EventStream"),
-                new KeyValuePair<string, object>("PrimaryKeyName", "PK_EventStream"),
+                new KeyValuePair<string, object>("VersionIndexName", "IX_EventStream_AggId_Version"),
                 new KeyValuePair<string, object>("CommandIndexName", "IX_EventStream_AggId_CommandId"),
                 new KeyValuePair<string, object>("BulkCopyBatchSize", 1000),
                 new KeyValuePair<string, object>("BulkCopyTimeout", 60))));

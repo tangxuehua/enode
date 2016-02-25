@@ -10,7 +10,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
 {
-    public class DefaultProcessingCommandHandler : IProcessingMessageHandler<ProcessingCommand, ICommand, CommandResult>
+    public class DefaultProcessingCommandHandler : IProcessingCommandHandler
     {
         #region Private Variables
 
@@ -243,7 +243,7 @@ namespace ENode.Commanding.Impl
                     //之所以要这样做是因为虽然该command产生的事件已经持久化成功，但并不表示已经内存也更新了或者事件已经发布出去了；
                     //因为有可能事件持久化成功了，但那时正好机器断电了，则更新内存和发布事件都没有做；
                     _memoryCache.RefreshAggregateFromEventStore(existingEventStream.AggregateRootTypeName, existingEventStream.AggregateRootId);
-                    _eventService.PublishDomainEventAsync(processingCommand, existingEventStream, false);
+                    _eventService.PublishDomainEventAsync(processingCommand, existingEventStream);
                 }
                 else
                 {
@@ -287,7 +287,8 @@ namespace ENode.Commanding.Impl
         }
         private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
         {
-            processingCommand.Complete(new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType));
+            processingCommand.Complete();
+            processingCommand.SetResult(new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType));
         }
         private void RetryCommand(ProcessingCommand processingCommand)
         {

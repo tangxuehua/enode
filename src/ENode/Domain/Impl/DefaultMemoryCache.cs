@@ -8,6 +8,8 @@ using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
 {
+    //TODO，将Clean过期聚合根的事情交给一个独立的CleanExpiredAggregateService去做；
+    //该服务中还需要将Aggregate对应的EventMailBox从内存删除；
     public class DefaultMemoryCache : IMemoryCache
     {
         class AggregateRootInfo

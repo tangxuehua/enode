@@ -3,9 +3,9 @@ using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
-    public class ProcessingCommand : IProcessingMessage<ProcessingCommand, ICommand, CommandResult>
+    public class ProcessingCommand
     {
-        private ProcessingMessageMailbox<ProcessingCommand, ICommand, CommandResult> _mailbox;
+        private ProcessingCommandMailbox _mailbox;
 
         public ICommand Message { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }
@@ -19,17 +19,20 @@ namespace ENode.Commanding
             Items = items ?? new Dictionary<string, string>();
         }
 
-        public void SetMailbox(ProcessingMessageMailbox<ProcessingCommand, ICommand, CommandResult> mailbox)
+        public void SetMailbox(ProcessingCommandMailbox mailbox)
         {
             _mailbox = mailbox;
         }
-        public void Complete(CommandResult commandResult)
+        public void Complete()
         {
-            CommandExecuteContext.OnCommandExecuted(commandResult);
             if (_mailbox != null)
             {
                 _mailbox.CompleteMessage(this);
             }
+        }
+        public void SetResult(CommandResult commandResult)
+        {
+            CommandExecuteContext.OnCommandExecuted(commandResult);
         }
         public void IncreaseConcurrentRetriedCount()
         {
