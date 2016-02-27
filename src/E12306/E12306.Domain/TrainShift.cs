@@ -54,6 +54,11 @@ namespace E12306.Domain
         public TrainShift Inatialize(int stationCount, int seatCount)
         {
             _stations.Clear();
+            _soldSeats.Clear();
+            _cleanSeats.Clear();
+            _atomSegments.Clear();
+
+            //初始化站点列表，初始化原子区间的可用票数
             for (var i = 1; i <= stationCount; i++)
             {
                 _stations.Add(new Station("station" + i, i, DateTime.Now));
@@ -63,7 +68,7 @@ namespace E12306.Domain
                 }
             }
 
-            _cleanSeats.Clear();
+            //初始化座位
             for (var i = 1; i <= seatCount; i++)
             {
                 var seat = new Seat(i);
@@ -72,7 +77,6 @@ namespace E12306.Domain
 
             return this;
         }
-
         /// <summary>订票领域方法，实现订票的核心业务逻辑
         /// </summary>
         /// <param name="segment"></param>
