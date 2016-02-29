@@ -287,7 +287,7 @@ namespace ENode.Commanding.Impl
         }
         private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
         {
-            processingCommand.Complete();
+            processingCommand.Mailbox.TryExecuteNextMessage();
             processingCommand.SetResult(new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType));
         }
         private void RetryCommand(ProcessingCommand processingCommand)

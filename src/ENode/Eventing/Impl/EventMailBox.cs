@@ -44,6 +44,12 @@ namespace ENode.Eventing.Impl
             _messageQueue.Enqueue(message);
             RegisterForExecution();
         }
+        public void Clear()
+        {
+            EventCommittingContext message;
+            while (_messageQueue.TryDequeue(out message)) { }
+            _committingContexts.Clear();
+        }
         public void Run()
         {
             _committingContexts.Clear();
