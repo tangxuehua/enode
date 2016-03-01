@@ -134,7 +134,15 @@ namespace ENode.Eventing.Impl
                             }
                             catch
                             {
-                                try { transaction.Rollback(); } catch { }
+                                try
+                                {
+                                    transaction.Rollback();
+                                    _logger.InfoFormat("Transaction rollback success.");
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.ErrorFormat("Transaction rollback failed.", ex);
+                                }
                                 throw;
                             }
                         }

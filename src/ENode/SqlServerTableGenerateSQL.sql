@@ -16,10 +16,8 @@ CREATE TABLE [dbo].[EventStream] (
     [CommandId]             NVARCHAR (36)  NOT NULL,
     [CreatedOn]             DATETIME       NOT NULL,
     [Events]                NVARCHAR (MAX) NOT NULL, 
-    CONSTRAINT [PK_EventStream] PRIMARY KEY ([Sequence])
+    CONSTRAINT [PK_EventStream] PRIMARY KEY ([AggregateRootId], [Version])
 )
-GO
-CREATE UNIQUE INDEX [IX_EventStream_AggId_Version]   ON [dbo].[EventStream] ([AggregateRootId], [Version])
 GO
 CREATE UNIQUE INDEX [IX_EventStream_AggId_CommandId] ON [dbo].[EventStream] ([AggregateRootId], [CommandId])
 GO

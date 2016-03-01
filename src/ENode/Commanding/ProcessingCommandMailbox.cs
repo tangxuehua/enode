@@ -1,12 +1,15 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using ECommon.Extensions;
+using ECommon.Logging;
 
 namespace ENode.Commanding
 {
     public class ProcessingCommandMailbox
     {
+        private readonly ILogger _logger;
         private readonly object _lockObj = new object();
         private readonly string _aggregateRootId;
         private readonly ConcurrentDictionary<long, ProcessingCommand> _messageDict;
@@ -25,12 +28,13 @@ namespace ENode.Commanding
             }
         }
 
-        public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandScheduler scheduler, IProcessingCommandHandler messageHandler)
+        public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandScheduler scheduler, IProcessingCommandHandler messageHandler, ILogger logger)
         {
             _messageDict = new ConcurrentDictionary<long, ProcessingCommand>();
             _aggregateRootId = aggregateRootId;
             _scheduler = scheduler;
             _messageHandler = messageHandler;
+            _logger = logger;
         }
 
         public void EnqueueMessage(ProcessingCommand message)
@@ -90,13 +94,15 @@ namespace ENode.Commanding
                 if (HasRemainningMessage())
                 {
                     processingMessage = GetNextMessage();
+                    IncreaseConsumingOffset();
+
                     if (processingMessage != null)
                     {
                         _messageHandler.HandleAsync(processingMessage);
                     }
                     else
                     {
-                        IncreaseConsumingOffset();
+                        _logger.ErrorFormat("Command mailbox has remainning command, but we cannot find it, this should not be happen. consumingOffset: {0}", _consumingOffset);
                     }
                 }
             }
@@ -109,10 +115,6 @@ namespace ENode.Commanding
                     {
                         RegisterForExecution();
                     }
-                }
-                else
-                {
-                    IncreaseConsumingOffset();
                 }
             }
         }
