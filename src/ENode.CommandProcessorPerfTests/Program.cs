@@ -93,8 +93,8 @@ namespace ENode.CommandProcessorPerfTests
             var optionSetting = new OptionSetting(
                 new KeyValuePair<string, object>("ConnectionString", connectionString),
                 new KeyValuePair<string, object>("TableName", "EventStream"),
-                new KeyValuePair<string, object>("VersionIndexName", "IX_EventStream_AggId_Version"),
-                new KeyValuePair<string, object>("CommandIndexName", "IX_EventStream_AggId_CommandId"),
+                new KeyValuePair<string, object>("PrimaryKeyName", "PK_EventStream"),
+                new KeyValuePair<string, object>("CommandIndexName", "IX_EventStream_CommandId"),
                 new KeyValuePair<string, object>("TableCount", int.Parse(ConfigurationManager.AppSettings["tableCount"])),
                 new KeyValuePair<string, object>("BulkCopyBatchSize", 1000),
                 new KeyValuePair<string, object>("BulkCopyTimeout", 60));

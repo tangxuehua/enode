@@ -22,7 +22,7 @@ namespace ENode.Eventing.Impl
         private readonly string _connectionString;
         private readonly string _tableName;
         private readonly int _tableCount;
-        private readonly string _versionIndexName;
+        private readonly string _primaryKeyName;
         private readonly string _commandIndexName;
         private readonly int _bulkCopyBatchSize;
         private readonly int _bulkCopyTimeout;
@@ -55,14 +55,14 @@ namespace ENode.Eventing.Impl
             _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
             _tableName = optionSetting.GetOptionValue<string>("TableName");
             _tableCount = optionSetting.GetOptionValue<int>("TableCount");
-            _versionIndexName = optionSetting.GetOptionValue<string>("VersionIndexName");
+            _primaryKeyName = optionSetting.GetOptionValue<string>("PrimaryKeyName");
             _commandIndexName = optionSetting.GetOptionValue<string>("CommandIndexName");
             _bulkCopyBatchSize = optionSetting.GetOptionValue<int>("BulkCopyBatchSize");
             _bulkCopyTimeout = optionSetting.GetOptionValue<int>("BulkCopyTimeout");
 
             Ensure.NotNull(_connectionString, "_connectionString");
             Ensure.NotNull(_tableName, "_tableName");
-            Ensure.NotNull(_versionIndexName, "_primaryKeyName");
+            Ensure.NotNull(_primaryKeyName, "_primaryKeyName");
             Ensure.NotNull(_commandIndexName, "_commandIndexName");
             Ensure.Positive(_bulkCopyBatchSize, "_bulkCopyBatchSize");
             Ensure.Positive(_bulkCopyTimeout, "_bulkCopyTimeout");
@@ -142,18 +142,14 @@ namespace ENode.Eventing.Impl
                 }
                 catch (SqlException ex)
                 {
-                    if (ex.Number == 2601)
+                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
                     {
-                        if (ex.Message.Contains(_versionIndexName))
-                        {
-                            return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
-                        }
-                        else if (ex.Message.Contains(_commandIndexName))
-                        {
-                            return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateCommand);
-                        }
+                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
                     }
-
+                    else if (ex.Number == 2601 && ex.Message.Contains(_commandIndexName))
+                    {
+                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateCommand);
+                    }
                     _logger.Error("Batch append event has sql exception.", ex);
                     return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.IOException, ex.Message, EventAppendResult.Failed);
                 }
@@ -180,16 +176,13 @@ namespace ENode.Eventing.Impl
                 }
                 catch (SqlException ex)
                 {
-                    if (ex.Number == 2601)
+                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
                     {
-                        if (ex.Message.Contains(_versionIndexName))
-                        {
-                            return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
-                        }
-                        else if (ex.Message.Contains(_commandIndexName))
-                        {
-                            return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateCommand);
-                        }
+                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
+                    }
+                    else if (ex.Number == 2601 && ex.Message.Contains(_commandIndexName))
+                    {
+                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateCommand);
                     }
                     _logger.Error(string.Format("Append event has sql exception, eventStream: {0}", eventStream), ex);
                     return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.IOException, ex.Message, EventAppendResult.Failed);
