@@ -75,12 +75,15 @@
     <Compile Include="Configurations\OptionSetting.cs" />
     <Compile Include="Configurations\ConfigurationSetting.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
+    <Compile Include="Domain\AggregateCacheInfo.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRepository.cs" />
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\IAggregateRepositoryProvider.cs" />
+    <Compile Include="Domain\ICleanAggregateService.cs" />
     <Compile Include="Domain\Impl\AggregateRepositoryProxy.cs" />
     <Compile Include="Domain\Impl\DefaultAggregateRepositoryProvider.cs" />
+    <Compile Include="Domain\Impl\DefaultCleanAggregateService.cs" />
     <Compile Include="Domain\Impl\SnapshotOnlyAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="EQueue\AbstractTopicProvider.cs" />

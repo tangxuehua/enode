@@ -10,7 +10,7 @@ namespace ENode.Configurations
         /// <summary>ENode数据库的默认数据库连接字符串；
         /// </summary>
         public string SqlDefaultConnectionString { get; set; }
-        /// <summary>当使用默认的MemoryCache时，该属性用于配置扫描过期的聚合根的时间间隔，默认为5秒；
+        /// <summary>当使用默认的从内存清理聚合根的服务时，该属性用于配置扫描过期的聚合根的时间间隔，默认为5秒；
         /// </summary>
         public int ScanExpiredAggregateIntervalMilliseconds { get; set; }
         /// <summary>当使用默认的MemoryCache时，该属性用于配置聚合根的最长允许的不活跃时间，超过这个时间就认为是过期，就可以从内存清除了；然后下次如果再需要用的时候再重新加载进来；默认为3天；

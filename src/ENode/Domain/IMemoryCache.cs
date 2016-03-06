@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace ENode.Domain
 {
     /// <summary>Represents a high speed memory cache to get or set aggregate.
@@ -28,5 +30,9 @@ namespace ENode.Domain
         /// </summary>
         /// <param name="aggregateRootId"></param>
         bool Remove(object aggregateRootId);
+        /// <summary>Get all the aggregates from memory cache.
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<AggregateCacheInfo> GetAll();
     }
 }
