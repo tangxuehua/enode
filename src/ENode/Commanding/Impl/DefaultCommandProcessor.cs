@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using ECommon.Logging;
 
 namespace ENode.Commanding.Impl
 {
     public class DefaultCommandProcessor : ICommandProcessor
     {
+        private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, ProcessingCommandMailbox> _mailboxDict;
         private readonly IProcessingCommandScheduler _scheduler;
         private readonly IProcessingCommandHandler _handler;
 
-        public DefaultCommandProcessor(IProcessingCommandScheduler scheduler, IProcessingCommandHandler handler)
+        public DefaultCommandProcessor(IProcessingCommandScheduler scheduler, IProcessingCommandHandler handler, ILoggerFactory loggerFactory)
         {
             _mailboxDict = new ConcurrentDictionary<string, ProcessingCommandMailbox>();
             _scheduler = scheduler;
             _handler = handler;
+            _logger = loggerFactory.Create(GetType().FullName);
         }
 
         public void Process(ProcessingCommand processingCommand)
@@ -26,7 +29,7 @@ namespace ENode.Commanding.Impl
 
             var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x =>
             {
-                return new ProcessingCommandMailbox(x, _scheduler, _handler);
+                return new ProcessingCommandMailbox(x, _scheduler, _handler, _logger);
             });
             mailbox.EnqueueMessage(processingCommand);
         }

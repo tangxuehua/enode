@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using ECommon.IO;
 using ECommon.Logging;
@@ -73,7 +72,7 @@ namespace ENode.Eventing.Impl
         }
         public void CommitDomainEventAsync(EventCommittingContext context)
         {
-            var mailbox = _eventMailboxDict.GetOrAdd(context.AggregateRoot.UniqueId, x =>
+            var eventMailbox = _eventMailboxDict.GetOrAdd(context.AggregateRoot.UniqueId, x =>
             {
                 return new EventMailBox(x, _batchSize, eventMailBox =>
                 {
@@ -87,9 +86,9 @@ namespace ENode.Eventing.Impl
                     }
                 });
             });
-            mailbox.EnqueueMessage(context);
+            eventMailbox.EnqueueMessage(context);
             RefreshAggregateMemoryCache(context);
-            context.ProcessingCommand.Complete();
+            context.ProcessingCommand.Mailbox.TryExecuteNextMessage();
         }
         public void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
@@ -120,6 +119,15 @@ namespace ENode.Eventing.Impl
                         _logger.DebugFormat("Batch persist event success, aggregateRootId: {0}, eventStreamCount: {1}", eventMailBox.AggregateRootId, eventMailBox.CommittingContexts.Count);
                     }
 
+                    _logger.InfoFormat("Batch persist event success, aggregateRootId: {0}, eventStreamCount: {1}", eventMailBox.AggregateRootId, eventMailBox.CommittingContexts.Count);
+
+                    eventMailBox
+                        .CommittingContexts
+                        .First()
+                        .ProcessingCommand
+                        .Mailbox
+                        .RemoveCompleteMessages(eventMailBox.CommittingContexts.Select(x => x.ProcessingCommand));
+
                     Task.Factory.StartNew(x =>
                     {
                         var contextList = x as IList<EventCommittingContext>;
@@ -133,29 +141,12 @@ namespace ENode.Eventing.Impl
                 }
                 else if (appendResult == EventAppendResult.DuplicateEvent)
                 {
-                    //TODO
+                    ProcessEventConcurrency(eventMailBox.CommittingContexts.First());
                 }
                 else if (appendResult == EventAppendResult.DuplicateCommand)
                 {
                     PersistEventOneByOne(eventMailBox.CommittingContexts);
                 }
-
-                //var contextList = new List<EventCommittingContext>(eventMailBox.CommittingContexts);
-                //eventMailBox.RegisterForExecution(true);
-
-                //Console.WriteLine(contextList.Count);
-
-                //TODO, for test only
-                //foreach (var context in contextList)
-                //{
-                //    NotifyCommandExecuted(context.ProcessingCommand, new CommandResult(CommandStatus.Success, context.ProcessingCommand.Message.Id, context.AggregateRoot.UniqueId));
-                //}
-
-                //TODO, publish event 可以异步做
-                //foreach (var context in eventMailBox.CommittingContexts)
-                //{
-                //    PublishDomainEventAsync(context.ProcessingCommand, context.EventStream);
-                //}
             },
             () => string.Format("[contextListCount:{0}]", eventMailBox.CommittingContexts.Count),
             errorMessage =>
@@ -192,44 +183,55 @@ namespace ENode.Eventing.Impl
                         _logger.DebugFormat("Persist event success, {0}", context.EventStream);
                     }
 
+                    context.ProcessingCommand.Mailbox.RemoveCompleteMessage(context.ProcessingCommand);
+
                     Task.Factory.StartNew(x =>
                     {
                         var currentContext = x as EventCommittingContext;
                         PublishDomainEventAsync(currentContext.ProcessingCommand, currentContext.EventStream);
                     }, context);
 
-                    if (context.Next != null)
-                    {
-                        PersistEventAsync(context.Next, 0);
-                    }
-                    else
-                    {
-                        context.EventMailBox.RegisterForExecution(true);
-                    }
+                    TryProcessNextContext(context);
                 }
                 else if (result.Data == EventAppendResult.DuplicateEvent)
                 {
-                    HandleDuplicateEventResult(context);
-
-                    //TODO, consider if need to call: context.EventMailBox.RegisterForExecution(true);
+                    //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
+                    if (context.EventStream.Version == 1)
+                    {
+                        context.ProcessingCommand.Mailbox.RemoveCompleteMessage(context.ProcessingCommand);
+                        HandleFirstEventDuplicationAsync(context, 0);
+                        TryProcessNextContext(context);
+                    }
+                    //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了，则需要进行重试；
+                    else
+                    {
+                        ProcessEventConcurrency(context);
+                    }
                 }
                 else if (result.Data == EventAppendResult.DuplicateCommand)
                 {
                     HandleDuplicateCommandResult(context, 0);
-
-                    if (context.Next != null)
-                    {
-                        PersistEventAsync(context.Next, 0);
-                    }
-                    else
-                    {
-                        context.EventMailBox.RegisterForExecution(true);
-                    }
+                    TryProcessNextContext(context);
                 }
             },
             () => string.Format("[eventStream:{0}]", context.EventStream),
             errorMessage => SetCommandResult(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, errorMessage ?? "Persist event async failed.", typeof(string).FullName)),
             retryTimes);
+        }
+        private void ProcessEventConcurrency(EventCommittingContext context)
+        {
+            _logger.WarnFormat("Persist event has concurrent conflict, eventStream: {0}", context.EventStream);
+
+            var eventMailBox = context.EventMailBox;
+            var processingCommand = context.ProcessingCommand;
+            var commandMailBox = processingCommand.Mailbox;
+
+            commandMailBox.StopHandlingMessage();
+            UpdateAggregateToLatestVersion(context.EventStream.AggregateRootTypeName, eventMailBox.AggregateRootId);
+            commandMailBox.ResetConsumingOffset(processingCommand.Sequence);
+            eventMailBox.Clear();
+            eventMailBox.ExitHandlingMessage();
+            commandMailBox.RestartHandlingMessage();
         }
         private void HandleDuplicateCommandResult(EventCommittingContext context, int retryTimes)
         {
@@ -264,22 +266,6 @@ namespace ENode.Eventing.Impl
             () => string.Format("[aggregateRootId:{0}, commandId:{1}]", command.AggregateRootId, command.Id),
             errorMessage => SetCommandResult(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Find event by commandId failed.", typeof(string).FullName)),
             retryTimes);
-        }
-        private void HandleDuplicateEventResult(EventCommittingContext context)
-        {
-            //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
-            if (context.EventStream.Version == 1)
-            {
-                HandleFirstEventDuplicationAsync(context, 0);
-            }
-            //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了；
-            //那么我们需要，TODO，从长计议，参考博客中的思路
-            //先将聚合根的最新状态更新到内存，然后重试command；
-            else
-            {
-                UpdateAggregateToLatestVersion(context.EventStream.AggregateRootTypeName, context.EventStream.AggregateRootId);
-                RetryConcurrentCommand(context);
-            }
         }
         private void HandleFirstEventDuplicationAsync(EventCommittingContext context, int retryTimes)
         {
@@ -368,14 +354,16 @@ namespace ENode.Eventing.Impl
         {
             _memoryCache.RefreshAggregateFromEventStore(aggregateRootTypeName, aggregateRootId);
         }
-        private void RetryConcurrentCommand(EventCommittingContext context)
+        private void TryProcessNextContext(EventCommittingContext currentContext)
         {
-            var processingCommand = context.ProcessingCommand;
-            var command = processingCommand.Message;
-            processingCommand.IncreaseConcurrentRetriedCount();
-            processingCommand.CommandExecuteContext.Clear();
-            _logger.InfoFormat("Begin to retry command as it meets the concurrent conflict. commandType:{0}, commandId:{1}, aggregateRootId:{2}, retried count:{3}.", command.GetType().Name, command.Id, processingCommand.Message.AggregateRootId, processingCommand.ConcurrentRetriedCount);
-            _processingCommandHandler.HandleAsync(processingCommand);
+            if (currentContext.Next != null)
+            {
+                PersistEventAsync(currentContext.Next, 0);
+            }
+            else
+            {
+                currentContext.EventMailBox.RegisterForExecution(true);
+            }
         }
         private void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStreamMessage eventStream, int retryTimes)
         {
