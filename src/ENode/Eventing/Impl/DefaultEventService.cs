@@ -149,13 +149,9 @@ namespace ENode.Eventing.Impl
             () => string.Format("[contextListCount:{0}]", eventMailBox.CommittingContexts.Count),
             errorMessage =>
             {
-                _logger.Error(errorMessage);
-                //TODO
-                //_failedPersistedContextQueue.Add(contextList);
-                //_batchAppendLogger.WarnFormat("Batch persist event stream failed, event stream count:{0}", contextList.Count());
-                //ExitBatchPersistingEvents();
+                _logger.Fatal(string.Format("Batch persist event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
             },
-            retryTimes);
+            retryTimes, true);
         }
         private void PersistEventOneByOne(IList<EventCommittingContext> contextList)
         {
@@ -213,8 +209,11 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[eventStream:{0}]", context.EventStream),
-            errorMessage => CompleteCommand(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, errorMessage ?? "Persist event async failed.", typeof(string).FullName)),
-            retryTimes);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Persist event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void ProcessEventConcurrency(EventCommittingContext context)
         {
@@ -262,8 +261,11 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[aggregateRootId:{0}, commandId:{1}]", command.AggregateRootId, command.Id),
-            errorMessage => CompleteCommand(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Find event by commandId failed.", typeof(string).FullName)),
-            retryTimes);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Find event by commandId has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void HandleFirstEventDuplicationAsync(EventCommittingContext context, int retryTimes)
         {
@@ -307,8 +309,11 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            errorMessage => CompleteCommand(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, errorMessage ?? "Persist the first version of event duplicated, but try to get the first version of domain event async failed.", typeof(string).FullName)),
-            retryTimes);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Find the first version of event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void RefreshAggregateMemoryCache(DomainEventStream aggregateFirstEventStream)
         {
@@ -378,8 +383,11 @@ namespace ENode.Eventing.Impl
                 CompleteCommand(processingCommand, new CommandResult(CommandStatus.Success, processingCommand.Message.Id, eventStream.AggregateRootId, commandHandleResult, typeof(string).FullName));
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            errorMessage => CompleteCommand(processingCommand, new CommandResult(CommandStatus.Failed, processingCommand.Message.Id, eventStream.AggregateRootId, errorMessage ?? "Publish domain event async failed.", typeof(string).FullName)),
-            retryTimes);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Publish event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
         {

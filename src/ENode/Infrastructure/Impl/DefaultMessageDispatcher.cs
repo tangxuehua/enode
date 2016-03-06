@@ -166,9 +166,11 @@ namespace ENode.Infrastructure.Impl
                 }
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerType.Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Check is message handled record exist has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void DispatchTwoMessageToHandlerAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy2 handlerProxy, QueuedHandler<IMessageHandlerProxy2> queueHandler, int retryTimes)
         {
@@ -179,7 +181,7 @@ namespace ENode.Infrastructure.Impl
             var handlerTypeName = _typeNameProvider.GetTypeName(handlerType);
             var aggregateRootTypeName = message1 is ISequenceMessage ? ((ISequenceMessage)message1).AggregateRootTypeName : null;
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<bool>>("IsTwoMessageRecordExistAsync",
+            _ioHelper.TryAsyncActionRecursively("IsTwoMessageRecordExistAsync",
             () => _messageHandleRecordStore.IsRecordExistAsync(message1.Id, message2.Id, handlerTypeName, aggregateRootTypeName),
             currentRetryTimes => DispatchTwoMessageToHandlerAsync(multiMessageDispatching, handlerProxy, queueHandler, currentRetryTimes),
             result =>
@@ -198,9 +200,11 @@ namespace ENode.Infrastructure.Impl
                 }
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Check is two message handled record exist has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void DispatchThreeMessageToHandlerAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy3 handlerProxy, QueuedHandler<IMessageHandlerProxy3> queueHandler, int retryTimes)
         {
@@ -212,7 +216,7 @@ namespace ENode.Infrastructure.Impl
             var handlerTypeName = _typeNameProvider.GetTypeName(handlerType);
             var aggregateRootTypeName = message1 is ISequenceMessage ? ((ISequenceMessage)message1).AggregateRootTypeName : null;
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<bool>>("IsThreeMessageRecordExistAsync",
+            _ioHelper.TryAsyncActionRecursively("IsThreeMessageRecordExistAsync",
             () => _messageHandleRecordStore.IsRecordExistAsync(message1.Id, message2.Id, message3.Id, handlerTypeName, aggregateRootTypeName),
             currentRetryTimes => DispatchThreeMessageToHandlerAsync(multiMessageDispatching, handlerProxy, queueHandler, currentRetryTimes),
             result =>
@@ -231,16 +235,18 @@ namespace ENode.Infrastructure.Impl
                 }
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Check is three message handled record exist has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
 
         private void HandleSingleMessageAsync(SingleMessageDisptaching singleMessageDispatching, IMessageHandlerProxy1 handlerProxy, string handlerTypeName, string messageTypeName, QueuedHandler<IMessageHandlerProxy1> queueHandler, int retryTimes)
         {
             var message = singleMessageDispatching.Message;
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("HandleSingleMessageAsync",
+            _ioHelper.TryAsyncActionRecursively("HandleSingleMessageAsync",
             () => handlerProxy.HandleAsync(message),
             currentRetryTimes => HandleSingleMessageAsync(singleMessageDispatching, handlerProxy, handlerTypeName, messageTypeName, queueHandler, currentRetryTimes),
             result =>
@@ -263,9 +269,11 @@ namespace ENode.Infrastructure.Impl
                 AddMessageHandledRecordAsync(singleMessageDispatching, messageHandleRecord, handlerProxy.GetInnerObject().GetType(), handlerTypeName, handlerProxy, queueHandler, 0);
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Handle single message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void HandleTwoMessageAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy2 handlerProxy, string handlerTypeName, QueuedHandler<IMessageHandlerProxy2> queueHandler, int retryTimes)
         {
@@ -273,7 +281,7 @@ namespace ENode.Infrastructure.Impl
             var message1 = messages[0];
             var message2 = messages[1];
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("HandleTwoMessageAsync",
+            _ioHelper.TryAsyncActionRecursively("HandleTwoMessageAsync",
             () => handlerProxy.HandleAsync(message1, message2),
             currentRetryTimes => HandleTwoMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, currentRetryTimes),
             result =>
@@ -300,9 +308,11 @@ namespace ENode.Infrastructure.Impl
                 AddTwoMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, 0);
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Handle two message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void HandleThreeMessageAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy3 handlerProxy, string handlerTypeName, QueuedHandler<IMessageHandlerProxy3> queueHandler, int retryTimes)
         {
@@ -311,7 +321,7 @@ namespace ENode.Infrastructure.Impl
             var message2 = messages[1];
             var message3 = messages[2];
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("HandleTwoMessageAsync",
+            _ioHelper.TryAsyncActionRecursively("HandleThreeMessageAsync",
             () => handlerProxy.HandleAsync(message1, message2, message3),
             currentRetryTimes => HandleThreeMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, currentRetryTimes),
             result =>
@@ -341,16 +351,18 @@ namespace ENode.Infrastructure.Impl
                 AddThreeMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, 0);
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Handle three message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
 
         private void AddMessageHandledRecordAsync(SingleMessageDisptaching singleMessageDispatching, MessageHandleRecord messageHandleRecord, Type handlerType, string handlerTypeName, IMessageHandlerProxy1 handlerProxy, QueuedHandler<IMessageHandlerProxy1> queueHandler, int retryTimes)
         {
             var message = singleMessageDispatching.Message;
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("AddMessageHandledRecordAsync",
+            _ioHelper.TryAsyncActionRecursively("AddMessageHandledRecordAsync",
             () => _messageHandleRecordStore.AddRecordAsync(messageHandleRecord),
             currentRetryTimes => AddMessageHandledRecordAsync(singleMessageDispatching, messageHandleRecord, handlerType, handlerTypeName, handlerProxy, queueHandler, currentRetryTimes),
             result =>
@@ -366,15 +378,17 @@ namespace ENode.Infrastructure.Impl
                 }
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerType.Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Add single message handle record has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void AddTwoMessageHandledRecordAsync(MultiMessageDisptaching multiMessageDispatching, TwoMessageHandleRecord messageHandleRecord, string handlerTypeName, IMessageHandlerProxy2 handlerProxy, QueuedHandler<IMessageHandlerProxy2> queueHandler, int retryTimes)
         {
             var messages = multiMessageDispatching.Messages;
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("AddTwoMessageHandledRecordAsync",
+            _ioHelper.TryAsyncActionRecursively("AddTwoMessageHandledRecordAsync",
             () => _messageHandleRecordStore.AddRecordAsync(messageHandleRecord),
             currentRetryTimes => AddTwoMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, currentRetryTimes),
             result =>
@@ -390,15 +404,17 @@ namespace ENode.Infrastructure.Impl
                 }
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Add two message handle record has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void AddThreeMessageHandledRecordAsync(MultiMessageDisptaching multiMessageDispatching, ThreeMessageHandleRecord messageHandleRecord, string handlerTypeName, IMessageHandlerProxy3 handlerProxy, QueuedHandler<IMessageHandlerProxy3> queueHandler, int retryTimes)
         {
             var messages = multiMessageDispatching.Messages;
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("AddThreeMessageHandledRecordAsync",
+            _ioHelper.TryAsyncActionRecursively("AddThreeMessageHandledRecordAsync",
             () => _messageHandleRecordStore.AddRecordAsync(messageHandleRecord),
             currentRetryTimes => AddThreeMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, currentRetryTimes),
             result =>
@@ -414,9 +430,11 @@ namespace ENode.Infrastructure.Impl
                 }
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Add three message handle record has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
 
         #endregion

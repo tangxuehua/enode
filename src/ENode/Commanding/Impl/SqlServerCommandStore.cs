@@ -57,7 +57,7 @@ namespace ENode.Commanding.Impl
         {
             var record = ConvertTo(handledCommand);
 
-            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<CommandAddResult>>(async () =>
+            return _ioHelper.TryIOFuncAsync(async () =>
             {
                 try
                 {
@@ -74,18 +74,18 @@ namespace ENode.Commanding.Impl
                         return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, CommandAddResult.DuplicateCommand);
                     }
                     _logger.Error(string.Format("Add handled command has sql exception, handledCommand: {0}", handledCommand), ex);
-                    return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.IOException, ex.Message, CommandAddResult.Failed);
+                    throw;
                 }
                 catch (Exception ex)
                 {
                     _logger.Error(string.Format("Add handled command has unkown exception, handledCommand: {0}", handledCommand), ex);
-                    return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Failed, ex.Message, CommandAddResult.Failed);
+                    throw;
                 }
             }, "AddCommandAsync");
         }
         public Task<AsyncTaskResult<HandledCommand>> GetAsync(string commandId)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<HandledCommand>>(async () =>
+            return _ioHelper.TryIOFuncAsync(async () =>
             {
                 try
                 {

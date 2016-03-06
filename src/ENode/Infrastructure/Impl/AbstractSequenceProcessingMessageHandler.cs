@@ -40,7 +40,7 @@ namespace ENode.Infrastructure.Impl
         {
             var message = processingMessage.Message;
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<int>>("GetPublishedVersionAsync",
+            _ioHelper.TryAsyncActionRecursively("GetPublishedVersionAsync",
             () => _publishedVersionStore.GetPublishedVersionAsync(Name, message.AggregateRootTypeName, message.AggregateRootStringId),
             currentRetryTimes => HandleMessageAsync(processingMessage, currentRetryTimes),
             result =>
@@ -61,13 +61,15 @@ namespace ENode.Infrastructure.Impl
                 }
             },
             () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", message.Id, message.GetType().Name, message.AggregateRootStringId, message.Version),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Get published version has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void DispatchProcessingMessageAsync(X processingMessage, int retryTimes)
         {
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("DispatchProcessingMessageAsync",
+            _ioHelper.TryAsyncActionRecursively("DispatchProcessingMessageAsync",
             () => DispatchProcessingMessageAsync(processingMessage),
             currentRetryTimes => DispatchProcessingMessageAsync(processingMessage, currentRetryTimes),
             result =>
@@ -75,13 +77,15 @@ namespace ENode.Infrastructure.Impl
                 UpdatePublishedVersionAsync(processingMessage, 0);
             },
             () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootStringId, processingMessage.Message.Version),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Dispatching message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void UpdatePublishedVersionAsync(X processingMessage, int retryTimes)
         {
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("UpdatePublishedVersionAsync",
+            _ioHelper.TryAsyncActionRecursively("UpdatePublishedVersionAsync",
             () => _publishedVersionStore.UpdatePublishedVersionAsync(Name, processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootStringId, processingMessage.Message.Version),
             currentRetryTimes => UpdatePublishedVersionAsync(processingMessage, currentRetryTimes),
             result =>
@@ -89,9 +93,11 @@ namespace ENode.Infrastructure.Impl
                 processingMessage.SetResult(default(Z));
             },
             () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootStringId, processingMessage.Message.Version),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Update published version has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
     }
 }
