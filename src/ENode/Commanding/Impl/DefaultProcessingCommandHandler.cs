@@ -68,7 +68,7 @@ namespace ENode.Commanding.Impl
         {
             if (string.IsNullOrEmpty(processingCommand.Message.AggregateRootId))
             {
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName,
+                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName,
                     string.Format("The aggregateRootId of command cannot be null or empty. commandType:{0}, commandId:{1}",
                     processingCommand.Message.GetType().Name,
                     processingCommand.Message.Id));
@@ -84,7 +84,7 @@ namespace ENode.Commanding.Impl
 
             if (commandHandler == null && commandAsyncHandler == null)
             {
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName,
+                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName,
                     string.Format("No command handler found of command. commandType:{0}, commandId:{1}",
                     processingCommand.Message.GetType().Name,
                     processingCommand.Message.Id));
@@ -113,7 +113,7 @@ namespace ENode.Commanding.Impl
             if (commandHandlers.Count() > 1)
             {
                 _logger.ErrorFormat("Found more than one command handlers, commandType:{0}, commandId:{1}.", command.GetType().FullName, command.Id);
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handlers found.");
+                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handlers found.");
                 return null;
             }
 
@@ -166,7 +166,7 @@ namespace ENode.Commanding.Impl
                 catch (Exception ex)
                 {
                     LogCommandExecuteException(processingCommand, commandHandler, ex);
-                    NotifyCommandExecuted(processingCommand, CommandStatus.Failed, ex.GetType().Name, "Unknown exception caught when committing changes of command.");
+                    CompleteCommand(processingCommand, CommandStatus.Failed, ex.GetType().Name, "Unknown exception caught when committing changes of command.");
                 }
             }
         }
@@ -190,7 +190,7 @@ namespace ENode.Commanding.Impl
                             command.GetType().Name,
                             command.Id);
                         _logger.ErrorFormat(errorMessage);
-                        NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                        CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
                         return;
                     }
                     dirtyAggregateRoot = aggregateRoot;
@@ -201,7 +201,7 @@ namespace ENode.Commanding.Impl
             //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
             if (dirtyAggregateRootCount == 0)
             {
-                NotifyCommandExecuted(processingCommand, CommandStatus.NothingChanged, null, null);
+                CompleteCommand(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
             }
 
@@ -258,12 +258,12 @@ namespace ENode.Commanding.Impl
                     else
                     {
                         LogCommandExecuteException(processingCommand, commandHandler, exception);
-                        NotifyCommandExecuted(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
+                        CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
                     }
                 }
             },
             () => string.Format("[commandId:{0}]", command.Id),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Get command async failed."),
+            errorMessage => CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Get command async failed."),
             retryTimes);
         }
         private void PublishExceptionAsync(ProcessingCommand processingCommand, IPublishableException exception, int retryTimes)
@@ -273,7 +273,7 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => PublishExceptionAsync(processingCommand, exception, currentRetryTimes),
             result =>
             {
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message);
+                CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message);
             },
             () =>
             {
@@ -282,13 +282,13 @@ namespace ENode.Commanding.Impl
                 var exceptionInfo = string.Join(",", serializableInfo.Select(x => string.Format("{0}:{1}", x.Key, x.Value)));
                 return string.Format("[commandId:{0}, exceptionInfo:{1}]", processingCommand.Message.Id, exceptionInfo);
             },
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Publish exception async failed."),
+            errorMessage => CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Publish exception async failed."),
             retryTimes);
         }
-        private void NotifyCommandExecuted(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
+        private void CompleteCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
         {
             processingCommand.Mailbox.TryExecuteNextMessage();
-            processingCommand.SetResult(new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType));
+            processingCommand.Complete(new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType));
         }
         private void RetryCommand(ProcessingCommand processingCommand)
         {
@@ -318,7 +318,7 @@ namespace ENode.Commanding.Impl
             if (commandAsyncHandlers.Count() > 1)
             {
                 _logger.ErrorFormat("Found more than one command handlers, commandType:{0}, commandId:{1}.", command.GetType().FullName, command.Id);
-                NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handlers found.");
+                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handlers found.");
                 return null;
             }
 
@@ -341,7 +341,7 @@ namespace ENode.Commanding.Impl
                 var existingHandledCommand = result.Data;
                 if (existingHandledCommand != null)
                 {
-                    NotifyCommandExecuted(processingCommand, CommandStatus.NothingChanged, null, null);
+                    CompleteCommand(processingCommand, CommandStatus.NothingChanged, null, null);
                     return;
                 }
                 if (_logger.IsDebugEnabled)
@@ -351,7 +351,7 @@ namespace ENode.Commanding.Impl
                 HandleCommandAsync(processingCommand, commandAsyncHandler, 0);
             },
             () => string.Format("[commandId:{0},commandType:{1}]", command.Id, command.GetType().Name),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Get command async failed."),
+            errorMessage => CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Get command async failed."),
             retryTimes);
         }
         private void HandleCommandAsync(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandHandler, int retryTimes)
@@ -373,7 +373,7 @@ namespace ENode.Commanding.Impl
                 }
                 if (result.Data == null)
                 {
-                    NotifyCommandExecuted(processingCommand, CommandStatus.Success, null, null);
+                    CompleteCommand(processingCommand, CommandStatus.Success, null, null);
                 }
                 else
                 {
@@ -406,11 +406,11 @@ namespace ENode.Commanding.Impl
                 else
                 {
                     _logger.ErrorFormat("Add command async failed, commandType:{0}, commandId:{1}, aggregateRootId:{2}", command.GetType().Name, command.Id, command.AggregateRootId);
-                    NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, "Add command async failed.");
+                    CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "Add command async failed.");
                 }
             },
             () => string.Format("[handledCommand:{0}]", handledCommand),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).Name, errorMessage ?? "Add command async failed."),
+            errorMessage => CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).Name, errorMessage ?? "Add command async failed."),
             retryTimes);
         }
         private void PublishMessageAsync(ProcessingCommand processingCommand, IApplicationMessage message, int retryTimes)
@@ -422,10 +422,10 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => PublishMessageAsync(processingCommand, message, currentRetryTimes),
             result =>
             {
-                NotifyCommandExecuted(processingCommand, CommandStatus.Success, message.GetTypeName(), _jsonSerializer.Serialize(message));
+                CompleteCommand(processingCommand, CommandStatus.Success, message.GetTypeName(), _jsonSerializer.Serialize(message));
             },
             () => string.Format("[application message:[id:{0},type:{1}],command:[id:{2},type:{3}]]", message.Id, message.GetType().Name, command.Id, command.GetType().Name),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Publish application message async failed."),
+            errorMessage => CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Publish application message async failed."),
             retryTimes);
         }
         private void HandleDuplicatedCommandAsync(ProcessingCommand processingCommand, int retryTimes)
@@ -446,7 +446,7 @@ namespace ENode.Commanding.Impl
                     }
                     else
                     {
-                        NotifyCommandExecuted(processingCommand, CommandStatus.Success, null, null);
+                        CompleteCommand(processingCommand, CommandStatus.Success, null, null);
                     }
                 }
                 else
@@ -459,11 +459,11 @@ namespace ENode.Commanding.Impl
                         command.Id,
                         command.AggregateRootId);
                     _logger.Error(errorMessage);
-                    NotifyCommandExecuted(processingCommand, CommandStatus.Failed, null, errorMessage);
+                    CompleteCommand(processingCommand, CommandStatus.Failed, null, errorMessage);
                 }
             },
             () => string.Format("[command:[id:{0},type:{1}]", command.Id, command.GetType().Name),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Get command async failed."),
+            errorMessage => CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Get command async failed."),
             retryTimes);
         }
         private void HandleFaildCommandAsync(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandHandler, int retryTimes)
@@ -484,16 +484,16 @@ namespace ENode.Commanding.Impl
                     }
                     else
                     {
-                        NotifyCommandExecuted(processingCommand, CommandStatus.Success, null, null);
+                        CompleteCommand(processingCommand, CommandStatus.Success, null, null);
                     }
                 }
                 else
                 {
-                    NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, "Handle command failed.");
+                    CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "Handle command failed.");
                 }
             },
             () => string.Format("[command:[id:{0},type:{1}]", command.Id, command.GetType().Name),
-            errorMessage => NotifyCommandExecuted(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Get command async failed."),
+            errorMessage => CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage ?? "Get command async failed."),
             retryTimes);
         }
 

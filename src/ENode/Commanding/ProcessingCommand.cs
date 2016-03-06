@@ -17,7 +17,7 @@ namespace ENode.Commanding
             Items = items ?? new Dictionary<string, string>();
         }
 
-        public void SetResult(CommandResult commandResult)
+        public void Complete(CommandResult commandResult)
         {
             CommandExecuteContext.OnCommandExecuted(commandResult);
         }
