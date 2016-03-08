@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using ECommon.Components;
@@ -95,7 +96,7 @@ namespace ENode.CommandProcessorPerfTests
                 new KeyValuePair<string, object>("TableName", "EventStream"),
                 new KeyValuePair<string, object>("PrimaryKeyName", "PK_EventStream"),
                 new KeyValuePair<string, object>("CommandIndexName", "IX_EventStream_CommandId"),
-                new KeyValuePair<string, object>("TableCount", int.Parse(ConfigurationManager.AppSettings["tableCount"])),
+                new KeyValuePair<string, object>("TableCount", 1),
                 new KeyValuePair<string, object>("BulkCopyBatchSize", 1000),
                 new KeyValuePair<string, object>("BulkCopyTimeout", 60));
 
