@@ -9,16 +9,23 @@ namespace ENode.Commanding
 {
     public class ProcessingCommandMailbox
     {
+        #region Private Variables 
+
         private readonly ILogger _logger;
         private readonly object _lockObj = new object();
+        private readonly object _lockObj2 = new object();
         private readonly string _aggregateRootId;
         private readonly ConcurrentDictionary<long, ProcessingCommand> _messageDict;
+        private readonly Dictionary<long, CommandResult> _requestToCompleteOffsetDict;
         private readonly IProcessingCommandScheduler _scheduler;
         private readonly IProcessingCommandHandler _messageHandler;
         private long _maxOffset;
         private long _consumingOffset;
+        private long _consumedOffset;
         private int _isHandlingMessage;
         private int _stopHandling;
+
+        #endregion
 
         public string AggregateRootId
         {
@@ -31,10 +38,12 @@ namespace ENode.Commanding
         public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandScheduler scheduler, IProcessingCommandHandler messageHandler, ILogger logger)
         {
             _messageDict = new ConcurrentDictionary<long, ProcessingCommand>();
+            _requestToCompleteOffsetDict = new Dictionary<long, CommandResult>();
             _aggregateRootId = aggregateRootId;
             _scheduler = scheduler;
             _messageHandler = messageHandler;
             _logger = logger;
+            _consumedOffset = -1;
         }
 
         public void EnqueueMessage(ProcessingCommand message)
@@ -70,15 +79,26 @@ namespace ENode.Commanding
             ExitHandlingMessage();
             RegisterForExecution();
         }
-        public void RemoveCompleteMessage(ProcessingCommand message)
+        public void CompleteMessage(ProcessingCommand message, CommandResult commandResult)
         {
-            _messageDict.Remove(message.Sequence);
-        }
-        public void RemoveCompleteMessages(IEnumerable<ProcessingCommand> messages)
-        {
-            foreach (var message in messages)
+            lock (_lockObj2)
             {
-                _messageDict.Remove(message.Sequence);
+                if (message.Sequence == _consumedOffset + 1)
+                {
+                    _messageDict.Remove(message.Sequence);
+                    _consumedOffset = message.Sequence;
+                    CompleteMessageWithResult(message, commandResult);
+                    ProcessRequestToCompleteOffsets();
+                }
+                else if (message.Sequence > _consumedOffset + 1)
+                {
+                    _requestToCompleteOffsetDict[message.Sequence] = commandResult;
+                }
+                else if (message.Sequence < _consumedOffset + 1)
+                {
+                    _messageDict.Remove(message.Sequence);
+                    _requestToCompleteOffsetDict.Remove(message.Sequence);
+                }
             }
         }
 
@@ -100,10 +120,6 @@ namespace ENode.Commanding
                     {
                         _messageHandler.HandleAsync(processingMessage);
                     }
-                    else
-                    {
-                        _logger.ErrorFormat("Command mailbox has remainning command, but we cannot find it, this should not be happen. consumingOffset: {0}", _consumingOffset);
-                    }
                 }
             }
             finally
@@ -119,6 +135,34 @@ namespace ENode.Commanding
             }
         }
 
+        private void ProcessRequestToCompleteOffsets()
+        {
+            var nextSequence = _consumedOffset + 1;
+
+            while (_requestToCompleteOffsetDict.ContainsKey(nextSequence))
+            {
+                var processingCommand = default(ProcessingCommand);
+                if (_messageDict.TryRemove(nextSequence, out processingCommand))
+                {
+                    CompleteMessageWithResult(processingCommand, _requestToCompleteOffsetDict[nextSequence]);
+                }
+                _requestToCompleteOffsetDict.Remove(nextSequence);
+                _consumedOffset = nextSequence;
+
+                nextSequence++;
+            }
+        }
+        private void CompleteMessageWithResult(ProcessingCommand processingCommand, CommandResult commandResult)
+        {
+            try
+            {
+                processingCommand.Complete(commandResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Failed to complete command, commandId: {0}, aggregateRootId: {1}", processingCommand.Message.Id, processingCommand.Message.AggregateRootId), ex);
+            }
+        }
         private void ExitHandlingMessage()
         {
             Interlocked.Exchange(ref _isHandlingMessage, 0);

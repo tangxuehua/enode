@@ -119,13 +119,6 @@ namespace ENode.Eventing.Impl
                         _logger.DebugFormat("Batch persist event success, aggregateRootId: {0}, eventStreamCount: {1}", eventMailBox.AggregateRootId, eventMailBox.CommittingContexts.Count);
                     }
 
-                    eventMailBox
-                        .CommittingContexts
-                        .First()
-                        .ProcessingCommand
-                        .Mailbox
-                        .RemoveCompleteMessages(eventMailBox.CommittingContexts.Select(x => x.ProcessingCommand));
-
                     Task.Factory.StartNew(x =>
                     {
                         var contextList = x as IList<EventCommittingContext>;
@@ -139,7 +132,16 @@ namespace ENode.Eventing.Impl
                 }
                 else if (appendResult == EventAppendResult.DuplicateEvent)
                 {
-                    ProcessEventConcurrency(eventMailBox.CommittingContexts.First());
+                    var context = eventMailBox.CommittingContexts.First();
+                    if (context.EventStream.Version == 1)
+                    {
+                        ConcatConetxts(eventMailBox.CommittingContexts);
+                        HandleFirstEventDuplicationAsync(context, 0);
+                    }
+                    else
+                    {
+                        ProcessEventConcurrency(context);
+                    }
                 }
                 else if (appendResult == EventAppendResult.DuplicateCommand)
                 {
@@ -155,12 +157,7 @@ namespace ENode.Eventing.Impl
         }
         private void PersistEventOneByOne(IList<EventCommittingContext> contextList)
         {
-            for (var i = 0; i < contextList.Count - 1; i++)
-            {
-                var currentContext = contextList[i];
-                var nextContext = contextList[i + 1];
-                currentContext.Next = nextContext;
-            }
+            ConcatConetxts(contextList);
             PersistEventAsync(contextList[0], 0);
         }
         private void PersistEventAsync(EventCommittingContext context, int retryTimes)
@@ -177,8 +174,6 @@ namespace ENode.Eventing.Impl
                         _logger.DebugFormat("Persist event success, {0}", context.EventStream);
                     }
 
-                    context.ProcessingCommand.Mailbox.RemoveCompleteMessage(context.ProcessingCommand);
-
                     Task.Factory.StartNew(x =>
                     {
                         var currentContext = x as EventCommittingContext;
@@ -192,9 +187,7 @@ namespace ENode.Eventing.Impl
                     //如果是当前事件的版本号为1，则认为是在创建重复的聚合根
                     if (context.EventStream.Version == 1)
                     {
-                        context.ProcessingCommand.Mailbox.RemoveCompleteMessage(context.ProcessingCommand);
                         HandleFirstEventDuplicationAsync(context, 0);
-                        TryProcessNextContext(context);
                     }
                     //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了，则需要进行重试；
                     else
@@ -204,8 +197,10 @@ namespace ENode.Eventing.Impl
                 }
                 else if (result.Data == EventAppendResult.DuplicateCommand)
                 {
-                    HandleDuplicateCommandResult(context, 0);
-                    TryProcessNextContext(context);
+                    _logger.WarnFormat("Persist event has duplicate command, eventStream: {0}", context.EventStream);
+                    ResetCommandMailBoxConsumingOffset(context);
+                    TryToRepublishEventAsync(context, 0);
+                    context.EventMailBox.RegisterForExecution(true);
                 }
             },
             () => string.Format("[eventStream:{0}]", context.EventStream),
@@ -224,25 +219,38 @@ namespace ENode.Eventing.Impl
             var commandMailBox = processingCommand.Mailbox;
 
             commandMailBox.StopHandlingMessage();
-            UpdateAggregateToLatestVersion(context.EventStream.AggregateRootTypeName, eventMailBox.AggregateRootId);
+            UpdateAggregateMemoryCacheToLatestVersion(context.EventStream);
             commandMailBox.ResetConsumingOffset(processingCommand.Sequence);
             eventMailBox.Clear();
             eventMailBox.ExitHandlingMessage();
             commandMailBox.RestartHandlingMessage();
         }
-        private void HandleDuplicateCommandResult(EventCommittingContext context, int retryTimes)
+        private void ResetCommandMailBoxConsumingOffset(EventCommittingContext context)
+        {
+            var eventMailBox = context.EventMailBox;
+            var processingCommand = context.ProcessingCommand;
+            var commandMailBox = processingCommand.Mailbox;
+
+            commandMailBox.StopHandlingMessage();
+            UpdateAggregateMemoryCacheToLatestVersion(context.EventStream);
+            commandMailBox.ResetConsumingOffset(processingCommand.Sequence + 1);
+            eventMailBox.Clear();
+            eventMailBox.ExitHandlingMessage();
+            commandMailBox.RestartHandlingMessage();
+        }
+        private void TryToRepublishEventAsync(EventCommittingContext context, int retryTimes)
         {
             var command = context.ProcessingCommand.Message;
 
             _ioHelper.TryAsyncActionRecursively("FindEventByCommandIdAsync",
             () => _eventStore.FindAsync(command.AggregateRootId, command.Id),
-            currentRetryTimes => HandleDuplicateCommandResult(context, currentRetryTimes),
+            currentRetryTimes => TryToRepublishEventAsync(context, currentRetryTimes),
             result =>
             {
                 var existingEventStream = result.Data;
                 if (existingEventStream != null)
                 {
-                    //这里，我们需要再重新做一遍发布事件，确保最终一致性；
+                    //这里，我们需要再重新做一遍发布事件这个操作；
                     //之所以要这样做是因为虽然该command产生的事件已经持久化成功，但并不表示事件已经发布出去了；
                     //因为有可能事件持久化成功了，但那时正好机器断电了，则发布事件都没有做；
                     PublishDomainEventAsync(context.ProcessingCommand, existingEventStream);
@@ -251,13 +259,12 @@ namespace ENode.Eventing.Impl
                 {
                     //到这里，说明当前command想添加到eventStore中时，提示command重复，但是尝试从eventStore中取出该command时却找不到该command。
                     //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非eventStore的Add接口和Get接口出现读写不一致的情况；
-                    //我们记录错误日志，然后认为当前command已被处理为失败。
-                    var errorMessage = string.Format("Command exist in the event store, but we cannot get it from the event store. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
+                    //框架会记录错误日志，让开发者排查具体是什么问题。
+                    var errorMessage = string.Format("Command exist in the event store, but we cannot find it from the event store, this should not be happen, and we cannot continue again. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
                         command.GetType().Name,
                         command.Id,
                         command.AggregateRootId);
-                    _logger.Error(errorMessage);
-                    CompleteCommand(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Duplicate command execution.", typeof(string).FullName));
+                    _logger.Fatal(errorMessage);
                 }
             },
             () => string.Format("[aggregateRootId:{0}, commandId:{1}]", command.AggregateRootId, command.Id),
@@ -285,6 +292,7 @@ namespace ENode.Eventing.Impl
                     if (context.ProcessingCommand.Message.Id == firstEventStream.CommandId)
                     {
                         PublishDomainEventAsync(context.ProcessingCommand, firstEventStream);
+                        TryProcessNextContext(context);
                     }
                     else
                     {
@@ -295,17 +303,17 @@ namespace ENode.Eventing.Impl
                             firstEventStream.AggregateRootId,
                             firstEventStream.AggregateRootTypeName);
                         _logger.Error(errorMessage);
+                        ResetCommandMailBoxConsumingOffset(context);
                         CompleteCommand(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation.", typeof(string).FullName));
                     }
                 }
                 else
                 {
-                    var errorMessage = string.Format("Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeName:{2}",
+                    var errorMessage = string.Format("Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore, this should not be happen, and we cannot continue again. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeName:{2}",
                         eventStream.CommandId,
                         eventStream.AggregateRootId,
                         eventStream.AggregateRootTypeName);
-                    _logger.Error(errorMessage);
-                    CompleteCommand(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore.", typeof(string).FullName));
+                    _logger.Fatal(errorMessage);
                 }
             },
             () => string.Format("[eventStream:{0}]", eventStream),
@@ -314,28 +322,6 @@ namespace ENode.Eventing.Impl
                 _logger.Fatal(string.Format("Find the first version of event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
             },
             retryTimes, true);
-        }
-        private void RefreshAggregateMemoryCache(DomainEventStream aggregateFirstEventStream)
-        {
-            try
-            {
-                var aggregateRootType = _typeNameProvider.GetType(aggregateFirstEventStream.AggregateRootTypeName);
-                var aggregateRoot = _memoryCache.Get(aggregateFirstEventStream.AggregateRootId, aggregateRootType);
-                if (aggregateRoot == null)
-                {
-                    aggregateRoot = _aggregateRootFactory.CreateAggregateRoot(aggregateRootType);
-                    aggregateRoot.ReplayEvents(new DomainEventStream[] { aggregateFirstEventStream });
-                    _memoryCache.Set(aggregateRoot);
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.DebugFormat("Aggregate added into memory, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}", aggregateFirstEventStream.CommandId, aggregateRootType.Name, aggregateRoot.UniqueId, aggregateRoot.Version);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("Refresh memory cache by aggregate first event stream failed, {0}", aggregateFirstEventStream), ex);
-            }
         }
         private void RefreshAggregateMemoryCache(EventCommittingContext context)
         {
@@ -353,9 +339,16 @@ namespace ENode.Eventing.Impl
                 _logger.Error(string.Format("Refresh memory cache failed for event stream:{0}", context.EventStream), ex);
             }
         }
-        private void UpdateAggregateToLatestVersion(string aggregateRootTypeName, string aggregateRootId)
+        private void UpdateAggregateMemoryCacheToLatestVersion(DomainEventStream eventStream)
         {
-            _memoryCache.RefreshAggregateFromEventStore(aggregateRootTypeName, aggregateRootId);
+            try
+            {
+                _memoryCache.RefreshAggregateFromEventStore(eventStream.AggregateRootTypeName, eventStream.AggregateRootId);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Try to refresh aggregate in-memory from event store failed, eventStream: {0}", eventStream), ex);
+            }
         }
         private void TryProcessNextContext(EventCommittingContext currentContext)
         {
@@ -389,9 +382,18 @@ namespace ENode.Eventing.Impl
             },
             retryTimes, true);
         }
+        private void ConcatConetxts(IList<EventCommittingContext> contextList)
+        {
+            for (var i = 0; i < contextList.Count - 1; i++)
+            {
+                var currentContext = contextList[i];
+                var nextContext = contextList[i + 1];
+                currentContext.Next = nextContext;
+            }
+        }
         private void CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
         {
-            processingCommand.Complete(commandResult);
+            processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
         }
 
         #endregion

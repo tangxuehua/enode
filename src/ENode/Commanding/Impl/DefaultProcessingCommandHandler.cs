@@ -130,6 +130,8 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Message;
 
+            processingCommand.CommandExecuteContext.Clear();
+
             //调用command handler执行当前command
             var handleSuccess = false;
             try
@@ -144,12 +146,6 @@ namespace ENode.Commanding.Impl
                         command.AggregateRootId);
                 }
                 handleSuccess = true;
-            }
-            catch (IOException ex)
-            {
-                _logger.Error(ex);
-                RetryCommand(processingCommand);
-                return;
             }
             catch (Exception ex)
             {
@@ -248,8 +244,8 @@ namespace ENode.Commanding.Impl
                 else
                 {
                     //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行。
-                    //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；否则，就记录错误日志；
-                    //然后，认为该command处理失败即可；
+                    //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；
+                    //否则，就记录错误日志，然后认为该command处理失败即可；
                     var publishableException = exception as IPublishableException;
                     if (publishableException != null)
                     {
@@ -291,24 +287,15 @@ namespace ENode.Commanding.Impl
             },
             retryTimes, true);
         }
-        private void CompleteCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
-        {
-            processingCommand.Mailbox.TryExecuteNextMessage();
-            processingCommand.Complete(new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType));
-        }
-        private void RetryCommand(ProcessingCommand processingCommand)
-        {
-            processingCommand.CommandExecuteContext.Clear();
-            HandleAsync(processingCommand);
-        }
         private void LogCommandExecuteException(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler, Exception exception)
         {
+            var command = processingCommand.Message;
             var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}",
                 exception.GetType().Name,
                 commandHandler.GetInnerObject().GetType().Name,
-                processingCommand.Message.GetType().Name,
-                processingCommand.Message.Id,
-                processingCommand.Message.AggregateRootId);
+                command.GetType().Name,
+                command.Id,
+                command.AggregateRootId);
             _logger.Error(errorMessage, exception);
         }
 
@@ -376,14 +363,7 @@ namespace ENode.Commanding.Impl
                         command.Id,
                         command.AggregateRootId);
                 }
-                if (result.Data == null)
-                {
-                    CompleteCommand(processingCommand, CommandStatus.Success, null, null);
-                }
-                else
-                {
-                    CommitChangesAsync(processingCommand, result.Data, 0);
-                }
+                CommitChangesAsync(processingCommand, result.Data, 0);
             },
             () => string.Format("[command:[id:{0},type:{1}],handlerType:{2}]", command.Id, command.GetType().Name, commandHandler.GetInnerObject().GetType().Name),
             errorMessage =>
@@ -405,7 +385,14 @@ namespace ENode.Commanding.Impl
                 var commandAddResult = result.Data;
                 if (commandAddResult == CommandAddResult.Success)
                 {
-                    PublishMessageAsync(processingCommand, message, 0);
+                    if (message != null)
+                    {
+                        PublishMessageAsync(processingCommand, message, 0);
+                    }
+                    else
+                    {
+                        CompleteCommand(processingCommand, CommandStatus.Success, null, null);
+                    }
                 }
                 else if (commandAddResult == CommandAddResult.DuplicateCommand)
                 {
@@ -480,5 +467,12 @@ namespace ENode.Commanding.Impl
         }
 
         #endregion
+
+        private void CompleteCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
+        {
+            var commandResult = new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType);
+            processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
+            processingCommand.Mailbox.TryExecuteNextMessage();
+        }
     }
 }
