@@ -59,11 +59,16 @@
       <HintPath>..\..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="protobuf-net, Version=2.0.0.668, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <HintPath>..\..\packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
@@ -71,11 +76,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommandTopicProvider.cs" />
+    <Compile Include="ENodeExtensions.cs" />
+    <Compile Include="TestCases\CommandServiceTest.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="MessageProcessorTest.cs" />
+    <Compile Include="TestCases\MessageProcessorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="log4net.config">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -86,6 +95,14 @@
     <ProjectReference Include="..\eNode\ENode.csproj">
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj">
+      <Project>{33a00a93-90bb-40fc-93c4-b35296da0ea2}</Project>
+      <Name>NoteSample.CommandHandlers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NoteSample.Commands\NoteSample.Commands.csproj">
+      <Project>{4048fe0b-50a6-46ad-b633-0e65883e8c3e}</Project>
+      <Name>NoteSample.Commands</Name>
     </ProjectReference>
     <ProjectReference Include="..\NoteSample.Domain\NoteSample.Domain.csproj">
       <Project>{51c698d5-8ccf-468b-8c4e-db615b4463c1}</Project>

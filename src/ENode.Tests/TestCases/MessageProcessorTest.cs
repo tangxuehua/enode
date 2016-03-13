@@ -7,13 +7,13 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using NoteSample.Domain;
 
-namespace ENode.Tests
+namespace ENode.Tests.TestCases
 {
     public class MessageProcessorTest
     {
         private static ManualResetEvent _waitHandle = new ManualResetEvent(false);
 
-        public void test_sequence_domain_event_process()
+        public void sequence_domain_event_process_test()
         {
             var processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
 
