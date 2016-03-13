@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -76,29 +77,47 @@ namespace ENode.Commanding.Impl
                 return;
             }
 
-            var commandHandler = GetCommandHandler(processingCommand);
-            var commandAsyncHandler = default(ICommandAsyncHandlerProxy);
-
-            if (commandHandler == null)
+            ICommandHandlerProxy commandHandler;
+            var findResult = GetCommandHandler(processingCommand, commandType => _commandHandlerProvider.GetHandlers(commandType), out commandHandler);
+            if (findResult == HandlerFindResult.Found)
             {
-                commandAsyncHandler = GetCommandAsyncHandler(processingCommand);
+                HandleCommand(processingCommand, commandHandler);
+            }
+            else if (findResult == HandlerFindResult.TooManyHandlerData)
+            {
+                _logger.ErrorFormat("Found more than one command handler data, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
+                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler data found.");
+            }
+            else if (findResult == HandlerFindResult.TooManyHandler)
+            {
+                _logger.ErrorFormat("Found more than one command handler, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
+                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler found.");
+            }
+            else if (findResult == HandlerFindResult.NotFound)
+            {
+                ICommandAsyncHandlerProxy commandAsyncHandler;
+                findResult = GetCommandHandler(processingCommand, commandType => _commandAsyncHandlerProvider.GetHandlers(commandType), out commandAsyncHandler);
+                if (findResult == HandlerFindResult.Found)
+                {
+                    HandleCommand(processingCommand, commandAsyncHandler);
+                }
+                else if (findResult == HandlerFindResult.TooManyHandlerData)
+                {
+                    _logger.ErrorFormat("Found more than one command async handler data, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
+                    CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command async handler data found.");
+                }
+                else if (findResult == HandlerFindResult.TooManyHandler)
+                {
+                    _logger.ErrorFormat("Found more than one command async handler, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
+                    CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command async handler found.");
+                }
             }
 
-            if (commandHandler == null && commandAsyncHandler == null)
+            if (findResult == HandlerFindResult.NotFound)
             {
                 var errorMessage = string.Format("No command handler found of command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
                 _logger.Error(errorMessage);
                 CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
-                return;
-            }
-
-            if (commandHandler != null)
-            {
-                HandleCommand(processingCommand, commandHandler);
-            }
-            else if (commandAsyncHandler != null)
-            {
-                ProcessCommand(processingCommand, commandAsyncHandler, 0);
             }
         }
 
@@ -106,26 +125,6 @@ namespace ENode.Commanding.Impl
 
         #region Command Handler Helper Methods
 
-        private ICommandHandlerProxy GetCommandHandler(ProcessingCommand processingCommand)
-        {
-            var command = processingCommand.Message;
-            var commandHandlers = _commandHandlerProvider.GetHandlers(command.GetType());
-
-            if (commandHandlers.Count() > 1)
-            {
-                _logger.ErrorFormat("Found more than one command handlers, commandType:{0}, commandId:{1}.", command.GetType().FullName, command.Id);
-                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handlers found.");
-                return null;
-            }
-
-            var handlerData = commandHandlers.SingleOrDefault();
-            if (handlerData != null)
-            {
-                return handlerData.ListHandlers.Single();
-            }
-
-            return null;
-        }
         private void HandleCommand(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler)
         {
             var command = processingCommand.Message;
@@ -175,6 +174,7 @@ namespace ENode.Commanding.Impl
             var dirtyAggregateRootCount = 0;
             var dirtyAggregateRoot = default(IAggregateRoot);
             var changedEvents = default(IEnumerable<IDomainEvent>);
+
             foreach (var aggregateRoot in trackedAggregateRoots)
             {
                 var events = aggregateRoot.GetChanges();
@@ -196,7 +196,7 @@ namespace ENode.Commanding.Impl
             }
 
             //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
-            if (dirtyAggregateRootCount == 0)
+            if (dirtyAggregateRootCount == 0 || changedEvents == null || changedEvents.Count() == 0)
             {
                 CompleteCommand(processingCommand, CommandStatus.NothingChanged, null, null);
                 return;
@@ -303,24 +303,9 @@ namespace ENode.Commanding.Impl
 
         #region Command Async Handler Help Methods
 
-        private ICommandAsyncHandlerProxy GetCommandAsyncHandler(ProcessingCommand processingCommand)
+        private void HandleCommand(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandHandler)
         {
-            var command = processingCommand.Message;
-            var commandAsyncHandlers = _commandAsyncHandlerProvider.GetHandlers(command.GetType());
-
-            if (commandAsyncHandlers.Count() > 1)
-            {
-                _logger.ErrorFormat("Found more than one command handlers, commandType:{0}, commandId:{1}.", command.GetType().FullName, command.Id);
-                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handlers found.");
-                return null;
-            }
-
-            var handlerData = commandAsyncHandlers.SingleOrDefault();
-            if (handlerData != null)
-            {
-                return handlerData.ListHandlers.Single();
-            }
-            return null;
+            ProcessCommand(processingCommand, commandHandler, 0);
         }
         private void ProcessCommand(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandAsyncHandler, int retryTimes)
         {
@@ -351,47 +336,79 @@ namespace ENode.Commanding.Impl
             var command = processingCommand.Message;
 
             _ioHelper.TryAsyncActionRecursively("HandleCommandAsync",
-            () => commandHandler.HandleAsync(command),
-            currentRetryTimes => HandleCommandAsync(processingCommand, commandHandler, currentRetryTimes),
-            result =>
+            () =>
             {
-                if (_logger.IsDebugEnabled)
+                try
                 {
-                    _logger.DebugFormat("Handle command async success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                    var asyncResult = commandHandler.HandleAsync(command);
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("Handle command async success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                            commandHandler.GetInnerObject().GetType().Name,
+                            command.GetType().Name,
+                            command.Id,
+                            command.AggregateRootId);
+                    }
+                    return asyncResult;
+                }
+                catch (IOException ex)
+                {
+                    _logger.Error(string.Format("Handle command async has io exception. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
                         commandHandler.GetInnerObject().GetType().Name,
                         command.GetType().Name,
                         command.Id,
-                        command.AggregateRootId);
+                        command.AggregateRootId), ex);
+                    return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.IOException));
                 }
-                CommitChangesAsync(processingCommand, result.Data, 0);
+                catch (Exception ex)
+                {
+                    _logger.Error(string.Format("Handle command async has unknown exception. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                        commandHandler.GetInnerObject().GetType().Name,
+                        command.GetType().Name,
+                        command.Id,
+                        command.AggregateRootId), ex);
+                    return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Failed, ex.Message));
+                }
+            },
+            currentRetryTimes => HandleCommandAsync(processingCommand, commandHandler, currentRetryTimes),
+            result =>
+            {
+                CommitChangesAsync(processingCommand, true, result.Data, null, 0);
             },
             () => string.Format("[command:[id:{0},type:{1}],handlerType:{2}]", command.Id, command.GetType().Name, commandHandler.GetInnerObject().GetType().Name),
             errorMessage =>
             {
-                _logger.Fatal(string.Format("Handle command async has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+                CommitChangesAsync(processingCommand, false, null, errorMessage, 0);
             },
-            retryTimes, true);
+            retryTimes);
         }
-        private void CommitChangesAsync(ProcessingCommand processingCommand, IApplicationMessage message, int retryTimes)
+        private void CommitChangesAsync(ProcessingCommand processingCommand, bool success, IApplicationMessage message, string errorMessage, int retryTimes)
         {
             var command = processingCommand.Message;
             var handledCommand = new HandledCommand(command.Id, command.AggregateRootId, message);
 
             _ioHelper.TryAsyncActionRecursively("AddCommandAsync",
             () => _commandStore.AddAsync(handledCommand),
-            currentRetryTimes => CommitChangesAsync(processingCommand, message, currentRetryTimes),
+            currentRetryTimes => CommitChangesAsync(processingCommand, success, message, errorMessage, currentRetryTimes),
             result =>
             {
                 var commandAddResult = result.Data;
                 if (commandAddResult == CommandAddResult.Success)
                 {
-                    if (message != null)
+                    if (success)
                     {
-                        PublishMessageAsync(processingCommand, message, 0);
+                        if (message != null)
+                        {
+                            PublishMessageAsync(processingCommand, message, 0);
+                        }
+                        else
+                        {
+                            CompleteCommand(processingCommand, CommandStatus.Success, null, null);
+                        }
                     }
                     else
                     {
-                        CompleteCommand(processingCommand, CommandStatus.Success, null, null);
+                        CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
                     }
                 }
                 else if (commandAddResult == CommandAddResult.DuplicateCommand)
@@ -400,9 +417,9 @@ namespace ENode.Commanding.Impl
                 }
             },
             () => string.Format("[handledCommand:{0}]", handledCommand),
-            errorMessage =>
+            error =>
             {
-                _logger.Fatal(string.Format("Add command has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+                _logger.Fatal(string.Format("Add command has unknown exception, the code should not be run to here, errorMessage: {0}", error));
             },
             retryTimes, true);
         }
@@ -468,11 +485,48 @@ namespace ENode.Commanding.Impl
 
         #endregion
 
+        private HandlerFindResult GetCommandHandler<T>(ProcessingCommand processingCommand, Func<Type, IEnumerable<MessageHandlerData<T>>> getHandlersFunc, out T handlerProxy) where T : class, IObjectProxy
+        {
+            handlerProxy = null;
+
+            var command = processingCommand.Message;
+            var handlerDataList = getHandlersFunc(command.GetType());
+
+            if (handlerDataList == null || handlerDataList.Count() == 0)
+            {
+                return HandlerFindResult.NotFound;
+            }
+            else if (handlerDataList.Count() > 1)
+            {
+                return HandlerFindResult.TooManyHandlerData;
+            }
+
+            var handlerData = handlerDataList.Single();
+            if (handlerData.ListHandlers == null || handlerData.ListHandlers.Count() == 0)
+            {
+                return HandlerFindResult.NotFound;
+            }
+            else if (handlerData.ListHandlers.Count() > 1)
+            {
+                return HandlerFindResult.TooManyHandler;
+            }
+
+            handlerProxy = handlerData.ListHandlers.Single() as T;
+
+            return HandlerFindResult.Found;
+        }
         private void CompleteCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
         {
             var commandResult = new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType);
             processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
             processingCommand.Mailbox.TryExecuteNextMessage();
+        }
+        private enum HandlerFindResult
+        {
+            NotFound,
+            Found,
+            TooManyHandlerData,
+            TooManyHandler
         }
     }
 }

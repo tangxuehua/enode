@@ -13,6 +13,7 @@ namespace ENode.Domain
     [Serializable]
     public abstract class AggregateRoot<TAggregateRootId> : IAggregateRoot
     {
+        private static readonly IList<IDomainEvent> _emptyEvents = new List<IDomainEvent>();
         private static IAggregateRootInternalHandlerProvider _eventHandlerProvider;
         private int _version;
         private Queue<IDomainEvent> _uncommittedEvents;
@@ -87,6 +88,10 @@ namespace ENode.Domain
         /// <param name="domainEvent"></param>
         protected void ApplyEvent(IDomainEvent<TAggregateRootId> domainEvent)
         {
+            if (domainEvent == null)
+            {
+                throw new ArgumentNullException("domainEvent");
+            }
             if (Equals(this._id, default(TAggregateRootId)))
             {
                 throw new Exception("Aggregate root id cannot be null.");
@@ -168,7 +173,7 @@ namespace ENode.Domain
         {
             if (_uncommittedEvents == null)
             {
-                return new IDomainEvent[0];
+                return _emptyEvents;
             }
             return _uncommittedEvents.ToArray();
         }

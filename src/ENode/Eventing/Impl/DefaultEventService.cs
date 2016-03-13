@@ -74,15 +74,19 @@ namespace ENode.Eventing.Impl
         {
             var eventMailbox = _eventMailboxDict.GetOrAdd(context.AggregateRoot.UniqueId, x =>
             {
-                return new EventMailBox(x, _batchSize, eventMailBox =>
+                return new EventMailBox(x, _batchSize, committingContexts =>
                 {
+                    if (committingContexts == null || committingContexts.Count == 0)
+                    {
+                        return;
+                    }
                     if (_eventStore.SupportBatchAppendEvent)
                     {
-                        BatchPersistEventAsync(eventMailBox, 0);
+                        BatchPersistEventAsync(committingContexts, 0);
                     }
                     else
                     {
-                        PersistEventOneByOne(eventMailBox.CommittingContexts);
+                        PersistEventOneByOne(committingContexts);
                     }
                 });
             });
@@ -104,19 +108,20 @@ namespace ENode.Eventing.Impl
 
         #region Private Methods
 
-        private void BatchPersistEventAsync(EventMailBox eventMailBox, int retryTimes)
+        private void BatchPersistEventAsync(IList<EventCommittingContext> committingContexts, int retryTimes)
         {
             _ioHelper.TryAsyncActionRecursively("BatchPersistEventAsync",
-            () => _eventStore.BatchAppendAsync(eventMailBox.CommittingContexts.Select(x => x.EventStream)),
-            currentRetryTimes => BatchPersistEventAsync(eventMailBox, currentRetryTimes),
+            () => _eventStore.BatchAppendAsync(committingContexts.Select(x => x.EventStream)),
+            currentRetryTimes => BatchPersistEventAsync(committingContexts, currentRetryTimes),
             result =>
             {
+                var eventMailBox = committingContexts.First().EventMailBox;
                 var appendResult = result.Data;
                 if (appendResult == EventAppendResult.Success)
                 {
                     if (_logger.IsDebugEnabled)
                     {
-                        _logger.DebugFormat("Batch persist event success, aggregateRootId: {0}, eventStreamCount: {1}", eventMailBox.AggregateRootId, eventMailBox.CommittingContexts.Count);
+                        _logger.DebugFormat("Batch persist event success, aggregateRootId: {0}, eventStreamCount: {1}", eventMailBox.AggregateRootId, committingContexts.Count);
                     }
 
                     Task.Factory.StartNew(x =>
@@ -126,16 +131,16 @@ namespace ENode.Eventing.Impl
                         {
                             PublishDomainEventAsync(context.ProcessingCommand, context.EventStream);
                         }
-                    }, new List<EventCommittingContext>(eventMailBox.CommittingContexts));
+                    }, committingContexts);
 
                     eventMailBox.RegisterForExecution(true);
                 }
                 else if (appendResult == EventAppendResult.DuplicateEvent)
                 {
-                    var context = eventMailBox.CommittingContexts.First();
+                    var context = committingContexts.First();
                     if (context.EventStream.Version == 1)
                     {
-                        ConcatConetxts(eventMailBox.CommittingContexts);
+                        ConcatConetxts(committingContexts);
                         HandleFirstEventDuplicationAsync(context, 0);
                     }
                     else
@@ -145,10 +150,10 @@ namespace ENode.Eventing.Impl
                 }
                 else if (appendResult == EventAppendResult.DuplicateCommand)
                 {
-                    PersistEventOneByOne(eventMailBox.CommittingContexts);
+                    PersistEventOneByOne(committingContexts);
                 }
             },
-            () => string.Format("[contextListCount:{0}]", eventMailBox.CommittingContexts.Count),
+            () => string.Format("[contextListCount:{0}]", committingContexts.Count),
             errorMessage =>
             {
                 _logger.Fatal(string.Format("Batch persist event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));

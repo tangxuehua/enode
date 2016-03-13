@@ -9,9 +9,8 @@ namespace ENode.Eventing.Impl
     public class EventMailBox
     {
         private readonly string _aggregateRootId;
-        private readonly IList<EventCommittingContext> _committingContexts;
         private readonly ConcurrentQueue<EventCommittingContext> _messageQueue;
-        private readonly Action<EventMailBox> _handleMessageAction;
+        private readonly Action<IList<EventCommittingContext>> _handleMessageAction;
         private int _isHandlingMessage;
         private int _batchSize;
 
@@ -22,18 +21,10 @@ namespace ENode.Eventing.Impl
                 return _aggregateRootId;
             }
         }
-        public IList<EventCommittingContext> CommittingContexts
-        {
-            get
-            {
-                return _committingContexts;
-            }
-        }
 
-        public EventMailBox(string aggregateRootId, int batchSize, Action<EventMailBox> handleMessageAction)
+        public EventMailBox(string aggregateRootId, int batchSize, Action<IList<EventCommittingContext>> handleMessageAction)
         {
             _aggregateRootId = aggregateRootId;
-            _committingContexts = new List<EventCommittingContext>();
             _messageQueue = new ConcurrentQueue<EventCommittingContext>();
             _batchSize = batchSize;
             _handleMessageAction = handleMessageAction;
@@ -48,32 +39,35 @@ namespace ENode.Eventing.Impl
         {
             EventCommittingContext message;
             while (_messageQueue.TryDequeue(out message)) { }
-            _committingContexts.Clear();
         }
         public void Run()
         {
-            _committingContexts.Clear();
+            IList<EventCommittingContext> contextList = null;
             try
             {
                 EventCommittingContext context = null;
                 while (_messageQueue.TryDequeue(out context))
                 {
                     context.EventMailBox = this;
-                    _committingContexts.Add(context);
+                    if (contextList == null)
+                    {
+                        contextList = new List<EventCommittingContext>();
+                    }
+                    contextList.Add(context);
 
-                    if (_committingContexts.Count == _batchSize)
+                    if (contextList.Count == _batchSize)
                     {
                         break;
                     }
                 }
-                if (_committingContexts.Count > 0)
+                if (contextList.Count > 0)
                 {
-                    _handleMessageAction(this);
+                    _handleMessageAction(contextList);
                 }
             }
             finally
             {
-                if (_committingContexts.Count == 0)
+                if (contextList == null || contextList.Count == 0)
                 {
                     ExitHandlingMessage();
                     if (!_messageQueue.IsEmpty)
@@ -82,10 +76,6 @@ namespace ENode.Eventing.Impl
                     }
                 }
             }
-        }
-        public bool EnterHandlingMessage()
-        {
-            return Interlocked.CompareExchange(ref _isHandlingMessage, 1, 0) == 0;
         }
         public void ExitHandlingMessage()
         {
@@ -102,6 +92,11 @@ namespace ENode.Eventing.Impl
             {
                 Task.Factory.StartNew(Run);
             }
+        }
+
+        private bool EnterHandlingMessage()
+        {
+            return Interlocked.CompareExchange(ref _isHandlingMessage, 1, 0) == 0;
         }
     }
 }

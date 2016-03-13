@@ -81,19 +81,67 @@ namespace ENode.Eventing.Impl
         {
             var records = _ioHelper.TryIOFunc(() =>
             {
-                using (var connection = GetConnection())
+                try
                 {
-                    var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", GetTableName(aggregateRootId));
-                    return connection.Query<StreamRecord>(sql, new
+                    using (var connection = GetConnection())
                     {
-                        AggregateRootId = aggregateRootId,
-                        MinVersion = minVersion,
-                        MaxVersion = maxVersion
-                    });
+                        var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", GetTableName(aggregateRootId));
+                        return connection.Query<StreamRecord>(sql, new
+                        {
+                            AggregateRootId = aggregateRootId,
+                            MinVersion = minVersion,
+                            MaxVersion = maxVersion
+                        });
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    var errorMessage = string.Format("Failed to query aggregate events, aggregateRootId: {0}, aggregateRootType: {1}", aggregateRootId, aggregateRootTypeName);
+                    _logger.Error(errorMessage, ex);
+                    throw new IOException(errorMessage, ex);
+                }
+                catch (Exception ex)
+                {
+                    var errorMessage = string.Format("Failed to query aggregate events, aggregateRootId: {0}, aggregateRootType: {1}", aggregateRootId, aggregateRootTypeName);
+                    _logger.Error(errorMessage, ex);
+                    throw;
                 }
             }, "QueryAggregateEvents");
 
             return records.Select(record => ConvertFrom(record));
+        }
+        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
+        {
+            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<IEnumerable<DomainEventStream>>>(async () =>
+            {
+                try
+                {
+                    using (var connection = GetConnection())
+                    {
+                        var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", GetTableName(aggregateRootId));
+                        var result = await connection.QueryAsync<StreamRecord>(sql, new
+                        {
+                            AggregateRootId = aggregateRootId,
+                            MinVersion = minVersion,
+                            MaxVersion = maxVersion
+                        });
+                        var streams = result.Select(record => ConvertFrom(record));
+                        return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, streams);
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    var errorMessage = string.Format("Failed to query aggregate events async, aggregateRootId: {0}, aggregateRootType: {1}", aggregateRootId, aggregateRootTypeName);
+                    _logger.Error(errorMessage, ex);
+                    return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.IOException, ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    var errorMessage = string.Format("Failed to query aggregate events async, aggregateRootId: {0}, aggregateRootType: {1}", aggregateRootId, aggregateRootTypeName);
+                    _logger.Error(errorMessage, ex);
+                    return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Failed, ex.Message);
+                }
+            }, "QueryAggregateEventsAsync");
         }
         public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
@@ -252,37 +300,6 @@ namespace ENode.Eventing.Impl
                     return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Failed, ex.Message);
                 }
             }, "FindEventByCommandIdAsync");
-        }
-        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
-        {
-            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<IEnumerable<DomainEventStream>>>(async () =>
-            {
-                try
-                {
-                    using (var connection = GetConnection())
-                    {
-                        var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", GetTableName(aggregateRootId));
-                        var result = await connection.QueryAsync<StreamRecord>(sql, new
-                        {
-                            AggregateRootId = aggregateRootId,
-                            MinVersion = minVersion,
-                            MaxVersion = maxVersion
-                        });
-                        var streams = result.Select(record => ConvertFrom(record));
-                        return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, streams);
-                    }
-                }
-                catch (SqlException ex)
-                {
-                    _logger.Error(string.Format("Query aggregate events has sql exception, aggregateRootId: {0}", aggregateRootId), ex);
-                    return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.IOException, ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Query aggregate events has unknown exception, aggregateRootId: {0}", aggregateRootId), ex);
-                    return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Failed, ex.Message);
-                }
-            }, "QueryAggregateEventsAsync");
         }
 
         #endregion

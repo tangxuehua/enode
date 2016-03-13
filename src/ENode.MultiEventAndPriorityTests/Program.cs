@@ -23,7 +23,7 @@ namespace ENode.MultiEventAndPriorityTests
 
             var noteId = ObjectId.GenerateNewStringId();
             var command1 = new CreateNoteCommand { AggregateRootId = noteId, Title = "Sample Title1" };
-            var command2 = new TestEventsCommand { AggregateRootId = noteId };
+            var command2 = new TestEventPriorityCommand { AggregateRootId = noteId };
 
             Console.WriteLine(string.Empty);
 

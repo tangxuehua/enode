@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using ECommon.Extensions;
+using ECommon.IO;
 using ECommon.Logging;
 
 namespace ENode.Commanding
@@ -108,6 +109,7 @@ namespace ENode.Commanding
             {
                 return;
             }
+            var hasException = false;
             ProcessingCommand processingMessage = null;
             try
             {
@@ -122,9 +124,29 @@ namespace ENode.Commanding
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                hasException = true;
+
+                if (ex is IOException)
+                {
+                    //We need to retry the command.
+                    DecreaseConsumingOffset();
+                }
+
+                if (processingMessage != null)
+                {
+                    var command = processingMessage.Message;
+                    _logger.Error(string.Format("Failed to handle command [id: {0}, type: {1}]", command.Id, command.GetType().Name), ex);
+                }
+                else
+                {
+                    _logger.Error("Failed to run command mailbox.", ex);
+                }
+            }
             finally
             {
-                if (processingMessage == null)
+                if (hasException || processingMessage == null)
                 {
                     ExitHandlingMessage();
                     if (HasRemainningMessage())
@@ -183,6 +205,10 @@ namespace ENode.Commanding
         private void IncreaseConsumingOffset()
         {
             _consumingOffset++;
+        }
+        private void DecreaseConsumingOffset()
+        {
+            _consumingOffset--;
         }
         private void RegisterForExecution()
         {

@@ -22,6 +22,7 @@ namespace ENode.Tests
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             var brokerStorePath = @"c:\equeue-store";
+            var brokerSetting = new BrokerSetting(brokerStorePath);
 
             if (Directory.Exists(brokerStorePath))
             {
@@ -29,7 +30,7 @@ namespace ENode.Tests
             }
 
             configuration.RegisterEQueueComponents();
-            _broker = BrokerController.Create();
+            _broker = BrokerController.Create(brokerSetting);
             _commandService = new CommandService(new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
 

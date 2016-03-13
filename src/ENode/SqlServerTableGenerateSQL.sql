@@ -3,7 +3,7 @@ CREATE TABLE [dbo].[Command] (
     [CommandId]               NVARCHAR (36)          NOT NULL,
     [AggregateRootId]         NVARCHAR (36)          NULL,
     [MessagePayload]          NVARCHAR (MAX)         NULL,
-    [MessageTypeName]         NVARCHAR (256)         NOT NULL,
+    [MessageTypeName]         NVARCHAR (256)         NULL,
     [CreatedOn]               DATETIME               NOT NULL,
     CONSTRAINT [PK_Command] PRIMARY KEY CLUSTERED ([CommandId] ASC)
 )
