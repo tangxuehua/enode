@@ -6,7 +6,7 @@ using ECommon.Configurations;
 using ECommon.Logging;
 using ENode.Configurations;
 
-namespace ENode.Test
+namespace ENode.Tests
 {
     class Program
     {
