@@ -246,7 +246,6 @@ namespace ENode.Tests.TestCases
             Assert.NotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
-
         public void no_handler_command_test()
         {
             var command = new NoHandlerCommand
@@ -260,7 +259,6 @@ namespace ENode.Tests.TestCases
             Assert.NotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
-
         public void two_handlers_command_test()
         {
             var command = new TwoHandlersCommand
@@ -287,8 +285,7 @@ namespace ENode.Tests.TestCases
             Assert.NotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
-
-        public void async_command_test()
+        public void async_command_handler_test()
         {
             var command1 = new AsyncHandlerCommand()
             {
@@ -312,9 +309,9 @@ namespace ENode.Tests.TestCases
             Assert.NotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
         }
-        public void two_async_handlers_command_test()
+        public void async_command_handler_throw_exception_test()
         {
-            var command = new TwoAsyncHandlersCommand()
+            var command = new ThrowExceptionAsyncCommand
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
@@ -325,9 +322,9 @@ namespace ENode.Tests.TestCases
             Assert.NotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
-        public void async_handler_throw_exception_command_test()
+        public void two_async_handlers_command_test()
         {
-            var command = new ThrowExceptionAsyncCommand
+            var command = new TwoAsyncHandlersCommand()
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
