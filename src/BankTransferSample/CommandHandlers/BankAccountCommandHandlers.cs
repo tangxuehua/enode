@@ -16,6 +16,11 @@ namespace BankTransferSample.CommandHandlers
         ICommandHandler<AddTransactionPreparationCommand>,           //添加预操作
         ICommandHandler<CommitTransactionPreparationCommand>         //提交预操作
     {
+        public bool CheckCommandHandledFirst
+        {
+            get { return true; }
+        }
+
         public void Handle(ICommandContext context, CreateAccountCommand command)
         {
             context.Add(new BankAccount(command.AggregateRootId, command.Owner));

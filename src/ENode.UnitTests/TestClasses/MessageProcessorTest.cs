@@ -6,13 +6,23 @@ using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using NoteSample.Domain;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace ENode.Tests.TestCases
+namespace ENode.UnitTests
 {
-    public class MessageProcessorTest
+    [TestClass]
+    public class MessageProcessorTest : BaseTest
     {
         private static ManualResetEvent _waitHandle = new ManualResetEvent(false);
+        private static IList<int> _versionList = new List<int>();
 
+        [ClassInitialize]
+        public static void ClassInitialize(TestContext context)
+        {
+            Initialize(context);
+        }
+
+        [TestMethod]
         public void sequence_domain_event_process_test()
         {
             var processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
@@ -34,6 +44,11 @@ namespace ENode.Tests.TestCases
             processor.Process(new ProcessingDomainEventStreamMessage(message2, new DomainEventStreamProcessContext(message2)));
 
             _waitHandle.WaitOne();
+
+            for (var i = 0; i < 3; i++)
+            {
+                Assert.AreEqual(i + 1, _versionList[i]);
+            }
         }
 
         private DomainEventStreamMessage CreateMessage(IAggregateRoot aggregateRoot)
@@ -56,7 +71,7 @@ namespace ENode.Tests.TestCases
             }
             public void NotifyMessageProcessed()
             {
-                Program.Logger.InfoFormat("Domain event processed, aggregateId:{0}, version:{1}", _domainEventStreamMessage.AggregateRootId, _domainEventStreamMessage.Version);
+                _versionList.Add(_domainEventStreamMessage.Version);
                 if (_domainEventStreamMessage.Version == 3)
                 {
                     _waitHandle.Set();

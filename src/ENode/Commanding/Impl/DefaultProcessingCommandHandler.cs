@@ -305,7 +305,15 @@ namespace ENode.Commanding.Impl
 
         private void HandleCommand(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandHandler)
         {
-            ProcessCommand(processingCommand, commandHandler, 0);
+            var realHandler = commandHandler.GetInnerObject() as ICommandAsyncHandler;
+            if (realHandler.CheckCommandHandledFirst)
+            {
+                ProcessCommand(processingCommand, commandHandler, 0);
+            }
+            else
+            {
+                HandleCommandAsync(processingCommand, commandHandler, 0);
+            }
         }
         private void ProcessCommand(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandAsyncHandler, int retryTimes)
         {
@@ -319,7 +327,14 @@ namespace ENode.Commanding.Impl
                 var existingHandledCommand = result.Data;
                 if (existingHandledCommand != null)
                 {
-                    CompleteCommand(processingCommand, CommandStatus.NothingChanged, null, null);
+                    if (existingHandledCommand.Message != null)
+                    {
+                        PublishMessageAsync(processingCommand, existingHandledCommand.Message, 0);
+                    }
+                    else
+                    {
+                        CompleteCommand(processingCommand, CommandStatus.Success, null, null);
+                    }
                     return;
                 }
                 HandleCommandAsync(processingCommand, commandAsyncHandler, 0);
@@ -358,7 +373,7 @@ namespace ENode.Commanding.Impl
                         command.GetType().Name,
                         command.Id,
                         command.AggregateRootId), ex);
-                    return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.IOException));
+                    return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.IOException, ex.Message));
                 }
                 catch (Exception ex)
                 {

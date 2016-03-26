@@ -1,7 +1,7 @@
 ﻿using ENode.Commanding;
 using ENode.EQueue;
 
-namespace ENode.CommandServiceTests
+namespace ENode.UnitTests
 {
     public class CommandTopicProvider : AbstractTopicProvider<ICommand>
     {

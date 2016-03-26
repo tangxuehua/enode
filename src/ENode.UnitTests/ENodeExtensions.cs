@@ -10,7 +10,7 @@ using EQueue.Clients.Consumers;
 using EQueue.Configurations;
 using EQueue.Protocols;
 
-namespace ENode.Tests
+namespace ENode.UnitTests
 {
     public static class ENodeExtensions
     {
@@ -50,6 +50,13 @@ namespace ENode.Tests
             _commandService.Shutdown();
             _commandConsumer.Shutdown();
             _broker.Shutdown();
+            return enodeConfiguration;
+        }
+
+        public static ENodeConfiguration UseMockCommandStore(this ENodeConfiguration enodeConfiguration)
+        {
+            var configuration = enodeConfiguration.GetCommonConfiguration();
+            configuration.SetDefault<ICommandStore, MockCommandStore>();
             return enodeConfiguration;
         }
     }

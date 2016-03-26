@@ -14,6 +14,9 @@ namespace NoteSample.Commands
     public class ThrowExceptionAsyncCommand : Command<string>
     {
     }
+    public class ThrowIOExceptionAsyncCommand : Command<string>
+    {
+    }
     public class NoHandlerCommand : Command<string>
     {
     }
@@ -34,5 +37,11 @@ namespace NoteSample.Commands
     {
         public string AggregateRootId1 { get; set; }
         public string AggregateRootId2 { get; set; }
+    }
+    public class NotCheckAsyncHandlerExistCommand : Command<string>
+    {
+    }
+    public class NotCheckAsyncHandlerExistWithResultCommand : Command<string>
+    {
     }
 }

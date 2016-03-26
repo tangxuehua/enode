@@ -51,6 +51,11 @@ namespace NoteSample.CommandHandlers
 
     public class AsyncHandlerCommandHandler : ICommandAsyncHandler<AsyncHandlerCommand>
     {
+        public bool CheckCommandHandledFirst
+        {
+            get { return true; }
+        }
+
         public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(AsyncHandlerCommand command)
         {
             return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
@@ -58,6 +63,11 @@ namespace NoteSample.CommandHandlers
     }
     public class AsyncHandlerCommandHandler2 : ICommandAsyncHandler<AsyncHandlerCommand2>
     {
+        public bool CheckCommandHandledFirst
+        {
+            get { return true; }
+        }
+
         public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(AsyncHandlerCommand2 command)
         {
             return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success, new TestApplicationMessage(command.AggregateRootId)));
@@ -80,6 +90,10 @@ namespace NoteSample.CommandHandlers
     }
     public class TestCommandAsyncHandler1 : ICommandAsyncHandler<TwoAsyncHandlersCommand>
     {
+        public bool CheckCommandHandledFirst
+        {
+            get { return true; }
+        }
         public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(TwoAsyncHandlersCommand command)
         {
             return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
@@ -87,6 +101,10 @@ namespace NoteSample.CommandHandlers
     }
     public class TestCommandAsyncHandler2 : ICommandAsyncHandler<TwoAsyncHandlersCommand>
     {
+        public bool CheckCommandHandledFirst
+        {
+            get { return true; }
+        }
         public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(TwoAsyncHandlersCommand command)
         {
             return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
@@ -94,9 +112,53 @@ namespace NoteSample.CommandHandlers
     }
     public class ThrowExceptionAsyncCommandHandler : ICommandAsyncHandler<ThrowExceptionAsyncCommand>
     {
+        public bool CheckCommandHandledFirst
+        {
+            get { return true; }
+        }
         public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(ThrowExceptionAsyncCommand command)
         {
             throw new Exception("AsyncCommandException");
+        }
+    }
+    public class ThrowIOExceptionAsyncCommandHandler : ICommandAsyncHandler<ThrowIOExceptionAsyncCommand>
+    {
+        private int _count;
+
+        public bool CheckCommandHandledFirst
+        {
+            get { return true; }
+        }
+        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(ThrowIOExceptionAsyncCommand command)
+        {
+            _count++;
+            if (_count <= 5)
+            {
+                throw new IOException("AsyncCommandIOException" + _count);
+            }
+            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
+        }
+    }
+    public class NotCheckAsyncHandlerExistCommandHandler : ICommandAsyncHandler<NotCheckAsyncHandlerExistCommand>
+    {
+        public bool CheckCommandHandledFirst
+        {
+            get { return false; }
+        }
+        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(NotCheckAsyncHandlerExistCommand command)
+        {
+            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
+        }
+    }
+    public class NotCheckAsyncHandlerExistWithResultCommandHandler : ICommandAsyncHandler<NotCheckAsyncHandlerExistWithResultCommand>
+    {
+        public bool CheckCommandHandledFirst
+        {
+            get { return false; }
+        }
+        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(NotCheckAsyncHandlerExistWithResultCommand command)
+        {
+            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success, new TestApplicationMessage(command.AggregateRootId)));
         }
     }
 }
