@@ -264,8 +264,7 @@ namespace ENode.Infrastructure.Impl
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerProxy.GetInnerObject().GetType().Name),
             null,
-            retryTimes,
-            true);
+            retryTimes);
         }
         private void HandleTwoMessageAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy2 handlerProxy, string handlerTypeName, QueuedHandler<IMessageHandlerProxy2> queueHandler, int retryTimes)
         {
@@ -301,8 +300,7 @@ namespace ENode.Infrastructure.Impl
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
-            retryTimes,
-            true);
+            retryTimes);
         }
         private void HandleThreeMessageAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy3 handlerProxy, string handlerTypeName, QueuedHandler<IMessageHandlerProxy3> queueHandler, int retryTimes)
         {
@@ -342,8 +340,7 @@ namespace ENode.Infrastructure.Impl
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
-            retryTimes,
-            true);
+            retryTimes);
         }
 
         private void AddMessageHandledRecordAsync(SingleMessageDisptaching singleMessageDispatching, MessageHandleRecord messageHandleRecord, Type handlerType, string handlerTypeName, IMessageHandlerProxy1 handlerProxy, QueuedHandler<IMessageHandlerProxy1> queueHandler, int retryTimes)
