@@ -132,7 +132,7 @@ namespace ENode.UnitTests
             };
 
             //执行修改聚合根的命令
-            var asyncResult = _commandService.ExecuteAsync(command2).Result;
+            var asyncResult = _commandService.ExecuteAsync(command2, CommandReturnType.EventHandled).Result;
             Assert.IsNotNull(asyncResult);
             Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
             var commandResult = asyncResult.Data;
@@ -143,7 +143,7 @@ namespace ENode.UnitTests
             Assert.AreEqual("Changed Note", note.Title);
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
 
-            //在用重复执行该命令
+            //在重复执行该命令
             asyncResult = _commandService.ExecuteAsync(command2).Result;
             Assert.IsNotNull(asyncResult);
             Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);

@@ -334,10 +334,6 @@ namespace ENode.Eventing.Impl
             {
                 context.AggregateRoot.AcceptChanges(context.EventStream.Version);
                 _memoryCache.Set(context.AggregateRoot);
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("Refreshed aggregate memory cache, commandId:{0}, aggregateRootType:{1}, aggregateRootId:{2}, version:{3}", context.EventStream.CommandId, context.AggregateRoot.GetType().Name, context.AggregateRoot.UniqueId, context.AggregateRoot.Version);
-                }
             }
             catch (Exception ex)
             {
@@ -399,6 +395,7 @@ namespace ENode.Eventing.Impl
         private void CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
         {
             processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
+            _logger.InfoFormat("Complete command, aggregateId: {0}", processingCommand.Message.AggregateRootId);
         }
 
         #endregion

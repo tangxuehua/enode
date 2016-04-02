@@ -84,12 +84,15 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="EventHandlers\PriorityEventHandlers.cs" />
     <Compile Include="Mocks\MockApplicationMessagePublisher.cs" />
     <Compile Include="Mocks\FailedType.cs" />
     <Compile Include="Mocks\MockCommandStore.cs" />
-    <Compile Include="TestClasses\MessageProcessorTest.cs" />
+    <Compile Include="Providers\EventTopicProvider.cs" />
+    <Compile Include="TestClasses\EventHandlerPriorityTest.cs" />
+    <Compile Include="TestClasses\DomainEventSequenceTest.cs" />
     <Compile Include="TestClasses\CommandServiceTest.cs" />
-    <Compile Include="CommandTopicProvider.cs" />
+    <Compile Include="Providers\CommandTopicProvider.cs" />
     <Compile Include="ENodeExtensions.cs" />
     <Compile Include="TestClasses\BaseTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
