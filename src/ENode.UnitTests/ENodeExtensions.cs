@@ -5,6 +5,8 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.EQueue.Commanding;
+using ENode.Eventing;
+using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Clients.Consumers;
 using EQueue.Configurations;
@@ -57,6 +59,12 @@ namespace ENode.UnitTests
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.SetDefault<ICommandStore, MockCommandStore>();
+            return enodeConfiguration;
+        }
+        public static ENodeConfiguration UseMockApplicationMessagePublisher(this ENodeConfiguration enodeConfiguration)
+        {
+            var configuration = enodeConfiguration.GetCommonConfiguration();
+            configuration.SetDefault<IMessagePublisher<IApplicationMessage>, MockApplicationMessagePublisher>();
             return enodeConfiguration;
         }
     }

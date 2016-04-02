@@ -22,7 +22,7 @@ namespace ENode.Eventing.Impl
         private readonly string _connectionString;
         private readonly string _tableName;
         private readonly int _tableCount;
-        private readonly string _primaryKeyName;
+        private readonly string _versionIndexName;
         private readonly string _commandIndexName;
         private readonly int _bulkCopyBatchSize;
         private readonly int _bulkCopyTimeout;
@@ -50,19 +50,31 @@ namespace ENode.Eventing.Impl
 
         public SqlServerEventStore(OptionSetting optionSetting)
         {
-            Ensure.NotNull(optionSetting, "optionSetting");
-
-            _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
-            _tableName = optionSetting.GetOptionValue<string>("TableName");
-            _tableCount = optionSetting.GetOptionValue<int>("TableCount");
-            _primaryKeyName = optionSetting.GetOptionValue<string>("PrimaryKeyName");
-            _commandIndexName = optionSetting.GetOptionValue<string>("CommandIndexName");
-            _bulkCopyBatchSize = optionSetting.GetOptionValue<int>("BulkCopyBatchSize");
-            _bulkCopyTimeout = optionSetting.GetOptionValue<int>("BulkCopyTimeout");
+            if (optionSetting != null)
+            {
+                _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
+                _tableName = optionSetting.GetOptionValue<string>("TableName");
+                _tableCount = optionSetting.GetOptionValue<int>("TableCount");
+                _versionIndexName = optionSetting.GetOptionValue<string>("VersionIndexName");
+                _commandIndexName = optionSetting.GetOptionValue<string>("CommandIndexName");
+                _bulkCopyBatchSize = optionSetting.GetOptionValue<int>("BulkCopyBatchSize");
+                _bulkCopyTimeout = optionSetting.GetOptionValue<int>("BulkCopyTimeout");
+            }
+            else
+            {
+                var setting = ENodeConfiguration.Instance.Setting.DefaultDBConfigurationSetting;
+                _connectionString = setting.ConnectionString;
+                _tableName = setting.EventTableName;
+                _tableCount = setting.EventTableCount;
+                _versionIndexName = setting.EventTableVersionUniqueIndexName;
+                _commandIndexName = setting.EventTableCommandIdUniqueIndexName;
+                _bulkCopyBatchSize = setting.EventTableBulkCopyBatchSize;
+                _bulkCopyTimeout = setting.EventTableBulkCopyTimeout;
+            }
 
             Ensure.NotNull(_connectionString, "_connectionString");
             Ensure.NotNull(_tableName, "_tableName");
-            Ensure.NotNull(_primaryKeyName, "_primaryKeyName");
+            Ensure.NotNull(_versionIndexName, "_versionIndexName");
             Ensure.NotNull(_commandIndexName, "_commandIndexName");
             Ensure.Positive(_bulkCopyBatchSize, "_bulkCopyBatchSize");
             Ensure.Positive(_bulkCopyTimeout, "_bulkCopyTimeout");
@@ -197,7 +209,7 @@ namespace ENode.Eventing.Impl
                 }
                 catch (SqlException ex)
                 {
-                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                    if (ex.Number == 2601 && ex.Message.Contains(_versionIndexName))
                     {
                         return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
                     }
@@ -231,7 +243,7 @@ namespace ENode.Eventing.Impl
                 }
                 catch (SqlException ex)
                 {
-                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                    if (ex.Number == 2601 && ex.Message.Contains(_versionIndexName))
                     {
                         return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
                     }

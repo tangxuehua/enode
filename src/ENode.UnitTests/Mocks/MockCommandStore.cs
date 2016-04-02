@@ -8,33 +8,27 @@ namespace ENode.UnitTests
 {
     public class MockCommandStore : ICommandStore
     {
-        private readonly IOHelper _ioHelper;
         private readonly ConcurrentDictionary<string, HandledCommand> _handledCommandDict = new ConcurrentDictionary<string, HandledCommand>();
         private int _expectAddFailedCount = 0;
         private int _expectGetFailedCount = 0;
         private int _currentFailedCount = 0;
-        private CommandFailedType _commandFailedType;
-
-        public MockCommandStore(IOHelper ioHelper)
-        {
-            _ioHelper = ioHelper;
-        }
+        private FailedType _failedType;
 
         public void Reset()
         {
-            _commandFailedType = CommandFailedType.None;
+            _failedType = FailedType.None;
             _expectAddFailedCount = 0;
             _expectGetFailedCount = 0;
             _currentFailedCount = 0;
         }
-        public void SetExpectGetFailedCount(CommandFailedType commandFailedType, int count)
+        public void SetExpectGetFailedCount(FailedType failedType, int count)
         {
-            _commandFailedType = commandFailedType;
+            _failedType = failedType;
             _expectGetFailedCount = count;
         }
-        public void SetExpectAddFailedCount(CommandFailedType commandFailedType, int count)
+        public void SetExpectAddFailedCount(FailedType failedType, int count)
         {
-            _commandFailedType = commandFailedType;
+            _failedType = failedType;
             _expectAddFailedCount = count;
         }
         public Task<AsyncTaskResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
@@ -43,15 +37,15 @@ namespace ENode.UnitTests
             {
                 _currentFailedCount++;
 
-                if (_commandFailedType == CommandFailedType.UnKnownException)
+                if (_failedType == FailedType.UnKnownException)
                 {
                     throw new Exception("AddCommandAsyncUnKnownException" + _currentFailedCount);
                 }
-                else if (_commandFailedType == CommandFailedType.IOException)
+                else if (_failedType == FailedType.IOException)
                 {
-                    throw new Exception("AddCommandAsyncIOException" + _currentFailedCount);
+                    throw new IOException("AddCommandAsyncIOException" + _currentFailedCount);
                 }
-                else if (_commandFailedType == CommandFailedType.TaskIOException)
+                else if (_failedType == FailedType.TaskIOException)
                 {
                     return Task.FromResult(new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Failed, "AddCommandAsyncError" + _currentFailedCount));
                 }
@@ -64,15 +58,15 @@ namespace ENode.UnitTests
             {
                 _currentFailedCount++;
 
-                if (_commandFailedType == CommandFailedType.UnKnownException)
+                if (_failedType == FailedType.UnKnownException)
                 {
                     throw new Exception("GetCommandAsyncUnKnownException" + _currentFailedCount);
                 }
-                else if (_commandFailedType == CommandFailedType.IOException)
+                else if (_failedType == FailedType.IOException)
                 {
-                    throw new Exception("GetCommandAsyncIOException" + _currentFailedCount);
+                    throw new IOException("GetCommandAsyncIOException" + _currentFailedCount);
                 }
-                else if (_commandFailedType == CommandFailedType.TaskIOException)
+                else if (_failedType == FailedType.TaskIOException)
                 {
                     return Task.FromResult(new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Failed, "GetCommandAsyncError" + _currentFailedCount));
                 }
@@ -97,13 +91,5 @@ namespace ENode.UnitTests
             }
             return null;
         }
-    }
-
-    public enum CommandFailedType
-    {
-        None,
-        UnKnownException,
-        IOException,
-        TaskIOException
     }
 }

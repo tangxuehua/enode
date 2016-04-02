@@ -96,8 +96,7 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<IEventSerializer, DefaultEventSerializer>();
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
-            _configuration.SetDefault<ISequenceMessagePublishedVersionStore, InMemorySequenceMessagePublishedVersionStore>();
-            _configuration.SetDefault<IMessageHandleRecordStore, InMemoryMessageHandleRecordStore>();
+            _configuration.SetDefault<IPublishedVersionStore, InMemoryPublishedVersionStore>();
             _configuration.SetDefault<IEventService, DefaultEventService>();
 
             _configuration.SetDefault<IMessageDispatcher, DefaultMessageDispatcher>();
@@ -167,9 +166,7 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerLockService(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<ILockService, SqlServerLockService>(new SqlServerLockService(optionSetting ?? new OptionSetting(
-                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
-                new KeyValuePair<string, object>("TableName", "LockKey"))));
+            _configuration.SetDefault<ILockService, SqlServerLockService>(new SqlServerLockService(optionSetting));
             return this;
         }
         /// <summary>Use the SqlServerCommandStore as the ICommandStore.
@@ -177,10 +174,7 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerCommandStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<ICommandStore, SqlServerCommandStore>(new SqlServerCommandStore(optionSetting ?? new OptionSetting(
-                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
-                new KeyValuePair<string, object>("TableName", "Command"),
-                new KeyValuePair<string, object>("PrimaryKeyName", "PK_Command"))));
+            _configuration.SetDefault<ICommandStore, SqlServerCommandStore>(new SqlServerCommandStore(optionSetting));
             return this;
         }
         /// <summary>Use the SqlServerEventStore as the IEventStore.
@@ -188,39 +182,15 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(optionSetting ?? new OptionSetting(
-                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
-                new KeyValuePair<string, object>("TableName", "EventStream"),
-                new KeyValuePair<string, object>("PrimaryKeyName", "PK_EventStream"),
-                new KeyValuePair<string, object>("CommandIndexName", "IX_EventStream_CommandId"),
-                new KeyValuePair<string, object>("BulkCopyBatchSize", 1000),
-                new KeyValuePair<string, object>("BulkCopyTimeout", 60))));
+            _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(optionSetting));
             return this;
         }
-        /// <summary>Use the SqlServerSequenceMessagePublishedVersionStore as the ISequenceMessagePublishedVersionStore.
+        /// <summary>Use the SqlServerPublishedVersionStore as the IPublishedVersionStore.
         /// </summary>
         /// <returns></returns>
-        public ENodeConfiguration UseSqlServerSequenceMessagePublishedVersionStore(OptionSetting optionSetting = null)
+        public ENodeConfiguration UseSqlServerPublishedVersionStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<ISequenceMessagePublishedVersionStore, SqlServerSequenceMessagePublishedVersionStore>(new SqlServerSequenceMessagePublishedVersionStore(optionSetting ?? new OptionSetting(
-                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
-                new KeyValuePair<string, object>("TableName", "SequenceMessagePublishedVersion"),
-                new KeyValuePair<string, object>("PrimaryKeyName", "PK_SequenceMessagePublishedVersion"))));
-            return this;
-        }
-        /// <summary>Use the SqlServerMessageHandleRecordStore as the IMessageHandleRecordStore.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerMessageHandleRecordStore(OptionSetting optionSetting = null)
-        {
-            _configuration.SetDefault<IMessageHandleRecordStore, SqlServerMessageHandleRecordStore>(new SqlServerMessageHandleRecordStore(optionSetting ?? new OptionSetting(
-                new KeyValuePair<string, object>("ConnectionString", Setting.SqlDefaultConnectionString),
-                new KeyValuePair<string, object>("OneMessageTableName", "MessageHandleRecord"),
-                new KeyValuePair<string, object>("OneMessageTablePrimaryKeyName", "PK_MessageHandleRecord"),
-                new KeyValuePair<string, object>("TwoMessageTableName", "TwoMessageHandleRecord"),
-                new KeyValuePair<string, object>("TwoMessageTablePrimaryKeyName", "PK_TwoMessageHandleRecord"),
-                new KeyValuePair<string, object>("ThreeMessageTableName", "ThreeMessageHandleRecord"),
-                new KeyValuePair<string, object>("ThreeMessageTablePrimaryKeyName", "PK_ThreeMessageHandleRecord"))));
+            _configuration.SetDefault<IPublishedVersionStore, SqlServerPublishedVersionStore>(new SqlServerPublishedVersionStore(optionSetting));
             return this;
         }
         /// <summary>Initialize all the assembly initializers with the given business assemblies.

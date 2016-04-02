@@ -19,7 +19,7 @@ namespace ENode.Commanding.Impl
 
         private readonly string _connectionString;
         private readonly string _tableName;
-        private readonly string _primaryKeyName;
+        private readonly string _uniqueIndexName;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeNameProvider _typeNameProvider;
         private readonly IOHelper _ioHelper;
@@ -31,15 +31,23 @@ namespace ENode.Commanding.Impl
         /// </summary>
         public SqlServerCommandStore(OptionSetting optionSetting)
         {
-            Ensure.NotNull(optionSetting, "optionSetting");
-
-            _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
-            _tableName = optionSetting.GetOptionValue<string>("TableName");
-            _primaryKeyName = optionSetting.GetOptionValue<string>("PrimaryKeyName");
+            if (optionSetting != null)
+            {
+                _connectionString = optionSetting.GetOptionValue<string>("ConnectionString");
+                _tableName = optionSetting.GetOptionValue<string>("TableName");
+                _uniqueIndexName = optionSetting.GetOptionValue<string>("UniqueIndexName");
+            }
+            else
+            {
+                var setting = ENodeConfiguration.Instance.Setting.DefaultDBConfigurationSetting;
+                _connectionString = setting.ConnectionString;
+                _tableName = setting.CommandTableName;
+                _uniqueIndexName = setting.CommandTableCommandIdUniqueIndexName;
+            }
 
             Ensure.NotNull(_connectionString, "_connectionString");
             Ensure.NotNull(_tableName, "_tableName");
-            Ensure.NotNull(_primaryKeyName, "_primaryKeyName");
+            Ensure.NotNull(_uniqueIndexName, "_uniqueIndexName");
 
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
@@ -69,7 +77,7 @@ namespace ENode.Commanding.Impl
                 }
                 catch (SqlException ex)
                 {
-                    if (ex.Number == 2627 && ex.Message.Contains(_primaryKeyName))
+                    if (ex.Number == 2627 && ex.Message.Contains(_uniqueIndexName))
                     {
                         return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, CommandAddResult.DuplicateCommand);
                     }

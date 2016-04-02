@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using ECommon.Components;
@@ -85,20 +84,7 @@ namespace ENode.CommandProcessorPerfTests
                 Assembly.Load("NoteSample.CommandHandlers"),
                 Assembly.GetExecutingAssembly()
             };
-            var connectionString = ConfigurationManager.AppSettings["connectionString"];
-            var setting = new ConfigurationSetting
-            {
-                SqlDefaultConnectionString = connectionString,
-                EventMailBoxPersistenceMaxBatchSize = 1000
-            };
-            var optionSetting = new OptionSetting(
-                new KeyValuePair<string, object>("ConnectionString", connectionString),
-                new KeyValuePair<string, object>("TableName", "EventStream"),
-                new KeyValuePair<string, object>("PrimaryKeyName", "PK_EventStream"),
-                new KeyValuePair<string, object>("CommandIndexName", "IX_EventStream_CommandId"),
-                new KeyValuePair<string, object>("TableCount", 1),
-                new KeyValuePair<string, object>("BulkCopyBatchSize", 1000),
-                new KeyValuePair<string, object>("BulkCopyTimeout", 60));
+            var setting = new ConfigurationSetting(ConfigurationManager.AppSettings["connectionString"]);
 
             _configuration = ECommonConfiguration
                 .Create()
@@ -109,7 +95,7 @@ namespace ENode.CommandProcessorPerfTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode(setting)
                 .RegisterENodeComponents()
-                .UseSqlServerEventStore(optionSetting)
+                .UseSqlServerEventStore()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies);
             _eventService = ObjectContainer.Resolve<IEventService>();

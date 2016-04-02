@@ -10,7 +10,7 @@ namespace ENode.Infrastructure.Impl
     {
         #region Private Variables
 
-        private readonly ISequenceMessagePublishedVersionStore _publishedVersionStore;
+        private readonly IPublishedVersionStore _publishedVersionStore;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
 
@@ -20,7 +20,7 @@ namespace ENode.Infrastructure.Impl
 
         #region Constructors
 
-        public AbstractSequenceProcessingMessageHandler(ISequenceMessagePublishedVersionStore publishedVersionStore, IOHelper ioHelper, ILoggerFactory loggerFactory)
+        public AbstractSequenceProcessingMessageHandler(IPublishedVersionStore publishedVersionStore, IOHelper ioHelper, ILoggerFactory loggerFactory)
         {
             _publishedVersionStore = publishedVersionStore;
             _ioHelper = ioHelper;

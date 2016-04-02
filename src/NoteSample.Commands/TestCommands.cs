@@ -11,24 +11,30 @@ namespace NoteSample.Commands
     public class ThrowExceptionCommand : Command<string>
     {
     }
-    public class ThrowExceptionAsyncCommand : Command<string>
-    {
-    }
-    public class ThrowIOExceptionAsyncCommand : Command<string>
-    {
-    }
     public class NoHandlerCommand : Command<string>
     {
     }
     public class TwoHandlersCommand : Command<string>
     {
     }
+    public class BaseCommand : Command<string>
+    {
+    }
+    public class ChildCommand : BaseCommand
+    {
+    }
+    public class AsyncHandlerBaseCommand : Command<string>
+    {
+    }
+    public class AsyncHandlerChildCommand : AsyncHandlerBaseCommand
+    {
+    }
 
     public class AsyncHandlerCommand : Command<string>
     {
-    }
-    public class AsyncHandlerCommand2 : Command<string>
-    {
+        public bool ShouldGenerateApplicationMessage { get; set; }
+        public bool ShouldThrowException { get; set; }
+        public bool ShouldThrowIOException { get; set; }
     }
     public class TwoAsyncHandlersCommand : Command<string>
     {

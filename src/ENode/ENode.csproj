@@ -155,7 +155,7 @@
     <Compile Include="Infrastructure\IMessageProcessContext.cs" />
     <Compile Include="Infrastructure\IMessageProcessor.cs" />
     <Compile Include="Infrastructure\IMessagePublisher.cs" />
-    <Compile Include="Infrastructure\Impl\SQL\SqlServerLockService.cs" />
+    <Compile Include="Infrastructure\Impl\SqlServerLockService.cs" />
     <Compile Include="Infrastructure\ILockService.cs" />
     <Compile Include="Eventing\IEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventService.cs" />
@@ -166,12 +166,9 @@
     <Compile Include="Eventing\IDomainEvent.cs" />
     <Compile Include="Eventing\IEventStore.cs" />
     <Compile Include="Eventing\DomainEvent.cs" />
-    <Compile Include="Infrastructure\Impl\InMemory\InMemorySequenceMessagePublishedVersionStore.cs" />
-    <Compile Include="Infrastructure\Impl\SQL\SqlServerMessageHandleRecordStore.cs" />
-    <Compile Include="Infrastructure\Impl\SQL\SqlServerSequenceMessagePublishedVersionStore.cs" />
-    <Compile Include="Infrastructure\Impl\InMemory\InMemoryMessageHandleRecordStore.cs" />
-    <Compile Include="Infrastructure\ISequenceMessagePublishVersionStore.cs" />
-    <Compile Include="Infrastructure\IMessageHandleRecordStore.cs" />
+    <Compile Include="Infrastructure\Impl\InMemoryPublishedVersionStore.cs" />
+    <Compile Include="Infrastructure\Impl\SqlServerPublishedVersionStore.cs" />
+    <Compile Include="Infrastructure\IPublishedVersionStore.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />
     <Compile Include="Domain\Impl\DefaultRepository.cs" />

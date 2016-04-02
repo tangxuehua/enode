@@ -84,6 +84,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Mocks\MockApplicationMessagePublisher.cs" />
+    <Compile Include="Mocks\FailedType.cs" />
     <Compile Include="Mocks\MockCommandStore.cs" />
     <Compile Include="TestClasses\MessageProcessorTest.cs" />
     <Compile Include="TestClasses\CommandServiceTest.cs" />

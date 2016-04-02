@@ -111,13 +111,12 @@ namespace ENode.Commanding.Impl
                     _logger.ErrorFormat("Found more than one command async handler, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
                     CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command async handler found.");
                 }
-            }
-
-            if (findResult == HandlerFindResult.NotFound)
-            {
-                var errorMessage = string.Format("No command handler found of command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
-                _logger.Error(errorMessage);
-                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                else if (findResult == HandlerFindResult.NotFound)
+                {
+                    var errorMessage = string.Format("No command handler found of command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
+                    _logger.Error(errorMessage);
+                    CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                }
             }
         }
 
@@ -198,7 +197,7 @@ namespace ENode.Commanding.Impl
             //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
             if (dirtyAggregateRootCount == 0 || changedEvents == null || changedEvents.Count() == 0)
             {
-                CompleteCommand(processingCommand, CommandStatus.NothingChanged, null, null);
+                CompleteCommand(processingCommand, CommandStatus.NothingChanged, typeof(string).FullName, context.GetResult());
                 return;
             }
 

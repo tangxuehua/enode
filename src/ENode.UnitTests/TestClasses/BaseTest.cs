@@ -6,6 +6,7 @@ using ECommon.Logging;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
+using ENode.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ECommonConfiguration = ECommon.Configurations.Configuration;
 
@@ -18,10 +19,11 @@ namespace ENode.UnitTests
         protected static ICommandService _commandService;
         protected static IMemoryCache _memoryCache;
         protected static ICommandStore _commandStore;
+        protected static IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
 
-        protected static void Initialize(TestContext context)
+        protected static void Initialize(TestContext context, bool forceInitialize = false)
         {
-            if (_enodeConfiguration == null)
+            if (forceInitialize || _enodeConfiguration == null)
             {
                 InitializeENode();
             }
@@ -36,10 +38,7 @@ namespace ENode.UnitTests
 
         private static void InitializeENode()
         {
-            var setting = new ConfigurationSetting
-            {
-                SqlDefaultConnectionString = ConfigurationManager.AppSettings["connectionString"]
-            };
+            var setting = new ConfigurationSetting(ConfigurationManager.AppSettings["connectionString"]);
             var assemblies = new[]
             {
                 Assembly.Load("NoteSample.Domain"),
@@ -58,7 +57,9 @@ namespace ENode.UnitTests
                 .CreateENode(setting)
                 .RegisterENodeComponents()
                 .UseMockCommandStore()
+                .UseMockApplicationMessagePublisher()
                 .UseSqlServerEventStore()
+                .UseSqlServerPublishedVersionStore()
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)
                 .UseEQueue()
@@ -67,6 +68,7 @@ namespace ENode.UnitTests
             _commandService = ObjectContainer.Resolve<ICommandService>();
             _memoryCache = ObjectContainer.Resolve<IMemoryCache>();
             _commandStore = ObjectContainer.Resolve<ICommandStore>();
+            _applicationMessagePublisher = ObjectContainer.Resolve<IMessagePublisher<IApplicationMessage>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(BaseTest));
             _logger.Info("ENode initialized.");
         }

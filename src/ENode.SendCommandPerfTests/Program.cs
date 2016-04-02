@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
@@ -16,8 +17,10 @@ namespace ENode.SendCommandPerfTests
         static void Main(string[] args)
         {
             InitializeENodeFramework();
-            SendCommandAsync(100000);
-            SendCommandSync(20000);
+            var sendAsyncCount = int.Parse(ConfigurationManager.AppSettings["sendAsyncCount"]);
+            var sendSyncount = int.Parse(ConfigurationManager.AppSettings["sendSyncount"]);
+            SendCommandAsync(sendAsyncCount);
+            SendCommandSync(sendSyncount);
             Console.ReadLine();
         }
 
@@ -91,7 +94,7 @@ namespace ENode.SendCommandPerfTests
                 Assembly.Load("NoteSample.Commands"),
                 Assembly.GetExecutingAssembly()
             };
-            Configuration
+            ECommon.Configurations.Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
