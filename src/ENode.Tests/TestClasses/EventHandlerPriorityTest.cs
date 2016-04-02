@@ -1,8 +1,8 @@
 ﻿using ECommon.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NoteSample.Commands;
 using ENode.Commanding;
 using System.Collections.Generic;
+using ENode.Tests.Commands;
 
 namespace ENode.Tests
 {
@@ -21,7 +21,7 @@ namespace ENode.Tests
         public void event_handler_priority_test()
         {
             var noteId = ObjectId.GenerateNewStringId();
-            var command1 = new CreateNoteCommand { AggregateRootId = noteId, Title = "Sample Title1" };
+            var command1 = new CreateTestAggregateCommand { AggregateRootId = noteId, Title = "Sample Title1" };
             var command2 = new TestEventPriorityCommand { AggregateRootId = noteId };
             _commandService.ExecuteAsync(command1, CommandReturnType.EventHandled).Wait();
             _commandService.ExecuteAsync(command2, CommandReturnType.EventHandled).Wait();

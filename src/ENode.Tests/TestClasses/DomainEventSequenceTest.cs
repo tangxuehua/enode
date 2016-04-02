@@ -5,7 +5,7 @@ using ECommon.Utilities;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
-using NoteSample.Domain;
+using ENode.Tests.Domain;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ENode.Tests
@@ -27,7 +27,7 @@ namespace ENode.Tests
         {
             var processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
 
-            var note = new Note(ObjectId.GenerateNewStringId(), "initial title");
+            var note = new TestAggregate(ObjectId.GenerateNewStringId(), "initial title");
             var aggregate = note as IAggregateRoot;
             var message1 = CreateMessage(aggregate);
 

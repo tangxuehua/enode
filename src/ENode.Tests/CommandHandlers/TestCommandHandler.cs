@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 using ECommon.IO;
 using ENode.Commanding;
 using ENode.Infrastructure;
-using NoteSample.Commands;
-using NoteSample.Domain;
+using ENode.Tests.Commands;
+using ENode.Tests.Domain;
 
-namespace NoteSample.CommandHandlers
+namespace ENode.Tests.CommandHandlers
 {
     public class TestCommandHandler :
         ICommandHandler<TestEventPriorityCommand>,
@@ -20,8 +20,8 @@ namespace NoteSample.CommandHandlers
         }
         public void Handle(ICommandContext context, ChangeMultipleAggregatesCommand command)
         {
-            context.Get<Note>(command.AggregateRootId1).TestEvents();
-            context.Get<Note>(command.AggregateRootId2).TestEvents();
+            context.Get<TestAggregate>(command.AggregateRootId1).TestEvents();
+            context.Get<TestAggregate>(command.AggregateRootId2).TestEvents();
         }
         public void Handle(ICommandContext context, ThrowExceptionCommand command)
         {
@@ -29,7 +29,7 @@ namespace NoteSample.CommandHandlers
         }
         public void Handle(ICommandContext context, TestEventPriorityCommand command)
         {
-            context.Get<Note>(command.AggregateRootId).TestEvents();
+            context.Get<TestAggregate>(command.AggregateRootId).TestEvents();
         }
     }
 

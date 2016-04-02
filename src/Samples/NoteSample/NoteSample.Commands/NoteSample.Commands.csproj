@@ -36,7 +36,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestCommands.cs" />
     <Compile Include="ChangeNoteTitleCommand.cs" />
     <Compile Include="CreateNoteCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

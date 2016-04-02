@@ -3,8 +3,8 @@ using ECommon.IO;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Domain;
-using NoteSample.Commands;
-using NoteSample.Domain;
+using ENode.Tests.Commands;
+using ENode.Tests.Domain;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ENode.Tests
@@ -29,7 +29,7 @@ namespace ENode.Tests
         public void create_and_update_aggregate_test()
         {
             var noteId = ObjectId.GenerateNewStringId();
-            var command = new CreateNoteCommand
+            var command = new CreateTestAggregateCommand
             {
                 AggregateRootId = noteId,
                 Title = "Sample Note"
@@ -42,13 +42,13 @@ namespace ENode.Tests
             var commandResult = asyncResult.Data;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
-            var note = _memoryCache.Get<Note>(noteId);
+            var note = _memoryCache.Get<TestAggregate>(noteId);
             Assert.IsNotNull(note);
             Assert.AreEqual("Sample Note", note.Title);
             Assert.AreEqual(1, ((IAggregateRoot)note).Version);
 
             //执行修改聚合根的命令
-            var command2 = new ChangeNoteTitleCommand
+            var command2 = new ChangeTestAggregateTitleCommand
             {
                 AggregateRootId = noteId,
                 Title = "Changed Note"
@@ -59,7 +59,7 @@ namespace ENode.Tests
             commandResult = asyncResult.Data;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
-            note = _memoryCache.Get<Note>(noteId);
+            note = _memoryCache.Get<TestAggregate>(noteId);
             Assert.IsNotNull(note);
             Assert.AreEqual("Changed Note", note.Title);
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
@@ -68,7 +68,7 @@ namespace ENode.Tests
         public void duplicate_create_aggregate_command_test()
         {
             var noteId = ObjectId.GenerateNewStringId();
-            var command = new CreateNoteCommand
+            var command = new CreateTestAggregateCommand
             {
                 AggregateRootId = noteId,
                 Title = "Sample Note"
@@ -81,7 +81,7 @@ namespace ENode.Tests
             var commandResult = asyncResult.Data;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
-            var note = _memoryCache.Get<Note>(noteId);
+            var note = _memoryCache.Get<TestAggregate>(noteId);
             Assert.IsNotNull(note);
             Assert.AreEqual("Sample Note", note.Title);
             Assert.AreEqual(1, ((IAggregateRoot)note).Version);
@@ -97,7 +97,7 @@ namespace ENode.Tests
             Assert.AreEqual(1, ((IAggregateRoot)note).Version);
 
             //用另一个命令再次执行创建相同聚合根的命令
-            command = new CreateNoteCommand
+            command = new CreateTestAggregateCommand
             {
                 AggregateRootId = noteId,
                 Title = "Sample Note"
@@ -115,7 +115,7 @@ namespace ENode.Tests
         public void duplicate_update_aggregate_command_test()
         {
             var noteId = ObjectId.GenerateNewStringId();
-            var command1 = new CreateNoteCommand
+            var command1 = new CreateTestAggregateCommand
             {
                 AggregateRootId = noteId,
                 Title = "Sample Note"
@@ -125,7 +125,7 @@ namespace ENode.Tests
             var status = _commandService.ExecuteAsync(command1).Result.Data.Status;
             Assert.AreEqual(CommandStatus.Success, status);
 
-            var command2 = new ChangeNoteTitleCommand
+            var command2 = new ChangeTestAggregateTitleCommand
             {
                 AggregateRootId = noteId,
                 Title = "Changed Note"
@@ -138,7 +138,7 @@ namespace ENode.Tests
             var commandResult = asyncResult.Data;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
-            var note = _memoryCache.Get<Note>(noteId);
+            var note = _memoryCache.Get<TestAggregate>(noteId);
             Assert.IsNotNull(note);
             Assert.AreEqual("Changed Note", note.Title);
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
@@ -150,7 +150,7 @@ namespace ENode.Tests
             commandResult = asyncResult.Data;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
-            note = _memoryCache.Get<Note>(noteId);
+            note = _memoryCache.Get<TestAggregate>(noteId);
             Assert.IsNotNull(note);
             Assert.AreEqual("Changed Note", note.Title);
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
@@ -159,7 +159,7 @@ namespace ENode.Tests
         public void create_and_concurrent_update_aggregate_test()
         {
             var noteId = ObjectId.GenerateNewStringId();
-            var command = new CreateNoteCommand
+            var command = new CreateTestAggregateCommand
             {
                 AggregateRootId = noteId,
                 Title = "Sample Note"
@@ -172,7 +172,7 @@ namespace ENode.Tests
             var commandResult = asyncResult.Data;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
-            var note = _memoryCache.Get<Note>(noteId);
+            var note = _memoryCache.Get<TestAggregate>(noteId);
             Assert.IsNotNull(note);
             Assert.AreEqual("Sample Note", note.Title);
             Assert.AreEqual(1, ((IAggregateRoot)note).Version);
@@ -183,7 +183,7 @@ namespace ENode.Tests
             var waitHandle = new ManualResetEvent(false);
             for (var i = 0; i < totalCount; i++)
             {
-                var updateCommand = new ChangeNoteTitleCommand
+                var updateCommand = new ChangeTestAggregateTitleCommand
                 {
                     AggregateRootId = noteId,
                     Title = "Changed Note"
@@ -199,7 +199,7 @@ namespace ENode.Tests
                     var current = Interlocked.Increment(ref finishedCount);
                     if (current == totalCount)
                     {
-                        note = _memoryCache.Get<Note>(noteId);
+                        note = _memoryCache.Get<TestAggregate>(noteId);
                         Assert.IsNotNull(note);
                         Assert.AreEqual("Changed Note", note.Title);
                         Assert.AreEqual(totalCount + 1, ((IAggregateRoot)note).Version);
@@ -226,14 +226,14 @@ namespace ENode.Tests
         [TestMethod]
         public void change_multiple_aggregates_test()
         {
-            var command1 = new CreateNoteCommand
+            var command1 = new CreateTestAggregateCommand
             {
                 AggregateRootId = ObjectId.GenerateNewStringId(),
                 Title = "Sample Note1"
             };
             _commandService.ExecuteAsync(command1).Wait();
 
-            var command2 = new CreateNoteCommand
+            var command2 = new CreateTestAggregateCommand
             {
                 AggregateRootId = ObjectId.GenerateNewStringId(),
                 Title = "Sample Note2"

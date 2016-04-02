@@ -12,7 +12,4 @@ namespace NoteSample.Domain
             Title = title;
         }
     }
-    public class Event1 : DomainEvent<string> { }
-    public class Event2 : DomainEvent<string> { }
-    public class Event3 : DomainEvent<string> { }
 }

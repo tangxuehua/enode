@@ -1,7 +1,15 @@
 ﻿using ENode.Commanding;
 
-namespace NoteSample.Commands
+namespace ENode.Tests.Commands
 {
+    public class CreateTestAggregateCommand : Command<string>
+    {
+        public string Title { get; set; }
+    }
+    public class ChangeTestAggregateTitleCommand : Command<string>
+    {
+        public string Title { get; set; }
+    }
     public class TestEventPriorityCommand : Command<string>
     {
     }

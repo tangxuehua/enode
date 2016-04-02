@@ -2,7 +2,7 @@
 using ECommon.IO;
 using ECommon.Logging;
 using ENode.Infrastructure;
-using NoteSample.Domain;
+using ENode.Tests.Domain;
 
 namespace ENode.Tests
 {

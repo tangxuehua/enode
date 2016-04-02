@@ -1,6 +1,4 @@
-﻿using System;
-using ENode.Commanding;
-using ENode.Infrastructure;
+﻿using ENode.Commanding;
 
 namespace NoteSample.Commands
 {
