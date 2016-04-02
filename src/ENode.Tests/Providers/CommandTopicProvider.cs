@@ -7,7 +7,7 @@ namespace ENode.Tests
     {
         public override string GetTopic(ICommand command)
         {
-            return "NoteCommandTopic";
+            return "CommandTopic";
         }
     }
 }

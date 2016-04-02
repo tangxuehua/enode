@@ -77,7 +77,7 @@ namespace ENode.Commanding.Impl
                 }
                 catch (SqlException ex)
                 {
-                    if (ex.Number == 2627 && ex.Message.Contains(_uniqueIndexName))
+                    if (ex.Number == 2601 && ex.Message.Contains(_uniqueIndexName))
                     {
                         return new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, CommandAddResult.DuplicateCommand);
                     }

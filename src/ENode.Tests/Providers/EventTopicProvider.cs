@@ -7,7 +7,7 @@ namespace ENode.Tests
     {
         public override string GetTopic(IDomainEvent source)
         {
-            return "NoteEventTopic";
+            return "EventTopic";
         }
     }
 }

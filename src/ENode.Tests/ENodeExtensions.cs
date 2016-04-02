@@ -25,9 +25,11 @@ namespace ENode.Tests
         private static CommandService _commandService;
         private static CommandConsumer _commandConsumer;
         private static DomainEventPublisher _eventPublisher;
-        private static ApplicationMessagePublisher _applicationMessagePublisher;
-        private static PublishableExceptionPublisher _publishableExceptionPublisher;
         private static DomainEventConsumer _eventConsumer;
+        private static ApplicationMessagePublisher _applicationMessagePublisher;
+        private static ApplicationMessageConsumer _applicationMessageConsumer;
+        private static PublishableExceptionPublisher _publishableExceptionPublisher;
+        private static PublishableExceptionConsumer _publishableExceptionConsumer;
 
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration,
             bool useMockDomainEventPublisher = false,
@@ -79,8 +81,10 @@ namespace ENode.Tests
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
 
-            _commandConsumer = new CommandConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("NoteCommandTopic");
-            _eventConsumer = new DomainEventConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("NoteEventTopic");
+            _commandConsumer = new CommandConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("CommandTopic");
+            _eventConsumer = new DomainEventConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("EventTopic");
+            _applicationMessageConsumer = new ApplicationMessageConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("ApplicationMessageTopic");
+            _publishableExceptionConsumer = new PublishableExceptionConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("PublishableExceptionTopic");
 
             return enodeConfiguration;
         }
@@ -89,6 +93,10 @@ namespace ENode.Tests
             _broker.Start();
             _eventConsumer.Start();
             _commandConsumer.Start();
+            _applicationMessageConsumer.Start();
+            _publishableExceptionConsumer.Start();
+            _applicationMessagePublisher.Start();
+            _publishableExceptionPublisher.Start();
             _eventPublisher.Start();
             _commandService.Start();
             WaitAllConsumerLoadBalanceComplete();
@@ -98,8 +106,12 @@ namespace ENode.Tests
         {
             _commandService.Shutdown();
             _eventPublisher.Shutdown();
+            _applicationMessagePublisher.Shutdown();
+            _publishableExceptionPublisher.Shutdown();
             _commandConsumer.Shutdown();
             _eventConsumer.Shutdown();
+            _applicationMessageConsumer.Shutdown();
+            _publishableExceptionConsumer.Shutdown();
             _broker.Shutdown();
             return enodeConfiguration;
         }
@@ -152,9 +164,10 @@ namespace ENode.Tests
             logger.Info("Waiting for all consumer load balance complete, please wait for a moment...");
             scheduleService.StartTask("WaitAllConsumerLoadBalanceComplete", () =>
             {
-                var eventConsumerAllocatedQueues = _eventConsumer.Consumer.GetCurrentQueues();
-                var commandConsumerAllocatedQueues = _commandConsumer.Consumer.GetCurrentQueues();
-                if (eventConsumerAllocatedQueues.Count() == 4 && commandConsumerAllocatedQueues.Count() == 4)
+                if (_eventConsumer.Consumer.GetCurrentQueues().Count() == 4
+                 && _commandConsumer.Consumer.GetCurrentQueues().Count() == 4
+                 && _applicationMessageConsumer.Consumer.GetCurrentQueues().Count() == 4
+                 && _publishableExceptionConsumer.Consumer.GetCurrentQueues().Count() == 4)
                 {
                     waitHandle.Set();
                 }
