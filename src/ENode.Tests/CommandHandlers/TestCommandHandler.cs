@@ -9,14 +9,31 @@ using ENode.Tests.Domain;
 namespace ENode.Tests.CommandHandlers
 {
     public class TestCommandHandler :
+        ICommandHandler<CreateTestAggregateCommand>,
+        ICommandHandler<ChangeTestAggregateTitleCommand>,
         ICommandHandler<TestEventPriorityCommand>,
         ICommandHandler<ChangeMultipleAggregatesCommand>,
         ICommandHandler<ChangeNothingCommand>,
-        ICommandHandler<ThrowExceptionCommand>
+        ICommandHandler<ThrowExceptionCommand>,
+        ICommandHandler<AggregateThrowExceptionCommand>,
+        ICommandHandler<SetResultCommand>
     {
+        public void Handle(ICommandContext context, CreateTestAggregateCommand command)
+        {
+            context.Add(new TestAggregate(command.AggregateRootId, command.Title));
+        }
+        public void Handle(ICommandContext context, ChangeTestAggregateTitleCommand command)
+        {
+            context.Get<TestAggregate>(command.AggregateRootId).ChangeTitle(command.Title);
+        }
         public void Handle(ICommandContext context, ChangeNothingCommand command)
         {
             //DO NOTHING
+        }
+        public void Handle(ICommandContext context, SetResultCommand command)
+        {
+            context.Add(new TestAggregate(command.AggregateRootId, ""));
+            context.SetResult(command.Result);
         }
         public void Handle(ICommandContext context, ChangeMultipleAggregatesCommand command)
         {
@@ -26,6 +43,10 @@ namespace ENode.Tests.CommandHandlers
         public void Handle(ICommandContext context, ThrowExceptionCommand command)
         {
             throw new Exception("CommandException");
+        }
+        public void Handle(ICommandContext context, AggregateThrowExceptionCommand command)
+        {
+            context.Get<TestAggregate>(command.AggregateRootId).ThrowException(command.PublishableException);
         }
         public void Handle(ICommandContext context, TestEventPriorityCommand command)
         {

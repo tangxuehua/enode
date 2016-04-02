@@ -1,5 +1,8 @@
-﻿using ENode.Domain;
+﻿using System;
+using System.Collections.Generic;
+using ENode.Domain;
 using ENode.Eventing;
+using ENode.Infrastructure;
 
 namespace ENode.Tests.Domain
 {
@@ -18,6 +21,17 @@ namespace ENode.Tests.Domain
         {
             ApplyEvent(new TestAggregateTitleChanged(title));
         }
+        public void ThrowException(bool publishableException)
+        {
+            if (publishableException)
+            {
+                throw new TestPublishableException(Id);
+            }
+            else
+            {
+                throw new Exception("TestException");
+            }
+        }
 
         public void TestEvents()
         {
@@ -25,6 +39,10 @@ namespace ENode.Tests.Domain
         }
 
         private void Handle(TestAggregateCreated evnt)
+        {
+            _title = evnt.Title;
+        }
+        private void Handle(TestAggregateTitleChanged evnt)
         {
             _title = evnt.Title;
         }
@@ -61,4 +79,22 @@ namespace ENode.Tests.Domain
     public class Event1 : DomainEvent<string> { }
     public class Event2 : DomainEvent<string> { }
     public class Event3 : DomainEvent<string> { }
+    public class TestPublishableException : PublishableException
+    {
+        public string AggregateRootId { get; private set; }
+
+        public TestPublishableException(string aggregateRootId) : base()
+        {
+            AggregateRootId = aggregateRootId;
+        }
+
+        public override void SerializeTo(IDictionary<string, string> serializableInfo)
+        {
+            serializableInfo.Add("AggregateRootId", AggregateRootId);
+        }
+        public override void RestoreFrom(IDictionary<string, string> serializableInfo)
+        {
+            AggregateRootId = serializableInfo["AggregateRootId"];
+        }
+    }
 }

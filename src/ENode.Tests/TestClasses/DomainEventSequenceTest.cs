@@ -21,6 +21,11 @@ namespace ENode.Tests
         {
             Initialize(context);
         }
+        [ClassCleanup]
+        public static void ClassCleanup()
+        {
+            Cleanup();
+        }
 
         [TestMethod]
         public void sequence_domain_event_process_test()

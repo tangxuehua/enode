@@ -271,7 +271,7 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => PublishExceptionAsync(processingCommand, exception, currentRetryTimes),
             result =>
             {
-                CompleteCommand(processingCommand, CommandStatus.Success, exception.GetType().Name, (exception as Exception).Message);
+                CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message);
             },
             () =>
             {

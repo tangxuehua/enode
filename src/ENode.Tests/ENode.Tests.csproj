@@ -88,10 +88,16 @@
     <Compile Include="Commands\TestCommands.cs" />
     <Compile Include="Domain\TestAggregate.cs" />
     <Compile Include="EventHandlers\PriorityEventHandlers.cs" />
+    <Compile Include="EventHandlers\TestAggregateEventHandler.cs" />
+    <Compile Include="Mocks\MockPublishedVersionStore.cs" />
+    <Compile Include="Mocks\MockEventStore.cs" />
+    <Compile Include="Mocks\MockDomainEventPublisher.cs" />
+    <Compile Include="Mocks\MockPublishableExceptionPublisher.cs" />
     <Compile Include="Mocks\MockApplicationMessagePublisher.cs" />
     <Compile Include="Mocks\FailedType.cs" />
     <Compile Include="Mocks\MockCommandStore.cs" />
     <Compile Include="Providers\EventTopicProvider.cs" />
+    <Compile Include="TestClasses\CommandStoreFailedTest.cs" />
     <Compile Include="TestClasses\EventHandlerPriorityTest.cs" />
     <Compile Include="TestClasses\DomainEventSequenceTest.cs" />
     <Compile Include="TestClasses\CommandServiceTest.cs" />

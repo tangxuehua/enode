@@ -16,8 +16,16 @@ namespace ENode.Tests.Commands
     public class ChangeNothingCommand : Command<string>
     {
     }
+    public class SetResultCommand : Command<string>
+    {
+        public string Result { get; set; }
+    }
     public class ThrowExceptionCommand : Command<string>
     {
+    }
+    public class AggregateThrowExceptionCommand : Command<string>
+    {
+        public bool PublishableException { get; set; }
     }
     public class NoHandlerCommand : Command<string>
     {

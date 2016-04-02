@@ -20,13 +20,22 @@ namespace ENode.Tests
         protected static IMemoryCache _memoryCache;
         protected static ICommandStore _commandStore;
         protected static IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
+        protected static IMessagePublisher<IPublishableException> _publishableExceptionPublisher;
 
-        protected static void Initialize(TestContext context, bool forceInitialize = false)
+        protected static void Initialize(TestContext context,
+            bool useMockCommandStore = false,
+            bool useMockEventStore = false,
+            bool useMockPublishedVersionStore = false,
+            bool useMockDomainEventPublisher = false,
+            bool useMockApplicationMessagePublisher = false,
+            bool useMockPublishableExceptionPublisher = false)
         {
-            if (forceInitialize || _enodeConfiguration == null)
-            {
-                InitializeENode();
-            }
+            InitializeENode(useMockCommandStore,
+                useMockEventStore,
+                useMockPublishedVersionStore,
+                useMockDomainEventPublisher,
+                useMockApplicationMessagePublisher,
+                useMockPublishableExceptionPublisher);
         }
         protected static void Cleanup()
         {
@@ -36,14 +45,17 @@ namespace ENode.Tests
             }
         }
 
-        private static void InitializeENode()
+        private static void InitializeENode(
+            bool useMockCommandStore = false,
+            bool useMockEventStore = false,
+            bool useMockPublishedVersionStore = false,
+            bool useMockDomainEventPublisher = false,
+            bool useMockApplicationMessagePublisher = false,
+            bool useMockPublishableExceptionPublisher = false)
         {
             var setting = new ConfigurationSetting(ConfigurationManager.AppSettings["connectionString"]);
             var assemblies = new[]
             {
-                Assembly.Load("NoteSample.Domain"),
-                Assembly.Load("NoteSample.CommandHandlers"),
-                Assembly.Load("NoteSample.Commands"),
                 Assembly.GetExecutingAssembly()
             };
 
@@ -56,19 +68,19 @@ namespace ENode.Tests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode(setting)
                 .RegisterENodeComponents()
-                .UseMockCommandStore()
-                .UseMockApplicationMessagePublisher()
-                .UseSqlServerEventStore()
-                .UseSqlServerPublishedVersionStore()
+                .UseCommandStore(useMockCommandStore)
+                .UseEventStore(useMockEventStore)
+                .UsePublishedVersionStore(useMockPublishedVersionStore)
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)
-                .UseEQueue()
+                .UseEQueue(useMockDomainEventPublisher, useMockApplicationMessagePublisher, useMockPublishableExceptionPublisher)
                 .StartEQueue();
 
             _commandService = ObjectContainer.Resolve<ICommandService>();
             _memoryCache = ObjectContainer.Resolve<IMemoryCache>();
             _commandStore = ObjectContainer.Resolve<ICommandStore>();
             _applicationMessagePublisher = ObjectContainer.Resolve<IMessagePublisher<IApplicationMessage>>();
+            _publishableExceptionPublisher = ObjectContainer.Resolve<IMessagePublisher<IPublishableException>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(BaseTest));
             _logger.Info("ENode initialized.");
         }
