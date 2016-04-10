@@ -100,10 +100,13 @@
     <Compile Include="Providers\ApplicationMessageTopicProvider.cs" />
     <Compile Include="Providers\EventTopicProvider.cs" />
     <Compile Include="TestClasses\ApplicationMessagePublisherFailedTest.cs" />
+    <Compile Include="TestClasses\PublishedVersionStoreFailedTest.cs" />
+    <Compile Include="TestClasses\EventStoreFailedTest.cs" />
+    <Compile Include="TestClasses\EventPublisherFailedTest.cs" />
     <Compile Include="TestClasses\PublishableExceptionPublisherFailedTest.cs" />
     <Compile Include="TestClasses\CommandStoreFailedTest.cs" />
     <Compile Include="TestClasses\EventHandlerPriorityTest.cs" />
-    <Compile Include="TestClasses\DomainEventSequenceTest.cs" />
+    <Compile Include="TestClasses\EventSequenceTest.cs" />
     <Compile Include="TestClasses\CommandServiceTest.cs" />
     <Compile Include="Providers\CommandTopicProvider.cs" />
     <Compile Include="ENodeExtensions.cs" />

@@ -39,7 +39,7 @@ namespace ENode.Tests
                 }
                 else if (_failedType == FailedType.TaskIOException)
                 {
-                    return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, "PublishApplicationMessageAsyncIError" + _currentFailedCount));
+                    return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, "PublishApplicationMessageAsyncError" + _currentFailedCount));
                 }
             }
             return _successResultTask;

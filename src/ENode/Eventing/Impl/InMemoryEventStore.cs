@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Logging;
 
@@ -20,7 +21,7 @@ namespace ENode.Eventing.Impl
         {
             get
             {
-                return false;
+                return true;
             }
         }
 
@@ -47,7 +48,15 @@ namespace ENode.Eventing.Impl
         }
         public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
-            throw new NotImplementedException("InMemoryEventStore not support batch append event.");
+            foreach (var eventStream in eventStreams)
+            {
+                var task = AppendAsync(eventStream);
+                if (task.Result.Data != EventAppendResult.Success)
+                {
+                    return task;
+                }
+            }
+            return Task.FromResult(new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.Success));
         }
         public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
         {

@@ -1,106 +1,77 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using ECommon.IO;
-using ENode.Commanding;
 using ENode.Infrastructure;
+using ENode.Infrastructure.Impl.InMemory;
 
 namespace ENode.Tests
 {
     public class MockPublishedVersionStore : IPublishedVersionStore
     {
-        private readonly ConcurrentDictionary<string, HandledCommand> _handledCommandDict = new ConcurrentDictionary<string, HandledCommand>();
-        private int _expectAddFailedCount = 0;
+        private InMemoryPublishedVersionStore _inMemoryPublishedVersionStore = new InMemoryPublishedVersionStore();
         private int _expectGetFailedCount = 0;
-        private int _currentFailedCount = 0;
+        private int _expectUpdateFailedCount = 0;
+        private int _currentGetFailedCount = 0;
+        private int _currentUpdateFailedCount = 0;
         private FailedType _failedType;
 
         public void Reset()
         {
             _failedType = FailedType.None;
-            _expectAddFailedCount = 0;
             _expectGetFailedCount = 0;
-            _currentFailedCount = 0;
+            _expectUpdateFailedCount = 0;
+            _currentGetFailedCount = 0;
+            _currentUpdateFailedCount = 0;
         }
-        public void SetExpectGetFailedCount(FailedType failedType, int count)
+        public void SetExpectFailedCount(FailedType failedType, int count)
         {
             _failedType = failedType;
             _expectGetFailedCount = count;
-        }
-        public void SetExpectAddFailedCount(FailedType failedType, int count)
-        {
-            _failedType = failedType;
-            _expectAddFailedCount = count;
-        }
-        public Task<AsyncTaskResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
-        {
-            if (_currentFailedCount < _expectAddFailedCount)
-            {
-                _currentFailedCount++;
-
-                if (_failedType == FailedType.UnKnownException)
-                {
-                    throw new Exception("AddCommandAsyncUnKnownException" + _currentFailedCount);
-                }
-                else if (_failedType == FailedType.IOException)
-                {
-                    throw new IOException("AddCommandAsyncIOException" + _currentFailedCount);
-                }
-                else if (_failedType == FailedType.TaskIOException)
-                {
-                    return Task.FromResult(new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Failed, "AddCommandAsyncError" + _currentFailedCount));
-                }
-            }
-            return Task.FromResult(new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, Add(handledCommand)));
-        }
-        public Task<AsyncTaskResult<HandledCommand>> GetAsync(string commandId)
-        {
-            if (_currentFailedCount < _expectGetFailedCount)
-            {
-                _currentFailedCount++;
-
-                if (_failedType == FailedType.UnKnownException)
-                {
-                    throw new Exception("GetCommandAsyncUnKnownException" + _currentFailedCount);
-                }
-                else if (_failedType == FailedType.IOException)
-                {
-                    throw new IOException("GetCommandAsyncIOException" + _currentFailedCount);
-                }
-                else if (_failedType == FailedType.TaskIOException)
-                {
-                    return Task.FromResult(new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Failed, "GetCommandAsyncError" + _currentFailedCount));
-                }
-            }
-            return Task.FromResult(new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Success, null, Get(commandId)));
-        }
-
-        private CommandAddResult Add(HandledCommand handledCommand)
-        {
-            if (_handledCommandDict.TryAdd(handledCommand.CommandId, handledCommand))
-            {
-                return CommandAddResult.Success;
-            }
-            return CommandAddResult.DuplicateCommand;
-        }
-        private HandledCommand Get(string commandId)
-        {
-            HandledCommand handledCommand;
-            if (_handledCommandDict.TryGetValue(commandId, out handledCommand))
-            {
-                return handledCommand;
-            }
-            return null;
+            _expectUpdateFailedCount = count;
         }
 
         public Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId, int publishedVersion)
         {
-            throw new NotImplementedException();
+            if (_currentUpdateFailedCount < _expectUpdateFailedCount)
+            {
+                _currentUpdateFailedCount++;
+
+                if (_failedType == FailedType.UnKnownException)
+                {
+                    throw new Exception("UpdatePublishedVersionAsyncUnKnownException" + _currentUpdateFailedCount);
+                }
+                else if (_failedType == FailedType.IOException)
+                {
+                    throw new IOException("UpdatePublishedVersionAsyncIOException" + _currentUpdateFailedCount);
+                }
+                else if (_failedType == FailedType.TaskIOException)
+                {
+                    return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, "UpdatePublishedVersionAsyncError" + _currentUpdateFailedCount));
+                }
+            }
+            return _inMemoryPublishedVersionStore.UpdatePublishedVersionAsync(processorName, aggregateRootTypeName, aggregateRootId, publishedVersion);
         }
 
         public Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId)
         {
-            throw new NotImplementedException();
+            if (_currentGetFailedCount < _expectGetFailedCount)
+            {
+                _currentGetFailedCount++;
+
+                if (_failedType == FailedType.UnKnownException)
+                {
+                    throw new Exception("GetPublishedVersionAsyncUnKnownException" + _currentGetFailedCount);
+                }
+                else if (_failedType == FailedType.IOException)
+                {
+                    throw new IOException("GetPublishedVersionAsyncIOException" + _currentGetFailedCount);
+                }
+                else if (_failedType == FailedType.TaskIOException)
+                {
+                    return Task.FromResult(new AsyncTaskResult<int>(AsyncTaskStatus.Failed, "GetPublishedVersionAsyncError" + _currentGetFailedCount));
+                }
+            }
+            return _inMemoryPublishedVersionStore.GetPublishedVersionAsync(processorName, aggregateRootTypeName, aggregateRootId);
         }
     }
 }

@@ -40,7 +40,7 @@ namespace ENode.Tests
                 }
                 else if (_failedType == FailedType.TaskIOException)
                 {
-                    return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, "PublishDomainEventStreamMessageAsyncIError" + _currentFailedCount));
+                    return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, "PublishDomainEventStreamMessageAsyncError" + _currentFailedCount));
                 }
             }
             return _successResultTask;

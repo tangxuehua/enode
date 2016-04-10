@@ -1,132 +1,110 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ECommon.Components;
 using ECommon.IO;
-using ENode.Commanding;
+using ECommon.Logging;
 using ENode.Eventing;
+using ENode.Eventing.Impl;
 
 namespace ENode.Tests
 {
     public class MockEventStore : IEventStore
     {
-        private readonly ConcurrentDictionary<string, HandledCommand> _handledCommandDict = new ConcurrentDictionary<string, HandledCommand>();
-        private int _expectAddFailedCount = 0;
-        private int _expectGetFailedCount = 0;
+        private int _expectFailedCount = 0;
         private int _currentFailedCount = 0;
         private FailedType _failedType;
+        private InMemoryEventStore _inMemoryEventStore = new InMemoryEventStore(ObjectContainer.Resolve<ILoggerFactory>());
 
         public bool SupportBatchAppendEvent
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
+            get { return true; }
         }
 
         public void Reset()
         {
             _failedType = FailedType.None;
-            _expectAddFailedCount = 0;
-            _expectGetFailedCount = 0;
+            _expectFailedCount = 0;
             _currentFailedCount = 0;
         }
-        public void SetExpectGetFailedCount(FailedType failedType, int count)
+        public void SetExpectFailedCount(FailedType failedType, int count)
         {
             _failedType = failedType;
-            _expectGetFailedCount = count;
+            _expectFailedCount = count;
         }
-        public void SetExpectAddFailedCount(FailedType failedType, int count)
+
+        public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
-            _failedType = failedType;
-            _expectAddFailedCount = count;
-        }
-        public Task<AsyncTaskResult<CommandAddResult>> AddAsync(HandledCommand handledCommand)
-        {
-            if (_currentFailedCount < _expectAddFailedCount)
+            if (_currentFailedCount < _expectFailedCount)
             {
                 _currentFailedCount++;
 
                 if (_failedType == FailedType.UnKnownException)
                 {
-                    throw new Exception("AddCommandAsyncUnKnownException" + _currentFailedCount);
+                    throw new Exception("BatchAppendAsyncUnKnownException" + _currentFailedCount);
                 }
                 else if (_failedType == FailedType.IOException)
                 {
-                    throw new IOException("AddCommandAsyncIOException" + _currentFailedCount);
+                    throw new IOException("BatchAppendAsyncIOException" + _currentFailedCount);
                 }
                 else if (_failedType == FailedType.TaskIOException)
                 {
-                    return Task.FromResult(new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Failed, "AddCommandAsyncError" + _currentFailedCount));
+                    return Task.FromResult(new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Failed, "BatchAppendAsyncError" + _currentFailedCount));
                 }
             }
-            return Task.FromResult(new AsyncTaskResult<CommandAddResult>(AsyncTaskStatus.Success, null, Add(handledCommand)));
+            return _inMemoryEventStore.BatchAppendAsync(eventStreams);
         }
-        public Task<AsyncTaskResult<HandledCommand>> GetAsync(string commandId)
+        public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
         {
-            if (_currentFailedCount < _expectGetFailedCount)
+            if (_currentFailedCount < _expectFailedCount)
             {
                 _currentFailedCount++;
 
                 if (_failedType == FailedType.UnKnownException)
                 {
-                    throw new Exception("GetCommandAsyncUnKnownException" + _currentFailedCount);
+                    throw new Exception("AppendAsyncUnKnownException" + _currentFailedCount);
                 }
                 else if (_failedType == FailedType.IOException)
                 {
-                    throw new IOException("GetCommandAsyncIOException" + _currentFailedCount);
+                    throw new IOException("AppendAsyncIOException" + _currentFailedCount);
                 }
                 else if (_failedType == FailedType.TaskIOException)
                 {
-                    return Task.FromResult(new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Failed, "GetCommandAsyncError" + _currentFailedCount));
+                    return Task.FromResult(new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Failed, "AppendAsyncError" + _currentFailedCount));
                 }
             }
-            return Task.FromResult(new AsyncTaskResult<HandledCommand>(AsyncTaskStatus.Success, null, Get(commandId)));
+            return _inMemoryEventStore.AppendAsync(eventStream);
         }
+        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
+        {
+            if (_currentFailedCount < _expectFailedCount)
+            {
+                _currentFailedCount++;
 
-        private CommandAddResult Add(HandledCommand handledCommand)
-        {
-            if (_handledCommandDict.TryAdd(handledCommand.CommandId, handledCommand))
-            {
-                return CommandAddResult.Success;
+                if (_failedType == FailedType.UnKnownException)
+                {
+                    throw new Exception("AppendAsyncUnKnownException" + _currentFailedCount);
+                }
+                else if (_failedType == FailedType.IOException)
+                {
+                    throw new IOException("AppendAsyncIOException" + _currentFailedCount);
+                }
+                else if (_failedType == FailedType.TaskIOException)
+                {
+                    return Task.FromResult(new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Failed, "AppendAsyncError" + _currentFailedCount));
+                }
             }
-            return CommandAddResult.DuplicateCommand;
+            return _inMemoryEventStore.FindAsync(aggregateRootId, version);
         }
-        private HandledCommand Get(string commandId)
+        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
         {
-            HandledCommand handledCommand;
-            if (_handledCommandDict.TryGetValue(commandId, out handledCommand))
-            {
-                return handledCommand;
-            }
-            return null;
+            return _inMemoryEventStore.FindAsync(aggregateRootId, commandId);
         }
 
         public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             throw new NotImplementedException();
         }
-
-        public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             throw new NotImplementedException();

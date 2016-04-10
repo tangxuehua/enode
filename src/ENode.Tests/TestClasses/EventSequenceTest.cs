@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace ENode.Tests
 {
     [TestClass]
-    public class DomainEventSequenceTest : BaseTest
+    public class EventSequenceTest : BaseTest
     {
         private static ManualResetEvent _waitHandle = new ManualResetEvent(false);
         private static IList<int> _versionList = new List<int>();
