@@ -30,7 +30,10 @@ namespace ENode.EQueue
 
         public CommandConsumer(string groupName = null, ConsumerSetting setting = null)
         {
-            _consumer = new Consumer(groupName ?? DefaultCommandConsumerGroup, setting);
+            _consumer = new Consumer(groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting
+            {
+                ConsumeFromWhere = ConsumeFromWhere.FirstOffset
+            });
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
