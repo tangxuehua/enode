@@ -41,14 +41,16 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commanding\CommandExecuteTimeoutException.cs" />
     <Compile Include="Commanding\ICommandAsyncHandler.cs" />
     <Compile Include="Commanding\ICommandAsyncHandlerProvider.cs" />
     <Compile Include="Commanding\Command.cs" />
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
-    <Compile Include="Commanding\CommandSendException.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\HandledCommand.cs" />
     <Compile Include="Commanding\CommandAddResult.cs" />
+    <Compile Include="Commanding\Impl\DefaultProcessingCommandScheduler.cs" />
+    <Compile Include="Commanding\IProcessingCommandScheduler.cs" />
     <Compile Include="Commanding\ICommandHandler.cs" />
     <Compile Include="Commanding\ICommand.cs" />
     <Compile Include="Commanding\ICommandAsyncHandlerProxy.cs" />
@@ -56,6 +58,7 @@
     <Compile Include="Commanding\ICommandStore.cs" />
     <Compile Include="Commanding\ICommandHandlerProvider.cs" />
     <Compile Include="Commanding\Impl\CommandAsyncHandlerProxy.cs" />
+    <Compile Include="Commanding\Impl\DefaultCommandProcessor.cs" />
     <Compile Include="Commanding\Impl\DefaultProcessingCommandHandler.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandAsyncHandlerProvider.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRoutingKeyProvider.cs" />
@@ -63,19 +66,24 @@
     <Compile Include="Commanding\Impl\InMemoryCommandStore.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
+    <Compile Include="Commanding\IProcessingCommandHandler.cs" />
     <Compile Include="Commanding\ProcessingCommand.cs" />
     <Compile Include="Commanding\ICommandExecuteContext.cs" />
     <Compile Include="Commanding\ICommandProcessor.cs" />
+    <Compile Include="Commanding\ProcessingCommandMailbox.cs" />
     <Compile Include="Configurations\Configuration.cs" />
     <Compile Include="Configurations\OptionSetting.cs" />
     <Compile Include="Configurations\ConfigurationSetting.cs" />
     <Compile Include="Domain\AggregateRoot.cs" />
+    <Compile Include="Domain\AggregateCacheInfo.cs" />
     <Compile Include="Domain\IAggregateRoot.cs" />
     <Compile Include="Domain\IAggregateRepository.cs" />
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\IAggregateRepositoryProvider.cs" />
+    <Compile Include="Domain\ICleanAggregateService.cs" />
     <Compile Include="Domain\Impl\AggregateRepositoryProxy.cs" />
     <Compile Include="Domain\Impl\DefaultAggregateRepositoryProvider.cs" />
+    <Compile Include="Domain\Impl\DefaultCleanAggregateService.cs" />
     <Compile Include="Domain\Impl\SnapshotOnlyAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="EQueue\AbstractTopicProvider.cs" />
@@ -105,6 +113,7 @@
     <Compile Include="Eventing\EventAppendResult.cs" />
     <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Eventing\Impl\DomainEventStreamMessageHandler.cs" />
+    <Compile Include="Eventing\Impl\EventMailBox.cs" />
     <Compile Include="Infrastructure\Impl\DefaultTypeNameProvider.cs" />
     <Compile Include="Infrastructure\ITypeNameProvider.cs" />
     <Compile Include="Infrastructure\MessageHandlerData.cs" />
@@ -146,7 +155,7 @@
     <Compile Include="Infrastructure\IMessageProcessContext.cs" />
     <Compile Include="Infrastructure\IMessageProcessor.cs" />
     <Compile Include="Infrastructure\IMessagePublisher.cs" />
-    <Compile Include="Infrastructure\Impl\SQL\SqlServerLockService.cs" />
+    <Compile Include="Infrastructure\Impl\SqlServerLockService.cs" />
     <Compile Include="Infrastructure\ILockService.cs" />
     <Compile Include="Eventing\IEventService.cs" />
     <Compile Include="Eventing\Impl\DefaultEventService.cs" />
@@ -157,12 +166,9 @@
     <Compile Include="Eventing\IDomainEvent.cs" />
     <Compile Include="Eventing\IEventStore.cs" />
     <Compile Include="Eventing\DomainEvent.cs" />
-    <Compile Include="Infrastructure\Impl\InMemory\InMemorySequenceMessagePublishedVersionStore.cs" />
-    <Compile Include="Infrastructure\Impl\SQL\SqlServerMessageHandleRecordStore.cs" />
-    <Compile Include="Infrastructure\Impl\SQL\SqlServerSequenceMessagePublishedVersionStore.cs" />
-    <Compile Include="Infrastructure\Impl\InMemory\InMemoryMessageHandleRecordStore.cs" />
-    <Compile Include="Infrastructure\ISequenceMessagePublishVersionStore.cs" />
-    <Compile Include="Infrastructure\IMessageHandleRecordStore.cs" />
+    <Compile Include="Infrastructure\Impl\InMemoryPublishedVersionStore.cs" />
+    <Compile Include="Infrastructure\Impl\SqlServerPublishedVersionStore.cs" />
+    <Compile Include="Infrastructure\IPublishedVersionStore.cs" />
     <Compile Include="Infrastructure\IAssemblyInitializer.cs" />
     <Compile Include="Commanding\ITrackingContext.cs" />
     <Compile Include="Domain\Impl\DefaultRepository.cs" />
@@ -198,12 +204,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
     </Reference>
-    <Reference Include="ECommon, Version=2.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ECommon.2.0.2\lib\net45\ECommon.dll</HintPath>
+    <Reference Include="ECommon, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\ECommon.2.0.3\lib\net45\ECommon.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="EQueue, Version=2.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\EQueue.2.0.7\lib\net45\EQueue.dll</HintPath>
+    <Reference Include="EQueue, Version=2.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\EQueue.2.1.1\lib\net45\EQueue.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
@@ -221,7 +227,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SqlServerTableGenerateSQL.sql" />
+    <Content Include="Scripts\SqlServerTableGenerateSQL.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

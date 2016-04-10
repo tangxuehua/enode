@@ -21,7 +21,7 @@ namespace ENode.EQueue
         private readonly SendReplyService _sendReplyService;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeNameProvider _typeNameProvider;
-        private readonly IMessageProcessor<ProcessingCommand, ICommand, CommandResult> _processor;
+        private readonly ICommandProcessor _processor;
         private readonly IRepository _repository;
         private readonly IAggregateStorage _aggregateRootStorage;
         private readonly ILogger _logger;
@@ -30,11 +30,14 @@ namespace ENode.EQueue
 
         public CommandConsumer(string groupName = null, ConsumerSetting setting = null)
         {
-            _consumer = new Consumer(groupName ?? DefaultCommandConsumerGroup, setting);
+            _consumer = new Consumer(groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting
+            {
+                ConsumeFromWhere = ConsumeFromWhere.FirstOffset
+            });
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
-            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingCommand, ICommand, CommandResult>>();
+            _processor = ObjectContainer.Resolve<ICommandProcessor>();
             _repository = ObjectContainer.Resolve<IRepository>();
             _aggregateRootStorage = ObjectContainer.Resolve<IAggregateStorage>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);

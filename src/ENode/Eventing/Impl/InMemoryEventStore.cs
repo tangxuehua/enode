@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -16,9 +15,12 @@ namespace ENode.Eventing.Impl
         private readonly ConcurrentDictionary<string, AggregateInfo> _aggregateInfoDict;
         private readonly ILogger _logger;
 
+        public bool SupportBatchAppendEvent { get; set; }
+
         public InMemoryEventStore(ILoggerFactory loggerFactory)
         {
             _aggregateInfoDict = new ConcurrentDictionary<string, AggregateInfo>();
+            SupportBatchAppendEvent = true;
             _logger = loggerFactory.Create(GetType().FullName);
         }
 
@@ -36,6 +38,18 @@ namespace ENode.Eventing.Impl
             var max = maxVersion < aggregateInfo.CurrentVersion ? maxVersion : aggregateInfo.CurrentVersion;
 
             return aggregateInfo.EventDict.Where(x => x.Key >= min && x.Key <= max).Select(x => x.Value).ToList();
+        }
+        public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
+        {
+            foreach (var eventStream in eventStreams)
+            {
+                var task = AppendAsync(eventStream);
+                if (task.Result.Data != EventAppendResult.Success)
+                {
+                    return task;
+                }
+            }
+            return Task.FromResult(new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.Success));
         }
         public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
         {

@@ -2,12 +2,12 @@
 using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
+using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Serializing;
 using ECommon.Utilities;
 using ENode.Commanding;
-using ENode.EQueue.Commanding;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueueMessage = EQueue.Protocols.Message;
@@ -74,6 +74,24 @@ namespace ENode.EQueue
             {
                 return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message));
             }
+        }
+        public CommandResult Execute(ICommand command, int timeoutMillis)
+        {
+            var result = ExecuteAsync(command).WaitResult(timeoutMillis);
+            if (result == null)
+            {
+                throw new CommandExecuteTimeoutException("Command execute timeout, commandId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
+            }
+            return result.Data;
+        }
+        public CommandResult Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
+        {
+            var result = ExecuteAsync(command, commandReturnType).WaitResult(timeoutMillis);
+            if (result == null)
+            {
+                throw new CommandExecuteTimeoutException("Command execute timeout, commandId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
+            }
+            return result.Data;
         }
         public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
         {

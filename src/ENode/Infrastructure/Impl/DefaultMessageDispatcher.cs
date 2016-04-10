@@ -17,7 +17,6 @@ namespace ENode.Infrastructure.Impl
         private readonly IMessageHandlerProvider _handlerProvider;
         private readonly ITwoMessageHandlerProvider _twoMessageHandlerProvider;
         private readonly IThreeMessageHandlerProvider _threeMessageHandlerProvider;
-        private readonly IMessageHandleRecordStore _messageHandleRecordStore;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
 
@@ -30,7 +29,6 @@ namespace ENode.Infrastructure.Impl
             IMessageHandlerProvider handlerProvider,
             ITwoMessageHandlerProvider twoMessageHandlerProvider,
             IThreeMessageHandlerProvider threeMessageHandlerProvider,
-            IMessageHandleRecordStore messageHandleRecordStore,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
@@ -38,7 +36,6 @@ namespace ENode.Infrastructure.Impl
             _handlerProvider = handlerProvider;
             _twoMessageHandlerProvider = twoMessageHandlerProvider;
             _threeMessageHandlerProvider = threeMessageHandlerProvider;
-            _messageHandleRecordStore = messageHandleRecordStore;
             _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
         }
@@ -145,125 +142,45 @@ namespace ENode.Infrastructure.Impl
             var messageTypeName = _typeNameProvider.GetTypeName(message.GetType());
             var handlerType = handlerProxy.GetInnerObject().GetType();
             var handlerTypeName = _typeNameProvider.GetTypeName(handlerType);
-            var aggregateRootTypeName = message is ISequenceMessage ? ((ISequenceMessage)message).AggregateRootTypeName : null;
-
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<bool>>("IsRecordExistAsync",
-            () => _messageHandleRecordStore.IsRecordExistAsync(message.Id, handlerTypeName, aggregateRootTypeName),
-            currentRetryTimes => DispatchSingleMessageToHandlerAsync(singleMessageDispatching, handlerProxy, queueHandler, currentRetryTimes),
-            result =>
-            {
-                if (result.Data)
-                {
-                    singleMessageDispatching.RemoveHandledHandler(handlerTypeName);
-                    if (queueHandler != null)
-                    {
-                        queueHandler.OnHandlerFinished(handlerProxy);
-                    }
-                }
-                else
-                {
-                    HandleSingleMessageAsync(singleMessageDispatching, handlerProxy, handlerTypeName, handlerTypeName, queueHandler, 0);
-                }
-            },
-            () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerType.Name),
-            null,
-            retryTimes,
-            true);
+            HandleSingleMessageAsync(singleMessageDispatching, handlerProxy, handlerTypeName, messageTypeName, queueHandler, 0);
         }
         private void DispatchTwoMessageToHandlerAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy2 handlerProxy, QueuedHandler<IMessageHandlerProxy2> queueHandler, int retryTimes)
         {
-            var messages = multiMessageDispatching.Messages;
-            var message1 = messages[0];
-            var message2 = messages[1];
             var handlerType = handlerProxy.GetInnerObject().GetType();
             var handlerTypeName = _typeNameProvider.GetTypeName(handlerType);
-            var aggregateRootTypeName = message1 is ISequenceMessage ? ((ISequenceMessage)message1).AggregateRootTypeName : null;
-
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<bool>>("IsTwoMessageRecordExistAsync",
-            () => _messageHandleRecordStore.IsRecordExistAsync(message1.Id, message2.Id, handlerTypeName, aggregateRootTypeName),
-            currentRetryTimes => DispatchTwoMessageToHandlerAsync(multiMessageDispatching, handlerProxy, queueHandler, currentRetryTimes),
-            result =>
-            {
-                if (result.Data)
-                {
-                    multiMessageDispatching.RemoveHandledHandler(handlerTypeName);
-                    if (queueHandler != null)
-                    {
-                        queueHandler.OnHandlerFinished(handlerProxy);
-                    }
-                }
-                else
-                {
-                    HandleTwoMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, 0);
-                }
-            },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            HandleTwoMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, 0);
         }
         private void DispatchThreeMessageToHandlerAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy3 handlerProxy, QueuedHandler<IMessageHandlerProxy3> queueHandler, int retryTimes)
         {
-            var messages = multiMessageDispatching.Messages;
-            var message1 = messages[0];
-            var message2 = messages[1];
-            var message3 = messages[2];
             var handlerType = handlerProxy.GetInnerObject().GetType();
             var handlerTypeName = _typeNameProvider.GetTypeName(handlerType);
-            var aggregateRootTypeName = message1 is ISequenceMessage ? ((ISequenceMessage)message1).AggregateRootTypeName : null;
-
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult<bool>>("IsThreeMessageRecordExistAsync",
-            () => _messageHandleRecordStore.IsRecordExistAsync(message1.Id, message2.Id, message3.Id, handlerTypeName, aggregateRootTypeName),
-            currentRetryTimes => DispatchThreeMessageToHandlerAsync(multiMessageDispatching, handlerProxy, queueHandler, currentRetryTimes),
-            result =>
-            {
-                if (result.Data)
-                {
-                    multiMessageDispatching.RemoveHandledHandler(handlerTypeName);
-                    if (queueHandler != null)
-                    {
-                        queueHandler.OnHandlerFinished(handlerProxy);
-                    }
-                }
-                else
-                {
-                    HandleThreeMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, 0);
-                }
-            },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            HandleThreeMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, 0);
         }
 
         private void HandleSingleMessageAsync(SingleMessageDisptaching singleMessageDispatching, IMessageHandlerProxy1 handlerProxy, string handlerTypeName, string messageTypeName, QueuedHandler<IMessageHandlerProxy1> queueHandler, int retryTimes)
         {
             var message = singleMessageDispatching.Message;
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("HandleSingleMessageAsync",
+            _ioHelper.TryAsyncActionRecursively("HandleSingleMessageAsync",
             () => handlerProxy.HandleAsync(message),
             currentRetryTimes => HandleSingleMessageAsync(singleMessageDispatching, handlerProxy, handlerTypeName, messageTypeName, queueHandler, currentRetryTimes),
             result =>
             {
-                var messageHandleRecord = new MessageHandleRecord
+                singleMessageDispatching.RemoveHandledHandler(handlerTypeName);
+                if (queueHandler != null)
                 {
-                    MessageId = message.Id,
-                    MessageTypeName = messageTypeName,
-                    HandlerTypeName = handlerTypeName,
-                    CreatedOn = DateTime.Now
-                };
-                var sequenceMessage = message as ISequenceMessage;
-                if (sequenceMessage != null)
-                {
-                    messageHandleRecord.AggregateRootTypeName = sequenceMessage.AggregateRootTypeName;
-                    messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootStringId;
-                    messageHandleRecord.Version = sequenceMessage.Version;
+                    queueHandler.OnHandlerFinished(handlerProxy);
                 }
-
-                AddMessageHandledRecordAsync(singleMessageDispatching, messageHandleRecord, handlerProxy.GetInnerObject().GetType(), handlerTypeName, handlerProxy, queueHandler, 0);
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.DebugFormat("Message handled success, handlerType:{0}, messageType:{1}, messageId:{2}", handlerTypeName, message.GetType().Name, message.Id);
+                }
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerProxy.GetInnerObject().GetType().Name),
-            null,
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Handle single message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
             retryTimes);
         }
         private void HandleTwoMessageAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy2 handlerProxy, string handlerTypeName, QueuedHandler<IMessageHandlerProxy2> queueHandler, int retryTimes)
@@ -272,35 +189,35 @@ namespace ENode.Infrastructure.Impl
             var message1 = messages[0];
             var message2 = messages[1];
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("HandleTwoMessageAsync",
+            _ioHelper.TryAsyncActionRecursively("HandleTwoMessageAsync",
             () => handlerProxy.HandleAsync(message1, message2),
             currentRetryTimes => HandleTwoMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, currentRetryTimes),
             result =>
             {
-                var message1TypeName = _typeNameProvider.GetTypeName(message1.GetType());
-                var message2TypeName = _typeNameProvider.GetTypeName(message2.GetType());
-                var messageHandleRecord = new TwoMessageHandleRecord
+                multiMessageDispatching.RemoveHandledHandler(handlerTypeName);
+                if (queueHandler != null)
                 {
-                    MessageId1 = message1.Id,
-                    MessageId2 = message2.Id,
-                    Message1TypeName = message1TypeName,
-                    Message2TypeName = message2TypeName,
-                    HandlerTypeName = handlerTypeName,
-                    CreatedOn = DateTime.Now
-                };
-                var sequenceMessage = message1 as ISequenceMessage;
-                if (sequenceMessage != null)
-                {
-                    messageHandleRecord.AggregateRootTypeName = sequenceMessage.AggregateRootTypeName;
-                    messageHandleRecord.AggregateRootId = sequenceMessage.AggregateRootStringId;
-                    messageHandleRecord.Version = sequenceMessage.Version;
+                    queueHandler.OnHandlerFinished(handlerProxy);
                 }
-
-                AddTwoMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, 0);
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.DebugFormat("TwoMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
+                }
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
+<<<<<<< .mine
             null,
             retryTimes);
+
+
+
+=======
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Handle two message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes);
+>>>>>>> .theirs
         }
         private void HandleThreeMessageAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy3 handlerProxy, string handlerTypeName, QueuedHandler<IMessageHandlerProxy3> queueHandler, int retryTimes)
         {
@@ -309,11 +226,12 @@ namespace ENode.Infrastructure.Impl
             var message2 = messages[1];
             var message3 = messages[2];
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("HandleTwoMessageAsync",
+            _ioHelper.TryAsyncActionRecursively("HandleThreeMessageAsync",
             () => handlerProxy.HandleAsync(message1, message2, message3),
             currentRetryTimes => HandleThreeMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, currentRetryTimes),
             result =>
             {
+<<<<<<< .mine
                 var message1TypeName = _typeNameProvider.GetTypeName(message1.GetType());
                 var message2TypeName = _typeNameProvider.GetTypeName(message2.GetType());
                 var message3TypeName = _typeNameProvider.GetTypeName(message3.GetType());
@@ -376,30 +294,70 @@ namespace ENode.Infrastructure.Impl
             currentRetryTimes => AddTwoMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, currentRetryTimes),
             result =>
             {
-                multiMessageDispatching.RemoveHandledHandler(handlerTypeName);
-                if (queueHandler != null)
-                {
-                    queueHandler.OnHandlerFinished(handlerProxy);
-                }
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("TwoMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name);
-                }
-            },
-            () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
-        }
-        private void AddThreeMessageHandledRecordAsync(MultiMessageDisptaching multiMessageDispatching, ThreeMessageHandleRecord messageHandleRecord, string handlerTypeName, IMessageHandlerProxy3 handlerProxy, QueuedHandler<IMessageHandlerProxy3> queueHandler, int retryTimes)
-        {
-            var messages = multiMessageDispatching.Messages;
+=======
 
-            _ioHelper.TryAsyncActionRecursively<AsyncTaskResult>("AddThreeMessageHandledRecordAsync",
-            () => _messageHandleRecordStore.AddRecordAsync(messageHandleRecord),
-            currentRetryTimes => AddThreeMessageHandledRecordAsync(multiMessageDispatching, messageHandleRecord, handlerTypeName, handlerProxy, queueHandler, currentRetryTimes),
-            result =>
-            {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> .theirs
                 multiMessageDispatching.RemoveHandledHandler(handlerTypeName);
                 if (queueHandler != null)
                 {
@@ -407,13 +365,15 @@ namespace ENode.Infrastructure.Impl
                 }
                 if (_logger.IsDebugEnabled)
                 {
-                    _logger.DebugFormat("ThreeMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name);
+                    _logger.DebugFormat("ThreeMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
                 }
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
-            null,
-            retryTimes,
-            true);
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Handle three message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes);
         }
 
         #endregion

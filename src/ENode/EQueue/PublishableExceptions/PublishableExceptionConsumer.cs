@@ -23,7 +23,8 @@ namespace ENode.EQueue
         {
             _consumer = new Consumer(groupName ?? DefaultExceptionConsumerGroup, setting ?? new ConsumerSetting
             {
-                MessageHandleMode = MessageHandleMode.Sequential
+                MessageHandleMode = MessageHandleMode.Sequential,
+                ConsumeFromWhere = ConsumeFromWhere.FirstOffset
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();

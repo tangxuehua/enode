@@ -10,7 +10,7 @@ namespace ENode.Eventing
         /// <summary>Set the command executor for command retring.
         /// </summary>
         /// <param name="processingCommandHandler"></param>
-        void SetProcessingCommandHandler(IProcessingMessageHandler<ProcessingCommand, ICommand, CommandResult> processingCommandHandler);
+        void SetProcessingCommandHandler(IProcessingCommandHandler processingCommandHandler);
         /// <summary>Commit the given aggregate's domain events to the eventstore async and publish the domain events.
         /// </summary>
         /// <param name="context"></param>

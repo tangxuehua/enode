@@ -14,7 +14,7 @@
         public async void HandleAsync(X processingMessage)
         {
             await _dispatcher.DispatchMessageAsync(processingMessage.Message);
-            processingMessage.Complete(default(Z));
+            processingMessage.SetResult(default(Z));
         }
     }
 }

@@ -19,7 +19,7 @@ namespace ENode.Infrastructure
         {
             _mailbox = mailbox;
         }
-        public void Complete(bool result)
+        public void SetResult(bool result)
         {
             _processContext.NotifyMessageProcessed();
             if (_mailbox != null)

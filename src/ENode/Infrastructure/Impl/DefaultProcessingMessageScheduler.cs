@@ -24,11 +24,7 @@ namespace ENode.Infrastructure
         {
             if (mailbox.EnterHandlingMessage())
             {
-                Task.Factory.StartNew(obj =>
-                {
-                    var currentMailbox = obj as ProcessingMessageMailbox<X, Y, Z>;
-                    Task.Factory.StartNew(currentMailbox.Run);
-                }, mailbox);
+                Task.Factory.StartNew(mailbox.Run);
             }
         }
     }

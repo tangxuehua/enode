@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using ECommon.IO;
-using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
@@ -17,6 +16,19 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="command">The command to send.</param>
         void Send(ICommand command);
+        /// <summary>Execute a command synchronously with the default command return type.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="timeoutMillis"></param>
+        /// <returns></returns>
+        CommandResult Execute(ICommand command, int timeoutMillis);
+        /// <summary>Execute a command synchronously with the specified command return type.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="commandReturnType"></param>
+        /// <param name="timeoutMillis"></param>
+        /// <returns></returns>
+        CommandResult Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis);
         /// <summary>Execute a command asynchronously with the default command return type.
         /// </summary>
         /// <param name="command">The command to execute.</param>

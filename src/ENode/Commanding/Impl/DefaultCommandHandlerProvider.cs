@@ -20,7 +20,7 @@ namespace ENode.Commanding.Impl
         }
         protected override bool IsHandlerSourceMatchKey(Type handlerSource, Type key)
         {
-            return key.IsAssignableFrom(handlerSource);
+            return key == handlerSource;
         }
         protected override bool IsHandleMethodMatchKey(Type[] argumentTypes, Type key)
         {

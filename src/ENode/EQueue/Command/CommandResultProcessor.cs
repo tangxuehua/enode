@@ -12,7 +12,7 @@ using ECommon.Scheduling;
 using ECommon.Serializing;
 using ENode.Commanding;
 
-namespace ENode.EQueue.Commanding
+namespace ENode.EQueue
 {
     public class CommandResultProcessor : IRequestHandler
     {

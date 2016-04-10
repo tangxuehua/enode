@@ -11,7 +11,7 @@ namespace ENode.Eventing.Impl
     {
         private readonly IMessageDispatcher _dispatcher;
 
-        public DomainEventStreamMessageHandler(ISequenceMessagePublishedVersionStore publishedVersionStore, IMessageDispatcher dispatcher, IOHelper ioHelper, ILoggerFactory loggerFactory)
+        public DomainEventStreamMessageHandler(IPublishedVersionStore publishedVersionStore, IMessageDispatcher dispatcher, IOHelper ioHelper, ILoggerFactory loggerFactory)
             : base(publishedVersionStore, ioHelper, loggerFactory)
         {
             _dispatcher = dispatcher;
