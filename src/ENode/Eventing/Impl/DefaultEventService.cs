@@ -145,7 +145,8 @@ namespace ENode.Eventing.Impl
                     }
                     else
                     {
-                        ProcessEventConcurrency(context);
+                        _logger.WarnFormat("Batch persist event has concurrent version conflict, first eventStream: {0}, batchSize: {1}", context.EventStream, committingContexts.Count);
+                        ResetCommandMailBoxConsumingOffset(context, context.ProcessingCommand.Sequence);
                     }
                 }
                 else if (appendResult == EventAppendResult.DuplicateCommand)
@@ -197,13 +198,14 @@ namespace ENode.Eventing.Impl
                     //如果事件的版本大于1，则认为是更新聚合根时遇到并发冲突了，则需要进行重试；
                     else
                     {
-                        ProcessEventConcurrency(context);
+                        _logger.WarnFormat("Persist event has concurrent version conflict, eventStream: {0}", context.EventStream);
+                        ResetCommandMailBoxConsumingOffset(context, context.ProcessingCommand.Sequence);
                     }
                 }
                 else if (result.Data == EventAppendResult.DuplicateCommand)
                 {
                     _logger.WarnFormat("Persist event has duplicate command, eventStream: {0}", context.EventStream);
-                    ResetCommandMailBoxConsumingOffset(context);
+                    ResetCommandMailBoxConsumingOffset(context, context.ProcessingCommand.Sequence + 1);
                     TryToRepublishEventAsync(context, 0);
                     context.EventMailBox.RegisterForExecution(true);
                 }
@@ -215,22 +217,7 @@ namespace ENode.Eventing.Impl
             },
             retryTimes, true);
         }
-        private void ProcessEventConcurrency(EventCommittingContext context)
-        {
-            _logger.WarnFormat("Persist event has concurrent conflict, eventStream: {0}", context.EventStream);
-
-            var eventMailBox = context.EventMailBox;
-            var processingCommand = context.ProcessingCommand;
-            var commandMailBox = processingCommand.Mailbox;
-
-            commandMailBox.StopHandlingMessage();
-            UpdateAggregateMemoryCacheToLatestVersion(context.EventStream);
-            commandMailBox.ResetConsumingOffset(processingCommand.Sequence);
-            eventMailBox.Clear();
-            eventMailBox.ExitHandlingMessage();
-            commandMailBox.RestartHandlingMessage();
-        }
-        private void ResetCommandMailBoxConsumingOffset(EventCommittingContext context)
+        private void ResetCommandMailBoxConsumingOffset(EventCommittingContext context, long consumeOffset)
         {
             var eventMailBox = context.EventMailBox;
             var processingCommand = context.ProcessingCommand;
@@ -238,7 +225,7 @@ namespace ENode.Eventing.Impl
 
             commandMailBox.StopHandlingMessage();
             UpdateAggregateMemoryCacheToLatestVersion(context.EventStream);
-            commandMailBox.ResetConsumingOffset(processingCommand.Sequence + 1);
+            commandMailBox.ResetConsumingOffset(consumeOffset);
             eventMailBox.Clear();
             eventMailBox.ExitHandlingMessage();
             commandMailBox.RestartHandlingMessage();
@@ -296,8 +283,8 @@ namespace ENode.Eventing.Impl
                     //有可能事件持久化成功了，但那时正好机器断电了，则发布事件都没有做；
                     if (context.ProcessingCommand.Message.Id == firstEventStream.CommandId)
                     {
+                        ResetCommandMailBoxConsumingOffset(context, context.ProcessingCommand.Sequence + 1);
                         PublishDomainEventAsync(context.ProcessingCommand, firstEventStream);
-                        TryProcessNextContext(context);
                     }
                     else
                     {
@@ -308,7 +295,7 @@ namespace ENode.Eventing.Impl
                             firstEventStream.AggregateRootId,
                             firstEventStream.AggregateRootTypeName);
                         _logger.Error(errorMessage);
-                        ResetCommandMailBoxConsumingOffset(context);
+                        ResetCommandMailBoxConsumingOffset(context, context.ProcessingCommand.Sequence + 1);
                         CompleteCommand(context.ProcessingCommand, new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation.", typeof(string).FullName));
                     }
                 }

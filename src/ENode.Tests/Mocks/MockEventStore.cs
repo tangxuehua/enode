@@ -16,9 +16,11 @@ namespace ENode.Tests
         private FailedType _failedType;
         private InMemoryEventStore _inMemoryEventStore = new InMemoryEventStore(ObjectContainer.Resolve<ILoggerFactory>());
 
-        public bool SupportBatchAppendEvent
+        public bool SupportBatchAppendEvent { get; set; }
+
+        public MockEventStore()
         {
-            get { return true; }
+            SupportBatchAppendEvent = true;
         }
 
         public void Reset()

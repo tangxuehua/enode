@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Logging;
 
@@ -17,17 +15,12 @@ namespace ENode.Eventing.Impl
         private readonly ConcurrentDictionary<string, AggregateInfo> _aggregateInfoDict;
         private readonly ILogger _logger;
 
-        public bool SupportBatchAppendEvent
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool SupportBatchAppendEvent { get; set; }
 
         public InMemoryEventStore(ILoggerFactory loggerFactory)
         {
             _aggregateInfoDict = new ConcurrentDictionary<string, AggregateInfo>();
+            SupportBatchAppendEvent = true;
             _logger = loggerFactory.Create(GetType().FullName);
         }
 

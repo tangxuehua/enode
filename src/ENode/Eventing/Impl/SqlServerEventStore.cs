@@ -36,13 +36,7 @@ namespace ENode.Eventing.Impl
 
         #region Public Properties
 
-        public bool SupportBatchAppendEvent
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool SupportBatchAppendEvent { get; set; }
 
         #endregion
 
@@ -83,6 +77,8 @@ namespace ENode.Eventing.Impl
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+
+            SupportBatchAppendEvent = true;
         }
 
         #endregion
@@ -124,7 +120,7 @@ namespace ENode.Eventing.Impl
         }
         public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<IEnumerable<DomainEventStream>>>(async () =>
+            return _ioHelper.TryIOFuncAsync(async () =>
             {
                 try
                 {

@@ -7,7 +7,6 @@ using ECommon.Logging;
 using ECommon.Serializing;
 using ECommon.Utilities;
 using ENode.Commanding;
-using ENode.EQueue.Commanding;
 using ENode.Infrastructure;
 using EQueue.Clients.Producers;
 using EQueueMessage = EQueue.Protocols.Message;

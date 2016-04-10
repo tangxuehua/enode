@@ -11,7 +11,7 @@ namespace ENode.Eventing
     {
         /// <summary>This property indicate whether the event store support batch append events.
         /// </summary>
-        bool SupportBatchAppendEvent { get; }
+        bool SupportBatchAppendEvent { get; set; }
         /// <summary>Query a range of event streams of a single aggregate from event store.
         /// </summary>
         IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion);
