@@ -60,6 +60,49 @@ namespace ENode.Tests
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
         }
         [TestMethod]
+        public void command_sync_execute_test()
+        {
+            var aggregateId = ObjectId.GenerateNewStringId();
+            var command = new CreateTestAggregateCommand
+            {
+                AggregateRootId = aggregateId,
+                Title = "Sample Note",
+                SleepMilliseconds = 3000
+            };
+
+            //执行创建聚合根的命令
+            var commandResult = _commandService.Execute(command, 5000);
+            Assert.IsNotNull(commandResult);
+            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
+            var note = _memoryCache.Get<TestAggregate>(aggregateId);
+            Assert.IsNotNull(note);
+            Assert.AreEqual("Sample Note", note.Title);
+            Assert.AreEqual(1, ((IAggregateRoot)note).Version);
+        }
+        [TestMethod]
+        public void command_sync_execute_timeout_test()
+        {
+            var aggregateId = ObjectId.GenerateNewStringId();
+            var command = new CreateTestAggregateCommand
+            {
+                AggregateRootId = aggregateId,
+                Title = "Sample Note",
+                SleepMilliseconds = 5000
+            };
+
+            //执行创建聚合根的命令
+            var isTimeout = false;
+            try
+            {
+                var commandResult = _commandService.Execute(command, 3000);
+            }
+            catch (CommandExecuteTimeoutException)
+            {
+                isTimeout = true;
+            }
+            Assert.IsTrue(isTimeout);
+        }
+        [TestMethod]
         public void duplicate_create_aggregate_command_test()
         {
             var aggregateId = ObjectId.GenerateNewStringId();

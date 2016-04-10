@@ -21,14 +21,14 @@ namespace ENode.Commanding
         /// <param name="command"></param>
         /// <param name="timeoutMillis"></param>
         /// <returns></returns>
-        AsyncTaskResult<CommandResult> Execute(ICommand command, int timeoutMillis);
+        CommandResult Execute(ICommand command, int timeoutMillis);
         /// <summary>Execute a command synchronously with the specified command return type.
         /// </summary>
         /// <param name="command"></param>
         /// <param name="commandReturnType"></param>
         /// <param name="timeoutMillis"></param>
         /// <returns></returns>
-        AsyncTaskResult<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis);
+        CommandResult Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis);
         /// <summary>Execute a command asynchronously with the default command return type.
         /// </summary>
         /// <param name="command">The command to execute.</param>

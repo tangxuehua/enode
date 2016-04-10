@@ -41,6 +41,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commanding\CommandExecuteTimeoutException.cs" />
     <Compile Include="Commanding\ICommandAsyncHandler.cs" />
     <Compile Include="Commanding\ICommandAsyncHandlerProvider.cs" />
     <Compile Include="Commanding\Command.cs" />

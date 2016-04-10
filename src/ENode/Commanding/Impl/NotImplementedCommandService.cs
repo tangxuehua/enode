@@ -14,11 +14,11 @@ namespace ENode.Commanding.Impl
         {
             throw new NotImplementedException();
         }
-        public AsyncTaskResult<CommandResult> Execute(ICommand command, int timeoutMillis)
+        public CommandResult Execute(ICommand command, int timeoutMillis)
         {
             throw new NotImplementedException();
         }
-        public AsyncTaskResult<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
+        public CommandResult Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
         {
             throw new NotImplementedException();
         }

@@ -75,13 +75,23 @@ namespace ENode.EQueue
                 return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message));
             }
         }
-        public AsyncTaskResult<CommandResult> Execute(ICommand command, int timeoutMillis)
+        public CommandResult Execute(ICommand command, int timeoutMillis)
         {
-            return ExecuteAsync(command).WaitResult(timeoutMillis);
+            var result = ExecuteAsync(command).WaitResult(timeoutMillis);
+            if (result == null)
+            {
+                throw new CommandExecuteTimeoutException("Command execute timeout, commandId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
+            }
+            return result.Data;
         }
-        public AsyncTaskResult<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
+        public CommandResult Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
         {
-            return ExecuteAsync(command, commandReturnType).WaitResult(timeoutMillis);
+            var result = ExecuteAsync(command, commandReturnType).WaitResult(timeoutMillis);
+            if (result == null)
+            {
+                throw new CommandExecuteTimeoutException("Command execute timeout, commandId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
+            }
+            return result.Data;
         }
         public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
         {

@@ -5,6 +5,7 @@ namespace ENode.Tests.Commands
     public class CreateTestAggregateCommand : Command<string>
     {
         public string Title { get; set; }
+        public int SleepMilliseconds { get; set; }
     }
     public class ChangeTestAggregateTitleCommand : Command<string>
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using ECommon.IO;
 using ENode.Commanding;
@@ -20,6 +21,10 @@ namespace ENode.Tests.CommandHandlers
     {
         public void Handle(ICommandContext context, CreateTestAggregateCommand command)
         {
+            if (command.SleepMilliseconds > 0)
+            {
+                Thread.Sleep(command.SleepMilliseconds);
+            }
             context.Add(new TestAggregate(command.AggregateRootId, command.Title));
         }
         public void Handle(ICommandContext context, ChangeTestAggregateTitleCommand command)
