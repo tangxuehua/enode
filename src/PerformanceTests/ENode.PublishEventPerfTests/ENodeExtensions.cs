@@ -16,7 +16,7 @@ namespace ENode.PublishEventPerfTests
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
-            var brokerStorePath = @"d:\equeue-store";
+            var brokerStorePath = @"c:\equeue-store";
 
             if (Directory.Exists(brokerStorePath))
             {
