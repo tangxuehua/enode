@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ECommon.IO;
-using ENode.Infrastructure;
 
 namespace ENode.Commanding.Impl
 {
@@ -12,6 +11,14 @@ namespace ENode.Commanding.Impl
             throw new NotImplementedException();
         }
         public Task<AsyncTaskResult> SendAsync(ICommand command)
+        {
+            throw new NotImplementedException();
+        }
+        public AsyncTaskResult<CommandResult> Execute(ICommand command, int timeoutMillis)
+        {
+            throw new NotImplementedException();
+        }
+        public AsyncTaskResult<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
         {
             throw new NotImplementedException();
         }

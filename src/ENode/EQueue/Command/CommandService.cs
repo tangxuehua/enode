@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
+using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -73,6 +74,14 @@ namespace ENode.EQueue
             {
                 return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message));
             }
+        }
+        public AsyncTaskResult<CommandResult> Execute(ICommand command, int timeoutMillis)
+        {
+            return ExecuteAsync(command).WaitResult(timeoutMillis);
+        }
+        public AsyncTaskResult<CommandResult> Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
+        {
+            return ExecuteAsync(command, commandReturnType).WaitResult(timeoutMillis);
         }
         public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
         {
