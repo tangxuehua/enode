@@ -45,7 +45,6 @@
     <Compile Include="Commanding\ICommandAsyncHandlerProvider.cs" />
     <Compile Include="Commanding\Command.cs" />
     <Compile Include="Commanding\AggregateRootAlreadyExistException.cs" />
-    <Compile Include="Commanding\CommandSendException.cs" />
     <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\HandledCommand.cs" />
     <Compile Include="Commanding\CommandAddResult.cs" />

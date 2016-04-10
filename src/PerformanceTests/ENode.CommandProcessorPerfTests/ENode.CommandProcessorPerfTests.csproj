@@ -87,6 +87,10 @@
       <Project>{f884f01a-ed67-4f21-8576-fd2588491b24}</Project>
       <Name>ENode</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Samples\NoteSample\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj">
+      <Project>{33a00a93-90bb-40fc-93c4-b35296da0ea2}</Project>
+      <Name>NoteSample.CommandHandlers</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Samples\NoteSample\NoteSample.Commands\NoteSample.Commands.csproj">
       <Project>{4048fe0b-50a6-46ad-b633-0e65883e8c3e}</Project>
       <Name>NoteSample.Commands</Name>

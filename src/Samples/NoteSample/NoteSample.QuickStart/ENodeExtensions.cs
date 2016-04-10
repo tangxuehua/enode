@@ -9,7 +9,6 @@ using ECommon.Socketing;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
-using ENode.EQueue.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Broker;
