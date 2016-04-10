@@ -30,19 +30,16 @@ namespace ENode.Tests
             bool useMockApplicationMessagePublisher = false,
             bool useMockPublishableExceptionPublisher = false)
         {
+            if (_enodeConfiguration != null)
+            {
+                CleanupEnode();
+            }
             InitializeENode(useMockCommandStore,
                 useMockEventStore,
                 useMockPublishedVersionStore,
                 useMockDomainEventPublisher,
                 useMockApplicationMessagePublisher,
                 useMockPublishableExceptionPublisher);
-        }
-        protected static void Cleanup()
-        {
-            if (_enodeConfiguration != null)
-            {
-                CleanupEnode();
-            }
         }
 
         private static void InitializeENode(

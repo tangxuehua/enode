@@ -16,11 +16,6 @@ namespace ENode.Tests
         {
             Initialize(context);
         }
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            Cleanup();
-        }
 
         [TestMethod]
         public void event_handler_priority_test()

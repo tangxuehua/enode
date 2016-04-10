@@ -14,11 +14,6 @@ namespace ENode.Tests
         {
             Initialize(context, useMockApplicationMessagePublisher: true);
         }
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            Cleanup();
-        }
 
         [TestMethod]
         public void async_command_application_message_publish_failed_test()

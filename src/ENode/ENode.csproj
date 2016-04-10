@@ -227,7 +227,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SqlServerTableGenerateSQL.sql" />
+    <Content Include="Scripts\SqlServerTableGenerateSQL.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

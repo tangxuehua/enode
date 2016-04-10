@@ -14,11 +14,6 @@ namespace ENode.Tests
         {
             Initialize(context, useMockPublishableExceptionPublisher: true);
         }
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            Cleanup();
-        }
 
         [TestMethod]
         public void publishable_exception_publisher_throw_exception_test()

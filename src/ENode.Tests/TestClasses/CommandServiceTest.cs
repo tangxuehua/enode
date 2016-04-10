@@ -17,11 +17,6 @@ namespace ENode.Tests
         {
             Initialize(context);
         }
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            Cleanup();
-        }
 
         #region Command Tests
 

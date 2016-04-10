@@ -14,11 +14,6 @@ namespace ENode.Tests
         {
             Initialize(context, useMockCommandStore: true);
         }
-        [ClassCleanup]
-        public static void ClassCleanup()
-        {
-            Cleanup();
-        }
 
         [TestMethod]
         public void duplicate_async_command_not_check_handler_exist_test()

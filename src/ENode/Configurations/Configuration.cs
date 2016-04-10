@@ -55,10 +55,6 @@ namespace ENode.Configurations
         /// <returns></returns>
         public static ENodeConfiguration CreateENode(Configuration configuration, ConfigurationSetting setting)
         {
-            if (Instance != null)
-            {
-                throw new Exception(string.Format("Could not create enode configuration instance twice."));
-            }
             Instance = new ENodeConfiguration(configuration, setting);
             return Instance;
         }
