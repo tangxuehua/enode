@@ -60,7 +60,7 @@ namespace ENode.Eventing.Impl
                         break;
                     }
                 }
-                if (contextList.Count > 0)
+                if (contextList != null && contextList.Count > 0)
                 {
                     _handleMessageAction(contextList);
                 }

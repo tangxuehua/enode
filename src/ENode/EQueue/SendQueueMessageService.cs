@@ -28,13 +28,10 @@ namespace ENode.EQueue
                     var result = producer.Send(message, routingKey);
                     if (result.SendStatus != SendStatus.Success)
                     {
-                        _logger.ErrorFormat("EQueue message synch send failed, sendResult: {0}, routingKey: {1}", result, routingKey);
+                        _logger.ErrorFormat("EQueue message sync send failed, sendResult: {0}, routingKey: {1}", result, routingKey);
                         throw new IOException(result.ErrorMessage);
                     }
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.DebugFormat("EQueue message synch send success, sendResult: {0}, routingKey: {1}", result, routingKey);
-                    }
+                    _logger.InfoFormat("EQueue message sync send success, sendResult: {0}, routingKey: {1}", result, routingKey);
                 }, "SendQueueMessage");
             }
             catch (Exception ex)
@@ -53,10 +50,7 @@ namespace ENode.EQueue
                     _logger.ErrorFormat("EQueue message async send failed, sendResult: {0}, routingKey: {1}", result, routingKey);
                     return new AsyncTaskResult(AsyncTaskStatus.IOException, result.ErrorMessage);
                 }
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("EQueue message async send success, sendResult: {0}, routingKey: {1}", result, routingKey);
-                }
+                _logger.InfoFormat("EQueue message async send success, sendResult: {0}, routingKey: {1}", result, routingKey);
                 return AsyncTaskResult.Success;
             }
             catch (Exception ex)
