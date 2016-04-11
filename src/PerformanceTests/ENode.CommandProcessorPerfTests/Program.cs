@@ -3,8 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.Logging;
@@ -27,54 +29,103 @@ namespace ENode.CommandProcessorPerfTests
         static IRepository _repository;
         static ICommandProcessor _commandProcessor;
         static IEventService _eventService;
+        static string _connectionString;
+        static int _eventTableCount;
         static int _commandCount;
         static int _executedCount;
+        static int _totalCommandCount;
+        static bool _isUpdating;
 
         static void Main(string[] args)
         {
+            _connectionString = ConfigurationManager.AppSettings["connectionString"];
+            _commandCount = int.Parse(ConfigurationManager.AppSettings["count"]);
+            _eventTableCount = int.Parse(ConfigurationManager.AppSettings["eventTableCount"]);
+
             InitializeENodeFramework();
 
-            _commandCount = int.Parse(ConfigurationManager.AppSettings["count"]);
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create("main");
-            _repository = ObjectContainer.Resolve<IRepository>();
-            _commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
+            var createCommands = new List<ProcessingCommand>();
+            var updateCommandsList = new List<List<ProcessingCommand>>();
 
-            var noteId = ObjectId.GenerateNewStringId();
-            var updateCommands = new List<ProcessingCommand>();
-            var createCommand = new ProcessingCommand(new CreateNoteCommand
+            for (var i = 0; i < _eventTableCount; i++)
             {
-                AggregateRootId = noteId,
-                Title = "Sample Note"
-            }, new CommandExecuteContext(_commandCount), new Dictionary<string, string>());
-
-            for (var i = 0; i < _commandCount; i++)
-            {
-                updateCommands.Add(new ProcessingCommand(new ChangeNoteTitleCommand
+                createCommands.Add(new ProcessingCommand(new CreateNoteCommand
                 {
-                    AggregateRootId = noteId,
-                    Title = "Changed Note Title"
+                    AggregateRootId = GenerateAggregateRootId(_eventTableCount, i),
+                    Title = "Sample Note"
                 }, new CommandExecuteContext(_commandCount), new Dictionary<string, string>()));
             }
+            foreach (var createCommand in createCommands)
+            {
+                var updateCommands = new List<ProcessingCommand>();
+                for (var i = 0; i < _commandCount; i++)
+                {
+                    updateCommands.Add(new ProcessingCommand(new ChangeNoteTitleCommand
+                    {
+                        AggregateRootId = createCommand.Message.AggregateRootId,
+                        Title = "Changed Note Title"
+                    }, new CommandExecuteContext(_commandCount), new Dictionary<string, string>()));
+                }
+                updateCommandsList.Add(updateCommands);
+            }
 
+            _totalCommandCount = createCommands.Count;
             _waitHandle = new ManualResetEvent(false);
-            _commandProcessor.Process(createCommand);
+            foreach (var createCommand in createCommands)
+            {
+                _commandProcessor.Process(createCommand);
+            }
             _waitHandle.WaitOne();
 
+            _isUpdating = true;
+            _executedCount = 0;
+            _totalCommandCount = updateCommandsList.Sum(x => x.Count);
             _waitHandle = new ManualResetEvent(false);
             _watch = Stopwatch.StartNew();
             Console.WriteLine("");
-            Console.WriteLine("--Start to process aggregate commands, total count: {0}.", _commandCount + 1);
+            Console.WriteLine("--Start to process aggregate commands, total count: {0}.", _totalCommandCount);
 
-            foreach (var updateCommand in updateCommands)
+            foreach (var updateCommands in updateCommandsList)
             {
-                _commandProcessor.Process(updateCommand);
+                Task.Factory.StartNew(() =>
+                {
+                    foreach (var updateCommand in updateCommands)
+                    {
+                        _commandProcessor.Process(updateCommand);
+                    }
+                });
             }
+
             _waitHandle.WaitOne();
-            Console.WriteLine("--Commands process completed, throughput: {0}/s", _commandCount * 1000 / _watch.ElapsedMilliseconds);
+            Console.WriteLine("--Commands process completed, throughput: {0}/s", _totalCommandCount * 1000 / _watch.ElapsedMilliseconds);
 
             Console.ReadLine();
         }
 
+        static string GenerateAggregateRootId(int tableCount, int expectIndex)
+        {
+            var aggregateRootId = ObjectId.GenerateNewStringId();
+            var index = GetIndex(aggregateRootId, tableCount);
+            while (index != expectIndex)
+            {
+                aggregateRootId = ObjectId.GenerateNewStringId();
+                index = GetIndex(aggregateRootId, tableCount);
+            }
+            return aggregateRootId;
+        }
+        static int GetIndex(string aggregateRootId, int tableCount)
+        {
+            int hash = 23;
+            foreach (char c in aggregateRootId)
+            {
+                hash = (hash << 5) - hash + c;
+            }
+            if (hash < 0)
+            {
+                hash = Math.Abs(hash);
+            }
+            return hash % tableCount;
+        }
         static void InitializeENodeFramework()
         {
             var assemblies = new[]
@@ -84,7 +135,9 @@ namespace ENode.CommandProcessorPerfTests
                 Assembly.Load("NoteSample.CommandHandlers"),
                 Assembly.GetExecutingAssembly()
             };
-            var setting = new ConfigurationSetting(ConfigurationManager.AppSettings["connectionString"]);
+            var setting = new ConfigurationSetting(_connectionString);
+
+            setting.DefaultDBConfigurationSetting.EventTableCount = _eventTableCount;
 
             _configuration = ECommonConfiguration
                 .Create()
@@ -99,6 +152,10 @@ namespace ENode.CommandProcessorPerfTests
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies);
             _eventService = ObjectContainer.Resolve<IEventService>();
+
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create("main");
+            _repository = ObjectContainer.Resolve<IRepository>();
+            _commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
 
             Console.WriteLine("ENode started...");
         }
@@ -123,15 +180,11 @@ namespace ENode.CommandProcessorPerfTests
                     return;
                 }
                 var currentCount = Interlocked.Increment(ref _executedCount);
-                if (currentCount == 1)
-                {
-                    _waitHandle.Set();
-                }
-                if (currentCount > 1 && (currentCount - 1) % _printSize == 0)
+                if (_isUpdating && currentCount % _printSize == 0)
                 {
                     Console.WriteLine("----Processed {0} commands, timespent:{1}ms", currentCount, _watch.ElapsedMilliseconds);
                 }
-                if ((currentCount - 1) == _commandCount)
+                if (currentCount == _totalCommandCount)
                 {
                     _waitHandle.Set();
                 }
