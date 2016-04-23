@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
@@ -20,15 +21,22 @@ namespace BankTransferSample
 
         static void Main(string[] args)
         {
-            NormalTest();
-            //PerformanceTest();
+            var mode = ConfigurationManager.AppSettings["mode"];
+            if (mode == "simple")
+            {
+                NormalTest();
+            }
+            else if (mode == "concurrent")
+            {
+                PerformanceTest();
+            }
         }
 
         static void NormalTest()
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
 
-            _configuration = Configuration
+            _configuration = ECommon.Configurations.Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
@@ -92,7 +100,7 @@ namespace BankTransferSample
                 Assembly.GetExecutingAssembly()
             };
 
-            _configuration = Configuration
+            _configuration = ECommon.Configurations.Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
