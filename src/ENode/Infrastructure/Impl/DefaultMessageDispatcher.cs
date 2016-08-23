@@ -181,7 +181,7 @@ namespace ENode.Infrastructure.Impl
             {
                 _logger.Fatal(string.Format("Handle single message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
             },
-            retryTimes);
+            retryTimes, true);
         }
         private void HandleTwoMessageAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy2 handlerProxy, string handlerTypeName, QueuedHandler<IMessageHandlerProxy2> queueHandler, int retryTimes)
         {
@@ -209,7 +209,7 @@ namespace ENode.Infrastructure.Impl
             {
                 _logger.Fatal(string.Format("Handle two message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
             },
-            retryTimes);
+            retryTimes, true);
         }
         private void HandleThreeMessageAsync(MultiMessageDisptaching multiMessageDispatching, IMessageHandlerProxy3 handlerProxy, string handlerTypeName, QueuedHandler<IMessageHandlerProxy3> queueHandler, int retryTimes)
         {
@@ -238,7 +238,7 @@ namespace ENode.Infrastructure.Impl
             {
                 _logger.Fatal(string.Format("Handle three message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
             },
-            retryTimes);
+            retryTimes, true);
         }
 
         #endregion
