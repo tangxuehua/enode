@@ -94,7 +94,6 @@
     <Compile Include="EQueue\Command\CommandMessage.cs" />
     <Compile Include="EQueue\Command\CommandResultProcessor.cs" />
     <Compile Include="EQueue\Command\CommandService.cs" />
-    <Compile Include="EQueue\Constants.cs" />
     <Compile Include="EQueue\DomainEvent\DomainEventConsumer.cs" />
     <Compile Include="EQueue\DomainEvent\DomainEventHandledMessage.cs" />
     <Compile Include="EQueue\DomainEvent\DomainEventPublisher.cs" />
