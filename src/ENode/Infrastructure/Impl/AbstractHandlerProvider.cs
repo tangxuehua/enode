@@ -111,12 +111,27 @@ namespace ENode.Infrastructure.Impl
                     throw new InvalidOperationException("Handler cannot handle duplicate message, handlerType:" + handlerType);
                 }
 
-                handlers.Add(Activator.CreateInstance(handlerProxyType, new[] { ObjectContainer.Resolve(handlerType) }) as THandlerProxyInterface);
+                var lifeStyle = ParseComponentLife(handlerType);
+                var realHandler = default(object);
+                if (lifeStyle == LifeStyle.Singleton)
+                {
+                    realHandler = ObjectContainer.Resolve(handlerType);
+                }
+                handlers.Add(Activator.CreateInstance(handlerProxyType, new[] { realHandler, handlerType }) as THandlerProxyInterface);
             }
         }
         private IEnumerable<Type> ScanHandlerInterfaces(Type type)
         {
             return type.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == GetGenericHandlerType());
+        }
+        private static LifeStyle ParseComponentLife(Type type)
+        {
+            var attributes = type.GetCustomAttributes<ComponentAttribute>(false);
+            if (attributes != null && attributes.Any())
+            {
+                return attributes.First().LifeStyle;
+            }
+            return LifeStyle.Singleton;
         }
     }
 }

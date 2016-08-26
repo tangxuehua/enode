@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using ECommon.Components;
 using ECommon.IO;
 
 namespace ENode.Infrastructure.Impl
@@ -6,19 +8,26 @@ namespace ENode.Infrastructure.Impl
     public class MessageHandlerProxy1<T> : IMessageHandlerProxy1 where T : class, IMessage
     {
         private IMessageHandler<T> _handler;
+        private readonly Type _handlerType;
 
-        public MessageHandlerProxy1(IMessageHandler<T> handler)
+        public MessageHandlerProxy1(IMessageHandler<T> handler, Type handlerType)
         {
             _handler = handler;
+            _handlerType = handlerType;
         }
 
         public Task<AsyncTaskResult> HandleAsync(IMessage message)
         {
-            return _handler.HandleAsync(message as T);
+            var handler = GetInnerObject() as IMessageHandler<T>;
+            return handler.HandleAsync(message as T);
         }
         public object GetInnerObject()
         {
-            return _handler;
+            if (_handler != null)
+            {
+                return _handler;
+            }
+            return ObjectContainer.Resolve(_handlerType);
         }
     }
     public class MessageHandlerProxy2<T1, T2> : IMessageHandlerProxy2
@@ -26,26 +35,33 @@ namespace ENode.Infrastructure.Impl
         where T2 : class, IMessage
     {
         private IMessageHandler<T1, T2> _handler;
+        private readonly Type _handlerType;
 
-        public MessageHandlerProxy2(IMessageHandler<T1, T2> handler)
+        public MessageHandlerProxy2(IMessageHandler<T1, T2> handler, Type handlerType)
         {
             _handler = handler;
+            _handlerType = handlerType;
         }
 
         public Task<AsyncTaskResult> HandleAsync(IMessage message1, IMessage message2)
         {
+            var handler = GetInnerObject() as IMessageHandler<T1, T2>;
             if (message1 is T1)
             {
-                return _handler.HandleAsync(message1 as T1, message2 as T2);
+                return handler.HandleAsync(message1 as T1, message2 as T2);
             }
             else
             {
-                return _handler.HandleAsync(message2 as T1, message1 as T2);
+                return handler.HandleAsync(message2 as T1, message1 as T2);
             }
         }
         public object GetInnerObject()
         {
-            return _handler;
+            if (_handler != null)
+            {
+                return _handler;
+            }
+            return ObjectContainer.Resolve(_handlerType);
         }
     }
     public class MessageHandlerProxy3<T1, T2, T3> : IMessageHandlerProxy3
@@ -54,10 +70,12 @@ namespace ENode.Infrastructure.Impl
         where T3 : class, IMessage
     {
         private IMessageHandler<T1, T2, T3> _handler;
+        private readonly Type _handlerType;
 
-        public MessageHandlerProxy3(IMessageHandler<T1, T2, T3> handler)
+        public MessageHandlerProxy3(IMessageHandler<T1, T2, T3> handler, Type handlerType)
         {
             _handler = handler;
+            _handlerType = handlerType;
         }
 
         public Task<AsyncTaskResult> HandleAsync(IMessage message1, IMessage message2, IMessage message3)
@@ -105,11 +123,16 @@ namespace ENode.Infrastructure.Impl
                 t3 = message1 as T3;
             }
 
-            return _handler.HandleAsync(t1, t2, t3);
+            var handler = GetInnerObject() as IMessageHandler<T1, T2, T3>;
+            return handler.HandleAsync(t1, t2, t3);
         }
         public object GetInnerObject()
         {
-            return _handler;
+            if (_handler != null)
+            {
+                return _handler;
+            }
+            return ObjectContainer.Resolve(_handlerType);
         }
     }
 }

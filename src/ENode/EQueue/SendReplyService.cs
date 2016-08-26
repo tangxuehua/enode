@@ -76,7 +76,11 @@ namespace ENode.EQueue
 
             _ioHelper.TryIOAction("CreateReplyRemotingClient", () => "replyAddress:" + replyAddress, () => CreateReplyRemotingClient(replyEndpoint), 3);
 
-            return remotingClient;
+            if (_remotingClientDict.TryGetValue(replyAddress, out remotingClient))
+            {
+                return remotingClient;
+            }
+            return null;
         }
         private IPEndPoint TryParseReplyAddress(string replyAddress)
         {
