@@ -46,7 +46,6 @@ namespace ENode.EQueue
         public CommandConsumer Start()
         {
             _consumer.SetMessageHandler(this).Start();
-            _sendReplyService.Start();
             return this;
         }
         public CommandConsumer Subscribe(string topic)

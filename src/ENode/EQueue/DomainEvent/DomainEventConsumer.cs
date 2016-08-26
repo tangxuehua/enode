@@ -41,10 +41,6 @@ namespace ENode.EQueue
         public DomainEventConsumer Start()
         {
             _consumer.SetMessageHandler(this).Start();
-            if (_sendEventHandledMessage)
-            {
-                _sendReplyService.Start();
-            }
             return this;
         }
         public DomainEventConsumer Subscribe(string topic)

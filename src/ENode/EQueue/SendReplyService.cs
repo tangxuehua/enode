@@ -17,7 +17,6 @@ namespace ENode.EQueue
     {
         private readonly ConcurrentDictionary<string, SocketRemotingClient> _remotingClientDict;
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly IScheduleService _scheduleService;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
 
@@ -29,6 +28,13 @@ namespace ENode.EQueue
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
+        public void Stop()
+        {
+            foreach (var remotingClient in _remotingClientDict.Values)
+            {
+                remotingClient.Shutdown();
+            }
+        }
         public void SendReply(short replyType, object replyData, string replyAddress)
         {
             Task.Factory.StartNew(obj =>
