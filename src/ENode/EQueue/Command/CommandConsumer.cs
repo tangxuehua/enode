@@ -55,7 +55,7 @@ namespace ENode.EQueue
         }
         public CommandConsumer Shutdown()
         {
-            _consumer.Shutdown();
+            _consumer.Stop();
             _sendReplyService.Stop();
             return this;
         }

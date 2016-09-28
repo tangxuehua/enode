@@ -13,11 +13,13 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Configurations;
+using EQueue.NameServer;
 
 namespace NoteSample.QuickStart
 {
     public static class ENodeExtensions
     {
+        private static NameServerController _nameServerController;
         private static BrokerController _broker;
         private static CommandService _commandService;
         private static CommandConsumer _commandConsumer;
@@ -37,6 +39,7 @@ namespace NoteSample.QuickStart
 
             configuration.RegisterEQueueComponents();
 
+            _nameServerController = new NameServerController();
             _broker = BrokerController.Create();
 
             _commandResultProcessor = new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000));
@@ -57,6 +60,7 @@ namespace NoteSample.QuickStart
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            _nameServerController.Start();
             _broker.Start();
             _eventConsumer.Start();
             _commandConsumer.Start();
@@ -74,6 +78,7 @@ namespace NoteSample.QuickStart
             _commandConsumer.Shutdown();
             _eventConsumer.Shutdown();
             _broker.Shutdown();
+            _nameServerController.Shutdown();
             return enodeConfiguration;
         }
 

@@ -50,7 +50,7 @@ namespace ENode.EQueue
         }
         public DomainEventConsumer Shutdown()
         {
-            _consumer.Shutdown();
+            _consumer.Stop();
             if (_sendEventHandledMessage)
             {
                 _sendReplyService.Stop();

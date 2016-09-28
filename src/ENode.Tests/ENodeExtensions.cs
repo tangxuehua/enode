@@ -14,12 +14,14 @@ using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Clients.Consumers;
 using EQueue.Configurations;
+using EQueue.NameServer;
 using EQueue.Protocols;
 
 namespace ENode.Tests
 {
     public static class ENodeExtensions
     {
+        private static NameServerController _nameServerController;
         private static BrokerController _broker;
         private static CommandService _commandService;
         private static CommandConsumer _commandConsumer;
@@ -37,7 +39,7 @@ namespace ENode.Tests
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
             var brokerStorePath = @"c:\equeue-store";
-            var brokerSetting = new BrokerSetting(brokerStorePath);
+            var brokerSetting = new BrokerSetting(chunkFileStoreRootPath: brokerStorePath);
 
             if (Directory.Exists(brokerStorePath))
             {
@@ -45,6 +47,8 @@ namespace ENode.Tests
             }
 
             configuration.RegisterEQueueComponents();
+
+            _nameServerController = new NameServerController();
             _broker = BrokerController.Create(brokerSetting);
             _commandService = new CommandService(new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
             _eventPublisher = new DomainEventPublisher();
@@ -89,6 +93,7 @@ namespace ENode.Tests
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            _nameServerController.Start();
             _broker.Start();
             _eventConsumer.Start();
             _commandConsumer.Start();
@@ -112,6 +117,7 @@ namespace ENode.Tests
             _applicationMessageConsumer.Shutdown();
             _publishableExceptionConsumer.Shutdown();
             _broker.Shutdown();
+            _nameServerController.Shutdown();
             return enodeConfiguration;
         }
 

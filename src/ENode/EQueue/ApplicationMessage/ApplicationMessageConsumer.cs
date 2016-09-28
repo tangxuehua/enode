@@ -42,7 +42,7 @@ namespace ENode.EQueue
         }
         public ApplicationMessageConsumer Shutdown()
         {
-            _consumer.Shutdown();
+            _consumer.Stop();
             return this;
         }
 

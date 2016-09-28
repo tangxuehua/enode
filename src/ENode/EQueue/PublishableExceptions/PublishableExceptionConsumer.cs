@@ -43,7 +43,7 @@ namespace ENode.EQueue
         }
         public PublishableExceptionConsumer Shutdown()
         {
-            _consumer.Shutdown();
+            _consumer.Stop();
             return this;
         }
 

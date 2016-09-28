@@ -13,11 +13,13 @@ using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Configurations;
+using EQueue.NameServer;
 
 namespace BankTransferSample
 {
     public static class ENodeExtensions
     {
+        private static NameServerController _nameServerController;
         private static BrokerController _broker;
         private static CommandService _commandService;
         private static CommandResultProcessor _commandResultProcessor;
@@ -41,6 +43,7 @@ namespace BankTransferSample
 
             configuration.RegisterEQueueComponents();
 
+            _nameServerController = new NameServerController();
             _broker = BrokerController.Create();
 
             _commandResultProcessor = new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000));
@@ -63,6 +66,7 @@ namespace BankTransferSample
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            _nameServerController.Start();
             _broker.Start();
             _exceptionConsumer.Start();
             _eventConsumer.Start();
@@ -88,6 +92,7 @@ namespace BankTransferSample
             _eventConsumer.Shutdown();
             _exceptionConsumer.Shutdown();
             _broker.Shutdown();
+            _nameServerController.Shutdown();
             return enodeConfiguration;
         }
 
