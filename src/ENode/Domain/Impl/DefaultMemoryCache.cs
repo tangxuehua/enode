@@ -96,7 +96,7 @@ namespace ENode.Domain.Impl
             {
                 if (_logger.IsDebugEnabled)
                 {
-                    _logger.DebugFormat("Aggregate memory cache refreshed, type: {0}, id: {1}, version: {2}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version);
+                    _logger.DebugFormat("In memory aggregate added, type: {0}, id: {1}, version: {2}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version);
                 }
                 return new AggregateCacheInfo(aggregateRoot);
             }, (x, existing) =>
@@ -105,7 +105,7 @@ namespace ENode.Domain.Impl
                 existing.LastUpdateTime = DateTime.Now;
                 if (_logger.IsDebugEnabled)
                 {
-                    _logger.DebugFormat("Aggregate memory cache refreshed, type: {0}, id: {1}, version: {2}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version);
+                    _logger.DebugFormat("In memory aggregate updated, type: {0}, id: {1}, version: {2}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version);
                 }
                 return existing;
             });

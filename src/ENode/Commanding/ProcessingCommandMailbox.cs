@@ -17,14 +17,14 @@ namespace ENode.Commanding
         private readonly object _lockObj2 = new object();
         private readonly string _aggregateRootId;
         private readonly ConcurrentDictionary<long, ProcessingCommand> _messageDict;
-        private readonly Dictionary<long, CommandResult> _requestToCompleteOffsetDict;
+        private readonly Dictionary<long, CommandResult> _requestToCompleteSequenceDict;
         private readonly IProcessingCommandScheduler _scheduler;
         private readonly IProcessingCommandHandler _messageHandler;
-        private long _maxOffset;
-        private long _consumingOffset;
-        private long _consumedOffset;
+        private long _nextSequence;
+        private long _consumingSequence;
+        private long _consumedSequence;
         private int _isHandlingMessage;
-        private int _stopHandling;
+        private int _isPaused;
 
         #endregion
 
@@ -39,22 +39,24 @@ namespace ENode.Commanding
         public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandScheduler scheduler, IProcessingCommandHandler messageHandler, ILogger logger)
         {
             _messageDict = new ConcurrentDictionary<long, ProcessingCommand>();
-            _requestToCompleteOffsetDict = new Dictionary<long, CommandResult>();
+            _requestToCompleteSequenceDict = new Dictionary<long, CommandResult>();
             _aggregateRootId = aggregateRootId;
             _scheduler = scheduler;
             _messageHandler = messageHandler;
             _logger = logger;
-            _consumedOffset = -1;
+            _consumedSequence = -1;
         }
 
         public void EnqueueMessage(ProcessingCommand message)
         {
             lock (_lockObj)
             {
-                message.Sequence = _maxOffset;
+                message.Sequence = _nextSequence;
                 message.Mailbox = this;
-                _messageDict.TryAdd(message.Sequence, message);
-                _maxOffset++;
+                if (_messageDict.TryAdd(message.Sequence, message))
+                {
+                    _nextSequence++;
+                }
             }
             RegisterForExecution();
         }
@@ -62,50 +64,65 @@ namespace ENode.Commanding
         {
             return Interlocked.CompareExchange(ref _isHandlingMessage, 1, 0) == 0;
         }
-        public void StopHandlingMessage()
+        public void PauseHandlingMessage()
         {
-            _stopHandling = 1;
+            _isPaused = 1;
         }
-        public void ResetConsumingOffset(long consumingOffset)
+        public void ResetConsumingSequence(long consumingSequence)
         {
-            _consumingOffset = consumingOffset;
+            _consumingSequence = consumingSequence;
         }
-        public void RestartHandlingMessage()
+        public void ResumeHandlingMessage()
         {
-            _stopHandling = 0;
-            TryExecuteNextMessage();
+            _isPaused = 0;
+            RegisterForExecution();
         }
         public void TryExecuteNextMessage()
         {
             ExitHandlingMessage();
             RegisterForExecution();
         }
-        public void CompleteMessage(ProcessingCommand message, CommandResult commandResult)
+        public void CompleteMessage(ProcessingCommand processingCommand, CommandResult commandResult)
         {
             lock (_lockObj2)
             {
-                if (message.Sequence == _consumedOffset + 1)
+                try
                 {
-                    _messageDict.Remove(message.Sequence);
-                    _consumedOffset = message.Sequence;
-                    CompleteMessageWithResult(message, commandResult);
-                    ProcessRequestToCompleteOffsets();
+                    if (processingCommand.Sequence == _consumedSequence + 1)
+                    {
+                        _messageDict.Remove(processingCommand.Sequence);
+                        CompleteCommandWithResult(processingCommand, commandResult);
+                        _consumedSequence = ProcessNextCompletedCommands(processingCommand.Sequence);
+                    }
+                    else if (processingCommand.Sequence > _consumedSequence + 1)
+                    {
+                        _requestToCompleteSequenceDict[processingCommand.Sequence] = commandResult;
+                    }
+                    else if (processingCommand.Sequence < _consumedSequence + 1)
+                    {
+                        _messageDict.Remove(processingCommand.Sequence);
+                        CompleteCommandWithResult(processingCommand, commandResult);
+                        _requestToCompleteSequenceDict.Remove(processingCommand.Sequence);
+                    }
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("Command mailbox complete command success, commandId: {0}, aggregateRootId: {1}", processingCommand.Message.Id, processingCommand.Message.AggregateRootId);
+                    }
                 }
-                else if (message.Sequence > _consumedOffset + 1)
+                catch (Exception ex)
                 {
-                    _requestToCompleteOffsetDict[message.Sequence] = commandResult;
+                    _logger.Error(string.Format("Command mailbox complete command failed, commandId: {0}, aggregateRootId: {1}", processingCommand.Message.Id, processingCommand.Message.AggregateRootId), ex);
                 }
-                else if (message.Sequence < _consumedOffset + 1)
+                finally
                 {
-                    _messageDict.Remove(message.Sequence);
-                    _requestToCompleteOffsetDict.Remove(message.Sequence);
+                    RegisterForExecution();
                 }
             }
         }
 
         public void Run()
         {
-            if (_stopHandling == 1)
+            if (_isPaused == 1)
             {
                 return;
             }
@@ -116,7 +133,7 @@ namespace ENode.Commanding
                 if (HasRemainningMessage())
                 {
                     processingMessage = GetNextMessage();
-                    IncreaseConsumingOffset();
+                    IncreaseConsumingSequence();
 
                     if (processingMessage != null)
                     {
@@ -131,17 +148,17 @@ namespace ENode.Commanding
                 if (ex is IOException)
                 {
                     //We need to retry the command.
-                    DecreaseConsumingOffset();
+                    DecreaseConsumingSequence();
                 }
 
                 if (processingMessage != null)
                 {
                     var command = processingMessage.Message;
-                    _logger.Error(string.Format("Failed to handle command [id: {0}, type: {1}]", command.Id, command.GetType().Name), ex);
+                    _logger.Error(string.Format("Failed to handle command [id: {0}, type: {1}], aggregateId: {2}", command.Id, command.GetType().Name, AggregateRootId), ex);
                 }
                 else
                 {
-                    _logger.Error("Failed to run command mailbox.", ex);
+                    _logger.Error(string.Format("Failed to run command mailbox, aggregateId: {0}", AggregateRootId), ex);
                 }
             }
             finally
@@ -157,24 +174,24 @@ namespace ENode.Commanding
             }
         }
 
-        private void ProcessRequestToCompleteOffsets()
+        private long ProcessNextCompletedCommands(long baseSequence)
         {
-            var nextSequence = _consumedOffset + 1;
-
-            while (_requestToCompleteOffsetDict.ContainsKey(nextSequence))
+            var returnSequence = baseSequence;
+            var nextSequence = baseSequence + 1;
+            while (_requestToCompleteSequenceDict.ContainsKey(nextSequence))
             {
                 var processingCommand = default(ProcessingCommand);
                 if (_messageDict.TryRemove(nextSequence, out processingCommand))
                 {
-                    CompleteMessageWithResult(processingCommand, _requestToCompleteOffsetDict[nextSequence]);
+                    CompleteCommandWithResult(processingCommand, _requestToCompleteSequenceDict[nextSequence]);
                 }
-                _requestToCompleteOffsetDict.Remove(nextSequence);
-                _consumedOffset = nextSequence;
-
+                _requestToCompleteSequenceDict.Remove(nextSequence);
+                returnSequence = nextSequence;
                 nextSequence++;
             }
+            return returnSequence;
         }
-        private void CompleteMessageWithResult(ProcessingCommand processingCommand, CommandResult commandResult)
+        private void CompleteCommandWithResult(ProcessingCommand processingCommand, CommandResult commandResult)
         {
             try
             {
@@ -191,24 +208,24 @@ namespace ENode.Commanding
         }
         private bool HasRemainningMessage()
         {
-            return _consumingOffset < _maxOffset;
+            return _consumingSequence < _nextSequence;
         }
         private ProcessingCommand GetNextMessage()
         {
             ProcessingCommand processingMessage;
-            if (_messageDict.TryGetValue(_consumingOffset, out processingMessage))
+            if (_messageDict.TryGetValue(_consumingSequence, out processingMessage))
             {
                 return processingMessage;
             }
             return null;
         }
-        private void IncreaseConsumingOffset()
+        private void IncreaseConsumingSequence()
         {
-            _consumingOffset++;
+            _consumingSequence++;
         }
-        private void DecreaseConsumingOffset()
+        private void DecreaseConsumingSequence()
         {
-            _consumingOffset--;
+            _consumingSequence--;
         }
         private void RegisterForExecution()
         {
