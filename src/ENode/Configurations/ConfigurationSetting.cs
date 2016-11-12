@@ -14,6 +14,9 @@
         /// <summary>当使用默认的MemoryCache时，该属性用于配置聚合根的最长允许的不活跃时间，超过这个时间就认为是过期，就可以从内存清除了；然后下次如果再需要用的时候再重新加载进来；默认为3天；
         /// </summary>
         public int AggregateRootMaxInactiveSeconds { get; set; }
+        /// <summary>CommandMailBox中的命令处理时一次最多处理多少个命令，默认为1000个
+        /// </summary>
+        public int CommandMailBoxPersistenceMaxBatchSize { get; set; }
         /// <summary>EventMailBox中的事件持久化时一次最多持久化多少个事件，默认为1000个
         /// </summary>
         public int EventMailBoxPersistenceMaxBatchSize { get; set; }
@@ -25,6 +28,7 @@
             DefaultDBConfigurationSetting = new DefaultDBConfigurationSetting(connectionString);
             ScanExpiredAggregateIntervalMilliseconds = 5000;
             AggregateRootMaxInactiveSeconds = 3600 * 24 * 3;
+            CommandMailBoxPersistenceMaxBatchSize = 1000;
             EventMailBoxPersistenceMaxBatchSize = 1000;
         }
     }

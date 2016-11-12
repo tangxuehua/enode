@@ -65,7 +65,7 @@ namespace ENode.Commanding.Impl
 
         #region Public Methods
 
-        public void HandleAsync(ProcessingCommand processingCommand)
+        public void Handle(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Message;
 
@@ -239,7 +239,6 @@ namespace ENode.Commanding.Impl
                     //之所以要这样做是因为虽然该command产生的事件已经持久化成功，但并不表示事件已经发布出去了；
                     //因为有可能事件持久化成功了，但那时正好机器断电了，则发布事件就没有做；
                     _eventService.PublishDomainEventAsync(processingCommand, existingEventStream);
-                    processingCommand.Mailbox.TryExecuteNextMessage();
                 }
                 else
                 {
@@ -534,7 +533,6 @@ namespace ENode.Commanding.Impl
         {
             var commandResult = new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType);
             processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
-            processingCommand.Mailbox.TryExecuteNextMessage();
         }
         private enum HandlerFindResult
         {

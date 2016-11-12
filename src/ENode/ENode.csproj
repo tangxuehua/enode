@@ -49,8 +49,6 @@
     <Compile Include="Commanding\CommandReturnType.cs" />
     <Compile Include="Commanding\HandledCommand.cs" />
     <Compile Include="Commanding\CommandAddResult.cs" />
-    <Compile Include="Commanding\Impl\DefaultProcessingCommandScheduler.cs" />
-    <Compile Include="Commanding\IProcessingCommandScheduler.cs" />
     <Compile Include="Commanding\ICommandHandler.cs" />
     <Compile Include="Commanding\ICommand.cs" />
     <Compile Include="Commanding\ICommandAsyncHandlerProxy.cs" />

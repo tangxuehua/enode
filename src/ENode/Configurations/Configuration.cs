@@ -106,7 +106,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<IProcessingMessageHandler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DomainEventStreamMessageHandler>();
             _configuration.SetDefault<IProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
 
-            _configuration.SetDefault<IProcessingCommandScheduler, DefaultProcessingCommandScheduler>();
             _configuration.SetDefault<IProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage, bool>, DefaultProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage, bool>>();
             _configuration.SetDefault<IProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DefaultProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
             _configuration.SetDefault<IProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();

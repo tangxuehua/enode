@@ -8,13 +8,11 @@ namespace ENode.Commanding.Impl
     {
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, ProcessingCommandMailbox> _mailboxDict;
-        private readonly IProcessingCommandScheduler _scheduler;
         private readonly IProcessingCommandHandler _handler;
 
-        public DefaultCommandProcessor(IProcessingCommandScheduler scheduler, IProcessingCommandHandler handler, ILoggerFactory loggerFactory)
+        public DefaultCommandProcessor(IProcessingCommandHandler handler, ILoggerFactory loggerFactory)
         {
             _mailboxDict = new ConcurrentDictionary<string, ProcessingCommandMailbox>();
-            _scheduler = scheduler;
             _handler = handler;
             _logger = loggerFactory.Create(GetType().FullName);
         }
@@ -29,7 +27,7 @@ namespace ENode.Commanding.Impl
 
             var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x =>
             {
-                return new ProcessingCommandMailbox(x, _scheduler, _handler, _logger);
+                return new ProcessingCommandMailbox(x, _handler, _logger);
             });
             mailbox.EnqueueMessage(processingCommand);
         }

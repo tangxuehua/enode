@@ -3,15 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ECommon.Logging;
 
 namespace ENode.Eventing.Impl
 {
     public class EventMailBox
     {
+        private readonly ILogger _logger;
         private readonly string _aggregateRootId;
         private readonly ConcurrentQueue<EventCommittingContext> _messageQueue;
         private readonly Action<IList<EventCommittingContext>> _handleMessageAction;
-        private int _isHandlingMessage;
+        private int _isRunning;
         private int _batchSize;
 
         public string AggregateRootId
@@ -22,23 +24,30 @@ namespace ENode.Eventing.Impl
             }
         }
 
-        public EventMailBox(string aggregateRootId, int batchSize, Action<IList<EventCommittingContext>> handleMessageAction)
+        public EventMailBox(string aggregateRootId, int batchSize, Action<IList<EventCommittingContext>> handleMessageAction, ILogger logger)
         {
             _aggregateRootId = aggregateRootId;
             _messageQueue = new ConcurrentQueue<EventCommittingContext>();
             _batchSize = batchSize;
             _handleMessageAction = handleMessageAction;
+            _logger = logger;
         }
 
         public void EnqueueMessage(EventCommittingContext message)
         {
             _messageQueue.Enqueue(message);
-            RegisterForExecution();
+            TryRun();
         }
-        public void Clear()
+        public void TryRun(bool exitFirst = false)
         {
-            EventCommittingContext message;
-            while (_messageQueue.TryDequeue(out message)) { }
+            if (exitFirst)
+            {
+                Exit();
+            }
+            if (TryEnter())
+            {
+                Task.Factory.StartNew(Run);
+            }
         }
         public void Run()
         {
@@ -65,38 +74,36 @@ namespace ENode.Eventing.Impl
                     _handleMessageAction(contextList);
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Event mailbox run has unknown exception, aggregateRootId: {0}", AggregateRootId), ex);
+                Thread.Sleep(1);
+            }
             finally
             {
                 if (contextList == null || contextList.Count == 0)
                 {
-                    ExitHandlingMessage();
+                    Exit();
                     if (!_messageQueue.IsEmpty)
                     {
-                        RegisterForExecution();
+                        TryRun();
                     }
                 }
             }
         }
-        public void ExitHandlingMessage()
+        public void Exit()
         {
-            Interlocked.Exchange(ref _isHandlingMessage, 0);
+            Interlocked.Exchange(ref _isRunning, 0);
+        }
+        public void Clear()
+        {
+            EventCommittingContext message;
+            while (_messageQueue.TryDequeue(out message)) { }
         }
 
-        public void RegisterForExecution(bool exitFirst = false)
+        private bool TryEnter()
         {
-            if (exitFirst)
-            {
-                ExitHandlingMessage();
-            }
-            if (EnterHandlingMessage())
-            {
-                Task.Factory.StartNew(Run);
-            }
-        }
-
-        private bool EnterHandlingMessage()
-        {
-            return Interlocked.CompareExchange(ref _isHandlingMessage, 1, 0) == 0;
+            return Interlocked.CompareExchange(ref _isRunning, 1, 0) == 0;
         }
     }
 }

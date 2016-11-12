@@ -2,6 +2,6 @@
 {
     public interface IProcessingCommandHandler
     {
-        void HandleAsync(ProcessingCommand processingCommand);
+        void Handle(ProcessingCommand processingCommand);
     }
 }
