@@ -45,6 +45,7 @@ namespace ENode.EQueue
 
         public CommandConsumer Start()
         {
+            _sendReplyService.Start();
             _consumer.SetMessageHandler(this).Start();
             return this;
         }

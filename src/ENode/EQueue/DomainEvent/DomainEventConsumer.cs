@@ -40,6 +40,7 @@ namespace ENode.EQueue
 
         public DomainEventConsumer Start()
         {
+            _sendReplyService.Start();
             _consumer.SetMessageHandler(this).Start();
             return this;
         }
