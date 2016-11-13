@@ -85,7 +85,6 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<ICommandAsyncHandlerProvider, DefaultCommandAsyncHandlerProvider>();
             _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
-            _configuration.SetDefault<ICommandStore, InMemoryCommandStore>();
             _configuration.SetDefault<ICommandRoutingKeyProvider, DefaultCommandRoutingKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
 
@@ -161,14 +160,6 @@ namespace ENode.Configurations
         public ENodeConfiguration UseSqlServerLockService(OptionSetting optionSetting = null)
         {
             _configuration.SetDefault<ILockService, SqlServerLockService>(new SqlServerLockService(optionSetting));
-            return this;
-        }
-        /// <summary>Use the SqlServerCommandStore as the ICommandStore.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerCommandStore(OptionSetting optionSetting = null)
-        {
-            _configuration.SetDefault<ICommandStore, SqlServerCommandStore>(new SqlServerCommandStore(optionSetting));
             return this;
         }
         /// <summary>Use the SqlServerEventStore as the IEventStore.

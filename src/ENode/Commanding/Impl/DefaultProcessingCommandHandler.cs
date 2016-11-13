@@ -16,13 +16,12 @@ namespace ENode.Commanding.Impl
         #region Private Variables
 
         private readonly IJsonSerializer _jsonSerializer;
-        private readonly ICommandStore _commandStore;
         private readonly IEventStore _eventStore;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly ICommandAsyncHandlerProvider _commandAsyncHandlerProvider;
         private readonly ITypeNameProvider _typeNameProvider;
         private readonly IEventService _eventService;
-        private readonly IMessagePublisher<IApplicationMessage> _messagePublisher;
+        private readonly IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
         private readonly IMessagePublisher<IPublishableException> _exceptionPublisher;
         private readonly IMemoryCache _memoryCache;
         private readonly IOHelper _ioHelper;
@@ -34,26 +33,24 @@ namespace ENode.Commanding.Impl
 
         public DefaultProcessingCommandHandler(
             IJsonSerializer jsonSerializer,
-            ICommandStore commandStore,
             IEventStore eventStore,
             ICommandHandlerProvider commandHandlerProvider,
             ICommandAsyncHandlerProvider commandAsyncHandlerProvider,
             ITypeNameProvider typeNameProvider,
             IEventService eventService,
-            IMessagePublisher<IApplicationMessage> messagePublisher,
+            IMessagePublisher<IApplicationMessage> applicationMessagePublisher,
             IMessagePublisher<IPublishableException> exceptionPublisher,
             IMemoryCache memoryCache,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
             _jsonSerializer = jsonSerializer;
-            _commandStore = commandStore;
             _eventStore = eventStore;
             _commandHandlerProvider = commandHandlerProvider;
             _commandAsyncHandlerProvider = commandAsyncHandlerProvider;
             _typeNameProvider = typeNameProvider;
             _eventService = eventService;
-            _messagePublisher = messagePublisher;
+            _applicationMessagePublisher = applicationMessagePublisher;
             _exceptionPublisher = exceptionPublisher;
             _memoryCache = memoryCache;
             _ioHelper = ioHelper;
@@ -304,46 +301,7 @@ namespace ENode.Commanding.Impl
 
         private void HandleCommand(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandHandler)
         {
-            var realHandler = commandHandler.GetInnerObject() as ICommandAsyncHandler;
-            if (realHandler.CheckCommandHandledFirst)
-            {
-                ProcessCommand(processingCommand, commandHandler, 0);
-            }
-            else
-            {
-                HandleCommandAsync(processingCommand, commandHandler, 0);
-            }
-        }
-        private void ProcessCommand(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandAsyncHandler, int retryTimes)
-        {
-            var command = processingCommand.Message;
-
-            _ioHelper.TryAsyncActionRecursively("GetCommandAsync",
-            () => _commandStore.GetAsync(command.Id),
-            currentRetryTimes => ProcessCommand(processingCommand, commandAsyncHandler, currentRetryTimes),
-            result =>
-            {
-                var existingHandledCommand = result.Data;
-                if (existingHandledCommand != null)
-                {
-                    if (existingHandledCommand.Message != null)
-                    {
-                        PublishMessageAsync(processingCommand, existingHandledCommand.Message, 0);
-                    }
-                    else
-                    {
-                        CompleteCommand(processingCommand, CommandStatus.Success, null, null);
-                    }
-                    return;
-                }
-                HandleCommandAsync(processingCommand, commandAsyncHandler, 0);
-            },
-            () => string.Format("[commandId:{0},commandType:{1}]", command.Id, command.GetType().Name),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Get command by id has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
-            retryTimes, true);
+            HandleCommandAsync(processingCommand, commandHandler, 0);
         }
         private void HandleCommandAsync(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandHandler, int retryTimes)
         {
@@ -387,62 +345,39 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => HandleCommandAsync(processingCommand, commandHandler, currentRetryTimes),
             result =>
             {
-                CommitChangesAsync(processingCommand, true, result.Data, null, 0);
+                CommitChangesAsync(processingCommand, true, result.Data, null);
             },
             () => string.Format("[command:[id:{0},type:{1}],handlerType:{2}]", command.Id, command.GetType().Name, commandHandler.GetInnerObject().GetType().Name),
             errorMessage =>
             {
-                CommitChangesAsync(processingCommand, false, null, errorMessage, 0);
+                CommitChangesAsync(processingCommand, false, null, errorMessage);
             },
             retryTimes);
         }
-        private void CommitChangesAsync(ProcessingCommand processingCommand, bool success, IApplicationMessage message, string errorMessage, int retryTimes)
+        private void CommitChangesAsync(ProcessingCommand processingCommand, bool success, IApplicationMessage message, string errorMessage)
         {
-            var command = processingCommand.Message;
-            var handledCommand = new HandledCommand(command.Id, command.AggregateRootId, message);
-
-            _ioHelper.TryAsyncActionRecursively("AddCommandAsync",
-            () => _commandStore.AddAsync(handledCommand),
-            currentRetryTimes => CommitChangesAsync(processingCommand, success, message, errorMessage, currentRetryTimes),
-            result =>
+            if (success)
             {
-                var commandAddResult = result.Data;
-                if (commandAddResult == CommandAddResult.Success)
+                if (message != null)
                 {
-                    if (success)
-                    {
-                        if (message != null)
-                        {
-                            PublishMessageAsync(processingCommand, message, 0);
-                        }
-                        else
-                        {
-                            CompleteCommand(processingCommand, CommandStatus.Success, null, null);
-                        }
-                    }
-                    else
-                    {
-                        CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
-                    }
+                    PublishMessageAsync(processingCommand, message, 0);
                 }
-                else if (commandAddResult == CommandAddResult.DuplicateCommand)
+                else
                 {
-                    HandleDuplicatedCommandAsync(processingCommand, 0);
+                    CompleteCommand(processingCommand, CommandStatus.Success, null, null);
                 }
-            },
-            () => string.Format("[handledCommand:{0}]", handledCommand),
-            error =>
+            }
+            else
             {
-                _logger.Fatal(string.Format("Add command has unknown exception, the code should not be run to here, errorMessage: {0}", error));
-            },
-            retryTimes, true);
+                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+            }
         }
         private void PublishMessageAsync(ProcessingCommand processingCommand, IApplicationMessage message, int retryTimes)
         {
             var command = processingCommand.Message;
 
             _ioHelper.TryAsyncActionRecursively("PublishApplicationMessageAsync",
-            () => _messagePublisher.PublishAsync(message),
+            () => _applicationMessagePublisher.PublishAsync(message),
             currentRetryTimes => PublishMessageAsync(processingCommand, message, currentRetryTimes),
             result =>
             {
@@ -452,47 +387,6 @@ namespace ENode.Commanding.Impl
             errorMessage =>
             {
                 _logger.Fatal(string.Format("Publish application message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
-            retryTimes, true);
-        }
-        private void HandleDuplicatedCommandAsync(ProcessingCommand processingCommand, int retryTimes)
-        {
-            var command = processingCommand.Message;
-
-            _ioHelper.TryAsyncActionRecursively("GetCommandAsync",
-            () => _commandStore.GetAsync(command.Id),
-            currentRetryTimes => HandleDuplicatedCommandAsync(processingCommand, currentRetryTimes),
-            result =>
-            {
-                var existingHandledCommand = result.Data;
-                if (existingHandledCommand != null)
-                {
-                    if (existingHandledCommand.Message != null)
-                    {
-                        PublishMessageAsync(processingCommand, existingHandledCommand.Message, 0);
-                    }
-                    else
-                    {
-                        CompleteCommand(processingCommand, CommandStatus.Success, null, null);
-                    }
-                }
-                else
-                {
-                    //到这里，说明当前command想添加到commandStore中时，提示command重复，但是尝试从commandStore中取出该command时却找不到该command。
-                    //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非commandStore的Add接口和Get接口出现读写不一致的情况；
-                    //我们记录错误日志，然后认为当前command已被处理为失败。
-                    var errorMessage = string.Format("Command exist in the command store, but we cannot get it from the command store. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
-                        command.GetType().Name,
-                        command.Id,
-                        command.AggregateRootId);
-                    _logger.Error(errorMessage);
-                    CompleteCommand(processingCommand, CommandStatus.Failed, null, errorMessage);
-                }
-            },
-            () => string.Format("[command:[id:{0},type:{1}]", command.Id, command.GetType().Name),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Get command by id has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
             },
             retryTimes, true);
         }

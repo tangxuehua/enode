@@ -120,20 +120,6 @@ namespace ENode.Tests
             _nameServerController.Shutdown();
             return enodeConfiguration;
         }
-
-        public static ENodeConfiguration UseCommandStore(this ENodeConfiguration enodeConfiguration, bool useMockCommandStore = false)
-        {
-            var configuration = enodeConfiguration.GetCommonConfiguration();
-            if (useMockCommandStore)
-            {
-                configuration.SetDefault<ICommandStore, MockCommandStore>();
-            }
-            else
-            {
-                enodeConfiguration.UseSqlServerCommandStore();
-            }
-            return enodeConfiguration;
-        }
         public static ENodeConfiguration UseEventStore(this ENodeConfiguration enodeConfiguration, bool useMockEventStore = false)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();

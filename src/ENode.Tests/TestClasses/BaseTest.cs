@@ -19,7 +19,6 @@ namespace ENode.Tests
         protected static ILogger _logger;
         protected static ICommandService _commandService;
         protected static IMemoryCache _memoryCache;
-        protected static ICommandStore _commandStore;
         protected static IEventStore _eventStore;
         protected static IPublishedVersionStore _publishedVersionStore;
         protected static IMessagePublisher<DomainEventStreamMessage> _domainEventPublisher;
@@ -27,7 +26,6 @@ namespace ENode.Tests
         protected static IMessagePublisher<IPublishableException> _publishableExceptionPublisher;
 
         protected static void Initialize(TestContext context,
-            bool useMockCommandStore = false,
             bool useMockEventStore = false,
             bool useMockPublishedVersionStore = false,
             bool useMockDomainEventPublisher = false,
@@ -38,8 +36,7 @@ namespace ENode.Tests
             {
                 CleanupEnode();
             }
-            InitializeENode(useMockCommandStore,
-                useMockEventStore,
+            InitializeENode(useMockEventStore,
                 useMockPublishedVersionStore,
                 useMockDomainEventPublisher,
                 useMockApplicationMessagePublisher,
@@ -47,7 +44,6 @@ namespace ENode.Tests
         }
 
         private static void InitializeENode(
-            bool useMockCommandStore = false,
             bool useMockEventStore = false,
             bool useMockPublishedVersionStore = false,
             bool useMockDomainEventPublisher = false,
@@ -69,7 +65,6 @@ namespace ENode.Tests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode(setting)
                 .RegisterENodeComponents()
-                .UseCommandStore(useMockCommandStore)
                 .UseEventStore(useMockEventStore)
                 .UsePublishedVersionStore(useMockPublishedVersionStore)
                 .RegisterBusinessComponents(assemblies)
@@ -80,7 +75,6 @@ namespace ENode.Tests
 
             _commandService = ObjectContainer.Resolve<ICommandService>();
             _memoryCache = ObjectContainer.Resolve<IMemoryCache>();
-            _commandStore = ObjectContainer.Resolve<ICommandStore>();
             _eventStore = ObjectContainer.Resolve<IEventStore>();
             _publishedVersionStore = ObjectContainer.Resolve<IPublishedVersionStore>();
             _domainEventPublisher = ObjectContainer.Resolve<IMessagePublisher<DomainEventStreamMessage>>();

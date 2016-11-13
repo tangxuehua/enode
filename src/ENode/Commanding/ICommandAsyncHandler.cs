@@ -8,9 +8,6 @@ namespace ENode.Commanding
     /// </summary>
     public interface ICommandAsyncHandler
     {
-        /// <summary>Indicates that if framework should check the command has already been handled before handling command.
-        /// </summary>
-        bool CheckCommandHandledFirst { get; }
     }
     /// <summary>Represents an generic async handler for command.
     /// </summary>

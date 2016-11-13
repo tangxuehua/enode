@@ -53,15 +53,12 @@
     <Compile Include="Commanding\ICommand.cs" />
     <Compile Include="Commanding\ICommandAsyncHandlerProxy.cs" />
     <Compile Include="Commanding\ICommandRoutingKeyProvider.cs" />
-    <Compile Include="Commanding\ICommandStore.cs" />
     <Compile Include="Commanding\ICommandHandlerProvider.cs" />
     <Compile Include="Commanding\Impl\CommandAsyncHandlerProxy.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandProcessor.cs" />
     <Compile Include="Commanding\Impl\DefaultProcessingCommandHandler.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandAsyncHandlerProvider.cs" />
     <Compile Include="Commanding\Impl\DefaultCommandRoutingKeyProvider.cs" />
-    <Compile Include="Commanding\Impl\SqlServerCommandStore.cs" />
-    <Compile Include="Commanding\Impl\InMemoryCommandStore.cs" />
     <Compile Include="Commanding\CommandResult.cs" />
     <Compile Include="Commanding\Impl\NotImplementedCommandService.cs" />
     <Compile Include="Commanding\IProcessingCommandHandler.cs" />
