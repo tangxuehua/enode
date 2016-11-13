@@ -17,7 +17,7 @@ namespace ENode.EQueue
         private readonly SendReplyService _sendReplyService;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IEventSerializer _eventSerializer;
-        private readonly IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool> _processor;
+        private readonly IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage> _processor;
         private readonly ILogger _logger;
         private readonly bool _sendEventHandledMessage;
 
@@ -33,7 +33,7 @@ namespace ENode.EQueue
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
-            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
+            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _sendEventHandledMessage = sendEventHandledMessage;
         }
@@ -65,6 +65,7 @@ namespace ENode.EQueue
             var domainEventStreamMessage = ConvertToDomainEventStream(message);
             var processContext = new DomainEventStreamProcessContext(this, domainEventStreamMessage, queueMessage, context);
             var processingMessage = new ProcessingDomainEventStreamMessage(domainEventStreamMessage, processContext);
+            _logger.InfoFormat("ENode event message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}, version: {3}", domainEventStreamMessage.Id, domainEventStreamMessage.AggregateRootStringId, domainEventStreamMessage.AggregateRootTypeName, domainEventStreamMessage.Version);
             _processor.Process(processingMessage);
         }
 
@@ -77,6 +78,7 @@ namespace ENode.EQueue
                 message.AggregateRootTypeName,
                 _eventSerializer.Deserialize<IDomainEvent>(message.Events),
                 message.Items);
+            domainEventStreamMessage.Id = message.Id;
             domainEventStreamMessage.Timestamp = message.Timestamp;
             return domainEventStreamMessage;
         }

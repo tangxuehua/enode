@@ -4,8 +4,8 @@ using ECommon.IO;
 
 namespace ENode.Infrastructure.Impl
 {
-    public abstract class AbstractSequenceProcessingMessageHandler<X, Y, Z> : IProcessingMessageHandler<X, Y, Z>
-        where X : class, IProcessingMessage<X, Y, Z>, ISequenceProcessingMessage
+    public abstract class AbstractSequenceProcessingMessageHandler<X, Y> : IProcessingMessageHandler<X, Y>
+        where X : class, IProcessingMessage<X, Y>, ISequenceProcessingMessage
         where Y : ISequenceMessage
     {
         #region Private Variables
@@ -57,7 +57,7 @@ namespace ENode.Infrastructure.Impl
                 }
                 else
                 {
-                    processingMessage.SetResult(default(Z));
+                    processingMessage.Complete();
                 }
             },
             () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", message.Id, message.GetType().Name, message.AggregateRootStringId, message.Version),
@@ -90,7 +90,7 @@ namespace ENode.Infrastructure.Impl
             currentRetryTimes => UpdatePublishedVersionAsync(processingMessage, currentRetryTimes),
             result =>
             {
-                processingMessage.SetResult(default(Z));
+                processingMessage.Complete();
             },
             () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootStringId, processingMessage.Message.Version),
             errorMessage =>

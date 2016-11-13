@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using ECommon.IO;
-using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {

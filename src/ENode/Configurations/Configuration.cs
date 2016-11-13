@@ -102,18 +102,18 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMessagePublisher<IPublishableException>, DoNothingPublisher>();
 
             _configuration.SetDefault<IProcessingCommandHandler, DefaultProcessingCommandHandler>();
-            _configuration.SetDefault<IProcessingMessageHandler<ProcessingApplicationMessage, IApplicationMessage, bool>, DefaultProcessingMessageHandler<ProcessingApplicationMessage, IApplicationMessage, bool>>();
-            _configuration.SetDefault<IProcessingMessageHandler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DomainEventStreamMessageHandler>();
-            _configuration.SetDefault<IProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
+            _configuration.SetDefault<IProcessingMessageHandler<ProcessingApplicationMessage, IApplicationMessage>, DefaultProcessingMessageHandler<ProcessingApplicationMessage, IApplicationMessage>>();
+            _configuration.SetDefault<IProcessingMessageHandler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, DomainEventStreamMessageHandler>();
+            _configuration.SetDefault<IProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException>>();
 
-            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage, bool>, DefaultProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage, bool>>();
-            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DefaultProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
-            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
+            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage>, DefaultProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage>>();
+            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, DefaultProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
+            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException>>();
 
             _configuration.SetDefault<ICommandProcessor, DefaultCommandProcessor>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage, bool>, DefaultMessageProcessor<ProcessingApplicationMessage, IApplicationMessage, bool>>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, DefaultMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>, DefaultMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
+            _configuration.SetDefault<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>, DefaultMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>();
+            _configuration.SetDefault<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, DefaultMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
+            _configuration.SetDefault<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>();
 
             _assemblyInitializerServiceTypes.Add(typeof(ITypeNameProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));

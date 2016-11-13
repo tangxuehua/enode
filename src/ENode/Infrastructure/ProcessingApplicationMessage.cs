@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace ENode.Infrastructure
+﻿namespace ENode.Infrastructure
 {
-    public class ProcessingApplicationMessage : IProcessingMessage<ProcessingApplicationMessage, IApplicationMessage, bool>
+    public class ProcessingApplicationMessage : IProcessingMessage<ProcessingApplicationMessage, IApplicationMessage>
     {
-        private ProcessingMessageMailbox<ProcessingApplicationMessage, IApplicationMessage, bool> _mailbox;
+        private ProcessingMessageMailbox<ProcessingApplicationMessage, IApplicationMessage> _mailbox;
         private IMessageProcessContext _processContext;
 
         public IApplicationMessage Message { get; private set; }
@@ -15,11 +13,11 @@ namespace ENode.Infrastructure
             _processContext = processContext;
         }
 
-        public void SetMailbox(ProcessingMessageMailbox<ProcessingApplicationMessage, IApplicationMessage, bool> mailbox)
+        public void SetMailbox(ProcessingMessageMailbox<ProcessingApplicationMessage, IApplicationMessage> mailbox)
         {
             _mailbox = mailbox;
         }
-        public void SetResult(bool result)
+        public void Complete()
         {
             _processContext.NotifyMessageProcessed();
             if (_mailbox != null)

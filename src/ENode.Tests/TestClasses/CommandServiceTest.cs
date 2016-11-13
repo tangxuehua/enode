@@ -78,6 +78,20 @@ namespace ENode.Tests
             Assert.IsNotNull(note);
             Assert.AreEqual("Sample Note", note.Title);
             Assert.AreEqual(1, ((IAggregateRoot)note).Version);
+
+            //执行修改聚合根的命令
+            var command2 = new ChangeTestAggregateTitleCommand
+            {
+                AggregateRootId = aggregateId,
+                Title = "Changed Note"
+            };
+            commandResult = _commandService.Execute(command2, 5000);
+            Assert.IsNotNull(commandResult);
+            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
+            note = _memoryCache.Get<TestAggregate>(aggregateId);
+            Assert.IsNotNull(note);
+            Assert.AreEqual("Changed Note", note.Title);
+            Assert.AreEqual(2, ((IAggregateRoot)note).Version);
         }
         [TestMethod]
         public void command_sync_execute_timeout_test()

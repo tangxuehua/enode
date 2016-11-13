@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using ECommon.Components;
+using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
@@ -14,7 +15,8 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeNameProvider _typeNameProvider;
-        private readonly IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage, bool> _processor;
+        private readonly IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage> _processor;
+        private readonly ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
 
@@ -26,8 +28,9 @@ namespace ENode.EQueue
                 ConsumeFromWhere = ConsumeFromWhere.FirstOffset
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage, bool>>();
+            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         public ApplicationMessageConsumer Start()
@@ -52,6 +55,7 @@ namespace ENode.EQueue
             var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), applicationMessageType) as IApplicationMessage;
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingApplicationMessage(message, processContext);
+            _logger.InfoFormat("ENode application message received, messageId: {0}, routingKey: {1}", message.Id, message.GetRoutingKey());
             _processor.Process(processingMessage);
         }
     }

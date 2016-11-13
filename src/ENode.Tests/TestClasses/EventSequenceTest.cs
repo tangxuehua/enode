@@ -25,7 +25,7 @@ namespace ENode.Tests
         [TestMethod]
         public void sequence_domain_event_process_test()
         {
-            var processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>>();
+            var processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
 
             var note = new TestAggregate(ObjectId.GenerateNewStringId(), "initial title");
             var aggregate = note as IAggregateRoot;

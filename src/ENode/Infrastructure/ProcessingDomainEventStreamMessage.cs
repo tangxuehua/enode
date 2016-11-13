@@ -3,9 +3,9 @@ using ENode.Eventing;
 
 namespace ENode.Infrastructure
 {
-    public class ProcessingDomainEventStreamMessage : IProcessingMessage<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>, ISequenceProcessingMessage
+    public class ProcessingDomainEventStreamMessage : IProcessingMessage<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, ISequenceProcessingMessage
     {
-        private ProcessingMessageMailbox<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool> _mailbox;
+        private ProcessingMessageMailbox<ProcessingDomainEventStreamMessage, DomainEventStreamMessage> _mailbox;
         private IMessageProcessContext _processContext;
 
         public DomainEventStreamMessage Message { get; private set; }
@@ -16,7 +16,7 @@ namespace ENode.Infrastructure
             _processContext = processContext;
         }
 
-        public void SetMailbox(ProcessingMessageMailbox<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool> mailbox)
+        public void SetMailbox(ProcessingMessageMailbox<ProcessingDomainEventStreamMessage, DomainEventStreamMessage> mailbox)
         {
             _mailbox = mailbox;
         }
@@ -25,7 +25,7 @@ namespace ENode.Infrastructure
             Ensure.NotNull(_mailbox, "_mailbox");
             _mailbox.AddWaitingMessage(this);
         }
-        public void SetResult(bool result)
+        public void Complete()
         {
             _processContext.NotifyMessageProcessed();
             if (_mailbox != null)

@@ -2,9 +2,9 @@
 
 namespace ENode.Infrastructure
 {
-    public class ProcessingPublishableExceptionMessage : IProcessingMessage<ProcessingPublishableExceptionMessage, IPublishableException, bool>
+    public class ProcessingPublishableExceptionMessage : IProcessingMessage<ProcessingPublishableExceptionMessage, IPublishableException>
     {
-        private ProcessingMessageMailbox<ProcessingPublishableExceptionMessage, IPublishableException, bool> _mailbox;
+        private ProcessingMessageMailbox<ProcessingPublishableExceptionMessage, IPublishableException> _mailbox;
         private IMessageProcessContext _processContext;
 
         public IPublishableException Message { get; private set; }
@@ -15,11 +15,11 @@ namespace ENode.Infrastructure
             _processContext = processContext;
         }
 
-        public void SetMailbox(ProcessingMessageMailbox<ProcessingPublishableExceptionMessage, IPublishableException, bool> mailbox)
+        public void SetMailbox(ProcessingMessageMailbox<ProcessingPublishableExceptionMessage, IPublishableException> mailbox)
         {
             _mailbox = mailbox;
         }
-        public void SetResult(bool result)
+        public void Complete()
         {
             _processContext.NotifyMessageProcessed();
             if (_mailbox != null)

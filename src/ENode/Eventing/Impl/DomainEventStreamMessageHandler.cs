@@ -7,7 +7,7 @@ using ENode.Infrastructure.Impl;
 
 namespace ENode.Eventing.Impl
 {
-    public class DomainEventStreamMessageHandler : AbstractSequenceProcessingMessageHandler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage, bool>
+    public class DomainEventStreamMessageHandler : AbstractSequenceProcessingMessageHandler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>
     {
         private readonly IMessageDispatcher _dispatcher;
 

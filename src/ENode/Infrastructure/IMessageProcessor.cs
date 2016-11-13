@@ -2,7 +2,7 @@
 {
     /// <summary>Represents a message processor.
     /// </summary>
-    public interface IMessageProcessor<X, Y, Z> where X : class, IProcessingMessage<X, Y, Z> where Y : IMessage
+    public interface IMessageProcessor<X, Y> where X : class, IProcessingMessage<X, Y> where Y : IMessage
     {
         /// <summary>Process the given message.
         /// </summary>

@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace ENode.Infrastructure
+﻿namespace ENode.Infrastructure
 {
     public interface ISequenceProcessingMessage
     {

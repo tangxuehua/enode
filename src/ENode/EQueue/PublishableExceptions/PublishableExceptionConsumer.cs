@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using System.Text;
 using ECommon.Components;
+using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
@@ -15,7 +16,8 @@ namespace ENode.EQueue
         private readonly Consumer _consumer;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly ITypeNameProvider _typeNameProvider;
-        private readonly IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool> _publishableExceptionProcessor;
+        private readonly IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException> _publishableExceptionProcessor;
+        private readonly ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
 
@@ -27,8 +29,9 @@ namespace ENode.EQueue
                 ConsumeFromWhere = ConsumeFromWhere.FirstOffset
             });
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException, bool>>();
+            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
         public PublishableExceptionConsumer Start()
@@ -63,6 +66,7 @@ namespace ENode.EQueue
             }
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingPublishableExceptionMessage(exception, processContext);
+            _logger.InfoFormat("ENode exception message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}", exceptionMessage.UniqueId, exceptionMessage.AggregateRootId, exceptionMessage.AggregateRootTypeName);
             _publishableExceptionProcessor.Process(processingMessage);
         }
     }

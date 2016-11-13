@@ -19,7 +19,7 @@ namespace ENode.EQueue
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
-        public void SendMessage(Producer producer, EQueueMessage message, string routingKey)
+        public void SendMessage(Producer producer, EQueueMessage message, string routingKey, string messageId, string version)
         {
             try
             {
@@ -28,34 +28,34 @@ namespace ENode.EQueue
                     var result = producer.Send(message, routingKey);
                     if (result.SendStatus != SendStatus.Success)
                     {
-                        _logger.ErrorFormat("EQueue message sync send failed, sendResult: {0}, routingKey: {1}", result, routingKey);
+                        _logger.ErrorFormat("ENode message sync send failed, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
                         throw new IOException(result.ErrorMessage);
                     }
-                    _logger.InfoFormat("EQueue message sync send success, sendResult: {0}, routingKey: {1}", result, routingKey);
-                }, "SendQueueMessage");
+                    _logger.InfoFormat("ENode message sync send success, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
+                }, "SendENodeMessage");
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("EQueue message synch send has exception, message: {0}, routingKey: {1}", message, routingKey), ex);
+                _logger.Error(string.Format("ENode message synch send has exception, message: {0}, routingKey: {1}, messageId: {2}, version: {3}", message, routingKey, messageId, version), ex);
                 throw;
             }
         }
-        public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, EQueueMessage message, string routingKey)
+        public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, EQueueMessage message, string routingKey, string messageId, string version)
         {
             try
             {
                 var result = await producer.SendAsync(message, routingKey);
                 if (result.SendStatus != SendStatus.Success)
                 {
-                    _logger.ErrorFormat("EQueue message async send failed, sendResult: {0}, routingKey: {1}", result, routingKey);
+                    _logger.ErrorFormat("ENode message async send failed, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
                     return new AsyncTaskResult(AsyncTaskStatus.IOException, result.ErrorMessage);
                 }
-                _logger.InfoFormat("EQueue message async send success, sendResult: {0}, routingKey: {1}", result, routingKey);
+                _logger.InfoFormat("ENode message async send success, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
                 return AsyncTaskResult.Success;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("EQueue message async send has exception, message: {0}, routingKey: {1}", message, routingKey), ex);
+                _logger.Error(string.Format("ENode message async send has exception, message: {0}, routingKey: {1}, messageId: {2}, version: {3}", message, routingKey, messageId, version), ex);
                 return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
             }
         }

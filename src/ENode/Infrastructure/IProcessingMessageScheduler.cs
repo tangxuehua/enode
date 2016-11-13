@@ -1,10 +1,10 @@
 ﻿namespace ENode.Infrastructure
 {
-    public interface IProcessingMessageScheduler<X, Y, Z>
-        where X : class, IProcessingMessage<X, Y, Z>
+    public interface IProcessingMessageScheduler<X, Y>
+        where X : class, IProcessingMessage<X, Y>
         where Y : IMessage
     {
         void ScheduleMessage(X processingMessage);
-        void ScheduleMailbox(ProcessingMessageMailbox<X, Y, Z> mailbox);
+        void ScheduleMailbox(ProcessingMessageMailbox<X, Y> mailbox);
     }
 }

@@ -6,6 +6,7 @@ namespace ENode.EQueue
     [Serializable]
     public class EventStreamMessage
     {
+        public string Id { get; set; }
         public string AggregateRootId { get; set; }
         public string AggregateRootTypeName { get; set; }
         public int Version { get; set; }

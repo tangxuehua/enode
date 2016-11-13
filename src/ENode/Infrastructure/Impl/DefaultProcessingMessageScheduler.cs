@@ -2,13 +2,13 @@
 
 namespace ENode.Infrastructure
 {
-    public class DefaultProcessingMessageScheduler<X, Y, Z> : IProcessingMessageScheduler<X, Y, Z>
-        where X : class, IProcessingMessage<X, Y, Z>
+    public class DefaultProcessingMessageScheduler<X, Y> : IProcessingMessageScheduler<X, Y>
+        where X : class, IProcessingMessage<X, Y>
         where Y : IMessage
     {
-        private readonly IProcessingMessageHandler<X, Y, Z> _messageHandler;
+        private readonly IProcessingMessageHandler<X, Y> _messageHandler;
 
-        public DefaultProcessingMessageScheduler(IProcessingMessageHandler<X, Y, Z> messageHandler)
+        public DefaultProcessingMessageScheduler(IProcessingMessageHandler<X, Y> messageHandler)
         {
             _messageHandler = messageHandler;
         }
@@ -20,12 +20,9 @@ namespace ENode.Infrastructure
                 _messageHandler.HandleAsync((X)obj);
             }, processingMessage);
         }
-        public void ScheduleMailbox(ProcessingMessageMailbox<X, Y, Z> mailbox)
+        public void ScheduleMailbox(ProcessingMessageMailbox<X, Y> mailbox)
         {
-            if (mailbox.EnterHandlingMessage())
-            {
-                Task.Factory.StartNew(mailbox.Run);
-            }
+            Task.Factory.StartNew(mailbox.Run);
         }
     }
 }

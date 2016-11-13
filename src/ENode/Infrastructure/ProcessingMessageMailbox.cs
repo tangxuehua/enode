@@ -1,39 +1,47 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
+using ECommon.Logging;
 using ECommon.Utilities;
 
 namespace ENode.Infrastructure
 {
-    public class ProcessingMessageMailbox<X, Y, Z>
-        where X : class, IProcessingMessage<X, Y, Z>
+    public class ProcessingMessageMailbox<X, Y>
+        where X : class, IProcessingMessage<X, Y>
         where Y : IMessage
     {
+        #region Private Variables 
+
+        private readonly string _routingKey;
+        private readonly ILogger _logger;
         private ConcurrentDictionary<int, X> _waitingMessageDict;
         private readonly ConcurrentQueue<X> _messageQueue;
-        private readonly IProcessingMessageScheduler<X, Y, Z> _scheduler;
-        private readonly IProcessingMessageHandler<X, Y, Z> _messageHandler;
-        private int _isHandlingMessage;
+        private readonly IProcessingMessageScheduler<X, Y> _scheduler;
+        private readonly IProcessingMessageHandler<X, Y> _messageHandler;
+        private int _isRunning;
         private readonly object _lockObj = new object();
 
-        public ProcessingMessageMailbox(IProcessingMessageScheduler<X, Y, Z> scheduler, IProcessingMessageHandler<X, Y, Z> messageHandler)
+        #endregion
+
+        public string RoutingKey
         {
+            get { return _routingKey; }
+        }
+
+        public ProcessingMessageMailbox(string routingKey, IProcessingMessageScheduler<X, Y> scheduler, IProcessingMessageHandler<X, Y> messageHandler, ILogger logger)
+        {
+            _routingKey = routingKey;
             _messageQueue = new ConcurrentQueue<X>();
             _scheduler = scheduler;
             _messageHandler = messageHandler;
+            _logger = logger;
         }
 
         public void EnqueueMessage(X processingMessage)
         {
             processingMessage.SetMailbox(this);
             _messageQueue.Enqueue(processingMessage);
-        }
-        public bool EnterHandlingMessage()
-        {
-            return Interlocked.CompareExchange(ref _isHandlingMessage, 1, 0) == 0;
-        }
-        public void ExitHandlingMessage()
-        {
-            Interlocked.Exchange(ref _isHandlingMessage, 0);
+            TryRun();
         }
         public void AddWaitingMessage(X waitingMessage)
         {
@@ -53,15 +61,15 @@ namespace ENode.Infrastructure
 
             _waitingMessageDict.TryAdd(sequenceMessage.Version, waitingMessage);
 
-            ExitHandlingMessage();
-            RegisterForExecution();
+            Exit();
+            TryRun();
         }
         public void CompleteMessage(X processingMessage)
         {
             if (!TryExecuteWaitingMessage(processingMessage))
             {
-                ExitHandlingMessage();
-                RegisterForExecution();
+                Exit();
+                TryRun();
             }
         }
         public void Run()
@@ -74,14 +82,19 @@ namespace ENode.Infrastructure
                     _messageHandler.HandleAsync(processingMessage);
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.Error(string.Format("Message mailbox run has unknown exception, routingKey: {0}, commandId: {1}", _routingKey, processingMessage != null ? processingMessage.Message.Id : string.Empty), ex);
+                Thread.Sleep(1);
+            }
             finally
             {
                 if (processingMessage == null)
                 {
-                    ExitHandlingMessage();
+                    Exit();
                     if (!_messageQueue.IsEmpty)
                     {
-                        RegisterForExecution();
+                        TryRun();
                     }
                 }
             }
@@ -100,9 +113,20 @@ namespace ENode.Infrastructure
             }
             return false;
         }
-        private void RegisterForExecution()
+        private void TryRun()
         {
-            _scheduler.ScheduleMailbox(this);
+            if (TryEnter())
+            {
+                _scheduler.ScheduleMailbox(this);
+            }
+        }
+        private bool TryEnter()
+        {
+            return Interlocked.CompareExchange(ref _isRunning, 1, 0) == 0;
+        }
+        private void Exit()
+        {
+            Interlocked.Exchange(ref _isRunning, 0);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace ENode.EQueue
         public Task<AsyncTaskResult> PublishAsync(DomainEventStreamMessage eventStream)
         {
             var message = CreateEQueueMessage(eventStream);
-            return _sendMessageService.SendMessageAsync(_producer, message, eventStream.GetRoutingKey() ?? eventStream.AggregateRootId);
+            return _sendMessageService.SendMessageAsync(_producer, message, eventStream.GetRoutingKey() ?? eventStream.AggregateRootId, eventStream.Id, eventStream.Version.ToString());
         }
 
         private EQueueMessage CreateEQueueMessage(DomainEventStreamMessage eventStream)
@@ -59,6 +59,7 @@ namespace ENode.EQueue
         {
             var message = new EventStreamMessage();
 
+            message.Id = eventStream.Id;
             message.CommandId = eventStream.CommandId;
             message.AggregateRootTypeName = eventStream.AggregateRootTypeName;
             message.AggregateRootId = eventStream.AggregateRootId;

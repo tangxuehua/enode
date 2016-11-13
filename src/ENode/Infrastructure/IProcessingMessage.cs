@@ -1,9 +1,9 @@
 ﻿namespace ENode.Infrastructure
 {
-    public interface IProcessingMessage<X, Y, Z> where X : class, IProcessingMessage<X, Y, Z> where Y : IMessage
+    public interface IProcessingMessage<X, Y> where X : class, IProcessingMessage<X, Y> where Y : IMessage
     {
         Y Message { get; }
-        void SetMailbox(ProcessingMessageMailbox<X, Y, Z> mailbox);
-        void SetResult(Z result);
+        void SetMailbox(ProcessingMessageMailbox<X, Y> mailbox);
+        void Complete();
     }
 }
