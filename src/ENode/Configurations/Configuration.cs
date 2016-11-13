@@ -79,7 +79,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<IAggregateRepositoryProvider, DefaultAggregateRepositoryProvider>();
             _configuration.SetDefault<IAggregateRootFactory, DefaultAggregateRootFactory>();
             _configuration.SetDefault<IMemoryCache, DefaultMemoryCache>();
-            _configuration.SetDefault<ICleanAggregateService, DefaultCleanAggregateService>();
             _configuration.SetDefault<IAggregateSnapshotter, DefaultAggregateSnapshotter>();
             _configuration.SetDefault<IAggregateStorage, EventSourcingAggregateStorage>();
             _configuration.SetDefault<IRepository, DefaultRepository>();
@@ -111,9 +110,9 @@ namespace ENode.Configurations
             _configuration.SetDefault<IProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException>>();
 
             _configuration.SetDefault<ICommandProcessor, DefaultCommandProcessor>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>, DefaultMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, DefaultMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>();
+            _configuration.SetDefault<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>, DefaultApplicationMessageProcessor>();
+            _configuration.SetDefault<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, DefaultDomainEventProcessor>();
+            _configuration.SetDefault<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultPublishableExceptionProcessor>();
 
             _assemblyInitializerServiceTypes.Add(typeof(ITypeNameProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
@@ -199,6 +198,30 @@ namespace ENode.Configurations
                 assemblyInitializer.Initialize(assemblies);
             }
             return this;
+        }
+        /// <summary>Start background tasks.
+        /// </summary>
+        /// <returns></returns>
+        public ENodeConfiguration Start()
+        {
+            ObjectContainer.Resolve<IMemoryCache>().Start();
+            ObjectContainer.Resolve<ICommandProcessor>().Start();
+            ObjectContainer.Resolve<IEventService>().Start();
+            ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>().Start();
+            ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>().Start();
+            ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>().Start();
+            return this;
+        }
+        /// <summary>Stop background tasks.
+        /// </summary>
+        public void Stop()
+        {
+            ObjectContainer.Resolve<IMemoryCache>().Stop();
+            ObjectContainer.Resolve<ICommandProcessor>().Stop();
+            ObjectContainer.Resolve<IEventService>().Stop();
+            ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>().Stop();
+            ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>().Stop();
+            ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>().Stop();
         }
 
         #region Private Methods

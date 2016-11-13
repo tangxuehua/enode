@@ -8,5 +8,11 @@
         /// </summary>
         /// <param name="processingCommand"></param>
         void Process(ProcessingCommand processingCommand);
+        /// <summary>Start the processor.
+        /// </summary>
+        void Start();
+        /// <summary>Stop the processor.
+        /// </summary>
+        void Stop();
     }
 }

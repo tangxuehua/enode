@@ -78,10 +78,8 @@
     <Compile Include="Domain\IAggregateRepository.cs" />
     <Compile Include="Domain\IAggregateStorage.cs" />
     <Compile Include="Domain\IAggregateRepositoryProvider.cs" />
-    <Compile Include="Domain\ICleanAggregateService.cs" />
     <Compile Include="Domain\Impl\AggregateRepositoryProxy.cs" />
     <Compile Include="Domain\Impl\DefaultAggregateRepositoryProvider.cs" />
-    <Compile Include="Domain\Impl\DefaultCleanAggregateService.cs" />
     <Compile Include="Domain\Impl\SnapshotOnlyAggregateStorage.cs" />
     <Compile Include="Domain\Impl\EventSourcingAggregateStorage.cs" />
     <Compile Include="EQueue\AbstractTopicProvider.cs" />
@@ -111,6 +109,9 @@
     <Compile Include="Eventing\EventCommittingContext.cs" />
     <Compile Include="Eventing\Impl\DomainEventStreamMessageHandler.cs" />
     <Compile Include="Eventing\Impl\EventMailBox.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultPublishableExceptionProcessor.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultApplicationMessageProcessor.cs" />
+    <Compile Include="Infrastructure\Impl\DefaultDomainEventProcessor.cs" />
     <Compile Include="Infrastructure\Impl\DefaultTypeNameProvider.cs" />
     <Compile Include="Infrastructure\ITypeNameProvider.cs" />
     <Compile Include="Infrastructure\MessageHandlerData.cs" />

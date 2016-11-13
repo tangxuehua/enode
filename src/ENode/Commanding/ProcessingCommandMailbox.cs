@@ -29,6 +29,7 @@ namespace ENode.Commanding
         private int _isRunning;
         private bool _isPaused;
         private bool _isProcessingCommand;
+        private DateTime _lastActiveTime;
 
         #endregion
 
@@ -38,6 +39,14 @@ namespace ENode.Commanding
             {
                 return _aggregateRootId;
             }
+        }
+        public DateTime LastActiveTime
+        {
+            get { return _lastActiveTime; }
+        }
+        public bool IsRunning
+        {
+            get { return _isRunning == 1; }
         }
 
         public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandHandler messageHandler, ILogger logger)
@@ -51,6 +60,7 @@ namespace ENode.Commanding
             _messageHandler = messageHandler;
             _logger = logger;
             _consumedSequence = -1;
+            _lastActiveTime = DateTime.Now;
         }
 
         public void EnqueueMessage(ProcessingCommand message)
@@ -64,11 +74,12 @@ namespace ENode.Commanding
                     _nextSequence++;
                 }
             }
+            _lastActiveTime = DateTime.Now;
             TryRun();
         }
-
         public void Pause()
         {
+            _lastActiveTime = DateTime.Now;
             _pauseWaitHandle.Reset();
             while (_isProcessingCommand)
             {
@@ -79,18 +90,21 @@ namespace ENode.Commanding
         }
         public void Resume()
         {
+            _lastActiveTime = DateTime.Now;
             _isPaused = false;
             _pauseWaitHandle.Set();
             TryRun();
         }
         public void ResetConsumingSequence(long consumingSequence)
         {
+            _lastActiveTime = DateTime.Now;
             _consumingSequence = consumingSequence;
         }
         public void CompleteMessage(ProcessingCommand processingCommand, CommandResult commandResult)
         {
             lock (_lockObj2)
             {
+                _lastActiveTime = DateTime.Now;
                 try
                 {
                     if (processingCommand.Sequence == _consumedSequence + 1)
@@ -118,6 +132,7 @@ namespace ENode.Commanding
         }
         public void Run()
         {
+            _lastActiveTime = DateTime.Now;
             while (_isPaused)
             {
                 _logger.InfoFormat("Command mailbox is pausing and we should wait for a while, aggregateRootId: {0}", AggregateRootId);
@@ -155,6 +170,10 @@ namespace ENode.Commanding
                     TryRun();
                 }
             }
+        }
+        public bool IsInactive(int timeoutSeconds)
+        {
+            return (DateTime.Now - LastActiveTime).TotalSeconds >= timeoutSeconds;
         }
 
         private ProcessingCommand GetProcessingCommand(long sequence)

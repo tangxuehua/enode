@@ -15,6 +15,7 @@ namespace ENode.Eventing.Impl
         private readonly Action<IList<EventCommittingContext>> _handleMessageAction;
         private int _isRunning;
         private int _batchSize;
+        private DateTime _lastActiveTime;
 
         public string AggregateRootId
         {
@@ -22,6 +23,14 @@ namespace ENode.Eventing.Impl
             {
                 return _aggregateRootId;
             }
+        }
+        public DateTime LastActiveTime
+        {
+            get { return _lastActiveTime; }
+        }
+        public bool IsRunning
+        {
+            get { return _isRunning == 1; }
         }
 
         public EventMailBox(string aggregateRootId, int batchSize, Action<IList<EventCommittingContext>> handleMessageAction, ILogger logger)
@@ -31,11 +40,13 @@ namespace ENode.Eventing.Impl
             _batchSize = batchSize;
             _handleMessageAction = handleMessageAction;
             _logger = logger;
+            _lastActiveTime = DateTime.Now;
         }
 
         public void EnqueueMessage(EventCommittingContext message)
         {
             _messageQueue.Enqueue(message);
+            _lastActiveTime = DateTime.Now;
             TryRun();
         }
         public void TryRun(bool exitFirst = false)
@@ -51,6 +62,7 @@ namespace ENode.Eventing.Impl
         }
         public void Run()
         {
+            _lastActiveTime = DateTime.Now;
             IList<EventCommittingContext> contextList = null;
             try
             {
@@ -99,6 +111,10 @@ namespace ENode.Eventing.Impl
         {
             EventCommittingContext message;
             while (_messageQueue.TryDequeue(out message)) { }
+        }
+        public bool IsInactive(int timeoutSeconds)
+        {
+            return (DateTime.Now - LastActiveTime).TotalSeconds >= timeoutSeconds;
         }
 
         private bool TryEnter()

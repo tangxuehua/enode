@@ -26,13 +26,11 @@ namespace ENode.Domain
         /// <summary>Refresh the aggregate memory cache by replaying events of event store.
         /// </summary>
         void RefreshAggregateFromEventStore(string aggregateRootTypeName, string aggregateRootId);
-        /// <summary>Remove an aggregate from memory.
+        /// <summary>Start background tasks.
         /// </summary>
-        /// <param name="aggregateRootId"></param>
-        bool Remove(object aggregateRootId);
-        /// <summary>Get all the aggregates from memory cache.
+        void Start();
+        /// <summary>Stop background tasks.
         /// </summary>
-        /// <returns></returns>
-        IEnumerable<AggregateCacheInfo> GetAll();
+        void Stop();
     }
 }

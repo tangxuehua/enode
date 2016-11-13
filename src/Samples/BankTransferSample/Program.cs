@@ -47,7 +47,8 @@ namespace BankTransferSample
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartEQueue();
+                .StartEQueue()
+                .Start();
 
             Console.WriteLine(string.Empty);
             Console.WriteLine("ENode started...");

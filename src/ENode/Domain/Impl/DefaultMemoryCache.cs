@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using ECommon.Logging;
+using ECommon.Scheduling;
+using ENode.Configurations;
 using ENode.Infrastructure;
 
 namespace ENode.Domain.Impl
@@ -13,19 +15,21 @@ namespace ENode.Domain.Impl
         private readonly IAggregateStorage _aggregateStorage;
         private readonly ITypeNameProvider _typeNameProvider;
         private readonly ILogger _logger;
+        private readonly IScheduleService _scheduleService;
+        private readonly int _timeoutSeconds;
+        private readonly string _taskName;
 
-        public DefaultMemoryCache(ITypeNameProvider typeNameProvider, IAggregateStorage aggregateStorage, ILoggerFactory loggerFactory)
+        public DefaultMemoryCache(IScheduleService scheduleService, ITypeNameProvider typeNameProvider, IAggregateStorage aggregateStorage, ILoggerFactory loggerFactory)
         {
+            _scheduleService = scheduleService;
             _aggregateRootInfoDict = new ConcurrentDictionary<string, AggregateCacheInfo>();
             _typeNameProvider = typeNameProvider;
             _aggregateStorage = aggregateStorage;
             _logger = loggerFactory.Create(GetType().FullName);
+            _timeoutSeconds = ENodeConfiguration.Instance.Setting.AggregateRootMaxInactiveSeconds;
+            _taskName = "CleanInactiveAggregates_" + DateTime.Now.Ticks + new Random().Next(10000);
         }
 
-        public IEnumerable<AggregateCacheInfo> GetAll()
-        {
-            return _aggregateRootInfoDict.Values;
-        }
         public IAggregateRoot Get(object aggregateRootId, Type aggregateRootType)
         {
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
@@ -79,11 +83,13 @@ namespace ENode.Domain.Impl
                 _logger.Error(string.Format("Refresh aggregate from event store has unknown exception, aggregateRootTypeName:{0}, aggregateRootId:{1}", aggregateRootTypeName, aggregateRootId), ex);
             }
         }
-        public bool Remove(object aggregateRootId)
+        public void Start()
         {
-            if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
-            AggregateCacheInfo aggregateRootInfo;
-            return _aggregateRootInfoDict.TryRemove(aggregateRootId.ToString(), out aggregateRootInfo);
+            _scheduleService.StartTask(_taskName, CleanInactiveAggregateRoot, ENodeConfiguration.Instance.Setting.ScanExpiredAggregateIntervalMilliseconds, ENodeConfiguration.Instance.Setting.ScanExpiredAggregateIntervalMilliseconds);
+        }
+        public void Stop()
+        {
+            _scheduleService.StopTask(_taskName);
         }
 
         private void SetInternal(IAggregateRoot aggregateRoot)
@@ -109,6 +115,25 @@ namespace ENode.Domain.Impl
                 }
                 return existing;
             });
+        }
+        private void CleanInactiveAggregateRoot()
+        {
+            var inactiveList = new List<KeyValuePair<string, AggregateCacheInfo>>();
+            foreach (var pair in _aggregateRootInfoDict)
+            {
+                if (pair.Value.IsExpired(_timeoutSeconds))
+                {
+                    inactiveList.Add(pair);
+                }
+            }
+            foreach (var pair in inactiveList)
+            {
+                AggregateCacheInfo removed;
+                if (_aggregateRootInfoDict.TryRemove(pair.Key, out removed))
+                {
+                    _logger.InfoFormat("Removed inactive aggregate root, id: {0}", pair.Key);
+                }
+            }
         }
     }
 }

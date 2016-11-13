@@ -75,7 +75,8 @@ namespace ENode.Tests
                 .RegisterBusinessComponents(assemblies)
                 .InitializeBusinessAssemblies(assemblies)
                 .UseEQueue(useMockDomainEventPublisher, useMockApplicationMessagePublisher, useMockPublishableExceptionPublisher)
-                .StartEQueue();
+                .StartEQueue()
+                .Start();
 
             _commandService = ObjectContainer.Resolve<ICommandService>();
             _memoryCache = ObjectContainer.Resolve<IMemoryCache>();
@@ -91,6 +92,7 @@ namespace ENode.Tests
         private static void CleanupEnode()
         {
             _enodeConfiguration.ShutdownEQueue();
+            _enodeConfiguration.Stop();
             _logger.Info("ENode shutdown.");
         }
     }

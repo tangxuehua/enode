@@ -19,7 +19,7 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private IProcessingCommandHandler _processingCommandHandler;
-        private readonly ConcurrentDictionary<string, EventMailBox> _eventMailboxDict;
+        private readonly ConcurrentDictionary<string, EventMailBox> _mailboxDict;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IScheduleService _scheduleService;
         private readonly ITypeNameProvider _typeNameProvider;
@@ -31,6 +31,8 @@ namespace ENode.Eventing.Impl
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
         private readonly int _batchSize;
+        private readonly int _timeoutSeconds;
+        private readonly string _taskName;
 
         #endregion
 
@@ -48,7 +50,7 @@ namespace ENode.Eventing.Impl
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
-            _eventMailboxDict = new ConcurrentDictionary<string, EventMailBox>();
+            _mailboxDict = new ConcurrentDictionary<string, EventMailBox>();
             _ioHelper = ioHelper;
             _jsonSerializer = jsonSerializer;
             _scheduleService = scheduleService;
@@ -60,6 +62,8 @@ namespace ENode.Eventing.Impl
             _domainEventPublisher = domainEventPublisher;
             _logger = loggerFactory.Create(GetType().FullName);
             _batchSize = ENodeConfiguration.Instance.Setting.EventMailBoxPersistenceMaxBatchSize;
+            _timeoutSeconds = ENodeConfiguration.Instance.Setting.AggregateRootMaxInactiveSeconds;
+            _taskName = "CleanInactiveAggregates_" + DateTime.Now.Ticks + new Random().Next(10000);
         }
 
         #endregion
@@ -72,7 +76,7 @@ namespace ENode.Eventing.Impl
         }
         public void CommitDomainEventAsync(EventCommittingContext context)
         {
-            var eventMailbox = _eventMailboxDict.GetOrAdd(context.AggregateRoot.UniqueId, x =>
+            var eventMailbox = _mailboxDict.GetOrAdd(context.AggregateRoot.UniqueId, x =>
             {
                 return new EventMailBox(x, _batchSize, committingContexts =>
                 {
@@ -101,6 +105,14 @@ namespace ENode.Eventing.Impl
             }
             var eventStreamMessage = new DomainEventStreamMessage(processingCommand.Message.Id, eventStream.AggregateRootId, eventStream.Version, eventStream.AggregateRootTypeName, eventStream.Events, eventStream.Items);
             PublishDomainEventAsync(processingCommand, eventStreamMessage, 0);
+        }
+        public void Start()
+        {
+            _scheduleService.StartTask(_taskName, CleanInactiveMailbox, ENodeConfiguration.Instance.Setting.ScanExpiredAggregateIntervalMilliseconds, ENodeConfiguration.Instance.Setting.ScanExpiredAggregateIntervalMilliseconds);
+        }
+        public void Stop()
+        {
+            _scheduleService.StopTask(_taskName);
         }
 
         #endregion
@@ -392,6 +404,25 @@ namespace ENode.Eventing.Impl
         private void CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
         {
             processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
+        }
+        private void CleanInactiveMailbox()
+        {
+            var inactiveList = new List<KeyValuePair<string, EventMailBox>>();
+            foreach (var pair in _mailboxDict)
+            {
+                if (pair.Value.IsInactive(_timeoutSeconds) && !pair.Value.IsRunning)
+                {
+                    inactiveList.Add(pair);
+                }
+            }
+            foreach (var pair in inactiveList)
+            {
+                EventMailBox removed;
+                if (_mailboxDict.TryRemove(pair.Key, out removed))
+                {
+                    _logger.InfoFormat("Removed inactive event mailbox, aggregateRootId: {0}", pair.Key);
+                }
+            }
         }
 
         #endregion

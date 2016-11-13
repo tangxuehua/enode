@@ -58,7 +58,8 @@ namespace NoteSample.QuickStart
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
                 .InitializeBusinessAssemblies(assemblies)
-                .StartEQueue();
+                .StartEQueue()
+                .Start();
 
             Console.WriteLine(string.Empty);
 

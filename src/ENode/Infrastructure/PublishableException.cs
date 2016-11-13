@@ -25,14 +25,14 @@ namespace ENode.Infrastructure
         /// <summary>Returns null by default.
         /// </summary>
         /// <returns></returns>
-        public string GetRoutingKey()
+        public virtual string GetRoutingKey()
         {
             return null;
         }
         /// <summary>Returns the full type name of the current exception.
         /// </summary>
         /// <returns></returns>
-        public string GetTypeName()
+        public virtual string GetTypeName()
         {
             return this.GetType().FullName;
         }

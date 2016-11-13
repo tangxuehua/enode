@@ -20,12 +20,21 @@ namespace ENode.Infrastructure
         private readonly IProcessingMessageHandler<X, Y> _messageHandler;
         private int _isRunning;
         private readonly object _lockObj = new object();
+        private DateTime _lastActiveTime;
 
         #endregion
 
         public string RoutingKey
         {
             get { return _routingKey; }
+        }
+        public DateTime LastActiveTime
+        {
+            get { return _lastActiveTime; }
+        }
+        public bool IsRunning
+        {
+            get { return _isRunning == 1; }
         }
 
         public ProcessingMessageMailbox(string routingKey, IProcessingMessageScheduler<X, Y> scheduler, IProcessingMessageHandler<X, Y> messageHandler, ILogger logger)
@@ -35,12 +44,14 @@ namespace ENode.Infrastructure
             _scheduler = scheduler;
             _messageHandler = messageHandler;
             _logger = logger;
+            _lastActiveTime = DateTime.Now;
         }
 
         public void EnqueueMessage(X processingMessage)
         {
             processingMessage.SetMailbox(this);
             _messageQueue.Enqueue(processingMessage);
+            _lastActiveTime = DateTime.Now;
             TryRun();
         }
         public void AddWaitingMessage(X waitingMessage)
@@ -60,12 +71,13 @@ namespace ENode.Infrastructure
             }
 
             _waitingMessageDict.TryAdd(sequenceMessage.Version, waitingMessage);
-
+            _lastActiveTime = DateTime.Now;
             Exit();
             TryRun();
         }
         public void CompleteMessage(X processingMessage)
         {
+            _lastActiveTime = DateTime.Now;
             if (!TryExecuteWaitingMessage(processingMessage))
             {
                 Exit();
@@ -74,6 +86,7 @@ namespace ENode.Infrastructure
         }
         public void Run()
         {
+            _lastActiveTime = DateTime.Now;
             X processingMessage = null;
             try
             {
@@ -98,6 +111,10 @@ namespace ENode.Infrastructure
                     }
                 }
             }
+        }
+        public bool IsInactive(int timeoutSeconds)
+        {
+            return (DateTime.Now - LastActiveTime).TotalSeconds >= timeoutSeconds;
         }
 
         private bool TryExecuteWaitingMessage(X currentCompletedMessage)

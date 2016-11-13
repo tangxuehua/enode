@@ -8,5 +8,11 @@
         /// </summary>
         /// <param name="processingMessage"></param>
         void Process(X processingMessage);
+        /// <summary>Start the processor.
+        /// </summary>
+        void Start();
+        /// <summary>Stop the processor.
+        /// </summary>
+        void Stop();
     }
 }

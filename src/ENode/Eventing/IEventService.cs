@@ -19,5 +19,11 @@ namespace ENode.Eventing
         /// <param name="processingCommand"></param>
         /// <param name="eventStream"></param>
         void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream);
+        /// <summary>Start background tasks.
+        /// </summary>
+        void Start();
+        /// <summary>Stop background tasks.
+        /// </summary>
+        void Stop();
     }
 }
