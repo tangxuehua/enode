@@ -99,6 +99,7 @@ namespace ENode.Commanding
         {
             _lastActiveTime = DateTime.Now;
             _consumingSequence = consumingSequence;
+            _requestToCompleteCommandDict.Clear();
         }
         public void CompleteMessage(ProcessingCommand processingCommand, CommandResult commandResult)
         {
