@@ -17,6 +17,8 @@ namespace ENode.Eventing.Impl
 {
     public class SqlServerEventStore : IEventStore
     {
+        private const string QueryEventsSql = "SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion ORDER BY Version ASC";
+
         #region Private Variables
 
         private readonly string _connectionString;
@@ -93,7 +95,7 @@ namespace ENode.Eventing.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", GetTableName(aggregateRootId));
+                        var sql = string.Format(QueryEventsSql, GetTableName(aggregateRootId));
                         return connection.Query<StreamRecord>(sql, new
                         {
                             AggregateRootId = aggregateRootId,
@@ -126,7 +128,7 @@ namespace ENode.Eventing.Impl
                 {
                     using (var connection = GetConnection())
                     {
-                        var sql = string.Format("SELECT * FROM [{0}] WHERE AggregateRootId = @AggregateRootId AND Version >= @MinVersion AND Version <= @MaxVersion", GetTableName(aggregateRootId));
+                        var sql = string.Format(QueryEventsSql, GetTableName(aggregateRootId));
                         var result = await connection.QueryAsync<StreamRecord>(sql, new
                         {
                             AggregateRootId = aggregateRootId,
@@ -259,7 +261,7 @@ namespace ENode.Eventing.Impl
         }
         public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<DomainEventStream>>(async () =>
+            return _ioHelper.TryIOFuncAsync(async () =>
             {
                 try
                 {
@@ -285,7 +287,7 @@ namespace ENode.Eventing.Impl
         }
         public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
         {
-            return _ioHelper.TryIOFuncAsync<AsyncTaskResult<DomainEventStream>>(async () =>
+            return _ioHelper.TryIOFuncAsync(async () =>
             {
                 try
                 {
