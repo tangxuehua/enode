@@ -57,6 +57,7 @@ namespace NoteSample.QuickStart
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
+                .BuildContainer()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue()
                 .Start();

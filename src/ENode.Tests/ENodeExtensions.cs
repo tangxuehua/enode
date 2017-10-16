@@ -32,25 +32,21 @@ namespace ENode.Tests
         private static PublishableExceptionPublisher _publishableExceptionPublisher;
         private static PublishableExceptionConsumer _publishableExceptionConsumer;
 
+        public static ENodeConfiguration BuildContainer(this ENodeConfiguration enodeConfiguration)
+        {
+            enodeConfiguration.GetCommonConfiguration().BuildContainer();
+            return enodeConfiguration;
+        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration,
             bool useMockDomainEventPublisher = false,
             bool useMockApplicationMessagePublisher = false,
             bool useMockPublishableExceptionPublisher = false)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
-            var brokerStorePath = @"c:\equeue-store";
-            var brokerSetting = new BrokerSetting(chunkFileStoreRootPath: brokerStorePath);
-
-            if (Directory.Exists(brokerStorePath))
-            {
-                Directory.Delete(brokerStorePath, true);
-            }
 
             configuration.RegisterEQueueComponents();
 
-            _nameServerController = new NameServerController();
-            _broker = BrokerController.Create(brokerSetting);
-            _commandService = new CommandService(new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
+            _commandService = new CommandService();
             _eventPublisher = new DomainEventPublisher();
             _applicationMessagePublisher = new ApplicationMessagePublisher();
             _publishableExceptionPublisher = new PublishableExceptionPublisher();
@@ -84,15 +80,31 @@ namespace ENode.Tests
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
 
-            _commandConsumer = new CommandConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("CommandTopic");
-            _eventConsumer = new DomainEventConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("EventTopic");
-            _applicationMessageConsumer = new ApplicationMessageConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("ApplicationMessageTopic");
-            _publishableExceptionConsumer = new PublishableExceptionConsumer(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("PublishableExceptionTopic");
-
             return enodeConfiguration;
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            var brokerStorePath = @"c:\equeue-store-ut";
+            var brokerSetting = new BrokerSetting(chunkFileStoreRootPath: brokerStorePath);
+
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
+            _nameServerController = new NameServerController();
+            _broker = BrokerController.Create(brokerSetting);
+
+            _commandService.Initialize(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
+            _eventPublisher.Initialize();
+            _applicationMessagePublisher.Initialize();
+            _publishableExceptionPublisher.Initialize();
+
+            _commandConsumer = new CommandConsumer().Initialize(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("CommandTopic");
+            _eventConsumer = new DomainEventConsumer().Initialize(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("EventTopic");
+            _applicationMessageConsumer = new ApplicationMessageConsumer().Initialize(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("ApplicationMessageTopic");
+            _publishableExceptionConsumer = new PublishableExceptionConsumer().Initialize(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("PublishableExceptionTopic");
+
             _nameServerController.Start();
             _broker.Start();
             _eventConsumer.Start();

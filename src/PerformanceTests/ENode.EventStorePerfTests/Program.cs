@@ -173,7 +173,9 @@ namespace ENode.EventStorePerfTests
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode(setting)
                 .RegisterENodeComponents()
-                .UseSqlServerEventStore();
+                .UseSqlServerEventStore()
+                .BuildContainer()
+                .InitializeSqlServerEventStore();
 
             Console.WriteLine("ENode started...");
         }

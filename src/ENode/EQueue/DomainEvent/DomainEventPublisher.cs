@@ -14,21 +14,22 @@ namespace ENode.EQueue
 {
     public class DomainEventPublisher : IMessagePublisher<DomainEventStreamMessage>
     {
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITopicProvider<IDomainEvent> _eventTopicProvider;
-        private readonly IEventSerializer _eventSerializer;
-        private readonly Producer _producer;
-        private readonly SendQueueMessageService _sendMessageService;
+        private IJsonSerializer _jsonSerializer;
+        private ITopicProvider<IDomainEvent> _eventTopicProvider;
+        private IEventSerializer _eventSerializer;
+        private Producer _producer;
+        private SendQueueMessageService _sendMessageService;
 
         public Producer Producer { get { return _producer; } }
 
-        public DomainEventPublisher(ProducerSetting setting = null)
+        public DomainEventPublisher Initialize(ProducerSetting setting = null)
         {
             _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IDomainEvent>>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _sendMessageService = new SendQueueMessageService();
+            return this;
         }
 
         public DomainEventPublisher Start()

@@ -13,17 +13,17 @@ namespace ENode.EQueue
     public class DomainEventConsumer : IQueueMessageHandler
     {
         private const string DefaultEventConsumerGroup = "EventConsumerGroup";
-        private readonly Consumer _consumer;
-        private readonly SendReplyService _sendReplyService;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly IEventSerializer _eventSerializer;
-        private readonly IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage> _processor;
-        private readonly ILogger _logger;
-        private readonly bool _sendEventHandledMessage;
+        private Consumer _consumer;
+        private SendReplyService _sendReplyService;
+        private IJsonSerializer _jsonSerializer;
+        private IEventSerializer _eventSerializer;
+        private IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage> _processor;
+        private ILogger _logger;
+        private bool _sendEventHandledMessage;
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public DomainEventConsumer(string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
+        public DomainEventConsumer Initialize(string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
         {
             _consumer = new Consumer(groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
             {
@@ -36,6 +36,7 @@ namespace ENode.EQueue
             _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _sendEventHandledMessage = sendEventHandledMessage;
+            return this;
         }
 
         public DomainEventConsumer Start()

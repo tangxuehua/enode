@@ -12,23 +12,23 @@ namespace ENode.EQueue
 {
     public class PublishableExceptionPublisher : IMessagePublisher<IPublishableException>
     {
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITopicProvider<IPublishableException> _exceptionTopicProvider;
-        private readonly ITypeNameProvider _typeNameProvider;
-        private readonly Producer _producer;
-        private readonly SendQueueMessageService _sendMessageService;
+        private IJsonSerializer _jsonSerializer;
+        private ITopicProvider<IPublishableException> _exceptionTopicProvider;
+        private ITypeNameProvider _typeNameProvider;
+        private Producer _producer;
+        private SendQueueMessageService _sendMessageService;
 
         public Producer Producer { get { return _producer; } }
 
-        public PublishableExceptionPublisher(ProducerSetting setting = null)
+        public PublishableExceptionPublisher Initialize(ProducerSetting setting = null)
         {
             _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _sendMessageService = new SendQueueMessageService();
+            return this;
         }
-
         public PublishableExceptionPublisher Start()
         {
             _producer.Start();

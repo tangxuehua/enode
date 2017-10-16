@@ -36,6 +36,7 @@ namespace ENode.Tests
             {
                 CleanupEnode();
             }
+
             InitializeENode(useMockEventStore,
                 useMockPublishedVersionStore,
                 useMockDomainEventPublisher,
@@ -68,8 +69,20 @@ namespace ENode.Tests
                 .UseEventStore(useMockEventStore)
                 .UsePublishedVersionStore(useMockPublishedVersionStore)
                 .RegisterBusinessComponents(assemblies)
-                .InitializeBusinessAssemblies(assemblies)
                 .UseEQueue(useMockDomainEventPublisher, useMockApplicationMessagePublisher, useMockPublishableExceptionPublisher)
+                .BuildContainer();
+
+            if (!useMockEventStore)
+            {
+                _enodeConfiguration.InitializeSqlServerEventStore();
+            }
+            if (!useMockPublishedVersionStore)
+            {
+                _enodeConfiguration.InitializeSqlServerPublishedVersionStore();
+            }
+
+            _enodeConfiguration
+                .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue()
                 .Start();
 

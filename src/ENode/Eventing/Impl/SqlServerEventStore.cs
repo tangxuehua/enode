@@ -21,17 +21,17 @@ namespace ENode.Eventing.Impl
 
         #region Private Variables
 
-        private readonly string _connectionString;
-        private readonly string _tableName;
-        private readonly int _tableCount;
-        private readonly string _versionIndexName;
-        private readonly string _commandIndexName;
-        private readonly int _bulkCopyBatchSize;
-        private readonly int _bulkCopyTimeout;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly IEventSerializer _eventSerializer;
-        private readonly IOHelper _ioHelper;
-        private readonly ILogger _logger;
+        private string _connectionString;
+        private string _tableName;
+        private int _tableCount;
+        private string _versionIndexName;
+        private string _commandIndexName;
+        private int _bulkCopyBatchSize;
+        private int _bulkCopyTimeout;
+        private IJsonSerializer _jsonSerializer;
+        private IEventSerializer _eventSerializer;
+        private IOHelper _ioHelper;
+        private ILogger _logger;
         private const string EventTableNameFormat = "{0}_{1}";
 
         #endregion
@@ -42,9 +42,9 @@ namespace ENode.Eventing.Impl
 
         #endregion
 
-        #region Constructors
+        #region Public Methods
 
-        public SqlServerEventStore(OptionSetting optionSetting)
+        public SqlServerEventStore Initialize(OptionSetting optionSetting)
         {
             if (optionSetting != null)
             {
@@ -81,12 +81,9 @@ namespace ENode.Eventing.Impl
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
 
             SupportBatchAppendEvent = true;
+
+            return this;
         }
-
-        #endregion
-
-        #region Public Methods
-
         public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             var records = _ioHelper.TryIOFunc(() =>
@@ -186,7 +183,7 @@ namespace ENode.Eventing.Impl
                             InitializeSqlBulkCopy(copy, aggregateRootId);
                             try
                             {
-                                await copy.WriteToServerAsync(table);
+                                await copy.WriteToServerAsync(table.CreateDataReader());
                                 await Task.Run(() => transaction.Commit());
                                 return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.Success);
                             }

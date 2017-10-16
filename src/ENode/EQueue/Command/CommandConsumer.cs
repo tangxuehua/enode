@@ -17,18 +17,18 @@ namespace ENode.EQueue
     public class CommandConsumer : IQueueMessageHandler
     {
         private const string DefaultCommandConsumerGroup = "CommandConsumerGroup";
-        private readonly Consumer _consumer;
-        private readonly SendReplyService _sendReplyService;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeNameProvider _typeNameProvider;
-        private readonly ICommandProcessor _processor;
-        private readonly IRepository _repository;
-        private readonly IAggregateStorage _aggregateRootStorage;
-        private readonly ILogger _logger;
+        private Consumer _consumer;
+        private SendReplyService _sendReplyService;
+        private IJsonSerializer _jsonSerializer;
+        private ITypeNameProvider _typeNameProvider;
+        private ICommandProcessor _processor;
+        private IRepository _repository;
+        private IAggregateStorage _aggregateRootStorage;
+        private ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public CommandConsumer(string groupName = null, ConsumerSetting setting = null)
+        public CommandConsumer Initialize(string groupName = null, ConsumerSetting setting = null)
         {
             _consumer = new Consumer(groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting
             {
@@ -41,6 +41,7 @@ namespace ENode.EQueue
             _repository = ObjectContainer.Resolve<IRepository>();
             _aggregateRootStorage = ObjectContainer.Resolve<IAggregateStorage>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            return this;
         }
 
         public CommandConsumer Start()

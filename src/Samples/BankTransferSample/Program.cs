@@ -46,6 +46,7 @@ namespace BankTransferSample
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
+                .BuildContainer()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue()
                 .Start();
@@ -112,6 +113,7 @@ namespace BankTransferSample
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
                 .UseEQueue()
+                .BuildContainer()
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();
 

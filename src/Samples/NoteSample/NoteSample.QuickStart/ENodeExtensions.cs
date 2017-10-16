@@ -25,41 +25,44 @@ namespace NoteSample.QuickStart
         private static CommandConsumer _commandConsumer;
         private static DomainEventPublisher _eventPublisher;
         private static DomainEventConsumer _eventConsumer;
-        private static CommandResultProcessor _commandResultProcessor;
 
+        public static ENodeConfiguration BuildContainer(this ENodeConfiguration enodeConfiguration)
+        {
+            enodeConfiguration.GetCommonConfiguration().BuildContainer();
+            return enodeConfiguration;
+        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
-            var brokerStorePath = @"c:\equeue-store";
-
-            if (Directory.Exists(brokerStorePath))
-            {
-                Directory.Delete(brokerStorePath, true);
-            }
 
             configuration.RegisterEQueueComponents();
 
-            _nameServerController = new NameServerController();
-            _broker = BrokerController.Create();
-
-            _commandResultProcessor = new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000));
-            _commandService = new CommandService(_commandResultProcessor);
+            _commandService = new CommandService();
             _eventPublisher = new DomainEventPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_eventPublisher);
 
-            //注意，这里实例化之前，需要确保各种MessagePublisher要先注入到IOC，因为CommandConsumer, DomainEventConsumer都依赖于IMessagePublisher<T>
-            _commandConsumer = new CommandConsumer();
-            _eventConsumer = new DomainEventConsumer();
-
-            _commandConsumer.Subscribe("NoteCommandTopic");
-            _eventConsumer.Subscribe("NoteEventTopic");
-
             return enodeConfiguration;
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            var configuration = enodeConfiguration.GetCommonConfiguration();
+
+            _commandService.Initialize(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000)));
+            _eventPublisher.Initialize();
+            _commandConsumer = new CommandConsumer().Initialize().Subscribe("NoteCommandTopic");
+            _eventConsumer = new DomainEventConsumer().Initialize().Subscribe("NoteEventTopic");
+
+            var brokerStorePath = @"c:\equeue-store";
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
+            _nameServerController = new NameServerController();
+            _broker = BrokerController.Create();
+
             _nameServerController.Start();
             _broker.Start();
             _eventConsumer.Start();

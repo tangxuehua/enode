@@ -16,20 +16,20 @@ namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
-        private readonly ILogger _logger;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITopicProvider<ICommand> _commandTopicProvider;
-        private readonly ITypeNameProvider _typeNameProvider;
-        private readonly ICommandRoutingKeyProvider _commandRouteKeyProvider;
-        private readonly SendQueueMessageService _sendMessageService;
-        private readonly CommandResultProcessor _commandResultProcessor;
-        private readonly Producer _producer;
-        private readonly IOHelper _ioHelper;
+        private ILogger _logger;
+        private IJsonSerializer _jsonSerializer;
+        private ITopicProvider<ICommand> _commandTopicProvider;
+        private ITypeNameProvider _typeNameProvider;
+        private ICommandRoutingKeyProvider _commandRouteKeyProvider;
+        private SendQueueMessageService _sendMessageService;
+        private CommandResultProcessor _commandResultProcessor;
+        private Producer _producer;
+        private IOHelper _ioHelper;
 
         public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
 
-        public CommandService(CommandResultProcessor commandResultProcessor = null, ProducerSetting setting = null)
+        public CommandService Initialize(CommandResultProcessor commandResultProcessor = null, ProducerSetting setting = null)
         {
             _commandResultProcessor = commandResultProcessor;
             _producer = new Producer(setting);
@@ -40,6 +40,7 @@ namespace ENode.EQueue
             _sendMessageService = new SendQueueMessageService();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
+            return this;
         }
 
         public CommandService Start()

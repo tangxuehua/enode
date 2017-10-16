@@ -22,7 +22,6 @@ namespace BankTransferSample
         private static NameServerController _nameServerController;
         private static BrokerController _broker;
         private static CommandService _commandService;
-        private static CommandResultProcessor _commandResultProcessor;
         private static CommandConsumer _commandConsumer;
         private static ApplicationMessagePublisher _applicationMessagePublisher;
         private static ApplicationMessageConsumer _applicationMessageConsumer;
@@ -31,23 +30,18 @@ namespace BankTransferSample
         private static PublishableExceptionPublisher _exceptionPublisher;
         private static PublishableExceptionConsumer _exceptionConsumer;
 
+        public static ENodeConfiguration BuildContainer(this ENodeConfiguration enodeConfiguration)
+        {
+            enodeConfiguration.GetCommonConfiguration().BuildContainer();
+            return enodeConfiguration;
+        }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
-            var brokerStorePath = @"c:\equeue-store";
-
-            if (Directory.Exists(brokerStorePath))
-            {
-                Directory.Delete(brokerStorePath, true);
-            }
 
             configuration.RegisterEQueueComponents();
 
-            _nameServerController = new NameServerController();
-            _broker = BrokerController.Create();
-
-            _commandResultProcessor = new CommandResultProcessor(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000));
-            _commandService = new CommandService(_commandResultProcessor);
+            _commandService = new CommandService();
             _applicationMessagePublisher = new ApplicationMessagePublisher();
             _domainEventPublisher = new DomainEventPublisher();
             _exceptionPublisher = new PublishableExceptionPublisher();
@@ -57,15 +51,29 @@ namespace BankTransferSample
             configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_domainEventPublisher);
             configuration.SetDefault<IMessagePublisher<IPublishableException>, PublishableExceptionPublisher>(_exceptionPublisher);
 
-            _commandConsumer = new CommandConsumer().Subscribe("BankTransferCommandTopic");
-            _applicationMessageConsumer = new ApplicationMessageConsumer().Subscribe("BankTransferApplicationMessageTopic");
-            _eventConsumer = new DomainEventConsumer().Subscribe("BankTransferEventTopic");
-            _exceptionConsumer = new PublishableExceptionConsumer().Subscribe("BankTransferExceptionTopic");
-
             return enodeConfiguration;
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            _commandService.Initialize(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000)));
+            _applicationMessagePublisher.Initialize();
+            _domainEventPublisher.Initialize();
+            _exceptionPublisher.Initialize();
+
+            _nameServerController = new NameServerController();
+            _broker = BrokerController.Create();
+
+            _commandConsumer = new CommandConsumer().Initialize().Subscribe("BankTransferCommandTopic");
+            _applicationMessageConsumer = new ApplicationMessageConsumer().Initialize().Subscribe("BankTransferApplicationMessageTopic");
+            _eventConsumer = new DomainEventConsumer().Initialize().Subscribe("BankTransferEventTopic");
+            _exceptionConsumer = new PublishableExceptionConsumer().Initialize().Subscribe("BankTransferExceptionTopic");
+
+            var brokerStorePath = @"c:\equeue-store";
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
             _nameServerController.Start();
             _broker.Start();
             _exceptionConsumer.Start();

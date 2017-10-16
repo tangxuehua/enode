@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,6 +102,7 @@ namespace ENode.CommandProcessorPerfTests
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
+                .BuildContainer()
                 .InitializeBusinessAssemblies(assemblies);
             _eventService = ObjectContainer.Resolve<IEventService>();
 

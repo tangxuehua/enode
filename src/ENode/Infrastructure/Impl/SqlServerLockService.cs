@@ -13,15 +13,13 @@ namespace ENode.Infrastructure.Impl.SQL
     {
         #region Private Variables
 
-        private readonly string _connectionString;
-        private readonly string _tableName;
-        private readonly string _lockKeySqlFormat;
+        private string _connectionString;
+        private string _tableName;
+        private string _lockKeySqlFormat;
 
         #endregion
 
-        #region Constructors
-
-        public SqlServerLockService(OptionSetting optionSetting)
+        public SqlServerLockService Initialize(OptionSetting optionSetting)
         {
             if (optionSetting != null)
             {
@@ -39,10 +37,9 @@ namespace ENode.Infrastructure.Impl.SQL
             Ensure.NotNull(_tableName, "_tableName");
 
             _lockKeySqlFormat = "SELECT * FROM [" + _tableName + "] WITH (UPDLOCK) WHERE [Name] = '{0}'";
+
+            return this;
         }
-
-        #endregion
-
         public void AddLockKey(string lockKey)
         {
             using (var connection = GetConnection())

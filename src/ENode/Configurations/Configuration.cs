@@ -154,20 +154,12 @@ namespace ENode.Configurations
             _configuration.SetDefault<IAggregateStorage, SnapshotOnlyAggregateStorage>();
             return this;
         }
-        /// <summary>Use the SqlServerLockService as the ILockService.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerLockService(OptionSetting optionSetting = null)
-        {
-            _configuration.SetDefault<ILockService, SqlServerLockService>(new SqlServerLockService(optionSetting));
-            return this;
-        }
         /// <summary>Use the SqlServerEventStore as the IEventStore.
         /// </summary>
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerEventStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<IEventStore, SqlServerEventStore>(new SqlServerEventStore(optionSetting));
+            _configuration.SetDefault<IEventStore, SqlServerEventStore>();
             return this;
         }
         /// <summary>Use the SqlServerPublishedVersionStore as the IPublishedVersionStore.
@@ -175,7 +167,15 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration UseSqlServerPublishedVersionStore(OptionSetting optionSetting = null)
         {
-            _configuration.SetDefault<IPublishedVersionStore, SqlServerPublishedVersionStore>(new SqlServerPublishedVersionStore(optionSetting));
+            _configuration.SetDefault<IPublishedVersionStore, SqlServerPublishedVersionStore>();
+            return this;
+        }
+        /// <summary>Use the SqlServerLockService as the ILockService.
+        /// </summary>
+        /// <returns></returns>
+        public ENodeConfiguration UseSqlServerLockService()
+        {
+            _configuration.SetDefault<ILockService, SqlServerLockService>();
             return this;
         }
         /// <summary>Initialize all the assembly initializers with the given business assemblies.
@@ -188,6 +188,33 @@ namespace ENode.Configurations
             {
                 assemblyInitializer.Initialize(assemblies);
             }
+            return this;
+        }
+        /// <summary>Initialize the SqlServerEventStore with option setting.
+        /// </summary>
+        /// <param name="optionSetting"></param>
+        /// <returns></returns>
+        public ENodeConfiguration InitializeSqlServerEventStore(OptionSetting optionSetting = null)
+        {
+            ((SqlServerEventStore)ObjectContainer.Resolve<IEventStore>()).Initialize(optionSetting);
+            return this;
+        }
+        /// <summary>Initialize the SqlServerPublishedVersionStore with option setting.
+        /// </summary>
+        /// <param name="optionSetting"></param>
+        /// <returns></returns>
+        public ENodeConfiguration InitializeSqlServerPublishedVersionStore(OptionSetting optionSetting = null)
+        {
+            ((SqlServerPublishedVersionStore)ObjectContainer.Resolve<IPublishedVersionStore>()).Initialize(optionSetting);
+            return this;
+        }
+        /// <summary>Initialize the SqlServerLockService with option setting.
+        /// </summary>
+        /// <param name="optionSetting"></param>
+        /// <returns></returns>
+        public ENodeConfiguration InitializeSqlServerLockService(OptionSetting optionSetting = null)
+        {
+            ((SqlServerLockService)ObjectContainer.Resolve<ILockService>()).Initialize(optionSetting);
             return this;
         }
         /// <summary>Start background tasks.

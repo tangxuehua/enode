@@ -16,20 +16,20 @@ namespace ENode.EQueue
 {
     public class CommandResultProcessor : IRequestHandler
     {
-        private readonly byte[] ByteArray = new byte[0];
-        private readonly SocketRemotingServer _remotingServer;
-        private readonly ConcurrentDictionary<string, CommandTaskCompletionSource> _commandTaskDict;
-        private readonly BlockingCollection<CommandResult> _commandExecutedMessageLocalQueue;
-        private readonly BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
-        private readonly Worker _commandExecutedMessageWorker;
-        private readonly Worker _domainEventHandledMessageWorker;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly ILogger _logger;
+        private byte[] ByteArray = new byte[0];
+        private SocketRemotingServer _remotingServer;
+        private ConcurrentDictionary<string, CommandTaskCompletionSource> _commandTaskDict;
+        private BlockingCollection<CommandResult> _commandExecutedMessageLocalQueue;
+        private BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
+        private Worker _commandExecutedMessageWorker;
+        private Worker _domainEventHandledMessageWorker;
+        private IJsonSerializer _jsonSerializer;
+        private ILogger _logger;
         private bool _started;
 
         public IPEndPoint BindingAddress { get; private set; }
 
-        public CommandResultProcessor(IPEndPoint bindingAddress)
+        public CommandResultProcessor Initialize(IPEndPoint bindingAddress)
         {
             _remotingServer = new SocketRemotingServer("CommandResultProcessor.RemotingServer", bindingAddress);
             _commandTaskDict = new ConcurrentDictionary<string, CommandTaskCompletionSource>();
@@ -40,6 +40,7 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             BindingAddress = bindingAddress;
+            return this;
         }
 
         public void RegisterProcessingCommand(ICommand command, CommandReturnType commandReturnType, TaskCompletionSource<AsyncTaskResult<CommandResult>> taskCompletionSource)

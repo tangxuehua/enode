@@ -11,21 +11,22 @@ namespace ENode.EQueue
 {
     public class ApplicationMessagePublisher : IMessagePublisher<IApplicationMessage>
     {
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITopicProvider<IApplicationMessage> _messageTopicProvider;
-        private readonly ITypeNameProvider _typeNameProvider;
-        private readonly Producer _producer;
-        private readonly SendQueueMessageService _sendMessageService;
+        private IJsonSerializer _jsonSerializer;
+        private ITopicProvider<IApplicationMessage> _messageTopicProvider;
+        private ITypeNameProvider _typeNameProvider;
+        private Producer _producer;
+        private SendQueueMessageService _sendMessageService;
 
         public Producer Producer { get { return _producer; } }
 
-        public ApplicationMessagePublisher(ProducerSetting setting = null)
+        public ApplicationMessagePublisher Initialize(ProducerSetting setting = null)
         {
             _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _messageTopicProvider = ObjectContainer.Resolve<ITopicProvider<IApplicationMessage>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _sendMessageService = new SendQueueMessageService();
+            return this;
         }
 
         public ApplicationMessagePublisher Start()

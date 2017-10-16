@@ -15,16 +15,14 @@ namespace ENode.Infrastructure.Impl.SQL
     {
         #region Private Variables
 
-        private readonly string _connectionString;
-        private readonly string _tableName;
-        private readonly string _uniqueIndexName;
-        private readonly ILogger _logger;
+        private string _connectionString;
+        private string _tableName;
+        private string _uniqueIndexName;
+        private ILogger _logger;
 
         #endregion
 
-        #region Constructors
-
-        public SqlServerPublishedVersionStore(OptionSetting optionSetting)
+        public SqlServerPublishedVersionStore Initialize(OptionSetting optionSetting)
         {
             if (optionSetting != null)
             {
@@ -45,10 +43,9 @@ namespace ENode.Infrastructure.Impl.SQL
             Ensure.NotNull(_uniqueIndexName, "_uniqueIndexName");
 
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+
+            return this;
         }
-
-        #endregion
-
         public async Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId, int publishedVersion)
         {
             if (publishedVersion == 1)

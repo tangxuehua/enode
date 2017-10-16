@@ -13,15 +13,15 @@ namespace ENode.EQueue
     public class PublishableExceptionConsumer : IQueueMessageHandler
     {
         private const string DefaultExceptionConsumerGroup = "ExceptionConsumerGroup";
-        private readonly Consumer _consumer;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly ITypeNameProvider _typeNameProvider;
-        private readonly IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException> _publishableExceptionProcessor;
-        private readonly ILogger _logger;
+        private Consumer _consumer;
+        private IJsonSerializer _jsonSerializer;
+        private ITypeNameProvider _typeNameProvider;
+        private IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException> _publishableExceptionProcessor;
+        private ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public PublishableExceptionConsumer(string groupName = null, ConsumerSetting setting = null)
+        public PublishableExceptionConsumer Initialize(string groupName = null, ConsumerSetting setting = null)
         {
             _consumer = new Consumer(groupName ?? DefaultExceptionConsumerGroup, setting ?? new ConsumerSetting
             {
@@ -32,6 +32,7 @@ namespace ENode.EQueue
             _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            return this;
         }
 
         public PublishableExceptionConsumer Start()

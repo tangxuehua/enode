@@ -91,8 +91,9 @@ namespace ENode.PublishEventPerfTests
                 .CreateENode()
                 .RegisterENodeComponents()
                 .RegisterBusinessComponents(assemblies)
-                .InitializeBusinessAssemblies(assemblies)
                 .UseEQueue()
+                .BuildContainer()
+                .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();
 
             Console.WriteLine("ENode started...");
