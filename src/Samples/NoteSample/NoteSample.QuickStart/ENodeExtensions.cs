@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using ECommon.Components;
 using ECommon.Logging;
@@ -33,8 +34,10 @@ namespace NoteSample.QuickStart
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
-            var configuration = enodeConfiguration.GetCommonConfiguration();
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+            enodeConfiguration.RegisterTopicProviders(assemblies);
 
+            var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.RegisterEQueueComponents();
 
             _commandService = new CommandService();

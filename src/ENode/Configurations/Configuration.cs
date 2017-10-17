@@ -9,13 +9,11 @@ using ENode.Commanding;
 using ENode.Commanding.Impl;
 using ENode.Domain;
 using ENode.Domain.Impl;
-using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Eventing.Impl;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
 using ENode.Infrastructure.Impl.InMemory;
-using ENode.Infrastructure.Impl.SQL;
 
 namespace ENode.Configurations
 {
@@ -154,30 +152,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<IAggregateStorage, SnapshotOnlyAggregateStorage>();
             return this;
         }
-        /// <summary>Use the SqlServerEventStore as the IEventStore.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerEventStore(OptionSetting optionSetting = null)
-        {
-            _configuration.SetDefault<IEventStore, SqlServerEventStore>();
-            return this;
-        }
-        /// <summary>Use the SqlServerPublishedVersionStore as the IPublishedVersionStore.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerPublishedVersionStore(OptionSetting optionSetting = null)
-        {
-            _configuration.SetDefault<IPublishedVersionStore, SqlServerPublishedVersionStore>();
-            return this;
-        }
-        /// <summary>Use the SqlServerLockService as the ILockService.
-        /// </summary>
-        /// <returns></returns>
-        public ENodeConfiguration UseSqlServerLockService()
-        {
-            _configuration.SetDefault<ILockService, SqlServerLockService>();
-            return this;
-        }
         /// <summary>Initialize all the assembly initializers with the given business assemblies.
         /// </summary>
         /// <returns></returns>
@@ -188,33 +162,6 @@ namespace ENode.Configurations
             {
                 assemblyInitializer.Initialize(assemblies);
             }
-            return this;
-        }
-        /// <summary>Initialize the SqlServerEventStore with option setting.
-        /// </summary>
-        /// <param name="optionSetting"></param>
-        /// <returns></returns>
-        public ENodeConfiguration InitializeSqlServerEventStore(OptionSetting optionSetting = null)
-        {
-            ((SqlServerEventStore)ObjectContainer.Resolve<IEventStore>()).Initialize(optionSetting);
-            return this;
-        }
-        /// <summary>Initialize the SqlServerPublishedVersionStore with option setting.
-        /// </summary>
-        /// <param name="optionSetting"></param>
-        /// <returns></returns>
-        public ENodeConfiguration InitializeSqlServerPublishedVersionStore(OptionSetting optionSetting = null)
-        {
-            ((SqlServerPublishedVersionStore)ObjectContainer.Resolve<IPublishedVersionStore>()).Initialize(optionSetting);
-            return this;
-        }
-        /// <summary>Initialize the SqlServerLockService with option setting.
-        /// </summary>
-        /// <param name="optionSetting"></param>
-        /// <returns></returns>
-        public ENodeConfiguration InitializeSqlServerLockService(OptionSetting optionSetting = null)
-        {
-            ((SqlServerLockService)ObjectContainer.Resolve<ILockService>()).Initialize(optionSetting);
             return this;
         }
         /// <summary>Start background tasks.
@@ -257,7 +204,7 @@ namespace ENode.Configurations
                 _assemblyInitializerServiceTypes.Add(type);
             }
         }
-        private bool IsENodeComponentType(Type type)
+        private static bool IsENodeComponentType(Type type)
         {
             return type.IsClass && !type.IsAbstract && type.GetInterfaces().Any(x => x.IsGenericType &&
             (x.GetGenericTypeDefinition() == typeof(ICommandHandler<>)
@@ -265,10 +212,9 @@ namespace ENode.Configurations
             || x.GetGenericTypeDefinition() == typeof(IMessageHandler<>)
             || x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>)
             || x.GetGenericTypeDefinition() == typeof(IMessageHandler<,,>)
-            || x.GetGenericTypeDefinition() == typeof(IAggregateRepository<>)
-            || x.GetGenericTypeDefinition() == typeof(ITopicProvider<>)));
+            || x.GetGenericTypeDefinition() == typeof(IAggregateRepository<>)));
         }
-        private void ValidateTypes(params Assembly[] assemblies)
+        private static void ValidateTypes(params Assembly[] assemblies)
         {
             foreach (var assembly in assemblies)
             {

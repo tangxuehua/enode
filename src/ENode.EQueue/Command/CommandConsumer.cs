@@ -21,9 +21,9 @@ namespace ENode.EQueue
         private SendReplyService _sendReplyService;
         private IJsonSerializer _jsonSerializer;
         private ITypeNameProvider _typeNameProvider;
-        private ICommandProcessor _processor;
+        private ICommandProcessor _commandProcessor;
         private IRepository _repository;
-        private IAggregateStorage _aggregateRootStorage;
+        private IAggregateStorage _aggregateStorage;
         private ILogger _logger;
 
         public Consumer Consumer { get { return _consumer; } }
@@ -37,9 +37,9 @@ namespace ENode.EQueue
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
-            _processor = ObjectContainer.Resolve<ICommandProcessor>();
+            _commandProcessor = ObjectContainer.Resolve<ICommandProcessor>();
             _repository = ObjectContainer.Resolve<IRepository>();
-            _aggregateRootStorage = ObjectContainer.Resolve<IAggregateStorage>();
+            _aggregateStorage = ObjectContainer.Resolve<IAggregateStorage>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             return this;
         }
@@ -68,10 +68,10 @@ namespace ENode.EQueue
             var commandMessage = _jsonSerializer.Deserialize<CommandMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var commandType = _typeNameProvider.GetType(queueMessage.Tag);
             var command = _jsonSerializer.Deserialize(commandMessage.CommandData, commandType) as ICommand;
-            var commandExecuteContext = new CommandExecuteContext(_repository, _aggregateRootStorage, queueMessage, context, commandMessage, _sendReplyService);
+            var commandExecuteContext = new CommandExecuteContext(_repository, _aggregateStorage, queueMessage, context, commandMessage, _sendReplyService);
             commandItems["CommandReplyAddress"] = commandMessage.ReplyAddress;
             _logger.InfoFormat("ENode command message received, messageId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
-            _processor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
+            _commandProcessor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
 
         class CommandExecuteContext : ICommandExecuteContext
@@ -105,7 +105,7 @@ namespace ENode.EQueue
                     return;
                 }
 
-                _sendReplyService.SendReply((int)CommandReplyType.CommandExecuted, commandResult, _commandMessage.ReplyAddress);
+                _sendReplyService.SendReply((int)CommandReturnType.CommandExecuted, commandResult, _commandMessage.ReplyAddress);
             }
             public void Add(IAggregateRoot aggregateRoot)
             {
@@ -126,8 +126,7 @@ namespace ENode.EQueue
                 }
 
                 var aggregateRootId = id.ToString();
-                IAggregateRoot aggregateRoot = null;
-                if (_trackingAggregateRootDict.TryGetValue(aggregateRootId, out aggregateRoot))
+                if (_trackingAggregateRootDict.TryGetValue(aggregateRootId, out IAggregateRoot aggregateRoot))
                 {
                     return aggregateRoot as T;
                 }

@@ -2,6 +2,7 @@
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
+using ENode.Commanding;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
@@ -17,7 +18,7 @@ namespace ENode.EQueue
         private SendReplyService _sendReplyService;
         private IJsonSerializer _jsonSerializer;
         private IEventSerializer _eventSerializer;
-        private IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage> _processor;
+        private IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage> _messageProcessor;
         private ILogger _logger;
         private bool _sendEventHandledMessage;
 
@@ -33,7 +34,7 @@ namespace ENode.EQueue
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
-            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
+            _messageProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _sendEventHandledMessage = sendEventHandledMessage;
             return this;
@@ -67,7 +68,7 @@ namespace ENode.EQueue
             var processContext = new DomainEventStreamProcessContext(this, domainEventStreamMessage, queueMessage, context);
             var processingMessage = new ProcessingDomainEventStreamMessage(domainEventStreamMessage, processContext);
             _logger.InfoFormat("ENode event message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}, version: {3}", domainEventStreamMessage.Id, domainEventStreamMessage.AggregateRootStringId, domainEventStreamMessage.AggregateRootTypeName, domainEventStreamMessage.Version);
-            _processor.Process(processingMessage);
+            _messageProcessor.Process(processingMessage);
         }
 
         private DomainEventStreamMessage ConvertToDomainEventStream(EventStreamMessage message)
@@ -78,9 +79,11 @@ namespace ENode.EQueue
                 message.Version,
                 message.AggregateRootTypeName,
                 _eventSerializer.Deserialize<IDomainEvent>(message.Events),
-                message.Items);
-            domainEventStreamMessage.Id = message.Id;
-            domainEventStreamMessage.Timestamp = message.Timestamp;
+                message.Items)
+            {
+                Id = message.Id,
+                Timestamp = message.Timestamp
+            };
             return domainEventStreamMessage;
         }
 
@@ -105,15 +108,13 @@ namespace ENode.EQueue
                     return;
                 }
 
-                string replyAddress;
-                if (!_domainEventStreamMessage.Items.TryGetValue("CommandReplyAddress", out replyAddress) || string.IsNullOrEmpty(replyAddress))
+                if (!_domainEventStreamMessage.Items.TryGetValue("CommandReplyAddress", out string replyAddress) || string.IsNullOrEmpty(replyAddress))
                 {
                     return;
                 }
-                string commandResult;
-                _domainEventStreamMessage.Items.TryGetValue("CommandResult", out commandResult);
+                _domainEventStreamMessage.Items.TryGetValue("CommandResult", out string commandResult);
 
-                _eventConsumer._sendReplyService.SendReply((int)CommandReplyType.DomainEventHandled, new DomainEventHandledMessage
+                _eventConsumer._sendReplyService.SendReply((int)CommandReturnType.EventHandled, new DomainEventHandledMessage
                 {
                     CommandId = _domainEventStreamMessage.CommandId,
                     AggregateRootId = _domainEventStreamMessage.AggregateRootId,

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using ENode.Configurations;
 using ENode.EQueue;
 using ENode.Eventing;
@@ -22,8 +23,10 @@ namespace ENode.PublishEventPerfTests
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
-            var configuration = enodeConfiguration.GetCommonConfiguration();
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+            enodeConfiguration.RegisterTopicProviders(assemblies);
 
+            var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.RegisterEQueueComponents();
 
             _eventPublisher = new DomainEventPublisher();

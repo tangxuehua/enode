@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\ENode.EQueue\ENode.EQueue.csproj" />
     <ProjectReference Include="..\..\ENode\ENode.csproj" />
     <ProjectReference Include="..\..\Samples\NoteSample\NoteSample.Commands\NoteSample.Commands.csproj" />
   </ItemGroup>

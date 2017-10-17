@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
@@ -21,8 +22,10 @@ namespace ENode.SendCommandPerfTests
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration)
         {
-            var configuration = enodeConfiguration.GetCommonConfiguration();
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+            enodeConfiguration.RegisterTopicProviders(assemblies);
 
+            var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.RegisterEQueueComponents();
 
             _commandService = new CommandService();

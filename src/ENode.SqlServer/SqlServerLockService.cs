@@ -6,8 +6,9 @@ using Dapper;
 using ECommon.Dapper;
 using ECommon.Utilities;
 using ENode.Configurations;
+using ENode.Infrastructure;
 
-namespace ENode.Infrastructure.Impl.SQL
+namespace ENode.SqlServer
 {
     public class SqlServerLockService : ILockService
     {

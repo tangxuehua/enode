@@ -5,9 +5,12 @@
     <Version>2.8.5</Version>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\Release\netstandard2.0\ENode.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="ECommon.Dapper" Version="2.5.0" />
-    <PackageReference Include="EQueue" Version="2.5.3" />
+    <PackageReference Include="ECommon" Version="2.5.3" />
   </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ using ECommon.Configurations;
 using ECommon.Utilities;
 using ENode.Configurations;
 using ENode.Eventing;
+using ENode.SqlServer;
 using ECommonConfiguration = ECommon.Configurations.Configuration;
 
 namespace ENode.EventStorePerfTests

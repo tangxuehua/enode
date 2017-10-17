@@ -8,8 +8,9 @@ using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Configurations;
+using ENode.Infrastructure;
 
-namespace ENode.Infrastructure.Impl.SQL
+namespace ENode.SqlServer
 {
     public class SqlServerPublishedVersionStore : IPublishedVersionStore
     {

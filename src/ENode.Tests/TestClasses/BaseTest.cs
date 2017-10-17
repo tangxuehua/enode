@@ -8,6 +8,7 @@ using ENode.Configurations;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.SqlServer;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ECommonConfiguration = ECommon.Configurations.Configuration;
 

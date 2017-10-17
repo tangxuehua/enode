@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using ECommon.Components;
 using ECommon.Logging;
@@ -11,6 +12,7 @@ using ENode.Configurations;
 using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.SqlServer;
 using EQueue.Broker;
 using EQueue.Clients.Consumers;
 using EQueue.Configurations;
@@ -42,8 +44,10 @@ namespace ENode.Tests
             bool useMockApplicationMessagePublisher = false,
             bool useMockPublishableExceptionPublisher = false)
         {
-            var configuration = enodeConfiguration.GetCommonConfiguration();
+            var assemblies = new[] { Assembly.GetExecutingAssembly() };
+            enodeConfiguration.RegisterTopicProviders(assemblies);
 
+            var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.RegisterEQueueComponents();
 
             _commandService = new CommandService();

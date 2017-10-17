@@ -7,7 +7,7 @@ namespace ENode.Infrastructure
 {
     /// <summary>A utility class provides type related methods.
     /// </summary>
-    internal class TypeUtils
+    public class TypeUtils
     {
         /// <summary>Check whether a type is a component type.
         /// </summary>

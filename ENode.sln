@@ -13,25 +13,29 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BankTransferSample", "src\S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Tests", "src\ENode.Tests\ENode.Tests.csproj", "{37F38A7C-422F-46AD-A112-B7B423B45A01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.CommandProcessorPerfTests", "src\PerformanceTests\ENode.CommandProcessorPerfTests\ENode.CommandProcessorPerfTests.csproj", "{4EA8FEEF-775C-4D6C-92EC-8698365A69F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.CommandProcessorPerfTests", "src\PerformanceTests\ENode.CommandProcessorPerfTests\ENode.CommandProcessorPerfTests.csproj", "{4EA8FEEF-775C-4D6C-92EC-8698365A69F9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NoteSample", "NoteSample", "{455C4FF1-6E7F-42DF-8FF8-2B3679D2E1FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoteSample.Domain", "src\Samples\NoteSample\NoteSample.Domain\NoteSample.Domain.csproj", "{9A318DED-DD96-4906-858B-7A18E254FAFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoteSample.Domain", "src\Samples\NoteSample\NoteSample.Domain\NoteSample.Domain.csproj", "{9A318DED-DD96-4906-858B-7A18E254FAFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoteSample.CommandHandlers", "src\Samples\NoteSample\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj", "{CA62DCA9-0F77-4C08-BC6A-7EECE2ED76F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoteSample.CommandHandlers", "src\Samples\NoteSample\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj", "{CA62DCA9-0F77-4C08-BC6A-7EECE2ED76F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoteSample.Commands", "src\Samples\NoteSample\NoteSample.Commands\NoteSample.Commands.csproj", "{2B9CFBB7-68C3-494C-9605-9567193F7833}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoteSample.Commands", "src\Samples\NoteSample\NoteSample.Commands\NoteSample.Commands.csproj", "{2B9CFBB7-68C3-494C-9605-9567193F7833}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoteSample.QuickStart", "src\Samples\NoteSample\NoteSample.QuickStart\NoteSample.QuickStart.csproj", "{6BC4BD1D-626E-4B57-B16F-40F68EBCED8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoteSample.QuickStart", "src\Samples\NoteSample\NoteSample.QuickStart\NoteSample.QuickStart.csproj", "{6BC4BD1D-626E-4B57-B16F-40F68EBCED8A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.SendCommandPerfTests", "src\PerformanceTests\ENode.SendCommandPerfTests\ENode.SendCommandPerfTests.csproj", "{C9C1D16D-1509-4E46-BF4A-2F793540CA87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.SendCommandPerfTests", "src\PerformanceTests\ENode.SendCommandPerfTests\ENode.SendCommandPerfTests.csproj", "{C9C1D16D-1509-4E46-BF4A-2F793540CA87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.PublishEventPerfTests", "src\PerformanceTests\ENode.PublishEventPerfTests\ENode.PublishEventPerfTests.csproj", "{0E21C0FD-1498-4EEB-A5F0-38513650D3E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.PublishEventPerfTests", "src\PerformanceTests\ENode.PublishEventPerfTests\ENode.PublishEventPerfTests.csproj", "{0E21C0FD-1498-4EEB-A5F0-38513650D3E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.EventStorePerfTests", "src\PerformanceTests\ENode.EventStorePerfTests\ENode.EventStorePerfTests.csproj", "{908E1099-7896-43C3-847F-66610F05669F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E12306", "src\Samples\E12306\E12306.csproj", "{DCD128E8-F4CA-41AD-BF24-7CF27F671821}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "E12306", "src\Samples\E12306\E12306.csproj", "{DCD128E8-F4CA-41AD-BF24-7CF27F671821}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.EQueue", "src\ENode.EQueue\ENode.EQueue.csproj", "{1471287A-9AF1-4C51-86A1-351C867E01EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.SqlServer", "src\ENode.SqlServer\ENode.SqlServer.csproj", "{44FD45C5-BAF3-4305-8720-8D0AEEAB2203}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -87,6 +91,14 @@ Global
 		{DCD128E8-F4CA-41AD-BF24-7CF27F671821}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCD128E8-F4CA-41AD-BF24-7CF27F671821}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCD128E8-F4CA-41AD-BF24-7CF27F671821}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1471287A-9AF1-4C51-86A1-351C867E01EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1471287A-9AF1-4C51-86A1-351C867E01EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1471287A-9AF1-4C51-86A1-351C867E01EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1471287A-9AF1-4C51-86A1-351C867E01EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44FD45C5-BAF3-4305-8720-8D0AEEAB2203}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44FD45C5-BAF3-4305-8720-8D0AEEAB2203}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44FD45C5-BAF3-4305-8720-8D0AEEAB2203}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44FD45C5-BAF3-4305-8720-8D0AEEAB2203}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

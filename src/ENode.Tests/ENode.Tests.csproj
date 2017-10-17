@@ -121,6 +121,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ENode.EQueue\ENode.EQueue.csproj">
+      <Project>{1471287a-9af1-4c51-86a1-351c867e01ea}</Project>
+      <Name>ENode.EQueue</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ENode.SqlServer\ENode.SqlServer.csproj">
+      <Project>{44fd45c5-baf3-4305-8720-8d0aeeab2203}</Project>
+      <Name>ENode.SqlServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ENode\ENode.csproj">
       <Project>{f853e9b9-924d-4f87-a2d0-fbcf7f7418b5}</Project>
       <Name>ENode</Name>

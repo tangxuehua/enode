@@ -52,8 +52,7 @@ namespace ENode.EQueue
         }
         public void ProcessFailedSendingCommand(ICommand command)
         {
-            CommandTaskCompletionSource commandTaskCompletionSource;
-            if (_commandTaskDict.TryRemove(command.Id, out commandTaskCompletionSource))
+            if (_commandTaskDict.TryRemove(command.Id, out CommandTaskCompletionSource commandTaskCompletionSource))
             {
                 var commandResult = new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Failed to send the command.", typeof(string).FullName);
                 commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult));
@@ -68,8 +67,8 @@ namespace ENode.EQueue
             _commandExecutedMessageWorker.Start();
             _domainEventHandledMessageWorker.Start();
 
-            _remotingServer.RegisterRequestHandler((int)CommandReplyType.CommandExecuted, this);
-            _remotingServer.RegisterRequestHandler((int)CommandReplyType.DomainEventHandled, this);
+            _remotingServer.RegisterRequestHandler((int)CommandReturnType.CommandExecuted, this);
+            _remotingServer.RegisterRequestHandler((int)CommandReturnType.EventHandled, this);
 
             _started = true;
 
@@ -87,13 +86,13 @@ namespace ENode.EQueue
 
         RemotingResponse IRequestHandler.HandleRequest(IRequestHandlerContext context, RemotingRequest remotingRequest)
         {
-            if (remotingRequest.Code == (int)CommandReplyType.CommandExecuted)
+            if (remotingRequest.Code == (int)CommandReturnType.CommandExecuted)
             {
                 var json = Encoding.UTF8.GetString(remotingRequest.Body);
                 var result = _jsonSerializer.Deserialize<CommandResult>(json);
                 _commandExecutedMessageLocalQueue.Add(result);
             }
-            else if (remotingRequest.Code == (int)CommandReplyType.DomainEventHandled)
+            else if (remotingRequest.Code == (int)CommandReturnType.EventHandled)
             {
                 var json = Encoding.UTF8.GetString(remotingRequest.Body);
                 var message = _jsonSerializer.Deserialize<DomainEventHandledMessage>(json);
@@ -108,8 +107,7 @@ namespace ENode.EQueue
 
         private void ProcessExecutedCommandMessage(CommandResult commandResult)
         {
-            CommandTaskCompletionSource commandTaskCompletionSource;
-            if (_commandTaskDict.TryGetValue(commandResult.CommandId, out commandTaskCompletionSource))
+            if (_commandTaskDict.TryGetValue(commandResult.CommandId, out CommandTaskCompletionSource commandTaskCompletionSource))
             {
                 if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.CommandExecuted)
                 {
@@ -140,8 +138,7 @@ namespace ENode.EQueue
         }
         private void ProcessDomainEventHandledMessage(DomainEventHandledMessage message)
         {
-            CommandTaskCompletionSource commandTaskCompletionSource;
-            if (_commandTaskDict.TryRemove(message.CommandId, out commandTaskCompletionSource))
+            if (_commandTaskDict.TryRemove(message.CommandId, out CommandTaskCompletionSource commandTaskCompletionSource))
             {
                 var commandResult = new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, message.CommandResult, message.CommandResult != null ? typeof(string).FullName : null);
                 if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
