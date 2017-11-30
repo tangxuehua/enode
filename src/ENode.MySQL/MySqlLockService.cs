@@ -7,9 +7,9 @@ using ECommon.Dapper;
 using ECommon.Utilities;
 using ENode.Infrastructure;
 
-namespace ENode.SqlServer
+namespace ENode.MySQL
 {
-    public class SqlServerLockService : ILockService
+    public class MySqlLockService : ILockService
     {
         #region Private Variables
 
@@ -19,7 +19,7 @@ namespace ENode.SqlServer
 
         #endregion
 
-        public SqlServerLockService Initialize(string connectionString, string tableName = "LockKey")
+        public MySqlLockService Initialize(string connectionString, string tableName = "LockKey")
         {
             _connectionString = connectionString;
             _tableName = tableName;
@@ -27,9 +27,9 @@ namespace ENode.SqlServer
             Ensure.NotNull(_connectionString, "_connectionString");
             Ensure.NotNull(_tableName, "_tableName");
 
-            _tableName = string.Format("[{0}]", _tableName);
+            _tableName = string.Format("`{0}`", _tableName);
 
-            _lockKeySqlFormat = "SELECT * FROM " + _tableName + " WITH (UPDLOCK) WHERE Name = '{0}'";
+            _lockKeySqlFormat = "SELECT * FROM " + _tableName + " WHERE Name = '{0}' LOCK IN SHARE MODE";
 
             return this;
         }

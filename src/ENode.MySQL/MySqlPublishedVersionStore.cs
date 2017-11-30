@@ -8,13 +8,14 @@ using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Infrastructure;
+using MySql.Data.MySqlClient;
 
-namespace ENode.SqlServer
+namespace ENode.MySQL
 {
-    public class SqlServerPublishedVersionStore : IPublishedVersionStore
+    public class MySqlPublishedVersionStore : IPublishedVersionStore
     {
-        private const string EventSingleTableNameFormat = "[{0}]";
-        private const string EventTableNameFormat = "[{0}_{1}]";
+        private const string EventSingleTableNameFormat = "`{0}`";
+        private const string EventTableNameFormat = "`{0}_{1}`";
 
         #region Private Variables
 
@@ -26,7 +27,7 @@ namespace ENode.SqlServer
 
         #endregion
 
-        public SqlServerPublishedVersionStore Initialize(string connectionString, string tableName = "PublishedVersion", int tableCount = 1, string uniqueIndexName = "IX_PublishedVersion_AggId_Version")
+        public MySqlPublishedVersionStore Initialize(string connectionString, string tableName = "PublishedVersion", int tableCount = 1, string uniqueIndexName = "IX_PublishedVersion_AggId_Version")
         {
             _connectionString = connectionString;
             _tableName = tableName;
@@ -61,9 +62,9 @@ namespace ENode.SqlServer
                         return AsyncTaskResult.Success;
                     }
                 }
-                catch (SqlException ex)
+                catch (MySqlException ex)
                 {
-                    if (ex.Number == 2601 && ex.Message.Contains(_uniqueIndexName))
+                    if (ex.Number == 1062 && ex.Message.Contains(_uniqueIndexName))
                     {
                         return AsyncTaskResult.Success;
                     }
@@ -97,7 +98,7 @@ namespace ENode.SqlServer
                         return AsyncTaskResult.Success;
                     }
                 }
-                catch (SqlException ex)
+                catch (MySqlException ex)
                 {
                     _logger.Error("Update aggregate published version has sql exception.", ex);
                     return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
@@ -123,7 +124,7 @@ namespace ENode.SqlServer
                     return new AsyncTaskResult<int>(AsyncTaskStatus.Success, result.SingleOrDefault());
                 }
             }
-            catch (SqlException ex)
+            catch (MySqlException ex)
             {
                 _logger.Error("Get aggregate published version has sql exception.", ex);
                 return new AsyncTaskResult<int>(AsyncTaskStatus.IOException, ex.Message);
@@ -159,9 +160,9 @@ namespace ENode.SqlServer
 
             return string.Format(EventTableNameFormat, _tableName, tableIndex);
         }
-        private SqlConnection GetConnection()
+        private MySqlConnection GetConnection()
         {
-            return new SqlConnection(_connectionString);
+            return new MySqlConnection(_connectionString);
         }
     }
 }

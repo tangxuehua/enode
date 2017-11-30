@@ -3,35 +3,35 @@ using ENode.Configurations;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
-namespace ENode.SqlServer
+namespace ENode.MySQL
 {
     public static class ENodeExtensions
     {
-        /// <summary>Use the SqlServerEventStore as the IEventStore.
+        /// <summary>Use the MySqlEventStore as the IEventStore.
         /// </summary>
         /// <returns></returns>
-        public static ENodeConfiguration UseSqlServerEventStore(this ENodeConfiguration eNodeConfiguration)
+        public static ENodeConfiguration UseMySqlEventStore(this ENodeConfiguration eNodeConfiguration)
         {
-            eNodeConfiguration.GetCommonConfiguration().SetDefault<IEventStore, SqlServerEventStore>();
+            eNodeConfiguration.GetCommonConfiguration().SetDefault<IEventStore, MySqlEventStore>();
             return eNodeConfiguration;
         }
-        /// <summary>Use the SqlServerPublishedVersionStore as the IPublishedVersionStore.
+        /// <summary>Use the MySqlPublishedVersionStore as the IPublishedVersionStore.
         /// </summary>
         /// <returns></returns>
-        public static ENodeConfiguration UseSqlServerPublishedVersionStore(this ENodeConfiguration eNodeConfiguration)
+        public static ENodeConfiguration UseMySqlPublishedVersionStore(this ENodeConfiguration eNodeConfiguration)
         {
-            eNodeConfiguration.GetCommonConfiguration().SetDefault<IPublishedVersionStore, SqlServerPublishedVersionStore>();
+            eNodeConfiguration.GetCommonConfiguration().SetDefault<IPublishedVersionStore, MySqlPublishedVersionStore>();
             return eNodeConfiguration;
         }
-        /// <summary>Use the SqlServerLockService as the ILockService.
+        /// <summary>Use the MySqlLockService as the ILockService.
         /// </summary>
         /// <returns></returns>
-        public static ENodeConfiguration UseSqlServerLockService(this ENodeConfiguration eNodeConfiguration)
+        public static ENodeConfiguration UseMySqlLockService(this ENodeConfiguration eNodeConfiguration)
         {
-            eNodeConfiguration.GetCommonConfiguration().SetDefault<ILockService, SqlServerLockService>();
+            eNodeConfiguration.GetCommonConfiguration().SetDefault<ILockService, MySqlLockService>();
             return eNodeConfiguration;
         }
-        /// <summary>Initialize the SqlServerEventStore with option setting.
+        /// <summary>Initialize the MySqlEventStore with option setting.
         /// </summary>
         /// <param name="eNodeConfiguration"></param>
         /// <param name="connectionString"></param>
@@ -39,29 +39,26 @@ namespace ENode.SqlServer
         /// <param name="tableCount"></param>
         /// <param name="versionIndexName"></param>
         /// <param name="commandIndexName"></param>
-        /// <param name="bulkCopyBatchSize"></param>
-        /// <param name="bulkCopyTimeoutSeconds"></param>
+        /// <param name="batchInsertTimeoutSeconds"></param>
         /// <returns></returns>
-        public static ENodeConfiguration InitializeSqlServerEventStore(this ENodeConfiguration eNodeConfiguration,
+        public static ENodeConfiguration InitializeMySqlEventStore(this ENodeConfiguration eNodeConfiguration,
             string connectionString,
             string tableName = "EventStream",
             int tableCount = 1,
             string versionIndexName = "IX_EventStream_AggId_Version",
             string commandIndexName = "IX_EventStream_AggId_CommandId",
-            int bulkCopyBatchSize = 1000,
-            int bulkCopyTimeoutSeconds = 60)
+            int batchInsertTimeoutSeconds = 60)
         {
-            ((SqlServerEventStore)ObjectContainer.Resolve<IEventStore>()).Initialize(
+            ((MySqlEventStore)ObjectContainer.Resolve<IEventStore>()).Initialize(
                 connectionString,
                 tableName,
                 tableCount,
                 versionIndexName,
                 commandIndexName,
-                bulkCopyBatchSize,
-                bulkCopyTimeoutSeconds);
+                batchInsertTimeoutSeconds);
             return eNodeConfiguration;
         }
-        /// <summary>Initialize the SqlServerPublishedVersionStore with option setting.
+        /// <summary>Initialize the MySqlPublishedVersionStore with option setting.
         /// </summary>
         /// <param name="eNodeConfiguration"></param>
         /// <param name="connectionString"></param>
@@ -69,30 +66,30 @@ namespace ENode.SqlServer
         /// <param name="tableCount"></param>
         /// <param name="uniqueIndexName"></param>
         /// <returns></returns>
-        public static ENodeConfiguration InitializeSqlServerPublishedVersionStore(this ENodeConfiguration eNodeConfiguration,
+        public static ENodeConfiguration InitializeMySqlPublishedVersionStore(this ENodeConfiguration eNodeConfiguration,
             string connectionString,
             string tableName = "PublishedVersion",
             int tableCount = 1,
             string uniqueIndexName = "IX_PublishedVersion_AggId_Version")
         {
-            ((SqlServerPublishedVersionStore)ObjectContainer.Resolve<IPublishedVersionStore>()).Initialize(
+            ((MySqlPublishedVersionStore)ObjectContainer.Resolve<IPublishedVersionStore>()).Initialize(
                 connectionString,
                 tableName,
                 tableCount,
                 uniqueIndexName);
             return eNodeConfiguration;
         }
-        /// <summary>Initialize the SqlServerLockService with option setting.
+        /// <summary>Initialize the MySqlLockService with option setting.
         /// </summary>
         /// <param name="eNodeConfiguration"></param>
         /// <param name="connectionString"></param>
         /// <param name="tableName"></param>
         /// <returns></returns>
-        public static ENodeConfiguration InitializeSqlServerLockService(this ENodeConfiguration eNodeConfiguration,
+        public static ENodeConfiguration InitializeMySqlLockService(this ENodeConfiguration eNodeConfiguration,
             string connectionString,
             string tableName = "LockKey")
         {
-            ((SqlServerLockService)ObjectContainer.Resolve<ILockService>()).Initialize(connectionString, tableName);
+            ((MySqlLockService)ObjectContainer.Resolve<ILockService>()).Initialize(connectionString, tableName);
             return eNodeConfiguration;
         }
     }

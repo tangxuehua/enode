@@ -52,7 +52,7 @@ namespace ENode.Tests
             bool useMockApplicationMessagePublisher = false,
             bool useMockPublishableExceptionPublisher = false)
         {
-            var setting = new ConfigurationSetting(ConfigurationManager.AppSettings["connectionString"]);
+            var connectionString = ConfigurationManager.AppSettings["connectionString"];
             var assemblies = new[]
             {
                 Assembly.GetExecutingAssembly()
@@ -65,7 +65,7 @@ namespace ENode.Tests
                 .UseLog4Net()
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
-                .CreateENode(setting)
+                .CreateENode()
                 .RegisterENodeComponents()
                 .UseEventStore(useMockEventStore)
                 .UsePublishedVersionStore(useMockPublishedVersionStore)
@@ -75,11 +75,11 @@ namespace ENode.Tests
 
             if (!useMockEventStore)
             {
-                _enodeConfiguration.InitializeSqlServerEventStore();
+                _enodeConfiguration.InitializeSqlServerEventStore(connectionString);
             }
             if (!useMockPublishedVersionStore)
             {
-                _enodeConfiguration.InitializeSqlServerPublishedVersionStore();
+                _enodeConfiguration.InitializeSqlServerPublishedVersionStore(connectionString);
             }
 
             _enodeConfiguration

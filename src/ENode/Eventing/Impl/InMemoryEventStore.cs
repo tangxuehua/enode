@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -41,6 +42,10 @@ namespace ENode.Eventing.Impl
         }
         public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
+            if (!SupportBatchAppendEvent)
+            {
+                throw new NotSupportedException("Unsupport batch append event.");
+            }
             foreach (var eventStream in eventStreams)
             {
                 var task = AppendAsync(eventStream);

@@ -164,7 +164,7 @@ namespace ENode.EventStorePerfTests
         }
         static void InitializeENodeFramework()
         {
-            var setting = new ConfigurationSetting(ConfigurationManager.AppSettings["connectionString"]);
+            var connectionString = ConfigurationManager.AppSettings["connectionString"];
             _configuration = ECommonConfiguration
                 .Create()
                 .UseAutofac()
@@ -172,11 +172,11 @@ namespace ENode.EventStorePerfTests
                 .UseLog4Net()
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
-                .CreateENode(setting)
+                .CreateENode()
                 .RegisterENodeComponents()
                 .UseSqlServerEventStore()
                 .BuildContainer()
-                .InitializeSqlServerEventStore();
+                .InitializeSqlServerEventStore(connectionString);
 
             Console.WriteLine("ENode started...");
         }
