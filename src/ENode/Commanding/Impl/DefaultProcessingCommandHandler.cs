@@ -191,10 +191,16 @@ namespace ENode.Commanding.Impl
                 }
             }
 
-            //如果当前command没有对任何聚合根做修改，则认为当前command已经处理结束，返回command的结果为NothingChanged
+            //如果当前command没有对任何聚合根做修改，框架仍然需要尝试获取该command之前是否有产生事件，
+            //如果有，则需要将事件再次发布到MQ；如果没有，则完成命令，返回command的结果为NothingChanged。
+            //之所以要这样做是因为有可能当前command上次执行的结果可能是事件持久化完成，但是发布到MQ未完成，然后那时正好机器断电宕机了；
+            //这种情况下，如果机器重启，当前command对应的聚合根从eventstore恢复的聚合根是被当前command处理过后的；
+            //所以如果该command再次被处理，可能对应的聚合根就不会再产生事件了；
+            //所以，我们要考虑到这种情况，尝试再次发布该命令产生的事件到MQ；
+            //否则，如果我们直接将当前command设置为完成，即对MQ进行ack操作，那该command的事件就永远不会再发布到MQ了，这样就无法保证CQRS数据的最终一致性了。
             if (dirtyAggregateRootCount == 0 || changedEvents == null || changedEvents.Count() == 0)
             {
-                CompleteCommand(processingCommand, CommandStatus.NothingChanged, typeof(string).FullName, context.GetResult());
+                ProcessIfNoEventsOfCommand(processingCommand, 0);
                 return;
             }
 
@@ -219,6 +225,32 @@ namespace ENode.Commanding.Impl
                 DateTime.Now,
                 changedEvents,
                 processingCommand.Items);
+        }
+        private void ProcessIfNoEventsOfCommand(ProcessingCommand processingCommand, int retryTimes)
+        {
+            var command = processingCommand.Message;
+
+            _ioHelper.TryAsyncActionRecursively("ProcessIfNoEventsOfCommand",
+            () => _eventStore.FindAsync(command.AggregateRootId, command.Id),
+            currentRetryTimes => ProcessIfNoEventsOfCommand(processingCommand, currentRetryTimes),
+            result =>
+            {
+                var existingEventStream = result.Data;
+                if (existingEventStream != null)
+                {
+                    _eventService.PublishDomainEventAsync(processingCommand, existingEventStream);
+                }
+                else
+                {
+                    CompleteCommand(processingCommand, CommandStatus.NothingChanged, typeof(string).FullName, processingCommand.CommandExecuteContext.GetResult());
+                }
+            },
+            () => string.Format("[commandId:{0}]", command.Id),
+            errorMessage =>
+            {
+                _logger.Fatal(string.Format("Find event by commandId has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
+            },
+            retryTimes, true);
         }
         private void HandleExceptionAsync(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler, Exception exception, int retryTimes)
         {
