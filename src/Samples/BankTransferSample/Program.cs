@@ -128,8 +128,8 @@ namespace BankTransferSample
 
             var accountList = new List<string>();
             var accountCount = 100;
-            var transactionCount = 100;
-            var depositAmount = 100000D;
+            var transactionCount = 1000;
+            var depositAmount = 1000000D;
             var transferAmount = 1000D;
 
             //创建银行账户

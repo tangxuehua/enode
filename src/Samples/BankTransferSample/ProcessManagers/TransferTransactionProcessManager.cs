@@ -31,8 +31,8 @@ namespace BankTransferSample.ProcessManagers
 
         public async Task<AsyncTaskResult> HandleAsync(TransferTransactionStartedEvent evnt)
         {
-            var task1 = _commandService.SendAsync(new ValidateAccountCommand(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId));
-            var task2 = _commandService.SendAsync(new ValidateAccountCommand(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId));
+            var task1 = _commandService.SendAsync(new ValidateAccountCommand(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId) { Id = evnt.Id });
+            var task2 = _commandService.SendAsync(new ValidateAccountCommand(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId) { Id = evnt.Id });
             var totalResult = await Task.WhenAll(task1, task2).ConfigureAwait(false);
 
             var failedResults = totalResult.Where(x => x.Status == AsyncTaskStatus.Failed);
@@ -51,11 +51,11 @@ namespace BankTransferSample.ProcessManagers
         }
         public Task<AsyncTaskResult> HandleAsync(AccountValidatePassedMessage message)
         {
-            return _commandService.SendAsync(new ConfirmAccountValidatePassedCommand(message.TransactionId, message.AccountId));
+            return _commandService.SendAsync(new ConfirmAccountValidatePassedCommand(message.TransactionId, message.AccountId) { Id = message.Id });
         }
         public Task<AsyncTaskResult> HandleAsync(AccountValidateFailedMessage message)
         {
-            return _commandService.SendAsync(new CancelTransferTransactionCommand(message.TransactionId));
+            return _commandService.SendAsync(new CancelTransferTransactionCommand(message.TransactionId) { Id = message.Id });
         }
         public Task<AsyncTaskResult> HandleAsync(AccountValidatePassedConfirmCompletedEvent evnt)
         {
@@ -64,7 +64,10 @@ namespace BankTransferSample.ProcessManagers
                 evnt.AggregateRootId,
                 TransactionType.TransferTransaction,
                 PreparationType.DebitPreparation,
-                evnt.TransactionInfo.Amount));
+                evnt.TransactionInfo.Amount)
+            {
+                Id = evnt.Id
+            });
         }
         public Task<AsyncTaskResult> HandleAsync(TransactionPreparationAddedEvent evnt)
         {
@@ -72,11 +75,11 @@ namespace BankTransferSample.ProcessManagers
             {
                 if (evnt.TransactionPreparation.PreparationType == PreparationType.DebitPreparation)
                 {
-                    return _commandService.SendAsync(new ConfirmTransferOutPreparationCommand(evnt.TransactionPreparation.TransactionId));
+                    return _commandService.SendAsync(new ConfirmTransferOutPreparationCommand(evnt.TransactionPreparation.TransactionId) { Id = evnt.Id });
                 }
                 else if (evnt.TransactionPreparation.PreparationType == PreparationType.CreditPreparation)
                 {
-                    return _commandService.SendAsync(new ConfirmTransferInPreparationCommand(evnt.TransactionPreparation.TransactionId));
+                    return _commandService.SendAsync(new ConfirmTransferInPreparationCommand(evnt.TransactionPreparation.TransactionId) { Id = evnt.Id });
                 }
             }
             return Task.FromResult(AsyncTaskResult.Success);
@@ -85,7 +88,7 @@ namespace BankTransferSample.ProcessManagers
         {
             if (exception.TransactionType == TransactionType.TransferTransaction)
             {
-                return _commandService.SendAsync(new CancelTransferTransactionCommand(exception.TransactionId));
+                return _commandService.SendAsync(new CancelTransferTransactionCommand(exception.TransactionId) { Id = exception.Id });
             }
             return Task.FromResult(AsyncTaskResult.Success);
         }
@@ -96,12 +99,15 @@ namespace BankTransferSample.ProcessManagers
                 evnt.AggregateRootId,
                 TransactionType.TransferTransaction,
                 PreparationType.CreditPreparation,
-                evnt.TransactionInfo.Amount));
+                evnt.TransactionInfo.Amount)
+            {
+                Id = evnt.Id
+            });
         }
         public async Task<AsyncTaskResult> HandleAsync(TransferInPreparationConfirmedEvent evnt)
         {
-            var task1 = _commandService.SendAsync(new CommitTransactionPreparationCommand(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId));
-            var task2 = _commandService.SendAsync(new CommitTransactionPreparationCommand(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId));
+            var task1 = _commandService.SendAsync(new CommitTransactionPreparationCommand(evnt.TransactionInfo.SourceAccountId, evnt.AggregateRootId) { Id = evnt.Id });
+            var task2 = _commandService.SendAsync(new CommitTransactionPreparationCommand(evnt.TransactionInfo.TargetAccountId, evnt.AggregateRootId) { Id = evnt.Id });
             var totalResult = await Task.WhenAll(task1, task2).ConfigureAwait(false);
 
             var failedResults = totalResult.Where(x => x.Status == AsyncTaskStatus.Failed);
@@ -124,11 +130,11 @@ namespace BankTransferSample.ProcessManagers
             {
                 if (evnt.TransactionPreparation.PreparationType == PreparationType.DebitPreparation)
                 {
-                    return _commandService.SendAsync(new ConfirmTransferOutCommand(evnt.TransactionPreparation.TransactionId));
+                    return _commandService.SendAsync(new ConfirmTransferOutCommand(evnt.TransactionPreparation.TransactionId) { Id = evnt.Id });
                 }
                 else if (evnt.TransactionPreparation.PreparationType == PreparationType.CreditPreparation)
                 {
-                    return _commandService.SendAsync(new ConfirmTransferInCommand(evnt.TransactionPreparation.TransactionId));
+                    return _commandService.SendAsync(new ConfirmTransferInCommand(evnt.TransactionPreparation.TransactionId) { Id = evnt.Id });
                 }
             }
             return Task.FromResult(AsyncTaskResult.Success);
