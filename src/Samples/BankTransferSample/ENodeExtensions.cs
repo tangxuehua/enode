@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -71,7 +72,7 @@ namespace BankTransferSample
             _eventConsumer = new DomainEventConsumer().Initialize().Subscribe("BankTransferEventTopic");
             _exceptionConsumer = new PublishableExceptionConsumer().Initialize().Subscribe("BankTransferExceptionTopic");
 
-            var brokerStorePath = @"c:\equeue-store";
+            var brokerStorePath = ConfigurationManager.AppSettings["equeue-store-path"];
             if (Directory.Exists(brokerStorePath))
             {
                 Directory.Delete(brokerStorePath, true);
