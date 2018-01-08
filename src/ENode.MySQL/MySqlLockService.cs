@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using Dapper;
 using ECommon.Dapper;
 using ECommon.Utilities;
 using ENode.Infrastructure;
+using MySql.Data.MySqlClient;
 
 namespace ENode.MySQL
 {
@@ -69,9 +69,9 @@ namespace ENode.MySQL
             var sql = string.Format(_lockKeySqlFormat, key);
             transaction.Connection.Query(sql, transaction: transaction);
         }
-        private SqlConnection GetConnection()
+        private MySqlConnection GetConnection()
         {
-            return new SqlConnection(_connectionString);
+            return new MySqlConnection(_connectionString);
         }
     }
 }
