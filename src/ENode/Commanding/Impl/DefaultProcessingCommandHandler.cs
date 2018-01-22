@@ -26,6 +26,7 @@ namespace ENode.Commanding.Impl
         private readonly IMemoryCache _memoryCache;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
+        private readonly ITimeProvider _timeProvider;
 
         #endregion
 
@@ -42,7 +43,8 @@ namespace ENode.Commanding.Impl
             IMessagePublisher<IPublishableException> exceptionPublisher,
             IMemoryCache memoryCache,
             IOHelper ioHelper,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            ITimeProvider timeProvider)
         {
             _jsonSerializer = jsonSerializer;
             _eventStore = eventStore;
@@ -55,6 +57,7 @@ namespace ENode.Commanding.Impl
             _memoryCache = memoryCache;
             _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
+            _timeProvider = timeProvider;
             _eventService.SetProcessingCommandHandler(this);
         }
 
@@ -222,7 +225,7 @@ namespace ENode.Commanding.Impl
                 aggregateRoot.UniqueId,
                 _typeNameProvider.GetTypeName(aggregateRoot.GetType()),
                 aggregateRoot.Version + 1,
-                DateTime.Now,
+                _timeProvider.GetCurrentTime(),
                 changedEvents,
                 processingCommand.Items);
         }

@@ -68,6 +68,7 @@ namespace ENode.Configurations
         /// </summary>
         public ENodeConfiguration RegisterENodeComponents()
         {
+            _configuration.SetDefault<ITimeProvider, DefaultTimeProvider>();
             _configuration.SetDefault<ITypeNameProvider, DefaultTypeNameProvider>();
             _configuration.SetDefault<IMessageHandlerProvider, DefaultMessageHandlerProvider>();
             _configuration.SetDefault<ITwoMessageHandlerProvider, DefaultTwoMessageHandlerProvider>();

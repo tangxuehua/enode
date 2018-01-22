@@ -26,6 +26,7 @@ CREATE TABLE [dbo].[PublishedVersion] (
     [AggregateRootId]         NVARCHAR (36)          NOT NULL,
     [Version]                 INT                    NOT NULL,
     [CreatedOn]               DATETIME               NOT NULL,
+	[UpdatedOn]               DATETIME               NOT NULL,
     CONSTRAINT [PK_PublishedVersion] PRIMARY KEY CLUSTERED ([Sequence] ASC)
 )
 GO

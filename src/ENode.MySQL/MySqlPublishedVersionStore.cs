@@ -23,6 +23,7 @@ namespace ENode.MySQL
         private int _tableCount;
         private string _uniqueIndexName;
         private ILogger _logger;
+        private ITimeProvider _timeProvider;
 
         #endregion
 
@@ -39,6 +40,7 @@ namespace ENode.MySQL
             Ensure.NotNull(_uniqueIndexName, "_uniqueIndexName");
 
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            _timeProvider = ObjectContainer.Resolve<ITimeProvider>();
 
             return this;
         }
@@ -50,13 +52,15 @@ namespace ENode.MySQL
                 {
                     using (var connection = GetConnection())
                     {
+                        var currentTime = _timeProvider.GetCurrentTime();
                         await connection.InsertAsync(new
                         {
                             ProcessorName = processorName,
                             AggregateRootTypeName = aggregateRootTypeName,
                             AggregateRootId = aggregateRootId,
                             Version = 1,
-                            CreatedOn = DateTime.Now
+                            CreatedOn = currentTime,
+                            UpdatedOn = currentTime
                         }, GetTableName(aggregateRootId));
                         return AsyncTaskResult.Success;
                     }
@@ -86,7 +90,7 @@ namespace ENode.MySQL
                         new
                         {
                             Version = publishedVersion,
-                            CreatedOn = DateTime.Now
+                            UpdatedOn = _timeProvider.GetCurrentTime()
                         },
                         new
                         {

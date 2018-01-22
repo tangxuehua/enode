@@ -23,7 +23,7 @@ namespace ENode.Infrastructure
         public Message()
         {
             Id = ObjectId.GenerateNewStringId();
-            Timestamp = DateTime.Now;
+            Timestamp = DateTime.UtcNow;
             Sequence = 1;
         }
 

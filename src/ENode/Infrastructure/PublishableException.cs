@@ -15,7 +15,7 @@ namespace ENode.Infrastructure
         public PublishableException()
         {
             Id = ObjectId.GenerateNewStringId();
-            Timestamp = DateTime.Now;
+            Timestamp = DateTime.UtcNow;
             Sequence = 1;
         }
 
