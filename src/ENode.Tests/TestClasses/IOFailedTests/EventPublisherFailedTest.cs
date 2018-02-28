@@ -2,20 +2,20 @@
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Tests.Commands;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace ENode.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class EventPublisherFailedTest : BaseTest
     {
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
+        [OneTimeSetUp]
+        public void ClassInitialize()
         {
-            Initialize(context, useMockDomainEventPublisher: true);
+            Initialize(useMockDomainEventPublisher: true);
         }
 
-        [TestMethod]
+        [Test]
         public void event_publisher_failed_test()
         {
             var command = new CreateTestAggregateCommand

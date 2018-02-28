@@ -9,35 +9,30 @@ using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
 using ENode.SqlServer;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using ECommonConfiguration = ECommon.Configurations.Configuration;
 
 namespace ENode.Tests
 {
     public abstract class BaseTest
     {
-        private static ENodeConfiguration _enodeConfiguration;
-        protected static ILogger _logger;
-        protected static ICommandService _commandService;
-        protected static IMemoryCache _memoryCache;
-        protected static IEventStore _eventStore;
-        protected static IPublishedVersionStore _publishedVersionStore;
-        protected static IMessagePublisher<DomainEventStreamMessage> _domainEventPublisher;
-        protected static IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
-        protected static IMessagePublisher<IPublishableException> _publishableExceptionPublisher;
+        private ENodeConfiguration _enodeConfiguration;
+        protected ILogger _logger;
+        protected ICommandService _commandService;
+        protected IMemoryCache _memoryCache;
+        protected IEventStore _eventStore;
+        protected IPublishedVersionStore _publishedVersionStore;
+        protected IMessagePublisher<DomainEventStreamMessage> _domainEventPublisher;
+        protected IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
+        protected IMessagePublisher<IPublishableException> _publishableExceptionPublisher;
 
-        protected static void Initialize(TestContext context,
+        protected void Initialize(
             bool useMockEventStore = false,
             bool useMockPublishedVersionStore = false,
             bool useMockDomainEventPublisher = false,
             bool useMockApplicationMessagePublisher = false,
             bool useMockPublishableExceptionPublisher = false)
         {
-            if (_enodeConfiguration != null)
-            {
-                CleanupEnode();
-            }
-
             InitializeENode(useMockEventStore,
                 useMockPublishedVersionStore,
                 useMockDomainEventPublisher,
@@ -45,7 +40,27 @@ namespace ENode.Tests
                 useMockPublishableExceptionPublisher);
         }
 
-        private static void InitializeENode(
+        [SetUp]
+        public void TestInitialize()
+        {
+            _logger.InfoFormat("----Start to run test: {0}", TestContext.CurrentContext.Test.Name);
+        }
+        [TearDown]
+        public void TestTearDown()
+        {
+            _logger.InfoFormat("----Finished test: {0}", TestContext.CurrentContext.Test.Name);
+        }
+
+        [OneTimeTearDown]
+        protected void Cleanup()
+        {
+            if (_enodeConfiguration != null)
+            {
+                CleanupEnode();
+            }
+        }
+
+        private void InitializeENode(
             bool useMockEventStore = false,
             bool useMockPublishedVersionStore = false,
             bool useMockDomainEventPublisher = false,
@@ -70,6 +85,7 @@ namespace ENode.Tests
                 .UseEventStore(useMockEventStore)
                 .UsePublishedVersionStore(useMockPublishedVersionStore)
                 .RegisterBusinessComponents(assemblies)
+                .InitializeEQueue()
                 .UseEQueue(useMockDomainEventPublisher, useMockApplicationMessagePublisher, useMockPublishableExceptionPublisher)
                 .BuildContainer();
 
@@ -95,13 +111,12 @@ namespace ENode.Tests
             _applicationMessagePublisher = ObjectContainer.Resolve<IMessagePublisher<IApplicationMessage>>();
             _publishableExceptionPublisher = ObjectContainer.Resolve<IMessagePublisher<IPublishableException>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(BaseTest));
-            _logger.Info("ENode initialized.");
+            _logger.Info("----ENode initialized.");
         }
-        private static void CleanupEnode()
+        private void CleanupEnode()
         {
-            _enodeConfiguration.ShutdownEQueue();
             _enodeConfiguration.Stop();
-            _logger.Info("ENode shutdown.");
+            _logger.Info("----ENode shutdown.");
         }
     }
 }

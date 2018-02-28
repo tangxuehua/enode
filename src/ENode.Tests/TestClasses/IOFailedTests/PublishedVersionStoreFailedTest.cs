@@ -2,20 +2,20 @@
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Tests.Commands;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace ENode.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class PublishedVersionStoreFailedTest : BaseTest
     {
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
+        [OneTimeSetUp]
+        public void ClassInitialize()
         {
-            Initialize(context, useMockPublishedVersionStore: true);
+            Initialize(useMockPublishedVersionStore: true);
         }
 
-        [TestMethod]
+        [Test]
         public void published_version_store_failed_test()
         {
             var mockPublishedVersionStore = _publishedVersionStore as MockPublishedVersionStore;

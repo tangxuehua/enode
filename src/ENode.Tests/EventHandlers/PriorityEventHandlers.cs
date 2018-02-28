@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using ECommon.IO;
 using ECommon.Logging;
 using ENode.Infrastructure;
@@ -20,7 +21,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt)
         {
             _logger.Info("event1 handled by handler1.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(1,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
@@ -37,7 +44,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt)
         {
             _logger.Info("event1 handled by handler2.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(1,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
@@ -54,7 +67,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt)
         {
             _logger.Info("event1 handled by handler3.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(1,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
@@ -72,7 +91,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt, Event2 evnt2)
         {
             _logger.Info("event1,event2 handled by handler1.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(2,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
@@ -89,7 +114,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt, Event2 evnt2)
         {
             _logger.Info("event1,event2 handled by handler2.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(2,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
@@ -107,7 +138,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt, Event2 evnt2)
         {
             _logger.Info("event1,event2 handled by handler3.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(2,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
@@ -125,7 +162,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt, Event2 evnt2, Event3 evnt3)
         {
             _logger.Info("event1,event2,event3 handled by handler1.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(3,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
@@ -142,7 +185,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt, Event2 evnt2, Event3 evnt3)
         {
             _logger.Info("event1,event2,event3 handled by handler2.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(3,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }
@@ -160,7 +209,13 @@ namespace ENode.Tests
         public Task<AsyncTaskResult> HandleAsync(Event1 evnt, Event2 evnt2, Event3 evnt3)
         {
             _logger.Info("event1,event2,event3 handled by handler3.");
-            EventHandlerPriorityTest.HandlerTypes.Add(GetType().Name);
+            CommandAndEventServiceTest.HandlerTypes.AddOrUpdate(3,
+            x => new List<string> { GetType().Name },
+            (x, existing) =>
+            {
+                existing.Add(GetType().Name);
+                return existing;
+            });
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }

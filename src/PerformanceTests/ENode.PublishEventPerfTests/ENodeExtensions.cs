@@ -41,7 +41,7 @@ namespace ENode.PublishEventPerfTests
                 Directory.Delete(brokerStorePath, true);
             }
 
-            _eventPublisher.Initialize();
+            _eventPublisher.InitializeEQueue();
 
             _nameServerController = new NameServerController();
             _broker = BrokerController.Create();

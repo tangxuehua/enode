@@ -59,18 +59,18 @@ namespace BankTransferSample
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
-            _commandService.Initialize(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000)));
-            _applicationMessagePublisher.Initialize();
-            _domainEventPublisher.Initialize();
-            _exceptionPublisher.Initialize();
+            _commandService.InitializeEQueue(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000)));
+            _applicationMessagePublisher.InitializeEQueue();
+            _domainEventPublisher.InitializeEQueue();
+            _exceptionPublisher.InitializeEQueue();
 
             _nameServerController = new NameServerController();
             _broker = BrokerController.Create();
 
-            _commandConsumer = new CommandConsumer().Initialize().Subscribe("BankTransferCommandTopic");
-            _applicationMessageConsumer = new ApplicationMessageConsumer().Initialize().Subscribe("BankTransferApplicationMessageTopic");
-            _eventConsumer = new DomainEventConsumer().Initialize().Subscribe("BankTransferEventTopic");
-            _exceptionConsumer = new PublishableExceptionConsumer().Initialize().Subscribe("BankTransferExceptionTopic");
+            _commandConsumer = new CommandConsumer().InitializeEQueue().Subscribe("BankTransferCommandTopic");
+            _applicationMessageConsumer = new ApplicationMessageConsumer().InitializeEQueue().Subscribe("BankTransferApplicationMessageTopic");
+            _eventConsumer = new DomainEventConsumer().InitializeEQueue().Subscribe("BankTransferEventTopic");
+            _exceptionConsumer = new PublishableExceptionConsumer().InitializeEQueue().Subscribe("BankTransferExceptionTopic");
 
             var brokerStorePath = ConfigurationManager.AppSettings["equeue-store-path"];
             if (Directory.Exists(brokerStorePath))

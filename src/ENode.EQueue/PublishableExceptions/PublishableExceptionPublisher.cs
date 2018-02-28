@@ -20,13 +20,18 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public PublishableExceptionPublisher Initialize(ProducerSetting setting = null)
+        public PublishableExceptionPublisher InitializeENode()
         {
-            _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _exceptionTopicProvider = ObjectContainer.Resolve<ITopicProvider<IPublishableException>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _sendMessageService = new SendQueueMessageService();
+            return this;
+        }
+        public PublishableExceptionPublisher InitializeEQueue(ProducerSetting setting = null)
+        {
+            InitializeENode();
+            _producer = new Producer(setting);
             return this;
         }
         public PublishableExceptionPublisher Start()

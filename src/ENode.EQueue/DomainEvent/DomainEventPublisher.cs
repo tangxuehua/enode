@@ -22,13 +22,18 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public DomainEventPublisher Initialize(ProducerSetting setting = null)
+        public DomainEventPublisher InitializeENode()
         {
-            _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventTopicProvider = ObjectContainer.Resolve<ITopicProvider<IDomainEvent>>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _sendMessageService = new SendQueueMessageService();
+            return this;
+        }
+        public DomainEventPublisher InitializeEQueue(ProducerSetting setting = null)
+        {
+            InitializeENode();
+            _producer = new Producer(setting);
             return this;
         }
 

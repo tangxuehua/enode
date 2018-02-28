@@ -33,10 +33,28 @@ namespace ENode.Tests
         private static ApplicationMessageConsumer _applicationMessageConsumer;
         private static PublishableExceptionPublisher _publishableExceptionPublisher;
         private static PublishableExceptionConsumer _publishableExceptionConsumer;
+        private static bool _isEQueueInitialized;
+        private static bool _isEQueueStarted;
 
         public static ENodeConfiguration BuildContainer(this ENodeConfiguration enodeConfiguration)
         {
             enodeConfiguration.GetCommonConfiguration().BuildContainer();
+            return enodeConfiguration;
+        }
+        public static ENodeConfiguration InitializeEQueue(this ENodeConfiguration enodeConfiguration)
+        {
+            if (_isEQueueInitialized)
+            {
+                return enodeConfiguration;
+            }
+
+            _commandService = new CommandService();
+            _eventPublisher = new DomainEventPublisher();
+            _applicationMessagePublisher = new ApplicationMessagePublisher();
+            _publishableExceptionPublisher = new PublishableExceptionPublisher();
+
+            _isEQueueInitialized = true;
+
             return enodeConfiguration;
         }
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration,
@@ -49,11 +67,6 @@ namespace ENode.Tests
 
             var configuration = enodeConfiguration.GetCommonConfiguration();
             configuration.RegisterEQueueComponents();
-
-            _commandService = new CommandService();
-            _eventPublisher = new DomainEventPublisher();
-            _applicationMessagePublisher = new ApplicationMessagePublisher();
-            _publishableExceptionPublisher = new PublishableExceptionPublisher();
 
             if (useMockDomainEventPublisher)
             {
@@ -88,6 +101,21 @@ namespace ENode.Tests
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            if (_isEQueueStarted)
+            {
+                _commandService.InitializeENode();
+                _eventPublisher.InitializeENode();
+                _applicationMessagePublisher.InitializeENode();
+                _publishableExceptionPublisher.InitializeENode();
+
+                _commandConsumer.InitializeENode();
+                _eventConsumer.InitializeENode();
+                _applicationMessageConsumer.InitializeENode();
+                _publishableExceptionConsumer.InitializeENode();
+
+                return enodeConfiguration;
+            }
+
             var brokerStorePath = @"c:\equeue-store-ut";
             var brokerSetting = new BrokerSetting(chunkFileStoreRootPath: brokerStorePath);
 
@@ -99,15 +127,15 @@ namespace ENode.Tests
             _nameServerController = new NameServerController();
             _broker = BrokerController.Create(brokerSetting);
 
-            _commandService.Initialize(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
-            _eventPublisher.Initialize();
-            _applicationMessagePublisher.Initialize();
-            _publishableExceptionPublisher.Initialize();
+            _commandService.InitializeEQueue(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
+            _eventPublisher.InitializeEQueue();
+            _applicationMessagePublisher.InitializeEQueue();
+            _publishableExceptionPublisher.InitializeEQueue();
 
-            _commandConsumer = new CommandConsumer().Initialize(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("CommandTopic");
-            _eventConsumer = new DomainEventConsumer().Initialize(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("EventTopic");
-            _applicationMessageConsumer = new ApplicationMessageConsumer().Initialize(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("ApplicationMessageTopic");
-            _publishableExceptionConsumer = new PublishableExceptionConsumer().Initialize(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.FirstOffset }).Subscribe("PublishableExceptionTopic");
+            _commandConsumer = new CommandConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("CommandTopic");
+            _eventConsumer = new DomainEventConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("EventTopic");
+            _applicationMessageConsumer = new ApplicationMessageConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("ApplicationMessageTopic");
+            _publishableExceptionConsumer = new PublishableExceptionConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("PublishableExceptionTopic");
 
             _nameServerController.Start();
             _broker.Start();
@@ -120,22 +148,12 @@ namespace ENode.Tests
             _eventPublisher.Start();
             _commandService.Start();
             WaitAllConsumerLoadBalanceComplete();
+
+            _isEQueueStarted = true;
+
             return enodeConfiguration;
         }
-        public static ENodeConfiguration ShutdownEQueue(this ENodeConfiguration enodeConfiguration)
-        {
-            _commandService.Shutdown();
-            _eventPublisher.Shutdown();
-            _applicationMessagePublisher.Shutdown();
-            _publishableExceptionPublisher.Shutdown();
-            _commandConsumer.Shutdown();
-            _eventConsumer.Shutdown();
-            _applicationMessageConsumer.Shutdown();
-            _publishableExceptionConsumer.Shutdown();
-            _broker.Shutdown();
-            _nameServerController.Shutdown();
-            return enodeConfiguration;
-        }
+
         public static ENodeConfiguration UseEventStore(this ENodeConfiguration enodeConfiguration, bool useMockEventStore = false)
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();

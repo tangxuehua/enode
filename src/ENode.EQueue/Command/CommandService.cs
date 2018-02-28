@@ -29,10 +29,8 @@ namespace ENode.EQueue
         public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
 
-        public CommandService Initialize(CommandResultProcessor commandResultProcessor = null, ProducerSetting setting = null)
+        public CommandService InitializeENode()
         {
-            _commandResultProcessor = commandResultProcessor;
-            _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
@@ -40,6 +38,13 @@ namespace ENode.EQueue
             _sendMessageService = new SendQueueMessageService();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
+            return this;
+        }
+        public CommandService InitializeEQueue(CommandResultProcessor commandResultProcessor = null, ProducerSetting setting = null)
+        {
+            InitializeENode();
+            _commandResultProcessor = commandResultProcessor;
+            _producer = new Producer(setting);
             return this;
         }
 

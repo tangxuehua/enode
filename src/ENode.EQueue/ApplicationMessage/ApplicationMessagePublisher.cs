@@ -19,13 +19,18 @@ namespace ENode.EQueue
 
         public Producer Producer { get { return _producer; } }
 
-        public ApplicationMessagePublisher Initialize(ProducerSetting setting = null)
+        public ApplicationMessagePublisher InitializeENode()
         {
-            _producer = new Producer(setting);
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _messageTopicProvider = ObjectContainer.Resolve<ITopicProvider<IApplicationMessage>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _sendMessageService = new SendQueueMessageService();
+            return this;
+        }
+        public ApplicationMessagePublisher InitializeEQueue(ProducerSetting setting = null)
+        {
+            InitializeENode();
+            _producer = new Producer(setting);
             return this;
         }
 

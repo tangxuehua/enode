@@ -24,19 +24,24 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public DomainEventConsumer Initialize(string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
+        public DomainEventConsumer InitializeENode(bool sendEventHandledMessage = true)
         {
-            _consumer = new Consumer(groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
-            {
-                MessageHandleMode = MessageHandleMode.Sequential,
-                ConsumeFromWhere = ConsumeFromWhere.FirstOffset
-            });
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _messageProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _sendEventHandledMessage = sendEventHandledMessage;
+            return this;
+        }
+        public DomainEventConsumer InitializeEQueue(string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
+        {
+            InitializeENode(sendEventHandledMessage);
+            _consumer = new Consumer(groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
+            {
+                MessageHandleMode = MessageHandleMode.Sequential,
+                ConsumeFromWhere = ConsumeFromWhere.FirstOffset
+            });
             return this;
         }
 

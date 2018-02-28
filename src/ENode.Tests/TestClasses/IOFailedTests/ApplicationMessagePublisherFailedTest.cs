@@ -2,20 +2,20 @@
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Tests.Commands;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace ENode.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class ApplicationMessagePublisherFailedTest : BaseTest
     {
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
+        [OneTimeSetUp]
+        public void ClassInitialize()
         {
-            Initialize(context, useMockApplicationMessagePublisher: true);
+            Initialize(useMockApplicationMessagePublisher: true);
         }
 
-        [TestMethod]
+        [Test]
         public void async_command_application_message_publish_failed_test()
         {
             ((MockApplicationMessagePublisher)_applicationMessagePublisher).SetExpectFailedCount(FailedType.UnKnownException, 5);

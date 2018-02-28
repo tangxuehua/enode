@@ -28,12 +28,8 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public CommandConsumer Initialize(string groupName = null, ConsumerSetting setting = null)
+        public CommandConsumer InitializeENode()
         {
-            _consumer = new Consumer(groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting
-            {
-                ConsumeFromWhere = ConsumeFromWhere.FirstOffset
-            });
             _sendReplyService = new SendReplyService();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
@@ -41,6 +37,15 @@ namespace ENode.EQueue
             _repository = ObjectContainer.Resolve<IRepository>();
             _aggregateStorage = ObjectContainer.Resolve<IAggregateStorage>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            return this;
+        }
+        public CommandConsumer InitializeEQueue(string groupName = null, ConsumerSetting setting = null)
+        {
+            InitializeENode();
+            _consumer = new Consumer(groupName ?? DefaultCommandConsumerGroup, setting ?? new ConsumerSetting
+            {
+                ConsumeFromWhere = ConsumeFromWhere.FirstOffset
+            });
             return this;
         }
 

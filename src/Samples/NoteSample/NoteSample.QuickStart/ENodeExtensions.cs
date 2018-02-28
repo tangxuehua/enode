@@ -52,10 +52,10 @@ namespace NoteSample.QuickStart
         {
             var configuration = enodeConfiguration.GetCommonConfiguration();
 
-            _commandService.Initialize(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000)));
-            _eventPublisher.Initialize();
-            _commandConsumer = new CommandConsumer().Initialize().Subscribe("NoteCommandTopic");
-            _eventConsumer = new DomainEventConsumer().Initialize().Subscribe("NoteEventTopic");
+            _commandService.InitializeEQueue(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000)));
+            _eventPublisher.InitializeEQueue();
+            _commandConsumer = new CommandConsumer().InitializeEQueue().Subscribe("NoteCommandTopic");
+            _eventConsumer = new DomainEventConsumer().InitializeEQueue().Subscribe("NoteEventTopic");
 
             var brokerStorePath = @"c:\equeue-store";
             if (Directory.Exists(brokerStorePath))

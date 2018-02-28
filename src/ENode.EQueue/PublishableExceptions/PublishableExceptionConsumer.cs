@@ -21,17 +21,22 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public PublishableExceptionConsumer Initialize(string groupName = null, ConsumerSetting setting = null)
+        public PublishableExceptionConsumer InitializeENode()
         {
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
+            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>();
+            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            return this;
+        }
+        public PublishableExceptionConsumer InitializeEQueue(string groupName = null, ConsumerSetting setting = null)
+        {
+            InitializeENode();
             _consumer = new Consumer(groupName ?? DefaultExceptionConsumerGroup, setting ?? new ConsumerSetting
             {
                 MessageHandleMode = MessageHandleMode.Sequential,
                 ConsumeFromWhere = ConsumeFromWhere.FirstOffset
             });
-            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>();
-            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             return this;
         }
 

@@ -272,7 +272,13 @@ namespace ENode.Infrastructure.Impl
                 {
                     if (_childDispatchingDict.IsEmpty)
                     {
-                        _taskCompletionSource.SetResult(AsyncTaskResult.Success);
+                        lock (this)
+                        {
+                            if (!_taskCompletionSource.Task.IsCompleted)
+                            {
+                                _taskCompletionSource.SetResult(AsyncTaskResult.Success);
+                            }
+                        }
                     }
                 }
             }

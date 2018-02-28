@@ -40,7 +40,7 @@ namespace ENode.SendCommandPerfTests
                 Directory.Delete(brokerStorePath, true);
             }
 
-            _commandService.Initialize();
+            _commandService.InitializeEQueue();
 
             _nameServerController = new NameServerController();
             _broker = BrokerController.Create();

@@ -2,20 +2,20 @@
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Tests.Commands;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace ENode.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class EventStoreFailedTest : BaseTest
     {
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
+        [OneTimeSetUp]
+        public void ClassInitialize()
         {
-            Initialize(context, useMockEventStore: true);
+            Initialize(useMockEventStore: true);
         }
 
-        [TestMethod]
+        [Test]
         public void event_store_failed_test()
         {
             var mockEventStore = _eventStore as MockEventStore;

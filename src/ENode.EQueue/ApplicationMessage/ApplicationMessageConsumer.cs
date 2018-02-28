@@ -20,17 +20,22 @@ namespace ENode.EQueue
 
         public Consumer Consumer { get { return _consumer; } }
 
-        public ApplicationMessageConsumer Initialize(string groupName = null, ConsumerSetting setting = null)
+        public ApplicationMessageConsumer InitializeENode()
         {
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
+            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>();
+            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            return this;
+        }
+        public ApplicationMessageConsumer InitializeEQueue(string groupName = null, ConsumerSetting setting = null)
+        {
+            InitializeENode();
             _consumer = new Consumer(groupName ?? DefaultMessageConsumerGroup, setting ?? new ConsumerSetting
             {
                 MessageHandleMode = MessageHandleMode.Sequential,
                 ConsumeFromWhere = ConsumeFromWhere.FirstOffset
             });
-            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>();
-            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             return this;
         }
 

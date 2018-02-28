@@ -2,20 +2,20 @@
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Tests.Commands;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace ENode.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class PublishableExceptionPublisherFailedTest : BaseTest
     {
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext context)
+        [OneTimeSetUp]
+        public void ClassInitialize()
         {
-            Initialize(context, useMockPublishableExceptionPublisher: true);
+            Initialize(useMockPublishableExceptionPublisher: true);
         }
 
-        [TestMethod]
+        [Test]
         public void publishable_exception_publisher_throw_exception_test()
         {
             var aggregateId = ObjectId.GenerateNewStringId();
