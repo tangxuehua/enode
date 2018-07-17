@@ -13,3 +13,5 @@ obj
 *.testsettings
 *.vsmdi
 TestResult.xml
+/.vs/ENode/v15/Server/sqlite3
+/.vs/ENode/DesignTimeBuild

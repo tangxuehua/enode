@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
@@ -11,17 +12,18 @@ using ECommon.Remoting;
 using ECommon.Scheduling;
 using ECommon.Serializing;
 using ECommon.Utilities;
+using ENode.EQueue.Utils;
 
 namespace ENode.EQueue
 {
     internal class SendReplyService
     {
-        private readonly ConcurrentDictionary<string, SocketRemotingClient> _remotingClientDict;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly IScheduleService _scheduleService;
         private readonly IOHelper _ioHelper;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
+        private readonly ConcurrentDictionary<string, SocketRemotingClient> _remotingClientDict;
         private readonly string _scanInactiveCommandRemotingClientTaskName;
+        private readonly IScheduleService _scheduleService;
 
         public SendReplyService()
         {
@@ -33,18 +35,6 @@ namespace ENode.EQueue
             _scanInactiveCommandRemotingClientTaskName = "ScanInactiveCommandRemotingClient_" + DateTime.Now.Ticks + new Random().Next(10000);
         }
 
-        public void Start()
-        {
-            _scheduleService.StartTask(_scanInactiveCommandRemotingClientTaskName, ScanInactiveRemotingClients, 5000, 5000);
-        }
-        public void Stop()
-        {
-            _scheduleService.StopTask(_scanInactiveCommandRemotingClientTaskName);
-            foreach (var remotingClient in _remotingClientDict.Values)
-            {
-                remotingClient.Shutdown();
-            }
-        }
         public void SendReply(short replyType, object replyData, string replyAddress)
         {
             Task.Factory.StartNew(obj =>
@@ -74,6 +64,49 @@ namespace ENode.EQueue
             }, new SendReplyContext(replyType, replyData, replyAddress));
         }
 
+        public void Start()
+        {
+            _scheduleService.StartTask(_scanInactiveCommandRemotingClientTaskName, ScanInactiveRemotingClients, 5000, 5000);
+        }
+
+        public void Stop()
+        {
+            _scheduleService.StopTask(_scanInactiveCommandRemotingClientTaskName);
+            foreach (var remotingClient in _remotingClientDict.Values)
+            {
+                remotingClient.Shutdown();
+            }
+        }
+
+        private SocketRemotingClient CreateReplyRemotingClient(string replyAddress, IPEndPoint replyEndpoint)
+        {
+            return _remotingClientDict.GetOrAdd(replyAddress, key =>
+            {
+                return new SocketRemotingClient(replyEndpoint).Start();
+            });
+        }
+
+        private SocketRemotingClient GetRemotingClient(string replyAddress)
+        {
+            var replyEndpoint = TryParseReplyAddress(replyAddress);
+            if (replyEndpoint == null) return null;
+
+            SocketRemotingClient remotingClient;
+            if (_remotingClientDict.TryGetValue(replyAddress, out remotingClient))
+            {
+                return remotingClient;
+            }
+
+            _ioHelper.TryIOAction("CreateReplyRemotingClient", () => "replyAddress:" + replyAddress, () => CreateReplyRemotingClient(replyAddress, replyEndpoint), 3);
+
+            if (_remotingClientDict.TryGetValue(replyAddress, out remotingClient))
+            {
+                return remotingClient;
+            }
+
+            return null;
+        }
+
         private void ScanInactiveRemotingClients()
         {
             var inactiveList = new List<KeyValuePair<string, SocketRemotingClient>>();
@@ -93,36 +126,32 @@ namespace ENode.EQueue
                 }
             }
         }
-        private SocketRemotingClient GetRemotingClient(string replyAddress)
-        {
-            var replyEndpoint = TryParseReplyAddress(replyAddress);
-            if (replyEndpoint == null) return null;
 
-            SocketRemotingClient remotingClient;
-            if (_remotingClientDict.TryGetValue(ToReplyAddress(replyEndpoint), out remotingClient))
-            {
-                return remotingClient;
-            }
-
-            _ioHelper.TryIOAction("CreateReplyRemotingClient", () => "replyAddress:" + replyAddress, () => CreateReplyRemotingClient(replyEndpoint), 3);
-
-            if (_remotingClientDict.TryGetValue(ToReplyAddress(replyEndpoint), out remotingClient))
-            {
-                return remotingClient;
-            }
-
-            return null;
-        }
-        private string ToReplyAddress(IPEndPoint replyEndpoint)
-        {
-            return string.Format("{0}:{1}", replyEndpoint.Address.ToString(), replyEndpoint.Port);
-        }
         private IPEndPoint TryParseReplyAddress(string replyAddress)
         {
             try
             {
                 var items = replyAddress.Split(':');
                 Ensure.Equals(items.Length, 2);
+                var hostNameType = Uri.CheckHostName(items[0]);
+
+                IPEndPoint ipEndPoint;
+                switch (hostNameType)
+                {
+                    case UriHostNameType.Dns:
+                        ipEndPoint = SocketUtils.GetIPEndPointFromHostName(items[0], int.Parse(items[1]), AddressFamily.InterNetwork, false);
+                        break;
+
+                    case UriHostNameType.IPv4:
+                    case UriHostNameType.IPv6:
+                        ipEndPoint = new IPEndPoint(IPAddress.Parse(items[0]), int.Parse(items[1]));
+                        break;
+
+                    case UriHostNameType.Unknown:
+                    default:
+                        throw new Exception($"Host name type[{hostNameType}] can not resolve.");
+                }
+
                 return new IPEndPoint(IPAddress.Parse(items[0]), int.Parse(items[1]));
             }
             catch (Exception ex)
@@ -131,26 +160,19 @@ namespace ENode.EQueue
                 return null;
             }
         }
-        private SocketRemotingClient CreateReplyRemotingClient(IPEndPoint replyEndpoint)
-        {
-            return _remotingClientDict.GetOrAdd(ToReplyAddress(replyEndpoint), key =>
-            {
-                return new SocketRemotingClient(replyEndpoint).Start();
-            });
-        }
 
-        class SendReplyContext
+        private class SendReplyContext
         {
-            public short ReplyType { get; private set; }
-            public object ReplyData { get; private set; }
-            public string ReplyAddress { get; private set; }
-
             public SendReplyContext(short replyType, object replyData, string replyAddress)
             {
                 ReplyType = replyType;
                 ReplyData = replyData;
                 ReplyAddress = replyAddress;
             }
+
+            public string ReplyAddress { get; private set; }
+            public object ReplyData { get; private set; }
+            public short ReplyType { get; private set; }
         }
     }
 }

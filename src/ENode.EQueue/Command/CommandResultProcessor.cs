@@ -11,77 +11,35 @@ using ECommon.Remoting;
 using ECommon.Scheduling;
 using ECommon.Serializing;
 using ENode.Commanding;
+using ENode.EQueue.Utils;
 
 namespace ENode.EQueue
 {
     public class CommandResultProcessor : IRequestHandler
     {
-        private byte[] ByteArray = new byte[0];
-        private SocketRemotingServer _remotingServer;
-        private ConcurrentDictionary<string, CommandTaskCompletionSource> _commandTaskDict;
         private BlockingCollection<CommandResult> _commandExecutedMessageLocalQueue;
-        private BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
         private Worker _commandExecutedMessageWorker;
+        private ConcurrentDictionary<string, CommandTaskCompletionSource> _commandTaskDict;
+        private BlockingCollection<DomainEventHandledMessage> _domainEventHandledMessageLocalQueue;
         private Worker _domainEventHandledMessageWorker;
         private IJsonSerializer _jsonSerializer;
         private ILogger _logger;
+        private SocketRemotingServer _remotingServer;
         private bool _started;
-
+        private byte[] ByteArray = new byte[0];
         public IPEndPoint BindingAddress { get; private set; }
+        public string BindingHostname { get; private set; }
 
-        public CommandResultProcessor Initialize(IPEndPoint bindingAddress)
+        public string BindingServerAddress
         {
-            _remotingServer = new SocketRemotingServer("CommandResultProcessor.RemotingServer", bindingAddress);
-            _commandTaskDict = new ConcurrentDictionary<string, CommandTaskCompletionSource>();
-            _commandExecutedMessageLocalQueue = new BlockingCollection<CommandResult>(new ConcurrentQueue<CommandResult>());
-            _domainEventHandledMessageLocalQueue = new BlockingCollection<DomainEventHandledMessage>(new ConcurrentQueue<DomainEventHandledMessage>());
-            _commandExecutedMessageWorker = new Worker("ProcessExecutedCommandMessage", () => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
-            _domainEventHandledMessageWorker = new Worker("ProcessDomainEventHandledMessage", () => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
-            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
-            BindingAddress = bindingAddress;
-            return this;
-        }
-
-        public void RegisterProcessingCommand(ICommand command, CommandReturnType commandReturnType, TaskCompletionSource<AsyncTaskResult<CommandResult>> taskCompletionSource)
-        {
-            if (!_commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource }))
+            get
             {
-                throw new Exception(string.Format("Duplicate processing command registration, type:{0}, id:{1}", command.GetType().Name, command.Id));
+                if (!string.IsNullOrEmpty(BindingHostname))
+                {
+                    return BindingHostname;
+                }
+                return BindingAddress.ToString();
             }
-        }
-        public void ProcessFailedSendingCommand(ICommand command)
-        {
-            if (_commandTaskDict.TryRemove(command.Id, out CommandTaskCompletionSource commandTaskCompletionSource))
-            {
-                var commandResult = new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Failed to send the command.", typeof(string).FullName);
-                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult));
-            }
-        }
-
-        public CommandResultProcessor Start()
-        {
-            if (_started) return this;
-
-            _remotingServer.Start();
-            _commandExecutedMessageWorker.Start();
-            _domainEventHandledMessageWorker.Start();
-
-            _remotingServer.RegisterRequestHandler((int)CommandReturnType.CommandExecuted, this);
-            _remotingServer.RegisterRequestHandler((int)CommandReturnType.EventHandled, this);
-
-            _started = true;
-
-            _logger.InfoFormat("Command result processor started, bindingAddress: {0}", BindingAddress);
-
-            return this;
-        }
-        public CommandResultProcessor Shutdown()
-        {
-            _remotingServer.Shutdown();
-            _commandExecutedMessageWorker.Stop();
-            _domainEventHandledMessageWorker.Stop();
-            return this;
         }
 
         RemotingResponse IRequestHandler.HandleRequest(IRequestHandlerContext context, RemotingRequest remotingRequest)
@@ -103,6 +61,85 @@ namespace ENode.EQueue
                 _logger.ErrorFormat("Invalid remoting request code: {0}", remotingRequest.Code);
             }
             return null;
+        }
+
+        public CommandResultProcessor Initialize(string hostname, int port)
+        {
+            var bindingAddress = SocketUtils.GetIPEndPointFromHostName(hostname, port);
+            BindingHostname = $"{hostname}:{port}";
+            return Initialize(bindingAddress);
+        }
+
+        public CommandResultProcessor Initialize(IPEndPoint bindingAddress)
+        {
+            _remotingServer = new SocketRemotingServer("CommandResultProcessor.RemotingServer", bindingAddress);
+            _commandTaskDict = new ConcurrentDictionary<string, CommandTaskCompletionSource>();
+            _commandExecutedMessageLocalQueue = new BlockingCollection<CommandResult>(new ConcurrentQueue<CommandResult>());
+            _domainEventHandledMessageLocalQueue = new BlockingCollection<DomainEventHandledMessage>(new ConcurrentQueue<DomainEventHandledMessage>());
+            _commandExecutedMessageWorker = new Worker("ProcessExecutedCommandMessage", () => ProcessExecutedCommandMessage(_commandExecutedMessageLocalQueue.Take()));
+            _domainEventHandledMessageWorker = new Worker("ProcessDomainEventHandledMessage", () => ProcessDomainEventHandledMessage(_domainEventHandledMessageLocalQueue.Take()));
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            BindingAddress = bindingAddress;
+            return this;
+        }
+
+        public void ProcessFailedSendingCommand(ICommand command)
+        {
+            if (_commandTaskDict.TryRemove(command.Id, out CommandTaskCompletionSource commandTaskCompletionSource))
+            {
+                var commandResult = new CommandResult(CommandStatus.Failed, command.Id, command.AggregateRootId, "Failed to send the command.", typeof(string).FullName);
+                commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult));
+            }
+        }
+
+        public void RegisterProcessingCommand(ICommand command, CommandReturnType commandReturnType, TaskCompletionSource<AsyncTaskResult<CommandResult>> taskCompletionSource)
+        {
+            if (!_commandTaskDict.TryAdd(command.Id, new CommandTaskCompletionSource { CommandReturnType = commandReturnType, TaskCompletionSource = taskCompletionSource }))
+            {
+                throw new Exception(string.Format("Duplicate processing command registration, type:{0}, id:{1}", command.GetType().Name, command.Id));
+            }
+        }
+
+        public CommandResultProcessor Shutdown()
+        {
+            _remotingServer.Shutdown();
+            _commandExecutedMessageWorker.Stop();
+            _domainEventHandledMessageWorker.Stop();
+            return this;
+        }
+
+        public CommandResultProcessor Start()
+        {
+            if (_started) return this;
+
+            _remotingServer.Start();
+            _commandExecutedMessageWorker.Start();
+            _domainEventHandledMessageWorker.Start();
+
+            _remotingServer.RegisterRequestHandler((int)CommandReturnType.CommandExecuted, this);
+            _remotingServer.RegisterRequestHandler((int)CommandReturnType.EventHandled, this);
+
+            _started = true;
+
+            _logger.InfoFormat("Command result processor started, bindingAddress: {0}", BindingAddress);
+
+            return this;
+        }
+
+        private void ProcessDomainEventHandledMessage(DomainEventHandledMessage message)
+        {
+            if (_commandTaskDict.TryRemove(message.CommandId, out CommandTaskCompletionSource commandTaskCompletionSource))
+            {
+                var commandResult = new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, message.CommandResult, message.CommandResult != null ? typeof(string).FullName : null);
+                if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
+                {
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("Command result return, {0}", commandResult);
+                    }
+                }
+            }
         }
 
         private void ProcessExecutedCommandMessage(CommandResult commandResult)
@@ -136,25 +173,11 @@ namespace ENode.EQueue
                 }
             }
         }
-        private void ProcessDomainEventHandledMessage(DomainEventHandledMessage message)
-        {
-            if (_commandTaskDict.TryRemove(message.CommandId, out CommandTaskCompletionSource commandTaskCompletionSource))
-            {
-                var commandResult = new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, message.CommandResult, message.CommandResult != null ? typeof(string).FullName : null);
-                if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Success, commandResult)))
-                {
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.DebugFormat("Command result return, {0}", commandResult);
-                    }
-                }
-            }
-        }
 
-        class CommandTaskCompletionSource
+        private class CommandTaskCompletionSource
         {
-            public TaskCompletionSource<AsyncTaskResult<CommandResult>> TaskCompletionSource { get; set; }
             public CommandReturnType CommandReturnType { get; set; }
+            public TaskCompletionSource<AsyncTaskResult<CommandResult>> TaskCompletionSource { get; set; }
         }
     }
 }
