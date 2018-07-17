@@ -16,71 +16,18 @@ namespace ENode.EQueue
 {
     public class CommandService : ICommandService
     {
-        private ILogger _logger;
-        private IJsonSerializer _jsonSerializer;
-        private ITopicProvider<ICommand> _commandTopicProvider;
-        private ITypeNameProvider _typeNameProvider;
-        private ICommandRoutingKeyProvider _commandRouteKeyProvider;
-        private SendQueueMessageService _sendMessageService;
         private CommandResultProcessor _commandResultProcessor;
-        private Producer _producer;
+        private ICommandRoutingKeyProvider _commandRouteKeyProvider;
+        private ITopicProvider<ICommand> _commandTopicProvider;
         private IOHelper _ioHelper;
-
+        private IJsonSerializer _jsonSerializer;
+        private ILogger _logger;
+        private Producer _producer;
+        private SendQueueMessageService _sendMessageService;
+        private ITypeNameProvider _typeNameProvider;
         public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
 
-        public CommandService InitializeENode()
-        {
-            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
-            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
-            _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRoutingKeyProvider>();
-            _sendMessageService = new SendQueueMessageService();
-            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
-            _ioHelper = ObjectContainer.Resolve<IOHelper>();
-            return this;
-        }
-        public CommandService InitializeEQueue(CommandResultProcessor commandResultProcessor = null, ProducerSetting setting = null)
-        {
-            InitializeENode();
-            _commandResultProcessor = commandResultProcessor;
-            _producer = new Producer(setting);
-            return this;
-        }
-
-        public CommandService Start()
-        {
-            if (_commandResultProcessor != null)
-            {
-                _commandResultProcessor.Start();
-            }
-            _producer.Start();
-            return this;
-        }
-        public CommandService Shutdown()
-        {
-            _producer.Shutdown();
-            if (_commandResultProcessor != null)
-            {
-                _commandResultProcessor.Shutdown();
-            }
-            return this;
-        }
-        public void Send(ICommand command)
-        {
-            _sendMessageService.SendMessage(_producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null);
-        }
-        public Task<AsyncTaskResult> SendAsync(ICommand command)
-        {
-            try
-            {
-                return _sendMessageService.SendMessageAsync(_producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null);
-            }
-            catch (Exception ex)
-            {
-                return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message));
-            }
-        }
         public CommandResult Execute(ICommand command, int timeoutMillis)
         {
             var result = ExecuteAsync(command).WaitResult(timeoutMillis);
@@ -90,6 +37,7 @@ namespace ENode.EQueue
             }
             return result.Data;
         }
+
         public CommandResult Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
         {
             var result = ExecuteAsync(command, commandReturnType).WaitResult(timeoutMillis);
@@ -99,10 +47,12 @@ namespace ENode.EQueue
             }
             return result.Data;
         }
+
         public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
         {
             return ExecuteAsync(command, CommandReturnType.CommandExecuted);
         }
+
         public async Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command, CommandReturnType commandReturnType)
         {
             try
@@ -125,19 +75,76 @@ namespace ENode.EQueue
             }
         }
 
+        public CommandService InitializeENode()
+        {
+            _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
+            _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
+            _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
+            _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRoutingKeyProvider>();
+            _sendMessageService = new SendQueueMessageService();
+            _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
+            return this;
+        }
+
+        public CommandService InitializeEQueue(CommandResultProcessor commandResultProcessor = null, ProducerSetting setting = null)
+        {
+            InitializeENode();
+            _commandResultProcessor = commandResultProcessor;
+            _producer = new Producer(setting);
+            return this;
+        }
+
+        public void Send(ICommand command)
+        {
+            _sendMessageService.SendMessage(_producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null);
+        }
+
+        public Task<AsyncTaskResult> SendAsync(ICommand command)
+        {
+            try
+            {
+                return _sendMessageService.SendMessageAsync(_producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null);
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message));
+            }
+        }
+
+        public CommandService Shutdown()
+        {
+            _producer.Shutdown();
+            if (_commandResultProcessor != null)
+            {
+                _commandResultProcessor.Shutdown();
+            }
+            return this;
+        }
+
+        public CommandService Start()
+        {
+            if (_commandResultProcessor != null)
+            {
+                _commandResultProcessor.Start();
+            }
+            _producer.Start();
+            return this;
+        }
+
         private EQueueMessage BuildCommandMessage(ICommand command, bool needReply = false)
         {
             Ensure.NotNull(command.AggregateRootId, "aggregateRootId");
             var commandData = _jsonSerializer.Serialize(command);
             var topic = _commandTopicProvider.GetTopic(command);
-            var replyAddress = needReply && _commandResultProcessor != null ? _commandResultProcessor.BindingAddress.ToString() : null;
+            var replyAddress = needReply && _commandResultProcessor != null ? _commandResultProcessor.BindingServerAddress : null;
             var messageData = _jsonSerializer.Serialize(new CommandMessage
             {
                 CommandData = commandData,
                 ReplyAddress = replyAddress
             });
             return new EQueueMessage(
-                topic, 
+                topic,
                 (int)EQueueMessageTypeCode.CommandMessage,
                 Encoding.UTF8.GetBytes(messageData),
                 _typeNameProvider.GetTypeName(command.GetType()));
