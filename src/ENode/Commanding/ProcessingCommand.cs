@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ENode.Commanding
 {
@@ -17,9 +18,9 @@ namespace ENode.Commanding
             Items = items ?? new Dictionary<string, string>();
         }
 
-        public void Complete(CommandResult commandResult)
+        public Task CompleteAsync(CommandResult commandResult)
         {
-            CommandExecuteContext.OnCommandExecuted(commandResult);
+            return CommandExecuteContext.OnCommandExecutedAsync(commandResult);
         }
     }
 }

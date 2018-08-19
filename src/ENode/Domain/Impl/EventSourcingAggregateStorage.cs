@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using ECommon.IO;
 using ENode.Eventing;
 using ENode.Infrastructure;
 
@@ -27,32 +29,38 @@ namespace ENode.Domain.Impl
             _typeNameProvider = typeNameProvider;
         }
 
-        public IAggregateRoot Get(Type aggregateRootType, string aggregateRootId)
+        public async Task<IAggregateRoot> GetAsync(Type aggregateRootType, string aggregateRootId)
         {
             if (aggregateRootType == null) throw new ArgumentNullException("aggregateRootType");
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
 
-            var aggregateRoot = default(IAggregateRoot);
-
-            if (TryGetFromSnapshot(aggregateRootId, aggregateRootType, out aggregateRoot))
+            var aggregateRoot = await TryGetFromSnapshot(aggregateRootId, aggregateRootType);
+            if (aggregateRoot != null)
             {
                 return aggregateRoot;
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var eventStreams = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion);
-            aggregateRoot = RebuildAggregateRoot(aggregateRootType, eventStreams);
+            var taskResult = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion);
+            if (taskResult.Status == AsyncTaskStatus.Success)
+            {
+                aggregateRoot = RebuildAggregateRoot(aggregateRootType, taskResult.Data);
 
-            return aggregateRoot;
+                return aggregateRoot;
+            }
+            return null;
         }
 
         #region Helper Methods
 
-        private bool TryGetFromSnapshot(string aggregateRootId, Type aggregateRootType, out IAggregateRoot aggregateRoot)
+        private async Task<IAggregateRoot> TryGetFromSnapshot(string aggregateRootId, Type aggregateRootType)
         {
-            aggregateRoot = _aggregateSnapshotter.RestoreFromSnapshot(aggregateRootType, aggregateRootId);
+            var aggregateRoot = await _aggregateSnapshotter.RestoreFromSnapshotAsync(aggregateRootType, aggregateRootId);
 
-            if (aggregateRoot == null) return false;
+            if (aggregateRoot == null)
+            {
+                return null;
+            }
 
             if (aggregateRoot.GetType() != aggregateRootType || aggregateRoot.UniqueId != aggregateRootId)
             {
@@ -64,10 +72,14 @@ namespace ENode.Domain.Impl
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var eventStreamsAfterSnapshot = _eventStore.QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, aggregateRoot.Version + 1, int.MaxValue);
-            aggregateRoot.ReplayEvents(eventStreamsAfterSnapshot);
+            var taskResult = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, aggregateRoot.Version + 1, int.MaxValue);
+            if (taskResult.Status == AsyncTaskStatus.Success)
+            {
+                aggregateRoot.ReplayEvents(taskResult.Data);
+                return aggregateRoot;
+            }
 
-            return true;
+            return null;
         }
         private IAggregateRoot RebuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> eventStreams)
         {

@@ -13,8 +13,7 @@ namespace ENode.Domain.Impl
 
         public IAggregateRepositoryProxy GetRepository(Type aggregateRootType)
         {
-            IAggregateRepositoryProxy proxy;
-            if (_repositoryDict.TryGetValue(aggregateRootType, out proxy))
+            if (_repositoryDict.TryGetValue(aggregateRootType, out IAggregateRepositoryProxy proxy))
             {
                 return proxy;
             }

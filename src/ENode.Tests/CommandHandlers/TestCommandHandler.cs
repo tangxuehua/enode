@@ -19,72 +19,81 @@ namespace ENode.Tests.CommandHandlers
         ICommandHandler<AggregateThrowExceptionCommand>,
         ICommandHandler<SetResultCommand>
     {
-        public void Handle(ICommandContext context, CreateTestAggregateCommand command)
+        public Task HandleAsync(ICommandContext context, CreateTestAggregateCommand command)
         {
             if (command.SleepMilliseconds > 0)
             {
                 Thread.Sleep(command.SleepMilliseconds);
             }
             context.Add(new TestAggregate(command.AggregateRootId, command.Title));
+            return Task.CompletedTask;
         }
-        public void Handle(ICommandContext context, ChangeTestAggregateTitleCommand command)
+        public async Task HandleAsync(ICommandContext context, ChangeTestAggregateTitleCommand command)
         {
-            context.Get<TestAggregate>(command.AggregateRootId).ChangeTitle(command.Title);
+            var testAggregate = await context.GetAsync<TestAggregate>(command.AggregateRootId);
+            testAggregate.ChangeTitle(command.Title);
         }
-        public void Handle(ICommandContext context, ChangeNothingCommand command)
+        public Task HandleAsync(ICommandContext context, ChangeNothingCommand command)
         {
-            //DO NOTHING
+            return Task.CompletedTask;
         }
-        public void Handle(ICommandContext context, SetResultCommand command)
+        public Task HandleAsync(ICommandContext context, SetResultCommand command)
         {
             context.Add(new TestAggregate(command.AggregateRootId, ""));
             context.SetResult(command.Result);
+            return Task.CompletedTask;
         }
-        public void Handle(ICommandContext context, ChangeMultipleAggregatesCommand command)
+        public async Task HandleAsync(ICommandContext context, ChangeMultipleAggregatesCommand command)
         {
-            context.Get<TestAggregate>(command.AggregateRootId1).TestEvents();
-            context.Get<TestAggregate>(command.AggregateRootId2).TestEvents();
+            var testAggregate1 = await context.GetAsync<TestAggregate>(command.AggregateRootId1);
+            var testAggregate2 = await context.GetAsync<TestAggregate>(command.AggregateRootId2);
+            testAggregate1.TestEvents();
+            testAggregate2.TestEvents();
         }
-        public void Handle(ICommandContext context, ThrowExceptionCommand command)
+        public Task HandleAsync(ICommandContext context, ThrowExceptionCommand command)
         {
             throw new Exception("CommandException");
         }
-        public void Handle(ICommandContext context, AggregateThrowExceptionCommand command)
+        public async Task HandleAsync(ICommandContext context, AggregateThrowExceptionCommand command)
         {
-            context.Get<TestAggregate>(command.AggregateRootId).ThrowException(command.PublishableException);
+            var testAggregate = await context.GetAsync<TestAggregate>(command.AggregateRootId);
+            testAggregate.ThrowException(command.PublishableException);
         }
-        public void Handle(ICommandContext context, TestEventPriorityCommand command)
+        public async Task HandleAsync(ICommandContext context, TestEventPriorityCommand command)
         {
-            context.Get<TestAggregate>(command.AggregateRootId).TestEvents();
+            var testAggregate = await context.GetAsync<TestAggregate>(command.AggregateRootId);
+            testAggregate.TestEvents();
         }
     }
 
     public class TestCommandHandler1 : ICommandHandler<TwoHandlersCommand>
     {
-        public void Handle(ICommandContext context, TwoHandlersCommand command)
+        public Task HandleAsync(ICommandContext context, TwoHandlersCommand command)
         {
-            //DO NOTHING
+            return Task.CompletedTask;
         }
     }
     public class TestCommandHandler2 : ICommandHandler<TwoHandlersCommand>
     {
-        public void Handle(ICommandContext context, TwoHandlersCommand command)
+        public Task HandleAsync(ICommandContext context, TwoHandlersCommand command)
         {
-            //DO NOTHING
+            return Task.CompletedTask;
         }
     }
     public class BaseCommandHandler : ICommandHandler<BaseCommand>
     {
-        public void Handle(ICommandContext context, BaseCommand command)
+        public Task HandleAsync(ICommandContext context, BaseCommand command)
         {
             context.SetResult("ResultFromBaseCommand");
+            return Task.CompletedTask;
         }
     }
     public class ChildCommandHandler : ICommandHandler<ChildCommand>
     {
-        public void Handle(ICommandContext context, ChildCommand command)
+        public Task HandleAsync(ICommandContext context, ChildCommand command)
         {
             context.SetResult("ResultFromChildCommand");
+            return Task.CompletedTask;
         }
     }
 

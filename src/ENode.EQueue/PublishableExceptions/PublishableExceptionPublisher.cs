@@ -15,10 +15,9 @@ namespace ENode.EQueue
         private IJsonSerializer _jsonSerializer;
         private ITopicProvider<IPublishableException> _exceptionTopicProvider;
         private ITypeNameProvider _typeNameProvider;
-        private Producer _producer;
         private SendQueueMessageService _sendMessageService;
 
-        public Producer Producer { get { return _producer; } }
+        public Producer Producer { get; private set; }
 
         public PublishableExceptionPublisher InitializeENode()
         {
@@ -31,23 +30,23 @@ namespace ENode.EQueue
         public PublishableExceptionPublisher InitializeEQueue(ProducerSetting setting = null)
         {
             InitializeENode();
-            _producer = new Producer(setting);
+            Producer = new Producer(setting, "PublishableExceptionPublisher");
             return this;
         }
         public PublishableExceptionPublisher Start()
         {
-            _producer.Start();
+            Producer.Start();
             return this;
         }
         public PublishableExceptionPublisher Shutdown()
         {
-            _producer.Shutdown();
+            Producer.Shutdown();
             return this;
         }
         public Task<AsyncTaskResult> PublishAsync(IPublishableException exception)
         {
             var message = CreateEQueueMessage(exception);
-            return _sendMessageService.SendMessageAsync(_producer, message, exception.GetRoutingKey() ?? exception.Id, exception.Id, null);
+            return _sendMessageService.SendMessageAsync(Producer, message, exception.GetRoutingKey() ?? exception.Id, exception.Id, null);
         }
 
         private EQueueMessage CreateEQueueMessage(IPublishableException exception)

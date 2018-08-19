@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ENode.Domain.Impl
 {
@@ -11,12 +12,12 @@ namespace ENode.Domain.Impl
             _aggregateRepositoryProvider = aggregateRepositoryProvider;
         }
 
-        public IAggregateRoot RestoreFromSnapshot(Type aggregateRootType, string aggregateRootId)
+        public async Task<IAggregateRoot> RestoreFromSnapshotAsync(Type aggregateRootType, string aggregateRootId)
         {
             var aggregateRepository = _aggregateRepositoryProvider.GetRepository(aggregateRootType);
             if (aggregateRepository != null)
             {
-                return aggregateRepository.Get(aggregateRootId);
+                return await aggregateRepository.GetAsync(aggregateRootId);
             }
             return null;
         }

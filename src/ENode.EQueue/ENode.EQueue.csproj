@@ -8,10 +8,14 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>bin\Release\netstandard2.0\ENode.EQueue.xml</DocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EQueue" Version="2.5.5.2" />
+    <PackageReference Include="EQueue" Version="2.5.8" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,6 @@
 using System.Text;
 using System.Threading.Tasks;
 using ECommon.Components;
-using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -23,11 +22,11 @@ namespace ENode.EQueue
         private ICommandRoutingKeyProvider _commandRouteKeyProvider;
         private SendQueueMessageService _sendMessageService;
         private CommandResultProcessor _commandResultProcessor;
-        private Producer _producer;
         private IOHelper _ioHelper;
 
         public string CommandExecutedMessageTopic { get; private set; }
         public string DomainEventHandledMessageTopic { get; private set; }
+        public Producer Producer { get; private set; }
 
         public CommandService InitializeENode()
         {
@@ -44,7 +43,7 @@ namespace ENode.EQueue
         {
             InitializeENode();
             _commandResultProcessor = commandResultProcessor;
-            _producer = new Producer(setting);
+            Producer = new Producer(setting, "CommandService");
             return this;
         }
 
@@ -54,50 +53,28 @@ namespace ENode.EQueue
             {
                 _commandResultProcessor.Start();
             }
-            _producer.Start();
+            Producer.Start();
             return this;
         }
         public CommandService Shutdown()
         {
-            _producer.Shutdown();
+            Producer.Shutdown();
             if (_commandResultProcessor != null)
             {
                 _commandResultProcessor.Shutdown();
             }
             return this;
         }
-        public void Send(ICommand command)
-        {
-            _sendMessageService.SendMessage(_producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null);
-        }
         public Task<AsyncTaskResult> SendAsync(ICommand command)
         {
             try
             {
-                return _sendMessageService.SendMessageAsync(_producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null);
+                return _sendMessageService.SendMessageAsync(Producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null);
             }
             catch (Exception ex)
             {
                 return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message));
             }
-        }
-        public CommandResult Execute(ICommand command, int timeoutMillis)
-        {
-            var result = ExecuteAsync(command).WaitResult(timeoutMillis);
-            if (result == null)
-            {
-                throw new CommandExecuteTimeoutException("Command execute timeout, commandId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
-            }
-            return result.Data;
-        }
-        public CommandResult Execute(ICommand command, CommandReturnType commandReturnType, int timeoutMillis)
-        {
-            var result = ExecuteAsync(command, commandReturnType).WaitResult(timeoutMillis);
-            if (result == null)
-            {
-                throw new CommandExecuteTimeoutException("Command execute timeout, commandId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
-            }
-            return result.Data;
         }
         public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
         {
@@ -111,7 +88,7 @@ namespace ENode.EQueue
                 var taskCompletionSource = new TaskCompletionSource<AsyncTaskResult<CommandResult>>();
                 _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
 
-                var result = await _sendMessageService.SendMessageAsync(_producer, BuildCommandMessage(command, true), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null).ConfigureAwait(false);
+                var result = await _sendMessageService.SendMessageAsync(Producer, BuildCommandMessage(command, true), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null).ConfigureAwait(false);
                 if (result.Status == AsyncTaskStatus.Success)
                 {
                     return await taskCompletionSource.Task.ConfigureAwait(false);

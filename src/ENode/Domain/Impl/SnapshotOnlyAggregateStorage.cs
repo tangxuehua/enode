@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ENode.Domain.Impl
 {
@@ -11,12 +12,12 @@ namespace ENode.Domain.Impl
             _aggregateSnapshotter = aggregateSnapshotter;
         }
 
-        public IAggregateRoot Get(Type aggregateRootType, string aggregateRootId)
+        public async Task<IAggregateRoot> GetAsync(Type aggregateRootType, string aggregateRootId)
         {
             if (aggregateRootType == null) throw new ArgumentNullException("aggregateRootType");
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
 
-            var aggregateRoot = _aggregateSnapshotter.RestoreFromSnapshot(aggregateRootType, aggregateRootId);
+            var aggregateRoot = await _aggregateSnapshotter.RestoreFromSnapshotAsync(aggregateRootType, aggregateRootId);
 
             if (aggregateRoot != null && (aggregateRoot.GetType() != aggregateRootType || aggregateRoot.UniqueId != aggregateRootId))
             {

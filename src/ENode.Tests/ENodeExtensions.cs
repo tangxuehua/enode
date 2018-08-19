@@ -18,6 +18,7 @@ using EQueue.Clients.Consumers;
 using EQueue.Configurations;
 using EQueue.NameServer;
 using EQueue.Protocols;
+using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.Tests
 {
@@ -116,7 +117,7 @@ namespace ENode.Tests
                 return enodeConfiguration;
             }
 
-            var brokerStorePath = @"c:\equeue-store-ut";
+            var brokerStorePath = @"d:\equeue-store-ut";
             var brokerSetting = new BrokerSetting(chunkFileStoreRootPath: brokerStorePath);
 
             if (Directory.Exists(brokerStorePath))
@@ -147,6 +148,8 @@ namespace ENode.Tests
             _publishableExceptionPublisher.Start();
             _eventPublisher.Start();
             _commandService.Start();
+
+            WaitAllProducerTopicQueuesAvailable();
             WaitAllConsumerLoadBalanceComplete();
 
             _isEQueueStarted = true;
@@ -181,6 +184,32 @@ namespace ENode.Tests
             return enodeConfiguration;
         }
 
+        private static void WaitAllProducerTopicQueuesAvailable()
+        {
+            var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);
+            var scheduleService = ObjectContainer.Resolve<IScheduleService>();
+            var waitHandle = new ManualResetEvent(false);
+            logger.Info("Waiting for all producer topic queues available, please wait for a moment...");
+            scheduleService.StartTask("WaitAllProducerTopicQueuesAvailable", () =>
+            {
+                _commandService.Producer.SendOneway(new EQueueMessage("CommandTopic", 100, new byte[1]), "1");
+                _eventPublisher.Producer.SendOneway(new EQueueMessage("EventTopic", 100, new byte[1]), "1");
+                _applicationMessagePublisher.Producer.SendOneway(new EQueueMessage("ApplicationMessageTopic", 100, new byte[1]), "1");
+                _publishableExceptionPublisher.Producer.SendOneway(new EQueueMessage("PublishableExceptionTopic", 100, new byte[1]), "1");
+                var availableQueues1 = _commandService.Producer.GetAvailableMessageQueues("CommandTopic");
+                var availableQueues2 = _eventPublisher.Producer.GetAvailableMessageQueues("EventTopic");
+                var availableQueues3 = _applicationMessagePublisher.Producer.GetAvailableMessageQueues("ApplicationMessageTopic");
+                var availableQueues4 = _publishableExceptionPublisher.Producer.GetAvailableMessageQueues("PublishableExceptionTopic");
+                if (availableQueues1.Count == 4 && availableQueues2.Count == 4 && availableQueues3.Count == 4 && availableQueues4.Count == 4)
+                {
+                    waitHandle.Set();
+                }
+            }, 1000, 1000);
+
+            waitHandle.WaitOne();
+            scheduleService.StopTask("WaitAllProducerTopicQueuesAvailable");
+            logger.Info("All producer topic queues are available.");
+        }
         private static void WaitAllConsumerLoadBalanceComplete()
         {
             var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);

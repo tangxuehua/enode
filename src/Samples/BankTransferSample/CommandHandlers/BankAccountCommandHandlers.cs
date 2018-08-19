@@ -21,9 +21,10 @@ namespace BankTransferSample.CommandHandlers
             get { return true; }
         }
 
-        public void Handle(ICommandContext context, CreateAccountCommand command)
+        public Task HandleAsync(ICommandContext context, CreateAccountCommand command)
         {
             context.Add(new BankAccount(command.AggregateRootId, command.Owner));
+            return Task.CompletedTask;
         }
         public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(ValidateAccountCommand command)
         {
@@ -41,13 +42,15 @@ namespace BankTransferSample.CommandHandlers
 
             return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success, applicationMessage));
         }
-        public void Handle(ICommandContext context, AddTransactionPreparationCommand command)
+        public async Task HandleAsync(ICommandContext context, AddTransactionPreparationCommand command)
         {
-            context.Get<BankAccount>(command.AggregateRootId).AddTransactionPreparation(command.TransactionId, command.TransactionType, command.PreparationType, command.Amount);
+            var account = await context.GetAsync<BankAccount>(command.AggregateRootId);
+            account.AddTransactionPreparation(command.TransactionId, command.TransactionType, command.PreparationType, command.Amount);
         }
-        public void Handle(ICommandContext context, CommitTransactionPreparationCommand command)
+        public async Task HandleAsync(ICommandContext context, CommitTransactionPreparationCommand command)
         {
-            context.Get<BankAccount>(command.AggregateRootId).CommitTransactionPreparation(command.TransactionId);
+            var account = await context.GetAsync<BankAccount>(command.AggregateRootId);
+            account.CommitTransactionPreparation(command.TransactionId);
         }
     }
 }

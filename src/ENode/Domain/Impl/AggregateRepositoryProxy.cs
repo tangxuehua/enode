@@ -1,4 +1,6 @@
-﻿namespace ENode.Domain.Impl
+﻿using System.Threading.Tasks;
+
+namespace ENode.Domain.Impl
 {
     public class AggregateRepositoryProxy<TAggregateRoot> : IAggregateRepositoryProxy where TAggregateRoot : IAggregateRoot
     {
@@ -13,9 +15,9 @@
         {
             return _aggregateRepository;
         }
-        public IAggregateRoot Get(string aggregateRootId)
+        public async Task<IAggregateRoot> GetAsync(string aggregateRootId)
         {
-            return _aggregateRepository.Get(aggregateRootId);
+            return await _aggregateRepository.GetAsync(aggregateRootId);
         }
     }
 }

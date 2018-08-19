@@ -125,12 +125,12 @@ namespace ENode.CommandProcessorPerfTests
                 _printSize = commandCount / 10;
             }
 
-            public void OnCommandExecuted(CommandResult commandResult)
+            public Task OnCommandExecutedAsync(CommandResult commandResult)
             {
                 if (commandResult.Status != CommandStatus.Success)
                 {
                     _logger.Info("Command execute failed.");
-                    return;
+                    return Task.CompletedTask;
                 }
                 var currentCount = Interlocked.Increment(ref _executedCount);
                 if (_isUpdating && currentCount % _printSize == 0)
@@ -141,6 +141,7 @@ namespace ENode.CommandProcessorPerfTests
                 {
                     _waitHandle.Set();
                 }
+                return Task.CompletedTask;
             }
             public void Add(IAggregateRoot aggregateRoot)
             {
@@ -153,7 +154,7 @@ namespace ENode.CommandProcessorPerfTests
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
             }
-            public T Get<T>(object id, bool firstFormCache = true) where T : class, IAggregateRoot
+            public async Task<T> GetAsync<T>(object id, bool firstFormCache = true) where T : class, IAggregateRoot
             {
                 if (id == null)
                 {
@@ -166,7 +167,7 @@ namespace ENode.CommandProcessorPerfTests
                     return aggregateRoot as T;
                 }
 
-                aggregateRoot = _repository.Get<T>(id);
+                aggregateRoot = await _repository.GetAsync<T>(id);
 
                 if (aggregateRoot != null)
                 {

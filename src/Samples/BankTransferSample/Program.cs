@@ -68,25 +68,25 @@ namespace BankTransferSample
             Console.WriteLine(string.Empty);
 
             //每个账户都存入1000元
-            commandService.Send(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), account1, 1000));
+            commandService.SendAsync(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), account1, 1000)).Wait();
             syncHelper.WaitOne();
-            commandService.Send(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), account2, 1000));
+            commandService.SendAsync(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), account2, 1000)).Wait();
             syncHelper.WaitOne();
 
             Console.WriteLine(string.Empty);
 
             //账户1向账户3转账300元，交易会失败，因为账户3不存在
-            commandService.Send(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account1, account3, 300D)));
+            commandService.SendAsync(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account1, account3, 300D))).Wait();
             syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
             //账户1向账户2转账1200元，交易会失败，因为余额不足
-            commandService.Send(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account1, account2, 1200D)));
+            commandService.SendAsync(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account1, account2, 1200D))).Wait();
             syncHelper.WaitOne();
             Console.WriteLine(string.Empty);
 
             //账户2向账户1转账500元，交易成功
-            commandService.Send(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account2, account1, 500D)));
+            commandService.SendAsync(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account2, account1, 500D))).Wait();
             syncHelper.WaitOne();
 
             Thread.Sleep(200);
@@ -145,7 +145,7 @@ namespace BankTransferSample
             //每个账户都存入初始额度
             foreach (var accountId in accountList)
             {
-                commandService.Send(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), accountId, depositAmount));
+                commandService.SendAsync(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), accountId, depositAmount)).Wait();
                 syncHelper.WaitOne();
             }
 

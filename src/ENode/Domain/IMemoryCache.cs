@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ENode.Domain
 {
@@ -12,20 +13,20 @@ namespace ENode.Domain
         /// <param name="aggregateRootId"></param>
         /// <param name="aggregateRootType"></param>
         /// <returns></returns>
-        IAggregateRoot Get(object aggregateRootId, Type aggregateRootType);
+        Task<IAggregateRoot> GetAsync(object aggregateRootId, Type aggregateRootType);
         /// <summary>Get a strong type aggregate from memory cache.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        T Get<T>(object aggregateRootId) where T : class, IAggregateRoot;
+        Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot;
         /// <summary>Set an aggregate to memory cache.
         /// </summary>
         /// <param name="aggregateRoot"></param>
         void Set(IAggregateRoot aggregateRoot);
         /// <summary>Refresh the aggregate memory cache by replaying events of event store.
         /// </summary>
-        void RefreshAggregateFromEventStore(string aggregateRootTypeName, string aggregateRootId);
+        Task RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, string aggregateRootId);
         /// <summary>Start background tasks.
         /// </summary>
         void Start();

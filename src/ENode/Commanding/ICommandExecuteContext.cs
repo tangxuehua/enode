@@ -1,4 +1,6 @@
 ﻿
+using System.Threading.Tasks;
+
 namespace ENode.Commanding
 {
     /// <summary>Represents a context environment for command executor executing command.
@@ -7,6 +9,6 @@ namespace ENode.Commanding
     {
         /// <summary>Notify the given command is executed.
         /// </summary>
-        void OnCommandExecuted(CommandResult commandResult);
+        Task OnCommandExecutedAsync(CommandResult commandResult);
     }
 }

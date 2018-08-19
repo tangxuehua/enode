@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ENode.Domain
 {
@@ -11,12 +12,12 @@ namespace ENode.Domain
         /// <param name="aggregateRootId"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        T Get<T>(object aggregateRootId) where T : class, IAggregateRoot;
+        Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot;
         /// <summary>Get an aggregate from memory cache, if not exist, get it from event store.
         /// </summary>
         /// <param name="aggregateRootType"></param>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        IAggregateRoot Get(Type aggregateRootType, object aggregateRootId);
+        Task<IAggregateRoot> GetAsync(Type aggregateRootType, object aggregateRootId);
     }
 }

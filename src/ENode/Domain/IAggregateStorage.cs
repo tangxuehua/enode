@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ENode.Domain
 {
@@ -11,6 +12,6 @@ namespace ENode.Domain
         /// <param name="aggregateRootType"></param>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        IAggregateRoot Get(Type aggregateRootType, string aggregateRootId);
+        Task<IAggregateRoot> GetAsync(Type aggregateRootType, string aggregateRootId);
     }
 }

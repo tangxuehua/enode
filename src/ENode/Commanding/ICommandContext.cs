@@ -1,4 +1,5 @@
 ﻿using ENode.Domain;
+using System.Threading.Tasks;
 
 namespace ENode.Commanding
 {
@@ -16,7 +17,7 @@ namespace ENode.Commanding
         /// <param name="id"></param>
         /// <param name="firstFromCache"></param>
         /// <returns></returns>
-        T Get<T>(object id, bool firstFromCache = true) where T : class, IAggregateRoot;
+        Task<T> GetAsync<T>(object id, bool firstFromCache = true) where T : class, IAggregateRoot;
         /// <summary>Set the command handle result.
         /// </summary>
         /// <param name="result"></param>

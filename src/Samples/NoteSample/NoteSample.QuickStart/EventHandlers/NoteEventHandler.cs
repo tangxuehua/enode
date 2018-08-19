@@ -17,12 +17,12 @@ namespace NoteSample.QuickStart
 
         public Task<AsyncTaskResult> HandleAsync(NoteCreated evnt)
         {
-            _logger.InfoFormat("Note denormalizered, title：{0}, Version: {1}", evnt.Title, evnt.Version);
+            _logger.InfoFormat("Note denormalized, title：{0}, Version: {1}", evnt.Title, evnt.Version);
             return Task.FromResult(AsyncTaskResult.Success);
         }
         public Task<AsyncTaskResult> HandleAsync(NoteTitleChanged evnt)
         {
-            _logger.InfoFormat("Note denormalizered, title：{0}, Version: {1}", evnt.Title, evnt.Version);
+            _logger.InfoFormat("Note denormalized, title：{0}, Version: {1}", evnt.Title, evnt.Version);
             return Task.FromResult(AsyncTaskResult.Success);
         }
     }

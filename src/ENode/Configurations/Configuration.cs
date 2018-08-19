@@ -50,6 +50,7 @@ namespace ENode.Configurations
         /// <summary>Create the enode configuration instance.
         /// </summary>
         /// <param name="configuration"></param>
+        /// <param name="setting"></param>
         /// <returns></returns>
         public static ENodeConfiguration CreateENode(Configuration configuration, ConfigurationSetting setting)
         {

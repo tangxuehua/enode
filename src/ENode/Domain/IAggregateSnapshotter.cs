@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using ENode.Domain;
 
 namespace ENode.Domain
@@ -9,6 +10,6 @@ namespace ENode.Domain
     {
         /// <summary>Restore the aggregate from snapshot storage.
         /// </summary>
-        IAggregateRoot RestoreFromSnapshot(Type aggregateRootType, string aggregateRootId);
+        Task<IAggregateRoot> RestoreFromSnapshotAsync(Type aggregateRootType, string aggregateRootId);
     }
 }

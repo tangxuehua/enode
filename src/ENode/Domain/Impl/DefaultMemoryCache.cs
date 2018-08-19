@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Configurations;
@@ -30,11 +31,10 @@ namespace ENode.Domain.Impl
             _taskName = "CleanInactiveAggregates_" + DateTime.Now.Ticks + new Random().Next(10000);
         }
 
-        public IAggregateRoot Get(object aggregateRootId, Type aggregateRootType)
+        public async Task<IAggregateRoot> GetAsync(object aggregateRootId, Type aggregateRootType)
         {
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
-            AggregateCacheInfo aggregateRootInfo;
-            if (_aggregateRootInfoDict.TryGetValue(aggregateRootId.ToString(), out aggregateRootInfo))
+            if (_aggregateRootInfoDict.TryGetValue(aggregateRootId.ToString(), out AggregateCacheInfo aggregateRootInfo))
             {
                 var aggregateRoot = aggregateRootInfo.AggregateRoot;
                 if (aggregateRoot.GetType() != aggregateRootType)
@@ -43,7 +43,7 @@ namespace ENode.Domain.Impl
                 }
                 if (aggregateRoot.GetChanges().Count() > 0)
                 {
-                    var lastestAggregateRoot = _aggregateStorage.Get(aggregateRootType, aggregateRootId.ToString());
+                    var lastestAggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId.ToString());
                     if (lastestAggregateRoot != null)
                     {
                         SetInternal(lastestAggregateRoot);
@@ -54,15 +54,15 @@ namespace ENode.Domain.Impl
             }
             return null;
         }
-        public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
+        public async Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot
         {
-            return Get(aggregateRootId, typeof(T)) as T;
+            return await GetAsync(aggregateRootId, typeof(T)) as T;
         }
         public void Set(IAggregateRoot aggregateRoot)
         {
             SetInternal(aggregateRoot);
         }
-        public void RefreshAggregateFromEventStore(string aggregateRootTypeName, string aggregateRootId)
+        public async Task RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, string aggregateRootId)
         {
             try
             {
@@ -72,7 +72,7 @@ namespace ENode.Domain.Impl
                     _logger.ErrorFormat("Could not find aggregate root type by aggregate root type name [{0}].", aggregateRootTypeName);
                     return;
                 }
-                var aggregateRoot = _aggregateStorage.Get(aggregateRootType, aggregateRootId);
+                var aggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId);
                 if (aggregateRoot != null)
                 {
                     SetInternal(aggregateRoot);

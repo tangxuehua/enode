@@ -12,13 +12,12 @@ namespace ENode.EQueue
     public class ApplicationMessageConsumer : IQueueMessageHandler
     {
         private const string DefaultMessageConsumerGroup = "ApplicationMessageConsumerGroup";
-        private Consumer _consumer;
         private IJsonSerializer _jsonSerializer;
         private ITypeNameProvider _typeNameProvider;
         private IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage> _processor;
         private ILogger _logger;
 
-        public Consumer Consumer { get { return _consumer; } }
+        public Consumer Consumer { get; private set; }
 
         public ApplicationMessageConsumer InitializeENode()
         {
@@ -31,27 +30,27 @@ namespace ENode.EQueue
         public ApplicationMessageConsumer InitializeEQueue(string groupName = null, ConsumerSetting setting = null)
         {
             InitializeENode();
-            _consumer = new Consumer(groupName ?? DefaultMessageConsumerGroup, setting ?? new ConsumerSetting
+            Consumer = new Consumer(groupName ?? DefaultMessageConsumerGroup, setting ?? new ConsumerSetting
             {
                 MessageHandleMode = MessageHandleMode.Sequential,
                 ConsumeFromWhere = ConsumeFromWhere.FirstOffset
-            });
+            }, "ApplicationMessageConsumer");
             return this;
         }
 
         public ApplicationMessageConsumer Start()
         {
-            _consumer.SetMessageHandler(this).Start();
+            Consumer.SetMessageHandler(this).Start();
             return this;
         }
         public ApplicationMessageConsumer Subscribe(string topic)
         {
-            _consumer.Subscribe(topic);
+            Consumer.Subscribe(topic);
             return this;
         }
         public ApplicationMessageConsumer Shutdown()
         {
-            _consumer.Stop();
+            Consumer.Stop();
             return this;
         }
 

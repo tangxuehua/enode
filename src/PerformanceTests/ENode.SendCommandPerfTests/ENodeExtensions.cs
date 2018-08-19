@@ -1,11 +1,16 @@
 ﻿using System.IO;
 using System.Reflection;
+using System.Threading;
+using ECommon.Components;
+using ECommon.Logging;
+using ECommon.Scheduling;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.EQueue;
 using EQueue.Broker;
 using EQueue.Configurations;
 using EQueue.NameServer;
+using EQueue.Protocols;
 
 namespace ENode.SendCommandPerfTests
 {
@@ -34,7 +39,7 @@ namespace ENode.SendCommandPerfTests
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
-            var brokerStorePath = @"c:\equeue-store";
+            var brokerStorePath = @"d:\send-command-equeue-store";
             if (Directory.Exists(brokerStorePath))
             {
                 Directory.Delete(brokerStorePath, true);
@@ -43,11 +48,12 @@ namespace ENode.SendCommandPerfTests
             _commandService.InitializeEQueue();
 
             _nameServerController = new NameServerController();
-            _broker = BrokerController.Create();
+            _broker = BrokerController.Create(new BrokerSetting(chunkFileStoreRootPath: brokerStorePath));
 
             _nameServerController.Start();
             _broker.Start();
             _commandService.Start();
+            WaitAllProducerTopicQueuesAvailable();
             return enodeConfiguration;
         }
         public static ENodeConfiguration ShutdownEQueue(this ENodeConfiguration enodeConfiguration)
@@ -56,6 +62,27 @@ namespace ENode.SendCommandPerfTests
             _broker.Shutdown();
             _nameServerController.Shutdown();
             return enodeConfiguration;
+        }
+
+        private static void WaitAllProducerTopicQueuesAvailable()
+        {
+            var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);
+            var scheduleService = ObjectContainer.Resolve<IScheduleService>();
+            var waitHandle = new ManualResetEvent(false);
+            logger.Info("Waiting for all producer topic queues available, please wait for a moment...");
+            scheduleService.StartTask("WaitAllProducerTopicQueuesAvailable", () =>
+            {
+                _commandService.Producer.SendOneway(new Message("NoteCommandTopic", 100, new byte[1]), "1");
+                var availableQueues = _commandService.Producer.GetAvailableMessageQueues("NoteCommandTopic");
+                if (availableQueues.Count == 4)
+                {
+                    waitHandle.Set();
+                }
+            }, 1000, 1000);
+
+            waitHandle.WaitOne();
+            scheduleService.StopTask("WaitAllProducerTopicQueuesAvailable");
+            logger.Info("All producer topic queues are available.");
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -15,6 +16,7 @@ using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Configurations;
 using EQueue.NameServer;
+using EQueueMessage = EQueue.Protocols.Message;
 
 namespace NoteSample.QuickStart
 {
@@ -50,6 +52,12 @@ namespace NoteSample.QuickStart
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            var brokerStorePath = ConfigurationManager.AppSettings["equeue-store-path"];
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
             var configuration = enodeConfiguration.GetCommonConfiguration();
 
             _commandService.InitializeEQueue(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000)));
@@ -57,14 +65,8 @@ namespace NoteSample.QuickStart
             _commandConsumer = new CommandConsumer().InitializeEQueue().Subscribe("NoteCommandTopic");
             _eventConsumer = new DomainEventConsumer().InitializeEQueue().Subscribe("NoteEventTopic");
 
-            var brokerStorePath = @"c:\equeue-store";
-            if (Directory.Exists(brokerStorePath))
-            {
-                Directory.Delete(brokerStorePath, true);
-            }
-
             _nameServerController = new NameServerController();
-            _broker = BrokerController.Create();
+            _broker = BrokerController.Create(new BrokerSetting(chunkFileStoreRootPath: brokerStorePath));
 
             _nameServerController.Start();
             _broker.Start();
@@ -73,6 +75,7 @@ namespace NoteSample.QuickStart
             _eventPublisher.Start();
             _commandService.Start();
 
+            WaitAllProducerTopicQueuesAvailable();
             WaitAllConsumerLoadBalanceComplete();
 
             return enodeConfiguration;
@@ -88,6 +91,28 @@ namespace NoteSample.QuickStart
             return enodeConfiguration;
         }
 
+        private static void WaitAllProducerTopicQueuesAvailable()
+        {
+            var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);
+            var scheduleService = ObjectContainer.Resolve<IScheduleService>();
+            var waitHandle = new ManualResetEvent(false);
+            logger.Info("Waiting for all producer topic queues available, please wait for a moment...");
+            scheduleService.StartTask("WaitAllProducerTopicQueuesAvailable", () =>
+            {
+                _commandService.Producer.SendOneway(new EQueueMessage("NoteCommandTopic", 100, new byte[1]), "1");
+                _eventPublisher.Producer.SendOneway(new EQueueMessage("NoteEventTopic", 100, new byte[1]), "1");
+                var availableQueues1 = _commandService.Producer.GetAvailableMessageQueues("NoteCommandTopic");
+                var availableQueues2 = _eventPublisher.Producer.GetAvailableMessageQueues("NoteEventTopic");
+                if (availableQueues1.Count == 4 && availableQueues2.Count == 4)
+                {
+                    waitHandle.Set();
+                }
+            }, 1000, 1000);
+
+            waitHandle.WaitOne();
+            scheduleService.StopTask("WaitAllProducerTopicQueuesAvailable");
+            logger.Info("All producer topic queues are available.");
+        }
         private static void WaitAllConsumerLoadBalanceComplete()
         {
             var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);

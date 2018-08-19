@@ -1,6 +1,7 @@
 ﻿using BankTransferSample.Commands;
 using BankTransferSample.Domain;
 using ENode.Commanding;
+using System.Threading.Tasks;
 
 namespace BankTransferSample.CommandHandlers
 {
@@ -11,17 +12,20 @@ namespace BankTransferSample.CommandHandlers
         ICommandHandler<ConfirmDepositPreparationCommand>,                    //确认预存款
         ICommandHandler<ConfirmDepositCommand>                                //确认存款
     {
-        public void Handle(ICommandContext context, StartDepositTransactionCommand command)
+        public Task HandleAsync(ICommandContext context, StartDepositTransactionCommand command)
         {
             context.Add(new DepositTransaction(command.AggregateRootId, command.AccountId, command.Amount));
+            return Task.CompletedTask;
         }
-        public void Handle(ICommandContext context, ConfirmDepositPreparationCommand command)
+        public async Task HandleAsync(ICommandContext context, ConfirmDepositPreparationCommand command)
         {
-            context.Get<DepositTransaction>(command.AggregateRootId).ConfirmDepositPreparation();
+            var transaction = await context.GetAsync<DepositTransaction>(command.AggregateRootId);
+            transaction.ConfirmDepositPreparation();
         }
-        public void Handle(ICommandContext context, ConfirmDepositCommand command)
+        public async Task HandleAsync(ICommandContext context, ConfirmDepositCommand command)
         {
-            context.Get<DepositTransaction>(command.AggregateRootId).ConfirmDeposit();
+            var transaction = await context.GetAsync<DepositTransaction>(command.AggregateRootId);
+            transaction.ConfirmDeposit();
         }
     }
 }

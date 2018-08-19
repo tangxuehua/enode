@@ -17,10 +17,8 @@ namespace ENode.SendCommandPerfTests
         static void Main(string[] args)
         {
             InitializeENodeFramework();
-            var sendAsyncCount = int.Parse(ConfigurationManager.AppSettings["sendAsyncCount"]);
-            var sendSyncount = int.Parse(ConfigurationManager.AppSettings["sendSyncount"]);
-            SendCommandAsync(sendAsyncCount);
-            SendCommandSync(sendSyncount);
+            var count = int.Parse(ConfigurationManager.AppSettings["count"]);
+            SendCommandAsync(count);
             Console.ReadLine();
         }
 
@@ -66,26 +64,6 @@ namespace ENode.SendCommandPerfTests
             }
             waitHandle.WaitOne();
             Console.WriteLine("--Commands send async completed, throughput: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
-        }
-        static void SendCommandSync(int commandCount)
-        {
-            var commands = CreateCommands(commandCount);
-            var watch = Stopwatch.StartNew();
-            var sentCount = 0;
-            var printSize = commandCount / 10;
-            var commandService = ObjectContainer.Resolve<ICommandService>();
-            Console.WriteLine("");
-            Console.WriteLine("--Start to send commands synchronously, total count: {0}.", commandCount);
-            foreach (var command in commands)
-            {
-                commandService.Send(command);
-                sentCount++;
-                if (sentCount % printSize == 0)
-                {
-                    Console.WriteLine("----Sent {0} commands, time spent: {1}ms", sentCount, watch.ElapsedMilliseconds);
-                }
-            }
-            Console.WriteLine("--Commands send completed, throughput: {0}/s", commandCount * 1000 / watch.ElapsedMilliseconds);
         }
         static void InitializeENodeFramework()
         {

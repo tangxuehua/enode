@@ -1,14 +1,16 @@
 ﻿using ENode.Commanding;
 using NoteSample.Commands;
 using NoteSample.Domain;
+using System.Threading.Tasks;
 
 namespace NoteSample.CommandHandlers
 {
     public class ChangeNoteTitleCommandHandler : ICommandHandler<ChangeNoteTitleCommand>
     {
-        public void Handle(ICommandContext context, ChangeNoteTitleCommand command)
+        public async Task HandleAsync(ICommandContext context, ChangeNoteTitleCommand command)
         {
-            context.Get<Note>(command.AggregateRootId).ChangeTitle(command.Title);
+            var note = await context.GetAsync<Note>(command.AggregateRootId);
+            note.ChangeTitle(command.Title);
         }
     }
 }

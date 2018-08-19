@@ -13,13 +13,12 @@ namespace ENode.EQueue
     public class PublishableExceptionConsumer : IQueueMessageHandler
     {
         private const string DefaultExceptionConsumerGroup = "ExceptionConsumerGroup";
-        private Consumer _consumer;
         private IJsonSerializer _jsonSerializer;
         private ITypeNameProvider _typeNameProvider;
         private IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException> _publishableExceptionProcessor;
         private ILogger _logger;
 
-        public Consumer Consumer { get { return _consumer; } }
+        public Consumer Consumer { get; private set; }
 
         public PublishableExceptionConsumer InitializeENode()
         {
@@ -32,27 +31,27 @@ namespace ENode.EQueue
         public PublishableExceptionConsumer InitializeEQueue(string groupName = null, ConsumerSetting setting = null)
         {
             InitializeENode();
-            _consumer = new Consumer(groupName ?? DefaultExceptionConsumerGroup, setting ?? new ConsumerSetting
+            Consumer = new Consumer(groupName ?? DefaultExceptionConsumerGroup, setting ?? new ConsumerSetting
             {
                 MessageHandleMode = MessageHandleMode.Sequential,
                 ConsumeFromWhere = ConsumeFromWhere.FirstOffset
-            });
+            }, "PublishableExceptionConsumer");
             return this;
         }
 
         public PublishableExceptionConsumer Start()
         {
-            _consumer.SetMessageHandler(this).Start();
+            Consumer.SetMessageHandler(this).Start();
             return this;
         }
         public PublishableExceptionConsumer Subscribe(string topic)
         {
-            _consumer.Subscribe(topic);
+            Consumer.Subscribe(topic);
             return this;
         }
         public PublishableExceptionConsumer Shutdown()
         {
-            _consumer.Stop();
+            Consumer.Stop();
             return this;
         }
 

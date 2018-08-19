@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ECommon.Extensions;
 using ECommon.Logging;
 using ENode.Configurations;
+using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
@@ -15,8 +16,7 @@ namespace ENode.Commanding
 
         private readonly ILogger _logger;
         private readonly object _lockObj = new object();
-        private readonly object _lockObj2 = new object();
-        private readonly string _aggregateRootId;
+        private readonly AsyncLock _asyncLock = new AsyncLock();
         private readonly ConcurrentDictionary<long, ProcessingCommand> _messageDict;
         private readonly Dictionary<long, CommandResult> _requestToCompleteCommandDict;
         private readonly IProcessingCommandHandler _messageHandler;
@@ -29,21 +29,11 @@ namespace ENode.Commanding
         private int _isRunning;
         private bool _isPaused;
         private bool _isProcessingCommand;
-        private DateTime _lastActiveTime;
 
         #endregion
 
-        public string AggregateRootId
-        {
-            get
-            {
-                return _aggregateRootId;
-            }
-        }
-        public DateTime LastActiveTime
-        {
-            get { return _lastActiveTime; }
-        }
+        public string AggregateRootId { get; private set; }
+        public DateTime LastActiveTime { get; private set; }
         public bool IsRunning
         {
             get { return _isRunning == 1; }
@@ -56,11 +46,11 @@ namespace ENode.Commanding
             _pauseWaitHandle = new ManualResetEvent(false);
             _processingWaitHandle = new ManualResetEvent(false);
             _batchSize = ENodeConfiguration.Instance.Setting.CommandMailBoxPersistenceMaxBatchSize;
-            _aggregateRootId = aggregateRootId;
+            AggregateRootId = aggregateRootId;
             _messageHandler = messageHandler;
             _logger = logger;
             _consumedSequence = -1;
-            _lastActiveTime = DateTime.Now;
+            LastActiveTime = DateTime.Now;
         }
 
         public void EnqueueMessage(ProcessingCommand message)
@@ -74,12 +64,12 @@ namespace ENode.Commanding
                     _nextSequence++;
                 }
             }
-            _lastActiveTime = DateTime.Now;
+            LastActiveTime = DateTime.Now;
             TryRun();
         }
         public void Pause()
         {
-            _lastActiveTime = DateTime.Now;
+            LastActiveTime = DateTime.Now;
             _pauseWaitHandle.Reset();
             while (_isProcessingCommand)
             {
@@ -90,28 +80,28 @@ namespace ENode.Commanding
         }
         public void Resume()
         {
-            _lastActiveTime = DateTime.Now;
+            LastActiveTime = DateTime.Now;
             _isPaused = false;
             _pauseWaitHandle.Set();
             TryRun();
         }
         public void ResetConsumingSequence(long consumingSequence)
         {
-            _lastActiveTime = DateTime.Now;
+            LastActiveTime = DateTime.Now;
             _consumingSequence = consumingSequence;
             _requestToCompleteCommandDict.Clear();
         }
-        public void CompleteMessage(ProcessingCommand processingCommand, CommandResult commandResult)
+        public async Task CompleteMessage(ProcessingCommand processingCommand, CommandResult commandResult)
         {
-            lock (_lockObj2)
+            using (await _asyncLock.LockAsync())
             {
-                _lastActiveTime = DateTime.Now;
+                LastActiveTime = DateTime.Now;
                 try
                 {
                     if (processingCommand.Sequence == _consumedSequence + 1)
                     {
                         _messageDict.Remove(processingCommand.Sequence);
-                        CompleteCommand(processingCommand, commandResult);
+                        await CompleteCommand(processingCommand, commandResult);
                         _consumedSequence = ProcessNextCompletedCommands(processingCommand.Sequence);
                     }
                     else if (processingCommand.Sequence > _consumedSequence + 1)
@@ -121,7 +111,7 @@ namespace ENode.Commanding
                     else if (processingCommand.Sequence < _consumedSequence + 1)
                     {
                         _messageDict.Remove(processingCommand.Sequence);
-                        CompleteCommand(processingCommand, commandResult);
+                        await CompleteCommand(processingCommand, commandResult);
                         _requestToCompleteCommandDict.Remove(processingCommand.Sequence);
                     }
                 }
@@ -131,9 +121,9 @@ namespace ENode.Commanding
                 }
             }
         }
-        public void Run()
+        public async void Run()
         {
-            _lastActiveTime = DateTime.Now;
+            LastActiveTime = DateTime.Now;
             while (_isPaused)
             {
                 _logger.InfoFormat("Command mailbox is pausing and we should wait for a while, aggregateRootId: {0}", AggregateRootId);
@@ -150,7 +140,7 @@ namespace ENode.Commanding
                     processingCommand = GetProcessingCommand(_consumingSequence);
                     if (processingCommand != null)
                     {
-                        _messageHandler.Handle(processingCommand);
+                        await _messageHandler.Handle(processingCommand);
                     }
                     _consumingSequence++;
                     count++;
@@ -179,8 +169,7 @@ namespace ENode.Commanding
 
         private ProcessingCommand GetProcessingCommand(long sequence)
         {
-            ProcessingCommand processingMessage;
-            if (_messageDict.TryGetValue(sequence, out processingMessage))
+            if (_messageDict.TryGetValue(sequence, out ProcessingCommand processingMessage))
             {
                 return processingMessage;
             }
@@ -192,8 +181,7 @@ namespace ENode.Commanding
             var nextSequence = baseSequence + 1;
             while (_requestToCompleteCommandDict.ContainsKey(nextSequence))
             {
-                var processingCommand = default(ProcessingCommand);
-                if (_messageDict.TryRemove(nextSequence, out processingCommand))
+                if (_messageDict.TryRemove(nextSequence, out ProcessingCommand processingCommand))
                 {
                     var commandResult = _requestToCompleteCommandDict[nextSequence];
                     CompleteCommand(processingCommand, commandResult);
@@ -204,15 +192,16 @@ namespace ENode.Commanding
             }
             return returnSequence;
         }
-        private void CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
+        private Task CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
         {
             try
             {
-                processingCommand.Complete(commandResult);
+                return processingCommand.CompleteAsync(commandResult);
             }
             catch (Exception ex)
             {
                 _logger.Error(string.Format("Failed to complete command, commandId: {0}, aggregateRootId: {1}", processingCommand.Message.Id, processingCommand.Message.AggregateRootId), ex);
+                return Task.CompletedTask;
             }
         }
         private void TryRun()

@@ -1,10 +1,11 @@
 ﻿using ENode.Infrastructure;
+using System.Threading.Tasks;
 
 namespace ENode.Domain
 {
     public interface IAggregateRepositoryProxy : IObjectProxy
     {
-        IAggregateRoot Get(string aggregateRootId);
+        Task<IAggregateRoot> GetAsync(string aggregateRootId);
     }
     /// <summary>Represents an aggregate repository.
     /// </summary>
@@ -12,6 +13,6 @@ namespace ENode.Domain
     {
         /// <summary>Get aggregate by id.
         /// </summary>
-        TAggregateRoot Get(string aggregateRootId);
+        Task<TAggregateRoot> GetAsync(string aggregateRootId);
     }
 }

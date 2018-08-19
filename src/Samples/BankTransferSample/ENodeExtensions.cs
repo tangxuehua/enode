@@ -16,6 +16,7 @@ using ENode.Infrastructure;
 using EQueue.Broker;
 using EQueue.Configurations;
 using EQueue.NameServer;
+using EQueueMessage = EQueue.Protocols.Message;
 
 namespace BankTransferSample
 {
@@ -59,24 +60,24 @@ namespace BankTransferSample
         }
         public static ENodeConfiguration StartEQueue(this ENodeConfiguration enodeConfiguration)
         {
+            var brokerStorePath = ConfigurationManager.AppSettings["equeue-store-path"];
+            if (Directory.Exists(brokerStorePath))
+            {
+                Directory.Delete(brokerStorePath, true);
+            }
+
             _commandService.InitializeEQueue(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9000)));
             _applicationMessagePublisher.InitializeEQueue();
             _domainEventPublisher.InitializeEQueue();
             _exceptionPublisher.InitializeEQueue();
 
             _nameServerController = new NameServerController();
-            _broker = BrokerController.Create();
+            _broker = BrokerController.Create(new BrokerSetting(chunkFileStoreRootPath: brokerStorePath));
 
             _commandConsumer = new CommandConsumer().InitializeEQueue().Subscribe("BankTransferCommandTopic");
             _applicationMessageConsumer = new ApplicationMessageConsumer().InitializeEQueue().Subscribe("BankTransferApplicationMessageTopic");
             _eventConsumer = new DomainEventConsumer().InitializeEQueue().Subscribe("BankTransferEventTopic");
             _exceptionConsumer = new PublishableExceptionConsumer().InitializeEQueue().Subscribe("BankTransferExceptionTopic");
-
-            var brokerStorePath = ConfigurationManager.AppSettings["equeue-store-path"];
-            if (Directory.Exists(brokerStorePath))
-            {
-                Directory.Delete(brokerStorePath, true);
-            }
 
             _nameServerController.Start();
             _broker.Start();
@@ -89,6 +90,7 @@ namespace BankTransferSample
             _exceptionPublisher.Start();
             _commandService.Start();
 
+            WaitAllProducerTopicQueuesAvailable();
             WaitAllConsumerLoadBalanceComplete();
 
             return enodeConfiguration;
@@ -108,6 +110,32 @@ namespace BankTransferSample
             return enodeConfiguration;
         }
 
+        private static void WaitAllProducerTopicQueuesAvailable()
+        {
+            var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);
+            var scheduleService = ObjectContainer.Resolve<IScheduleService>();
+            var waitHandle = new ManualResetEvent(false);
+            logger.Info("Waiting for all producer topic queues available, please wait for a moment...");
+            scheduleService.StartTask("WaitAllProducerTopicQueuesAvailable", () =>
+            {
+                _commandService.Producer.SendOneway(new EQueueMessage("BankTransferCommandTopic", 100, new byte[1]), "1");
+                _domainEventPublisher.Producer.SendOneway(new EQueueMessage("BankTransferEventTopic", 100, new byte[1]), "1");
+                _applicationMessagePublisher.Producer.SendOneway(new EQueueMessage("BankTransferApplicationMessageTopic", 100, new byte[1]), "1");
+                _exceptionPublisher.Producer.SendOneway(new EQueueMessage("BankTransferExceptionTopic", 100, new byte[1]), "1");
+                var availableQueues1 = _commandService.Producer.GetAvailableMessageQueues("BankTransferCommandTopic");
+                var availableQueues2 = _domainEventPublisher.Producer.GetAvailableMessageQueues("BankTransferEventTopic");
+                var availableQueues3 = _applicationMessagePublisher.Producer.GetAvailableMessageQueues("BankTransferApplicationMessageTopic");
+                var availableQueues4 = _exceptionPublisher.Producer.GetAvailableMessageQueues("BankTransferExceptionTopic");
+                if (availableQueues1.Count == 4 && availableQueues2.Count == 4 && availableQueues3.Count == 4 && availableQueues4.Count == 4)
+                {
+                    waitHandle.Set();
+                }
+            }, 1000, 1000);
+
+            waitHandle.WaitOne();
+            scheduleService.StopTask("WaitAllProducerTopicQueuesAvailable");
+            logger.Info("All producer topic queues are available.");
+        }
         private static void WaitAllConsumerLoadBalanceComplete()
         {
             var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeExtensions).Name);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ENode.Domain.Impl
 {
@@ -13,11 +14,11 @@ namespace ENode.Domain.Impl
             _aggregateRootStorage = aggregateRootStorage;
         }
 
-        public T Get<T>(object aggregateRootId) where T : class, IAggregateRoot
+        public async Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot
         {
-            return Get(typeof(T), aggregateRootId) as T;
+            return await GetAsync(typeof(T), aggregateRootId) as T;
         }
-        public IAggregateRoot Get(Type aggregateRootType, object aggregateRootId)
+        public async Task<IAggregateRoot> GetAsync(Type aggregateRootType, object aggregateRootId)
         {
             if (aggregateRootType == null)
             {
@@ -27,7 +28,7 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            return _memoryCache.Get(aggregateRootId, aggregateRootType) ?? _aggregateRootStorage.Get(aggregateRootType, aggregateRootId.ToString());
+            return await _memoryCache.GetAsync(aggregateRootId, aggregateRootType) ?? await _aggregateRootStorage.GetAsync(aggregateRootType, aggregateRootId.ToString());
         }
     }
 }

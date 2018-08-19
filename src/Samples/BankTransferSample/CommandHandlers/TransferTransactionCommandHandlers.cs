@@ -1,6 +1,7 @@
 ﻿using BankTransferSample.Commands;
 using BankTransferSample.Domain;
 using ENode.Commanding;
+using System.Threading.Tasks;
 
 namespace BankTransferSample.CommandHandlers
 {
@@ -15,33 +16,40 @@ namespace BankTransferSample.CommandHandlers
         ICommandHandler<ConfirmTransferInCommand>,                              //确认转入
         ICommandHandler<CancelTransferTransactionCommand>                       //取消交易
     {
-        public void Handle(ICommandContext context, StartTransferTransactionCommand command)
+        public Task HandleAsync(ICommandContext context, StartTransferTransactionCommand command)
         {
             context.Add(new TransferTransaction(command.AggregateRootId, command.TransactionInfo));
+            return Task.CompletedTask;
         }
-        public void Handle(ICommandContext context, ConfirmAccountValidatePassedCommand command)
+        public async Task HandleAsync(ICommandContext context, ConfirmAccountValidatePassedCommand command)
         {
-            context.Get<TransferTransaction>(command.AggregateRootId).ConfirmAccountValidatePassed(command.AccountId);
+            var transaction = await context.GetAsync<TransferTransaction>(command.AggregateRootId);
+            transaction.ConfirmAccountValidatePassed(command.AccountId);
         }
-        public void Handle(ICommandContext context, ConfirmTransferOutPreparationCommand command)
+        public async Task HandleAsync(ICommandContext context, ConfirmTransferOutPreparationCommand command)
         {
-            context.Get<TransferTransaction>(command.AggregateRootId).ConfirmTransferOutPreparation();
+            var transaction = await context.GetAsync<TransferTransaction>(command.AggregateRootId);
+            transaction.ConfirmTransferOutPreparation();
         }
-        public void Handle(ICommandContext context, ConfirmTransferInPreparationCommand command)
+        public async Task HandleAsync(ICommandContext context, ConfirmTransferInPreparationCommand command)
         {
-            context.Get<TransferTransaction>(command.AggregateRootId).ConfirmTransferInPreparation();
+            var transaction = await context.GetAsync<TransferTransaction>(command.AggregateRootId);
+            transaction.ConfirmTransferInPreparation();
         }
-        public void Handle(ICommandContext context, ConfirmTransferOutCommand command)
+        public async Task HandleAsync(ICommandContext context, ConfirmTransferOutCommand command)
         {
-            context.Get<TransferTransaction>(command.AggregateRootId).ConfirmTransferOut();
+            var transaction = await context.GetAsync<TransferTransaction>(command.AggregateRootId);
+            transaction.ConfirmTransferOut();
         }
-        public void Handle(ICommandContext context, ConfirmTransferInCommand command)
+        public async Task HandleAsync(ICommandContext context, ConfirmTransferInCommand command)
         {
-            context.Get<TransferTransaction>(command.AggregateRootId).ConfirmTransferIn();
+            var transaction = await context.GetAsync<TransferTransaction>(command.AggregateRootId);
+            transaction.ConfirmTransferIn();
         }
-        public void Handle(ICommandContext context, CancelTransferTransactionCommand command)
+        public async Task HandleAsync(ICommandContext context, CancelTransferTransactionCommand command)
         {
-            context.Get<TransferTransaction>(command.AggregateRootId).Cancel();
+            var transaction = await context.GetAsync<TransferTransaction>(command.AggregateRootId);
+            transaction.Cancel();
         }
     }
 }

@@ -103,7 +103,7 @@ namespace ENode.Domain
         }
         /// <summary>Apply multiple domain events to the current aggregate root.
         /// </summary>
-        /// <param name="domainEvent"></param>
+        /// <param name="domainEvents"></param>
         protected void ApplyEvents(params IDomainEvent<TAggregateRootId>[] domainEvents)
         {
             foreach (var domainEvent in domainEvents)

@@ -79,39 +79,6 @@ namespace ENode.SqlServer
 
             return this;
         }
-        public IEnumerable<DomainEventStream> QueryAggregateEvents(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
-        {
-            var records = _ioHelper.TryIOFunc(() =>
-            {
-                try
-                {
-                    using (var connection = GetConnection())
-                    {
-                        var sql = string.Format(QueryEventsSql, GetTableName(aggregateRootId));
-                        return connection.Query<StreamRecord>(sql, new
-                        {
-                            AggregateRootId = aggregateRootId,
-                            MinVersion = minVersion,
-                            MaxVersion = maxVersion
-                        });
-                    }
-                }
-                catch (SqlException ex)
-                {
-                    var errorMessage = string.Format("Failed to query aggregate events, aggregateRootId: {0}, aggregateRootType: {1}", aggregateRootId, aggregateRootTypeName);
-                    _logger.Error(errorMessage, ex);
-                    throw new IOException(errorMessage, ex);
-                }
-                catch (Exception ex)
-                {
-                    var errorMessage = string.Format("Failed to query aggregate events, aggregateRootId: {0}, aggregateRootType: {1}", aggregateRootId, aggregateRootTypeName);
-                    _logger.Error(errorMessage, ex);
-                    throw;
-                }
-            }, "QueryAggregateEvents");
-
-            return records.Select(record => ConvertFrom(record));
-        }
         public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             return _ioHelper.TryIOFuncAsync(async () =>

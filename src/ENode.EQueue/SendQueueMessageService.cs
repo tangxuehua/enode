@@ -19,27 +19,6 @@ namespace ENode.EQueue
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
         }
 
-        public void SendMessage(Producer producer, EQueueMessage message, string routingKey, string messageId, string version)
-        {
-            try
-            {
-                _ioHelper.TryIOAction(() =>
-                {
-                    var result = producer.Send(message, routingKey);
-                    if (result.SendStatus != SendStatus.Success)
-                    {
-                        _logger.ErrorFormat("ENode message sync send failed, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
-                        throw new IOException(result.ErrorMessage);
-                    }
-                    _logger.InfoFormat("ENode message sync send success, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
-                }, "SendENodeMessage");
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("ENode message synch send has exception, message: {0}, routingKey: {1}, messageId: {2}, version: {3}", message, routingKey, messageId, version), ex);
-                throw;
-            }
-        }
         public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, EQueueMessage message, string routingKey, string messageId, string version)
         {
             try

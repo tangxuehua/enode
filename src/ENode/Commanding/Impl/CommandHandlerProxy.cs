@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using ECommon.Components;
 
 namespace ENode.Commanding.Impl
@@ -14,10 +15,10 @@ namespace ENode.Commanding.Impl
             _commandHandlerType = commandHandlerType;
         }
 
-        public void Handle(ICommandContext context, ICommand command)
+        public Task HandleAsync(ICommandContext context, ICommand command)
         {
             var handler = GetInnerObject() as ICommandHandler<TCommand>;
-            handler.Handle(context, command as TCommand);
+            return handler.HandleAsync(context, command as TCommand);
         }
         public object GetInnerObject()
         {

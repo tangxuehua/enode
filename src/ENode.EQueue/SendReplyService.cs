@@ -16,6 +16,7 @@ namespace ENode.EQueue
 {
     internal class SendReplyService
     {
+        private readonly string _name;
         private readonly ConcurrentDictionary<string, SocketRemotingClient> _remotingClientDict;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IScheduleService _scheduleService;
@@ -23,8 +24,9 @@ namespace ENode.EQueue
         private readonly ILogger _logger;
         private readonly string _scanInactiveCommandRemotingClientTaskName;
 
-        public SendReplyService()
+        public SendReplyService(string name)
         {
+            _name = name;
             _remotingClientDict = new ConcurrentDictionary<string, SocketRemotingClient>();
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _scheduleService = ObjectContainer.Resolve<IScheduleService>();
@@ -45,7 +47,7 @@ namespace ENode.EQueue
                 remotingClient.Shutdown();
             }
         }
-        public void SendReply(short replyType, object replyData, string replyAddress)
+        public Task SendReply(short replyType, object replyData, string replyAddress)
         {
             Task.Factory.StartNew(obj =>
             {
@@ -72,6 +74,7 @@ namespace ENode.EQueue
                     _logger.Error("Send command reply has exeption, replyAddress: " + context.ReplyAddress, ex);
                 }
             }, new SendReplyContext(replyType, replyData, replyAddress));
+            return Task.CompletedTask;
         }
 
         private void ScanInactiveRemotingClients()
@@ -86,8 +89,7 @@ namespace ENode.EQueue
             }
             foreach (var pair in inactiveList)
             {
-                SocketRemotingClient removed;
-                if (_remotingClientDict.TryRemove(pair.Key, out removed))
+                if (_remotingClientDict.TryRemove(pair.Key, out SocketRemotingClient removed))
                 {
                     _logger.InfoFormat("Removed disconnected command remoting client, remotingAddress: {0}", pair.Key);
                 }
@@ -135,7 +137,7 @@ namespace ENode.EQueue
         {
             return _remotingClientDict.GetOrAdd(ToReplyAddress(replyEndpoint), key =>
             {
-                return new SocketRemotingClient(replyEndpoint).Start();
+                return new SocketRemotingClient(_name, replyEndpoint).Start();
             });
         }
 

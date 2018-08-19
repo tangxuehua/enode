@@ -17,10 +17,9 @@ namespace ENode.EQueue
         private IJsonSerializer _jsonSerializer;
         private ITopicProvider<IDomainEvent> _eventTopicProvider;
         private IEventSerializer _eventSerializer;
-        private Producer _producer;
         private SendQueueMessageService _sendMessageService;
 
-        public Producer Producer { get { return _producer; } }
+        public Producer Producer { get; private set; }
 
         public DomainEventPublisher InitializeENode()
         {
@@ -33,24 +32,24 @@ namespace ENode.EQueue
         public DomainEventPublisher InitializeEQueue(ProducerSetting setting = null)
         {
             InitializeENode();
-            _producer = new Producer(setting);
+            Producer = new Producer(setting, "DomainEventPublisher");
             return this;
         }
 
         public DomainEventPublisher Start()
         {
-            _producer.Start();
+            Producer.Start();
             return this;
         }
         public DomainEventPublisher Shutdown()
         {
-            _producer.Shutdown();
+            Producer.Shutdown();
             return this;
         }
         public Task<AsyncTaskResult> PublishAsync(DomainEventStreamMessage eventStream)
         {
             var message = CreateEQueueMessage(eventStream);
-            return _sendMessageService.SendMessageAsync(_producer, message, eventStream.GetRoutingKey() ?? eventStream.AggregateRootId, eventStream.Id, eventStream.Version.ToString());
+            return _sendMessageService.SendMessageAsync(Producer, message, eventStream.GetRoutingKey() ?? eventStream.AggregateRootId, eventStream.Id, eventStream.Version.ToString());
         }
 
         private EQueueMessage CreateEQueueMessage(DomainEventStreamMessage eventStream)

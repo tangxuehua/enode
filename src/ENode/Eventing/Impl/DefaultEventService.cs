@@ -156,7 +156,7 @@ namespace ENode.Eventing.Impl
                     else
                     {
                         _logger.WarnFormat("Batch persist event has concurrent version conflict, first eventStream: {0}, batchSize: {1}", context.EventStream, committingContexts.Count);
-                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence);
+                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence).ContinueWith(t => { }).ConfigureAwait(false);
                     }
                 }
                 else if (appendResult == EventAppendResult.DuplicateCommand)
@@ -214,13 +214,13 @@ namespace ENode.Eventing.Impl
                     else
                     {
                         _logger.WarnFormat("Persist event has concurrent version conflict, eventStream: {0}", context.EventStream);
-                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence);
+                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence).ContinueWith(t => { }).ConfigureAwait(false);
                     }
                 }
                 else if (result.Data == EventAppendResult.DuplicateCommand)
                 {
                     _logger.WarnFormat("Persist event has duplicate command, eventStream: {0}", context.EventStream);
-                    ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1);
+                    ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1).ContinueWith(t => { }).ConfigureAwait(false);
                     TryToRepublishEventAsync(context, 0);
                 }
             },
@@ -231,7 +231,7 @@ namespace ENode.Eventing.Impl
             },
             retryTimes, true);
         }
-        private void ResetCommandMailBoxConsumingSequence(EventCommittingContext context, long consumingSequence)
+        private async Task ResetCommandMailBoxConsumingSequence(EventCommittingContext context, long consumingSequence)
         {
             var eventMailBox = context.EventMailBox;
             var processingCommand = context.ProcessingCommand;
@@ -241,7 +241,7 @@ namespace ENode.Eventing.Impl
             commandMailBox.Pause();
             try
             {
-                RefreshAggregateMemoryCacheToLatestVersion(context.EventStream.AggregateRootTypeName, context.EventStream.AggregateRootId);
+                await RefreshAggregateMemoryCacheToLatestVersion(context.EventStream.AggregateRootTypeName, context.EventStream.AggregateRootId);
                 commandMailBox.ResetConsumingSequence(consumingSequence);
                 eventMailBox.Clear();
                 eventMailBox.Exit();
@@ -311,8 +311,10 @@ namespace ENode.Eventing.Impl
                     //有可能事件持久化成功了，但那时正好机器断电了，则发布事件都没有做；
                     if (context.ProcessingCommand.Message.Id == firstEventStream.CommandId)
                     {
-                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1);
-                        PublishDomainEventAsync(context.ProcessingCommand, firstEventStream);
+                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1).ContinueWith(t =>
+                        {
+                            PublishDomainEventAsync(context.ProcessingCommand, firstEventStream);
+                        }).ConfigureAwait(false);
                     }
                     else
                     {
@@ -323,9 +325,11 @@ namespace ENode.Eventing.Impl
                             firstEventStream.AggregateRootId,
                             firstEventStream.AggregateRootTypeName);
                         _logger.Error(errorMessage);
-                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1);
-                        var commandResult = new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation.", typeof(string).FullName);
-                        CompleteCommand(context.ProcessingCommand, commandResult);
+                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1).ContinueWith(t =>
+                        {
+                            var commandResult = new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation.", typeof(string).FullName);
+                            CompleteCommand(context.ProcessingCommand, commandResult);
+                        }).ConfigureAwait(false);
                     }
                 }
                 else
@@ -335,9 +339,11 @@ namespace ENode.Eventing.Impl
                         eventStream.AggregateRootId,
                         eventStream.AggregateRootTypeName);
                     _logger.Fatal(errorMessage);
-                    ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1);
-                    var commandResult = new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore.", typeof(string).FullName);
-                    CompleteCommand(context.ProcessingCommand, commandResult);
+                    ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1).ContinueWith(t =>
+                    {
+                        var commandResult = new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, eventStream.AggregateRootId, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore.", typeof(string).FullName);
+                        CompleteCommand(context.ProcessingCommand, commandResult);
+                    }).ConfigureAwait(false);
                 }
             },
             () => string.Format("[eventStream:{0}]", eventStream),
@@ -359,15 +365,16 @@ namespace ENode.Eventing.Impl
                 _logger.Error(string.Format("Refresh aggregate memory cache failed for event stream:{0}", context.EventStream), ex);
             }
         }
-        private void RefreshAggregateMemoryCacheToLatestVersion(string aggregateRootTypeName, string aggregateRootId)
+        private Task RefreshAggregateMemoryCacheToLatestVersion(string aggregateRootTypeName, string aggregateRootId)
         {
             try
             {
-                _memoryCache.RefreshAggregateFromEventStore(aggregateRootTypeName, aggregateRootId);
+                return _memoryCache.RefreshAggregateFromEventStoreAsync(aggregateRootTypeName, aggregateRootId);
             }
             catch (Exception ex)
             {
                 _logger.Error(string.Format("Refresh aggregate memory cache to latest version has unknown exception, aggregateRootTypeName:{0}, aggregateRootId:{1}", aggregateRootTypeName, aggregateRootId), ex);
+                return Task.CompletedTask;
             }
         }
         private void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStreamMessage eventStream, int retryTimes)
@@ -401,9 +408,9 @@ namespace ENode.Eventing.Impl
                 currentContext.Next = nextContext;
             }
         }
-        private void CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
+        private Task CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
         {
-            processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
+            return processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
         }
         private void CleanInactiveMailbox()
         {

@@ -14,7 +14,6 @@ namespace ENode.EQueue
     public class DomainEventConsumer : IQueueMessageHandler
     {
         private const string DefaultEventConsumerGroup = "EventConsumerGroup";
-        private Consumer _consumer;
         private SendReplyService _sendReplyService;
         private IJsonSerializer _jsonSerializer;
         private IEventSerializer _eventSerializer;
@@ -22,11 +21,11 @@ namespace ENode.EQueue
         private ILogger _logger;
         private bool _sendEventHandledMessage;
 
-        public Consumer Consumer { get { return _consumer; } }
+        public Consumer Consumer { get; private set; }
 
         public DomainEventConsumer InitializeENode(bool sendEventHandledMessage = true)
         {
-            _sendReplyService = new SendReplyService();
+            _sendReplyService = new SendReplyService("EventConsumerSendReplyService");
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _messageProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
@@ -37,28 +36,28 @@ namespace ENode.EQueue
         public DomainEventConsumer InitializeEQueue(string groupName = null, ConsumerSetting setting = null, bool sendEventHandledMessage = true)
         {
             InitializeENode(sendEventHandledMessage);
-            _consumer = new Consumer(groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
+            Consumer = new Consumer(groupName ?? DefaultEventConsumerGroup, setting ?? new ConsumerSetting
             {
                 MessageHandleMode = MessageHandleMode.Sequential,
                 ConsumeFromWhere = ConsumeFromWhere.FirstOffset
-            });
+            }, "DomainEventConsumer");
             return this;
         }
 
         public DomainEventConsumer Start()
         {
             _sendReplyService.Start();
-            _consumer.SetMessageHandler(this).Start();
+            Consumer.SetMessageHandler(this).Start();
             return this;
         }
         public DomainEventConsumer Subscribe(string topic)
         {
-            _consumer.Subscribe(topic);
+            Consumer.Subscribe(topic);
             return this;
         }
         public DomainEventConsumer Shutdown()
         {
-            _consumer.Stop();
+            Consumer.Stop();
             if (_sendEventHandledMessage)
             {
                 _sendReplyService.Stop();
