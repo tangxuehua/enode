@@ -14,8 +14,7 @@ namespace BankTransferSample.CommandHandlers
     {
         public Task HandleAsync(ICommandContext context, StartDepositTransactionCommand command)
         {
-            context.Add(new DepositTransaction(command.AggregateRootId, command.AccountId, command.Amount));
-            return Task.CompletedTask;
+            return context.AddAsync(new DepositTransaction(command.AggregateRootId, command.AccountId, command.Amount));
         }
         public async Task HandleAsync(ICommandContext context, ConfirmDepositPreparationCommand command)
         {

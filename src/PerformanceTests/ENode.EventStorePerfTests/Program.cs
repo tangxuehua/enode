@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.Utilities;
@@ -114,9 +115,9 @@ namespace ENode.EventStorePerfTests
 
             Console.WriteLine("start to batch append test, totalCount:" + count);
 
-            DoBatchAppend(context);
+            DoBatchAppendAsync(context).Wait();
         }
-        static void DoBatchAppend(BatchAppendContext context)
+        static async Task DoBatchAppendAsync(BatchAppendContext context)
         {
             var eventList = new List<DomainEventStream>();
 
@@ -127,7 +128,7 @@ namespace ENode.EventStorePerfTests
                 if (eventList.Count == context.BatchSize)
                 {
                     context.EventList = eventList;
-                    BatchAppendAsync(context);
+                    await BatchAppendAsync(context);
                     return;
                 }
             }
@@ -135,12 +136,12 @@ namespace ENode.EventStorePerfTests
             if (eventList.Count > 0)
             {
                 context.EventList = eventList;
-                BatchAppendAsync(context);
+                await BatchAppendAsync(context);
             }
 
             Console.WriteLine("batch append throughput: {0} events/s", 1000 * context.FinishedCount / context.Watch.ElapsedMilliseconds);
         }
-        static async void BatchAppendAsync(BatchAppendContext context)
+        static async Task BatchAppendAsync(BatchAppendContext context)
         {
             var result = await context.EventStore.BatchAppendAsync(context.EventList);
 
@@ -160,7 +161,7 @@ namespace ENode.EventStorePerfTests
                 Console.WriteLine("batch appended {0}, time:{1}", local, context.Watch.ElapsedMilliseconds);
             }
 
-            DoBatchAppend(context);
+            await DoBatchAppendAsync(context);
         }
         static void InitializeENodeFramework()
         {

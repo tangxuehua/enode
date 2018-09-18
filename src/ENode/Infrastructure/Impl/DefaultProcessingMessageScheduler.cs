@@ -22,7 +22,7 @@ namespace ENode.Infrastructure
         }
         public void ScheduleMailbox(ProcessingMessageMailbox<X, Y> mailbox)
         {
-            Task.Factory.StartNew(mailbox.Run);
+            Task.Factory.StartNew(async () => await mailbox.Run());
         }
     }
 }

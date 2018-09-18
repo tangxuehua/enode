@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Configurations;
+using ECommon.Logging;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Commanding.Impl;
@@ -171,6 +173,11 @@ namespace ENode.Configurations
         /// <returns></returns>
         public ENodeConfiguration Start()
         {
+            TaskScheduler.UnobservedTaskException += (sender, ex) =>
+            {
+                var logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(ENodeConfiguration).Name);
+                logger.ErrorFormat("UnobservedTaskException occurred.", ex);
+            };
             ObjectContainer.Resolve<IMemoryCache>().Start();
             ObjectContainer.Resolve<ICommandProcessor>().Start();
             ObjectContainer.Resolve<IEventService>().Start();

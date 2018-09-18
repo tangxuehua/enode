@@ -11,6 +11,10 @@ namespace ENode.Commanding
         /// </summary>
         /// <param name="aggregateRoot"></param>
         void Add(IAggregateRoot aggregateRoot);
+        /// <summary>Add a new aggregate into the current command context synchronously, and then return a completed task object.
+        /// </summary>
+        /// <param name="aggregateRoot"></param>
+        Task AddAsync(IAggregateRoot aggregateRoot);
         /// <summary>Get an aggregate from the current command context.
         /// </summary>
         /// <typeparam name="T"></typeparam>

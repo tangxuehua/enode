@@ -121,7 +121,7 @@ namespace ENode.Commanding
                 }
             }
         }
-        public async void Run()
+        public async Task Run()
         {
             LastActiveTime = DateTime.Now;
             while (_isPaused)
@@ -208,7 +208,7 @@ namespace ENode.Commanding
         {
             if (TryEnter())
             {
-                Task.Factory.StartNew(Run);
+                Task.Factory.StartNew(async () => await Run());
             }
         }
         private bool TryEnter()

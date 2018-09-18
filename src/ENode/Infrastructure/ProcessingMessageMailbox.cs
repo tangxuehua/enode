@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 using ECommon.Logging;
 using ECommon.Utilities;
 
@@ -84,7 +85,7 @@ namespace ENode.Infrastructure
                 TryRun();
             }
         }
-        public void Run()
+        public async Task Run()
         {
             _lastActiveTime = DateTime.Now;
             X processingMessage = null;
@@ -92,7 +93,7 @@ namespace ENode.Infrastructure
             {
                 if (_messageQueue.TryDequeue(out processingMessage))
                 {
-                    _messageHandler.HandleAsync(processingMessage);
+                    await _messageHandler.HandleAsync(processingMessage);
                 }
             }
             catch (Exception ex)

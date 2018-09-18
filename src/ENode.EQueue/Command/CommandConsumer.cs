@@ -123,6 +123,11 @@ namespace ENode.EQueue
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
             }
+            public Task AddAsync(IAggregateRoot aggregateRoot)
+            {
+                Add(aggregateRoot);
+                return Task.CompletedTask;
+            }
             public async Task<T> GetAsync<T>(object id, bool firstFromCache = true) where T : class, IAggregateRoot
             {
                 if (id == null)

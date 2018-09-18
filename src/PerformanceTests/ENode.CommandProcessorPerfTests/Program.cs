@@ -154,6 +154,11 @@ namespace ENode.CommandProcessorPerfTests
                     throw new AggregateRootAlreadyExistException(aggregateRoot.UniqueId, aggregateRoot.GetType());
                 }
             }
+            public Task AddAsync(IAggregateRoot aggregateRoot)
+            {
+                Add(aggregateRoot);
+                return Task.CompletedTask;
+            }
             public async Task<T> GetAsync<T>(object id, bool firstFormCache = true) where T : class, IAggregateRoot
             {
                 if (id == null)

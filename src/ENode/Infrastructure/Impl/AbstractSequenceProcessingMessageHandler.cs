@@ -31,9 +31,9 @@ namespace ENode.Infrastructure.Impl
 
         protected abstract Task<AsyncTaskResult> DispatchProcessingMessageAsync(X processingMessage);
 
-        public void HandleAsync(X processingMessage)
+        public Task HandleAsync(X processingMessage)
         {
-            HandleMessageAsync(processingMessage, 0);
+            return Task.Factory.StartNew(() => HandleMessageAsync(processingMessage, 0));
         }
 
         private void HandleMessageAsync(X processingMessage, int retryTimes)

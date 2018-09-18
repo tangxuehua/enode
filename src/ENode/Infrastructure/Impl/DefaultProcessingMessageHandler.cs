@@ -1,4 +1,6 @@
-﻿namespace ENode.Infrastructure.Impl
+﻿using System.Threading.Tasks;
+
+namespace ENode.Infrastructure.Impl
 {
     public class DefaultProcessingMessageHandler<X, Y> : IProcessingMessageHandler<X, Y>
         where X : class, IProcessingMessage<X, Y>
@@ -11,7 +13,7 @@
             _dispatcher = dispatcher;
         }
 
-        public async void HandleAsync(X processingMessage)
+        public async Task HandleAsync(X processingMessage)
         {
             await _dispatcher.DispatchMessageAsync(processingMessage.Message);
             processingMessage.Complete();

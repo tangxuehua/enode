@@ -23,8 +23,7 @@ namespace BankTransferSample.CommandHandlers
 
         public Task HandleAsync(ICommandContext context, CreateAccountCommand command)
         {
-            context.Add(new BankAccount(command.AggregateRootId, command.Owner));
-            return Task.CompletedTask;
+            return context.AddAsync(new BankAccount(command.AggregateRootId, command.Owner));
         }
         public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(ValidateAccountCommand command)
         {

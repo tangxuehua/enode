@@ -9,8 +9,7 @@ namespace NoteSample.CommandHandlers
     {
         public Task HandleAsync(ICommandContext context, CreateNoteCommand command)
         {
-            context.Add(new Note(command.AggregateRootId, command.Title));
-            return Task.CompletedTask;
+            return context.AddAsync(new Note(command.AggregateRootId, command.Title));
         }
     }
 }
