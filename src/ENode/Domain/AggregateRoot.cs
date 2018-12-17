@@ -15,9 +15,9 @@ namespace ENode.Domain
     {
         private static readonly IList<IDomainEvent> _emptyEvents = new List<IDomainEvent>();
         private static IAggregateRootInternalHandlerProvider _eventHandlerProvider;
-        private int _version;
         private Queue<IDomainEvent> _uncommittedEvents;
         protected TAggregateRootId _id;
+        protected int _version;
 
         /// <summary>Gets or sets the unique identifier of the aggregate root.
         /// </summary>
