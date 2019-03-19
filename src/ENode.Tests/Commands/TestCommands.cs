@@ -11,6 +11,14 @@ namespace ENode.Tests.Commands
     {
         public string Title { get; set; }
     }
+    public class CreateInheritTestAggregateCommand : Command<string>
+    {
+        public string Title { get; set; }
+    }
+    public class ChangeInheritTestAggregateTitleCommand : Command<string>
+    {
+        public string Title { get; set; }
+    }
     public class TestEventPriorityCommand : Command<string>
     {
     }

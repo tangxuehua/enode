@@ -91,6 +91,7 @@
   <ItemGroup>
     <Compile Include="CommandHandlers\TestCommandHandler.cs" />
     <Compile Include="Commands\TestCommands.cs" />
+    <Compile Include="Domain\InheritTestAggregate.cs" />
     <Compile Include="Domain\TestAggregate.cs" />
     <Compile Include="ENodeExtensions.cs" />
     <Compile Include="EventHandlers\PriorityEventHandlers.cs" />

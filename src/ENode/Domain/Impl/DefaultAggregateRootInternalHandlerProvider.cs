@@ -35,12 +35,33 @@ namespace ENode.Domain.Impl
         }
         public Action<IAggregateRoot, IDomainEvent> GetInternalEventHandler(Type aggregateRootType, Type eventType)
         {
+            var currentAggregateType = aggregateRootType;
+            while (currentAggregateType != null)
+            {
+                var handler = GetEventHandler(currentAggregateType, eventType);
+                if (handler != null)
+                {
+                    return handler;
+                }
+                if (currentAggregateType.BaseType != null && currentAggregateType.BaseType.GetInterfaces().Contains(typeof(IAggregateRoot)))
+                {
+                    currentAggregateType = currentAggregateType.BaseType;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return null;
+        }
+
+        private Action<IAggregateRoot, IDomainEvent> GetEventHandler(Type aggregateRootType, Type eventType)
+        {
             IDictionary<Type, Action<IAggregateRoot, IDomainEvent>> eventHandlerDic;
             if (!_mappings.TryGetValue(aggregateRootType, out eventHandlerDic)) return null;
             Action<IAggregateRoot, IDomainEvent> eventHandler;
             return eventHandlerDic.TryGetValue(eventType, out eventHandler) ? eventHandler : null;
         }
-
         private void RegisterInternalHandler(Type aggregateRootType, Type eventType, MethodInfo eventHandler)
         {
             IDictionary<Type, Action<IAggregateRoot, IDomainEvent>> eventHandlerDic;

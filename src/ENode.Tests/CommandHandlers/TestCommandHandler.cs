@@ -12,6 +12,8 @@ namespace ENode.Tests.CommandHandlers
     public class TestCommandHandler :
         ICommandHandler<CreateTestAggregateCommand>,
         ICommandHandler<ChangeTestAggregateTitleCommand>,
+        ICommandHandler<CreateInheritTestAggregateCommand>,
+        ICommandHandler<ChangeInheritTestAggregateTitleCommand>,
         ICommandHandler<TestEventPriorityCommand>,
         ICommandHandler<ChangeMultipleAggregatesCommand>,
         ICommandHandler<ChangeNothingCommand>,
@@ -32,6 +34,16 @@ namespace ENode.Tests.CommandHandlers
         {
             var testAggregate = await context.GetAsync<TestAggregate>(command.AggregateRootId);
             testAggregate.ChangeTitle(command.Title);
+        }
+        public Task HandleAsync(ICommandContext context, CreateInheritTestAggregateCommand command)
+        {
+            context.Add(new InheritTestAggregate(command.AggregateRootId, command.Title));
+            return Task.CompletedTask;
+        }
+        public async Task HandleAsync(ICommandContext context, ChangeInheritTestAggregateTitleCommand command)
+        {
+            var testAggregate = await context.GetAsync<InheritTestAggregate>(command.AggregateRootId);
+            testAggregate.ChangeMyTitle(command.Title);
         }
         public Task HandleAsync(ICommandContext context, ChangeNothingCommand command)
         {

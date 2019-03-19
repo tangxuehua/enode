@@ -68,6 +68,45 @@ namespace ENode.Tests
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
         }
         [Test]
+        public void create_and_update_inherit_aggregate_test()
+        {
+            var aggregateId = ObjectId.GenerateNewStringId();
+            var command = new CreateInheritTestAggregateCommand
+            {
+                AggregateRootId = aggregateId,
+                Title = "Sample Note"
+            };
+
+            //执行创建聚合根的命令
+            var asyncResult = _commandService.ExecuteAsync(command).Result;
+            NUnit.Framework.Assert.IsNotNull(asyncResult);
+            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
+            var commandResult = asyncResult.Data;
+            Assert.IsNotNull(commandResult);
+            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
+            var note = _memoryCache.GetAsync<InheritTestAggregate>(aggregateId).Result;
+            Assert.IsNotNull(note);
+            Assert.AreEqual("Sample Note", note.Title);
+            Assert.AreEqual(1, ((IAggregateRoot)note).Version);
+
+            //执行修改聚合根的命令
+            var command2 = new ChangeInheritTestAggregateTitleCommand
+            {
+                AggregateRootId = aggregateId,
+                Title = "Changed Note"
+            };
+            asyncResult = _commandService.ExecuteAsync(command2).Result;
+            Assert.IsNotNull(asyncResult);
+            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
+            commandResult = asyncResult.Data;
+            Assert.IsNotNull(commandResult);
+            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
+            note = _memoryCache.GetAsync<InheritTestAggregate>(aggregateId).Result;
+            Assert.IsNotNull(note);
+            Assert.AreEqual("Changed Note", note.Title);
+            Assert.AreEqual(2, ((IAggregateRoot)note).Version);
+        }
+        [Test]
         public void command_sync_execute_test()
         {
             var aggregateId = ObjectId.GenerateNewStringId();
