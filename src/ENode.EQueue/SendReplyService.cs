@@ -91,6 +91,7 @@ namespace ENode.EQueue
             {
                 if (_remotingClientDict.TryRemove(pair.Key, out SocketRemotingClient removed))
                 {
+                    removed.Shutdown();
                     _logger.InfoFormat("Removed disconnected command remoting client, remotingAddress: {0}", pair.Key);
                 }
             }
