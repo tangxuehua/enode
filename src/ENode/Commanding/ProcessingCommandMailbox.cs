@@ -24,8 +24,6 @@ namespace ENode.Commanding
         private readonly ManualResetEvent _processingWaitHandle;
         private readonly int _batchSize;
         private long _nextSequence;
-        private long _consumingSequence;
-        private long _consumedSequence;
         private int _isRunning;
         private bool _isPaused;
         private bool _isProcessingCommand;
@@ -38,6 +36,22 @@ namespace ENode.Commanding
         {
             get { return _isRunning == 1; }
         }
+        public long ConsumingSequence { get; private set; }
+        public long ConsumedSequence { get; private set; }
+        public long MaxMessageSequence
+        {
+            get
+            {
+                return _nextSequence - 1;
+            }
+        }
+        public long TotalUnConsumedMessageCount
+        {
+            get
+            {
+                return _nextSequence - 1 - ConsumedSequence;
+            }
+        }
 
         public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandHandler messageHandler, ILogger logger)
         {
@@ -49,7 +63,7 @@ namespace ENode.Commanding
             AggregateRootId = aggregateRootId;
             _messageHandler = messageHandler;
             _logger = logger;
-            _consumedSequence = -1;
+            ConsumedSequence = -1;
             LastActiveTime = DateTime.Now;
         }
 
@@ -88,7 +102,7 @@ namespace ENode.Commanding
         public void ResetConsumingSequence(long consumingSequence)
         {
             LastActiveTime = DateTime.Now;
-            _consumingSequence = consumingSequence;
+            ConsumingSequence = consumingSequence;
             _requestToCompleteCommandDict.Clear();
         }
         public async Task CompleteMessage(ProcessingCommand processingCommand, CommandResult commandResult)
@@ -98,17 +112,17 @@ namespace ENode.Commanding
                 LastActiveTime = DateTime.Now;
                 try
                 {
-                    if (processingCommand.Sequence == _consumedSequence + 1)
+                    if (processingCommand.Sequence == ConsumedSequence + 1)
                     {
                         _messageDict.Remove(processingCommand.Sequence);
                         await CompleteCommand(processingCommand, commandResult);
-                        _consumedSequence = ProcessNextCompletedCommands(processingCommand.Sequence);
+                        ConsumedSequence = ProcessNextCompletedCommands(processingCommand.Sequence);
                     }
-                    else if (processingCommand.Sequence > _consumedSequence + 1)
+                    else if (processingCommand.Sequence > ConsumedSequence + 1)
                     {
                         _requestToCompleteCommandDict[processingCommand.Sequence] = commandResult;
                     }
-                    else if (processingCommand.Sequence < _consumedSequence + 1)
+                    else if (processingCommand.Sequence < ConsumedSequence + 1)
                     {
                         _messageDict.Remove(processingCommand.Sequence);
                         await CompleteCommand(processingCommand, commandResult);
@@ -135,14 +149,14 @@ namespace ENode.Commanding
                 _processingWaitHandle.Reset();
                 _isProcessingCommand = true;
                 var count = 0;
-                while (_consumingSequence < _nextSequence && count < _batchSize)
+                while (ConsumingSequence < _nextSequence && count < _batchSize)
                 {
-                    processingCommand = GetProcessingCommand(_consumingSequence);
+                    processingCommand = GetProcessingCommand(ConsumingSequence);
                     if (processingCommand != null)
                     {
                         await _messageHandler.Handle(processingCommand);
                     }
-                    _consumingSequence++;
+                    ConsumingSequence++;
                     count++;
                 }
             }
@@ -156,7 +170,7 @@ namespace ENode.Commanding
                 _isProcessingCommand = false;
                 _processingWaitHandle.Set();
                 Exit();
-                if (_consumingSequence < _nextSequence)
+                if (ConsumingSequence < _nextSequence)
                 {
                     TryRun();
                 }
