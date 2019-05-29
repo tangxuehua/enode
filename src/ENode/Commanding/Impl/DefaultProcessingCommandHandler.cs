@@ -461,7 +461,7 @@ namespace ENode.Commanding.Impl
         private Task CompleteCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
         {
             var commandResult = new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType);
-            return processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
+            return processingCommand.MailBox.CompleteMessage(processingCommand, commandResult);
         }
         private enum HandlerFindResult
         {

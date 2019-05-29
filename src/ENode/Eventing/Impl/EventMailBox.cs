@@ -1,125 +1,21 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using ECommon.Logging;
+using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
-    public class EventMailBox
+    public class EventMailBox : AggregateMessageMailBox<EventCommittingContext, bool>
     {
-        private readonly ILogger _logger;
-        private readonly string _aggregateRootId;
-        private readonly ConcurrentQueue<EventCommittingContext> _messageQueue;
-        private readonly Action<IList<EventCommittingContext>> _handleMessageAction;
-        private int _isRunning;
-        private int _batchSize;
-        private DateTime _lastActiveTime;
-
-        public string AggregateRootId
-        {
-            get
-            {
-                return _aggregateRootId;
-            }
-        }
-        public DateTime LastActiveTime
-        {
-            get { return _lastActiveTime; }
-        }
-        public bool IsRunning
-        {
-            get { return _isRunning == 1; }
-        }
-
         public EventMailBox(string aggregateRootId, int batchSize, Action<IList<EventCommittingContext>> handleMessageAction, ILogger logger)
+            : base(aggregateRootId, batchSize, true, null, (x =>
+                  {
+                      handleMessageAction(x);
+                      return Task.CompletedTask;
+                  }), logger)
         {
-            _aggregateRootId = aggregateRootId;
-            _messageQueue = new ConcurrentQueue<EventCommittingContext>();
-            _batchSize = batchSize;
-            _handleMessageAction = handleMessageAction;
-            _logger = logger;
-            _lastActiveTime = DateTime.Now;
-        }
 
-        public void EnqueueMessage(EventCommittingContext message)
-        {
-            _messageQueue.Enqueue(message);
-            _lastActiveTime = DateTime.Now;
-            TryRun();
-        }
-        public void TryRun(bool exitFirst = false)
-        {
-            if (exitFirst)
-            {
-                Exit();
-            }
-            if (TryEnter())
-            {
-                Task.Factory.StartNew(Run);
-            }
-        }
-        public void Run()
-        {
-            _lastActiveTime = DateTime.Now;
-            IList<EventCommittingContext> contextList = null;
-            try
-            {
-                EventCommittingContext context = null;
-                while (_messageQueue.TryDequeue(out context))
-                {
-                    context.EventMailBox = this;
-                    if (contextList == null)
-                    {
-                        contextList = new List<EventCommittingContext>();
-                    }
-                    contextList.Add(context);
-
-                    if (contextList.Count == _batchSize)
-                    {
-                        break;
-                    }
-                }
-                if (contextList != null && contextList.Count > 0)
-                {
-                    _handleMessageAction(contextList);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(string.Format("Event mailbox run has unknown exception, aggregateRootId: {0}", AggregateRootId), ex);
-                Thread.Sleep(1);
-            }
-            finally
-            {
-                if (contextList == null || contextList.Count == 0)
-                {
-                    Exit();
-                    if (!_messageQueue.IsEmpty)
-                    {
-                        TryRun();
-                    }
-                }
-            }
-        }
-        public void Exit()
-        {
-            Interlocked.Exchange(ref _isRunning, 0);
-        }
-        public void Clear()
-        {
-            EventCommittingContext message;
-            while (_messageQueue.TryDequeue(out message)) { }
-        }
-        public bool IsInactive(int timeoutSeconds)
-        {
-            return (DateTime.Now - LastActiveTime).TotalSeconds >= timeoutSeconds;
-        }
-
-        private bool TryEnter()
-        {
-            return Interlocked.CompareExchange(ref _isRunning, 1, 0) == 0;
         }
     }
 }

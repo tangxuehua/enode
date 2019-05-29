@@ -1,15 +1,17 @@
 ﻿using ENode.Commanding;
 using ENode.Domain;
-using ENode.Eventing.Impl;
+using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
-    public class EventCommittingContext
+    public class EventCommittingContext : IAggregateMessageMailBoxMessage<EventCommittingContext, bool>
     {
+        public IAggregateMessageMailBox<EventCommittingContext, bool> MailBox { get; set; }
+        public long Sequence { get; set; }
+
         public IAggregateRoot AggregateRoot { get; private set; }
         public DomainEventStream EventStream { get; private set; }
         public ProcessingCommand ProcessingCommand { get; private set; }
-        public EventMailBox EventMailBox { get; set; }
         public EventCommittingContext Next { get; set; }
 
         public EventCommittingContext(IAggregateRoot aggregateRoot, DomainEventStream eventStream, ProcessingCommand processingCommand)

@@ -126,7 +126,7 @@ namespace ENode.Eventing.Impl
             currentRetryTimes => BatchPersistEventAsync(committingContexts, currentRetryTimes),
             result =>
             {
-                var eventMailBox = committingContexts.First().EventMailBox;
+                var eventMailBox = committingContexts.First().MailBox;
                 var appendResult = result.Data;
                 if (appendResult == EventAppendResult.Success)
                 {
@@ -202,7 +202,7 @@ namespace ENode.Eventing.Impl
                     }
                     else
                     {
-                        context.EventMailBox.TryRun(true);
+                        context.MailBox.TryRun(true);
                     }
                 }
                 else if (result.Data == EventAppendResult.DuplicateEvent)
@@ -233,10 +233,10 @@ namespace ENode.Eventing.Impl
         }
         private async Task ResetCommandMailBoxConsumingSequence(EventCommittingContext context, long consumingSequence)
         {
-            var eventMailBox = context.EventMailBox;
+            var eventMailBox = context.MailBox;
             var processingCommand = context.ProcessingCommand;
             var command = processingCommand.Message;
-            var commandMailBox = processingCommand.Mailbox;
+            var commandMailBox = processingCommand.MailBox;
 
             commandMailBox.Pause();
             try
@@ -410,7 +410,7 @@ namespace ENode.Eventing.Impl
         }
         private Task CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
         {
-            return processingCommand.Mailbox.CompleteMessage(processingCommand, commandResult);
+            return processingCommand.MailBox.CompleteMessage(processingCommand, commandResult);
         }
         private void CleanInactiveMailbox()
         {
