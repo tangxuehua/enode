@@ -14,6 +14,9 @@
         /// <summary>CommandMailBox中的命令处理时一次最多处理多少个命令，默认为1000个
         /// </summary>
         public int CommandMailBoxPersistenceMaxBatchSize { get; set; }
+        /// <summary>EventMailBox的个数，默认为4个
+        /// </summary>
+        public int EventMailBoxCount { get; set; }
         /// <summary>EventMailBox中的事件持久化时一次最多持久化多少个事件，默认为1000个
         /// </summary>
         public int EventMailBoxPersistenceMaxBatchSize { get; set; }
@@ -24,6 +27,7 @@
             ScanExpiredAggregateIntervalMilliseconds = 5000;
             AggregateRootMaxInactiveSeconds = 3600 * 24 * 3;
             CommandMailBoxPersistenceMaxBatchSize = 1000;
+            EventMailBoxCount = 4;
             EventMailBoxPersistenceMaxBatchSize = 1000;
         }
     }

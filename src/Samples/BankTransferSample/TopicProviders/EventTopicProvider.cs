@@ -7,7 +7,7 @@ namespace BankTransferSample.Providers
     {
         public override string GetTopic(IDomainEvent source)
         {
-            return "BankTransferEventTopic";
+            return Constants.EventTopic;
         }
     }
 }

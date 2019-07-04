@@ -17,10 +17,9 @@ namespace ENode.Domain
         /// </summary>
         /// <returns></returns>
         IEnumerable<IDomainEvent> GetChanges();
-        /// <summary>Accept changes with new version.
+        /// <summary>Accept changes of the aggregate root.
         /// </summary>
-        /// <param name="newVersion"></param>
-        void AcceptChanges(int newVersion);
+        void AcceptChanges();
         /// <summary>Replay the given event streams.
         /// </summary>
         /// <param name="eventStreams"></param>

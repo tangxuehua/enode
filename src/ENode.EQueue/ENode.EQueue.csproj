@@ -15,10 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EQueue" Version="2.5.9" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\..\equeue\src\EQueue\EQueue.csproj" />
     <ProjectReference Include="..\ENode\ENode.csproj" />
   </ItemGroup>
 

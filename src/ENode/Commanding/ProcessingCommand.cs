@@ -4,9 +4,9 @@ using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
-    public class ProcessingCommand : IAggregateMessageMailBoxMessage<ProcessingCommand, CommandResult>
+    public class ProcessingCommand : IMailBoxMessage<ProcessingCommand, CommandResult>
     {
-        public IAggregateMessageMailBox<ProcessingCommand, CommandResult> MailBox { get; set; }
+        public IMailBox<ProcessingCommand, CommandResult> MailBox { get; set; }
         public long Sequence { get; set; }
         public ICommand Message { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }

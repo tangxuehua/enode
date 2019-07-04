@@ -60,9 +60,6 @@
     <Reference Include="ECommon.Log4Net, Version=2.5.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\ECommon.Log4Net.2.5.2\lib\netstandard2.0\ECommon.Log4Net.dll</HintPath>
     </Reference>
-    <Reference Include="EQueue, Version=2.5.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\EQueue.2.5.9\lib\netstandard2.0\EQueue.dll</HintPath>
-    </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
     </Reference>
@@ -91,6 +88,7 @@
   <ItemGroup>
     <Compile Include="CommandHandlers\TestCommandHandler.cs" />
     <Compile Include="Commands\TestCommands.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Domain\InheritTestAggregate.cs" />
     <Compile Include="Domain\TestAggregate.cs" />
     <Compile Include="ENodeExtensions.cs" />
@@ -125,6 +123,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\equeue\src\EQueue\EQueue.csproj">
+      <Project>{3214b37c-a286-401b-b50f-2dae0f7561a6}</Project>
+      <Name>EQueue</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ENode.EQueue\ENode.EQueue.csproj">
       <Project>{1471287a-9af1-4c51-86a1-351c867e01ea}</Project>
       <Name>ENode.EQueue</Name>

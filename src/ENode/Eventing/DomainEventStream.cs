@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ECommon.Utilities;
 
 namespace ENode.Eventing
 {
@@ -9,6 +10,7 @@ namespace ENode.Eventing
     {
         public DomainEventStream(string commandId, string aggregateRootId, string aggregateRootTypeName, int version, DateTime timestamp, IEnumerable<IDomainEvent> events, IDictionary<string, string> items = null)
         {
+            Id = ObjectId.GenerateNewStringId();
             CommandId = commandId;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeName = aggregateRootTypeName;
@@ -32,6 +34,7 @@ namespace ENode.Eventing
             }
         }
 
+        public string Id { get; private set; }
         public string CommandId { get; private set; }
         public string AggregateRootTypeName { get; private set; }
         public string AggregateRootId { get; private set; }
@@ -42,8 +45,9 @@ namespace ENode.Eventing
 
         public override string ToString()
         {
-            var format = "[CommandId={0},AggregateRootTypeName={1},AggregateRootId={2},Version={3},Timestamp={4},Events={5},Items={6}]";
+            var format = "[Id={0},CommandId={1},AggregateRootTypeName={2},AggregateRootId={3},Version={4},Timestamp={5},Events={6},Items={7}]";
             return string.Format(format,
+                Id,
                 CommandId,
                 AggregateRootTypeName,
                 AggregateRootId,

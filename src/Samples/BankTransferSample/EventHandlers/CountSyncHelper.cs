@@ -16,6 +16,11 @@ namespace BankTransferSample.EventHandlers
         {
             _expectedCount = expectedCount;
         }
+        public void Reset()
+        {
+            _currentCount = 0;
+            _waitHandle.Reset();
+        }
 
         public void WaitOne()
         {

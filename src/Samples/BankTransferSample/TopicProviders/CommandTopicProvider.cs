@@ -7,7 +7,7 @@ namespace BankTransferSample.Providers
     {
         public override string GetTopic(ICommand command)
         {
-            return "BankTransferCommandTopic";
+            return Constants.CommandTopic;
         }
     }
 }

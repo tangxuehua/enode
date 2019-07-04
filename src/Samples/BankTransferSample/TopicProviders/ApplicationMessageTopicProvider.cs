@@ -7,7 +7,7 @@ namespace BankTransferSample.Providers
     {
         public override string GetTopic(IApplicationMessage applicationMessage)
         {
-            return "BankTransferApplicationMessageTopic";
+            return Constants.ApplicationMessageTopic;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace BankTransferSample.Providers
     {
         public override string GetTopic(IPublishableException source)
         {
-            return "BankTransferExceptionTopic";
+            return Constants.ExceptionTopic;
         }
     }
 }

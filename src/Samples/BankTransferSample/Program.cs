@@ -129,8 +129,8 @@ namespace BankTransferSample
             var accountList = new List<string>();
             var accountCount = 100;
             var transactionCount = 1000;
-            var depositAmount = 1000000D;
-            var transferAmount = 1000D;
+            var depositAmount = 1000000000D;
+            var transferAmount = 100D;
 
             //创建银行账户
             for (var i = 0; i < accountCount; i++)
@@ -151,7 +151,7 @@ namespace BankTransferSample
 
             Console.WriteLine(string.Empty);
 
-            countSyncHelper.SetExpectedCount((int)transactionCount);
+            countSyncHelper.SetExpectedCount(transactionCount);
 
             var watch = Stopwatch.StartNew();
             for (var i = 0; i < transactionCount; i++)

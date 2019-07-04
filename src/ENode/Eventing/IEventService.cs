@@ -6,14 +6,10 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventService
     {
-        /// <summary>Set the command executor for command retring.
-        /// </summary>
-        /// <param name="processingCommandHandler"></param>
-        void SetProcessingCommandHandler(IProcessingCommandHandler processingCommandHandler);
         /// <summary>Commit the given aggregate's domain events to the eventstore async and publish the domain events.
         /// </summary>
-        /// <param name="context"></param>
-        void CommitDomainEventAsync(EventCommittingContext context);
+        /// <param name="eventCommittingContext"></param>
+        void CommitDomainEventAsync(EventCommittingContext eventCommittingContext);
         /// <summary>Publish the given domain event stream async.
         /// </summary>
         /// <param name="processingCommand"></param>

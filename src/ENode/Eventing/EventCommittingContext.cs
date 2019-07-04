@@ -4,9 +4,9 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
-    public class EventCommittingContext : IAggregateMessageMailBoxMessage<EventCommittingContext, bool>
+    public class EventCommittingContext : IMailBoxMessage<EventCommittingContext, bool>
     {
-        public IAggregateMessageMailBox<EventCommittingContext, bool> MailBox { get; set; }
+        public IMailBox<EventCommittingContext, bool> MailBox { get; set; }
         public long Sequence { get; set; }
 
         public IAggregateRoot AggregateRoot { get; private set; }

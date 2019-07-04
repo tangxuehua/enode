@@ -1,8 +1,3 @@
-CREATE DATABASE [ENode]
-GO
-USE [ENode]
-GO
-
 CREATE TABLE [dbo].[EventStream] (
     [Sequence]              BIGINT IDENTITY (1, 1) NOT NULL,
     [AggregateRootTypeName] NVARCHAR (256)         NOT NULL,

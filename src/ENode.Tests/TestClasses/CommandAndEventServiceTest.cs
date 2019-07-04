@@ -615,7 +615,7 @@ namespace ENode.Tests
                 typeof(TestAggregate).FullName,
                 1,
                 DateTime.Now,
-                new IDomainEvent[] { new TestAggregateTitleChanged("Note Title") { AggregateRootId = aggregateId, Version = 1 } },
+                new IDomainEvent[] { new TestAggregateCreated("Note Title") { AggregateRootId = aggregateId, Version = 1 } },
                 null);
             var result = _eventStore.AppendAsync(eventStream).Result;
             Assert.IsNotNull(result);
@@ -690,7 +690,7 @@ namespace ENode.Tests
                 typeof(TestAggregate).FullName,
                 1,
                 DateTime.Now,
-                new IDomainEvent[] { new TestAggregateTitleChanged("Note Title") { AggregateRootId = aggregateId, Version = 1 } },
+                new IDomainEvent[] { new TestAggregateCreated("Note Title") { AggregateRootId = aggregateId, Version = 1 } },
                 null);
             var result = _eventStore.AppendAsync(eventStream).Result;
             Assert.IsNotNull(result);
@@ -977,11 +977,11 @@ namespace ENode.Tests
             var aggregate = note as IAggregateRoot;
             var message1 = CreateMessage(aggregate);
 
-            aggregate.AcceptChanges(1);
+            aggregate.AcceptChanges();
             note.ChangeTitle("title1");
             var message2 = CreateMessage(aggregate);
 
-            aggregate.AcceptChanges(2);
+            aggregate.AcceptChanges();
             note.ChangeTitle("title2");
             var message3 = CreateMessage(aggregate);
 

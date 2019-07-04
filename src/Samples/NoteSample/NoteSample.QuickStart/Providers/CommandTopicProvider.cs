@@ -7,7 +7,7 @@ namespace NoteSample.QuickStart
     {
         public override string GetTopic(ICommand command)
         {
-            return "NoteCommandTopic";
+            return Constants.CommandTopic;
         }
     }
 }

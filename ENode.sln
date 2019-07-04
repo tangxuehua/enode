@@ -37,7 +37,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.EQueue", "src\ENode.E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.SqlServer", "src\ENode.SqlServer\ENode.SqlServer.csproj", "{44FD45C5-BAF3-4305-8720-8D0AEEAB2203}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.MySQL", "src\ENode.MySQL\ENode.MySQL.csproj", "{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.MySQL", "src\ENode.MySQL\ENode.MySQL.csproj", "{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EQueue", "..\equeue\src\EQueue\EQueue.csproj", "{3214B37C-A286-401B-B50F-2DAE0F7561A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +107,10 @@ Global
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3214B37C-A286-401B-B50F-2DAE0F7561A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3214B37C-A286-401B-B50F-2DAE0F7561A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3214B37C-A286-401B-B50F-2DAE0F7561A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3214B37C-A286-401B-B50F-2DAE0F7561A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

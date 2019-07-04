@@ -58,7 +58,6 @@ namespace ENode.Commanding.Impl
             _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
             _timeProvider = timeProvider;
-            _eventService.SetProcessingCommandHandler(this);
         }
 
         #endregion
@@ -205,8 +204,23 @@ namespace ENode.Commanding.Impl
                 return;
             }
 
+            //接受聚合根的最新修改
+            dirtyAggregateRoot.AcceptChanges();
+
             //构造出一个事件流对象
-            var eventStream = BuildDomainEventStream(dirtyAggregateRoot, changedEvents, processingCommand);
+            var commandResult = processingCommand.CommandExecuteContext.GetResult();
+            if (commandResult != null)
+            {
+                processingCommand.Items["CommandResult"] = commandResult;
+            }
+            var eventStream = new DomainEventStream(
+                processingCommand.Message.Id,
+                dirtyAggregateRoot.UniqueId,
+                _typeNameProvider.GetTypeName(dirtyAggregateRoot.GetType()),
+                changedEvents.First().Version,
+                _timeProvider.GetCurrentTime(),
+                changedEvents,
+                processingCommand.Items);
 
             //将事件流提交到EventStore
             _eventService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
@@ -222,7 +236,7 @@ namespace ENode.Commanding.Impl
                 processingCommand.Message.Id,
                 aggregateRoot.UniqueId,
                 _typeNameProvider.GetTypeName(aggregateRoot.GetType()),
-                aggregateRoot.Version + 1,
+                changedEvents.First().Version,
                 _timeProvider.GetCurrentTime(),
                 changedEvents,
                 processingCommand.Items);

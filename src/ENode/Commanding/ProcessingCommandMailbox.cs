@@ -6,7 +6,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
-    public class ProcessingCommandMailbox : AggregateMessageMailBox<ProcessingCommand, CommandResult>
+    public class ProcessingCommandMailbox : DefaultMailBox<ProcessingCommand, CommandResult>
     {
         public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandHandler messageHandler, ILogger logger)
             : base(aggregateRootId, ENodeConfiguration.Instance.Setting.CommandMailBoxPersistenceMaxBatchSize, false, (x => messageHandler.Handle(x)), null, logger)

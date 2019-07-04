@@ -7,7 +7,7 @@ namespace NoteSample.QuickStart
     {
         public override string GetTopic(IDomainEvent source)
         {
-            return "NoteEventTopic";
+            return Constants.EventTopic;
         }
     }
 }
