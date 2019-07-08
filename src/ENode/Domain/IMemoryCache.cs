@@ -20,9 +20,20 @@ namespace ENode.Domain
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
         Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot;
-        /// <summary>Refresh the aggregate memory cache by replaying events of event store.
+        /// <summary>Update the given aggregate root's memory cache.
         /// </summary>
-        Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, string aggregateRootId);
+        /// <param name="aggregateRoot"></param>
+        /// <returns></returns>
+        Task UpdateAggregateRootCache(IAggregateRoot aggregateRoot);
+        /// <summary>Refresh the aggregate memory cache by replaying events of event store, and return the refreshed aggregate root.
+        /// </summary>
+        Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, object aggregateRootId);
+        /// <summary>Refresh the aggregate memory cache by replaying events of event store, and return the refreshed aggregate root.
+        /// </summary>
+        /// <param name="aggregateRootType"></param>
+        /// <param name="aggregateRootId"></param>
+        /// <returns></returns>
+        Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(Type aggregateRootType, object aggregateRootId);
         /// <summary>Start background tasks.
         /// </summary>
         void Start();

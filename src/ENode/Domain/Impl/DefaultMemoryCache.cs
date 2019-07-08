@@ -35,6 +35,8 @@ namespace ENode.Domain.Impl
         public async Task<IAggregateRoot> GetAsync(object aggregateRootId, Type aggregateRootType)
         {
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
+            if (aggregateRootType == null) throw new ArgumentNullException("aggregateRootType");
+
             if (_aggregateRootInfoDict.TryGetValue(aggregateRootId.ToString(), out AggregateCacheInfo aggregateRootInfo))
             {
                 var aggregateRoot = aggregateRootInfo.AggregateRoot;
@@ -59,27 +61,40 @@ namespace ENode.Domain.Impl
         {
             return await GetAsync(aggregateRootId, typeof(T)) as T;
         }
-        public async Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, string aggregateRootId)
+        public Task UpdateAggregateRootCache(IAggregateRoot aggregateRoot)
         {
+            ResetAggregateRootCache(aggregateRoot);
+            return Task.CompletedTask;
+        }
+        public Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, object aggregateRootId)
+        {
+            if (aggregateRootTypeName == null) throw new ArgumentNullException("aggregateRootTypeName");
+
+            var aggregateRootType = _typeNameProvider.GetType(aggregateRootTypeName);
+            if (aggregateRootType == null)
+            {
+                _logger.ErrorFormat("Could not find aggregate root type by aggregate root type name [{0}].", aggregateRootTypeName);
+                return null;
+            }
+            return RefreshAggregateFromEventStoreAsync(aggregateRootType, aggregateRootId);
+        }
+        public async Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(Type aggregateRootType, object aggregateRootId)
+        {
+            if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
+            if (aggregateRootType == null) throw new ArgumentNullException("aggregateRootType");
+
             try
             {
-                var aggregateRootType = _typeNameProvider.GetType(aggregateRootTypeName);
-                if (aggregateRootType == null)
-                {
-                    _logger.ErrorFormat("Could not find aggregate root type by aggregate root type name [{0}].", aggregateRootTypeName);
-                    return null;
-                }
-                var aggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId);
+                var aggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId.ToString());
                 if (aggregateRoot != null)
                 {
                     ResetAggregateRootCache(aggregateRoot);
-                    return aggregateRoot;
                 }
-                return null;
+                return aggregateRoot;
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("Refresh aggregate from event store has unknown exception, aggregateRootTypeName:{0}, aggregateRootId:{1}", aggregateRootTypeName, aggregateRootId), ex);
+                _logger.Error(string.Format("Refresh aggregate from event store has unknown exception, aggregateRootTypeName:{0}, aggregateRootId:{1}", _typeNameProvider.GetTypeName(aggregateRootType), aggregateRootId), ex);
                 return null;
             }
         }

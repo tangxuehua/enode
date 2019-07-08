@@ -17,13 +17,13 @@ namespace ENode.Commanding.Impl
 
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IEventStore _eventStore;
+        private readonly IMemoryCache _memoryCache;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly ICommandAsyncHandlerProvider _commandAsyncHandlerProvider;
         private readonly ITypeNameProvider _typeNameProvider;
         private readonly IEventService _eventService;
         private readonly IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
         private readonly IMessagePublisher<IPublishableException> _exceptionPublisher;
-        private readonly IMemoryCache _memoryCache;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
         private readonly ITimeProvider _timeProvider;
@@ -35,26 +35,26 @@ namespace ENode.Commanding.Impl
         public DefaultProcessingCommandHandler(
             IJsonSerializer jsonSerializer,
             IEventStore eventStore,
+            IMemoryCache memoryCache,
             ICommandHandlerProvider commandHandlerProvider,
             ICommandAsyncHandlerProvider commandAsyncHandlerProvider,
             ITypeNameProvider typeNameProvider,
             IEventService eventService,
             IMessagePublisher<IApplicationMessage> applicationMessagePublisher,
             IMessagePublisher<IPublishableException> exceptionPublisher,
-            IMemoryCache memoryCache,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory,
             ITimeProvider timeProvider)
         {
             _jsonSerializer = jsonSerializer;
             _eventStore = eventStore;
+            _memoryCache = memoryCache;
             _commandHandlerProvider = commandHandlerProvider;
             _commandAsyncHandlerProvider = commandAsyncHandlerProvider;
             _typeNameProvider = typeNameProvider;
             _eventService = eventService;
             _applicationMessagePublisher = applicationMessagePublisher;
             _exceptionPublisher = exceptionPublisher;
-            _memoryCache = memoryCache;
             _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
             _timeProvider = timeProvider;
@@ -207,6 +207,9 @@ namespace ENode.Commanding.Impl
             //接受聚合根的最新修改
             dirtyAggregateRoot.AcceptChanges();
 
+            //刷新聚合根的内存缓存
+            _memoryCache.UpdateAggregateRootCache(dirtyAggregateRoot);
+
             //构造出一个事件流对象
             var commandResult = processingCommand.CommandExecuteContext.GetResult();
             if (commandResult != null)
@@ -222,7 +225,7 @@ namespace ENode.Commanding.Impl
                 changedEvents,
                 processingCommand.Items);
 
-            //将事件流提交到EventStore
+            //异步将事件流提交到EventStore
             _eventService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
         }
         private DomainEventStream BuildDomainEventStream(IAggregateRoot aggregateRoot, IEnumerable<IDomainEvent> changedEvents, ProcessingCommand processingCommand)

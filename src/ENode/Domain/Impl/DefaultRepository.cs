@@ -6,12 +6,10 @@ namespace ENode.Domain.Impl
     public class DefaultRepository : IRepository
     {
         private readonly IMemoryCache _memoryCache;
-        private readonly IAggregateStorage _aggregateRootStorage;
 
-        public DefaultRepository(IMemoryCache memoryCache, IAggregateStorage aggregateRootStorage)
+        public DefaultRepository(IMemoryCache memoryCache)
         {
             _memoryCache = memoryCache;
-            _aggregateRootStorage = aggregateRootStorage;
         }
 
         public async Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot
@@ -28,7 +26,12 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            return await _memoryCache.GetAsync(aggregateRootId, aggregateRootType) ?? await _aggregateRootStorage.GetAsync(aggregateRootType, aggregateRootId.ToString());
+            var aggregateRoot = await _memoryCache.GetAsync(aggregateRootId, aggregateRootType);
+            if (aggregateRoot == null)
+            {
+                aggregateRoot = await _memoryCache.RefreshAggregateFromEventStoreAsync(aggregateRootType, aggregateRootId);
+            }
+            return aggregateRoot;
         }
     }
 }
