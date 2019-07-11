@@ -83,7 +83,8 @@ namespace ENode.EventStorePerfTests
         {
             Console.WriteLine("");
 
-            var aggreagateRootId = ObjectId.GenerateNewStringId();
+            var aggreagateRootId1 = ObjectId.GenerateNewStringId();
+            var aggreagateRootId2 = ObjectId.GenerateNewStringId();
             var count = int.Parse(ConfigurationManager.AppSettings["batchAppendAsyncount"]);
             var batchSize = int.Parse(ConfigurationManager.AppSettings["batchSize"]);
             var printSize = count / 10;
@@ -93,12 +94,13 @@ namespace ENode.EventStorePerfTests
 
             for (var i = 1; i <= count; i++)
             {
+                var aggregateRootId = i % 2 == 0 ? aggreagateRootId1 : aggreagateRootId2;
                 var evnt = new TestEvent
                 {
-                    AggregateRootId = aggreagateRootId,
+                    AggregateRootId = aggregateRootId,
                     Version = i
                 };
-                var eventStream = new DomainEventStream(ObjectId.GenerateNewStringId(), aggreagateRootId, "SampleAggregateRootTypeName", i, DateTime.Now, new IDomainEvent[] { evnt });
+                var eventStream = new DomainEventStream(ObjectId.GenerateNewStringId(), aggregateRootId, "SampleAggregateRootTypeName", i, DateTime.Now, new IDomainEvent[] { evnt });
                 eventQueue.Enqueue(eventStream);
             }
 

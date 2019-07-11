@@ -147,7 +147,7 @@ namespace ENode.Eventing.Impl
                 if (appendResult == EventAppendResult.Success)
                 {
                     var eventMailBox = committingContexts.First().MailBox;
-                    _logger.InfoFormat("Batch persist event success, routingKey: {0}, eventStreamCount: {1}, minEventVersion: {2}, maxEventVersion: {3}", eventMailBox.RoutingKey, committingContexts.Count, committingContexts.First().EventStream.Version, committingContexts.Last().EventStream.Version);
+                    _logger.DebugFormat("Batch persist event success, routingKey: {0}, eventStreamCount: {1}, minEventVersion: {2}, maxEventVersion: {3}", eventMailBox.RoutingKey, committingContexts.Count, committingContexts.First().EventStream.Version, committingContexts.Last().EventStream.Version);
 
                     Task.Factory.StartNew(x =>
                     {
@@ -197,7 +197,7 @@ namespace ENode.Eventing.Impl
             {
                 if (result.Data == EventAppendResult.Success)
                 {
-                    _logger.InfoFormat("Persist event success, eventStream: {0}", context.EventStream);
+                    _logger.DebugFormat("Persist event success, eventStream: {0}", context.EventStream);
 
                     Task.Factory.StartNew(x =>
                     {

@@ -122,17 +122,17 @@ namespace ENode.SqlServer
             {
                 throw new ArgumentException("Event streams cannot be empty.");
             }
-            var table = BuildEventTable();
-            var aggregateRootIds = eventStreams.Select(x => x.AggregateRootId).Distinct();
-            if (aggregateRootIds.Count() > 1)
-            {
-                throw new ArgumentException("Batch append event only support for one aggregate.");
-            }
-            var aggregateRootId = aggregateRootIds.Single();
+            var tables = new List<DataTable>();
+            var groups = eventStreams.GroupBy(x => x.AggregateRootId);
 
-            foreach (var eventStream in eventStreams)
+            foreach (var group in groups)
             {
-                AddDataRow(table, eventStream);
+                var table = BuildEventTable();
+                foreach (var eventStream in group)
+                {
+                    AddDataRow(table, eventStream);
+                }
+                tables.Add(table);
             }
 
             return _ioHelper.TryIOFuncAsync(async () =>
@@ -144,28 +144,33 @@ namespace ENode.SqlServer
                         await connection.OpenAsync();
                         var transaction = await Task.Run(() => connection.BeginTransaction());
 
-                        using (var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
+                        foreach (var table in tables)
                         {
-                            InitializeSqlBulkCopy(copy, aggregateRootId);
-                            try
+                            using (var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
                             {
-                                await copy.WriteToServerAsync(table.CreateDataReader());
-                                await Task.Run(() => transaction.Commit());
-                                return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.Success);
-                            }
-                            catch
-                            {
+                                var aggregateRootId = table.Rows[0]["AggregateRootId"] as string;
+                                InitializeSqlBulkCopy(copy, aggregateRootId);
                                 try
                                 {
-                                    transaction.Rollback();
+                                    await copy.WriteToServerAsync(table.CreateDataReader());
                                 }
-                                catch (Exception ex)
+                                catch
                                 {
-                                    _logger.ErrorFormat("Transaction rollback failed.", ex);
+                                    try
+                                    {
+                                        transaction.Rollback();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.ErrorFormat("Transaction rollback failed.", ex);
+                                    }
+                                    throw;
                                 }
-                                throw;
                             }
                         }
+
+                        await Task.Run(() => transaction.Commit());
+                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.Success);
                     }
                 }
                 catch (SqlException ex)

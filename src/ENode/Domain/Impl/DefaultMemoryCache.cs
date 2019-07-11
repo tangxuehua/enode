@@ -117,14 +117,14 @@ namespace ENode.Domain.Impl
                 }
                 _aggregateRootInfoDict.AddOrUpdate(aggregateRoot.UniqueId, x =>
                 {
-                    _logger.InfoFormat("Aggregate root in-memory cache init, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootVersion: {2}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version);
+                    _logger.DebugFormat("Aggregate root in-memory cache init, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootVersion: {2}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version);
                     return new AggregateCacheInfo(aggregateRoot);
                 }, (x, existing) =>
                 {
                     var aggregateRootOldVersion = existing.AggregateRoot.Version;
                     existing.AggregateRoot = aggregateRoot;
                     existing.LastUpdateTime = DateTime.Now;
-                    _logger.InfoFormat("Aggregate root in-memory cache reset, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootNewVersion: {2}, aggregateRootOldVersion: {3}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version, aggregateRootOldVersion);
+                    _logger.DebugFormat("Aggregate root in-memory cache reset, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootNewVersion: {2}, aggregateRootOldVersion: {3}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version, aggregateRootOldVersion);
                     return existing;
                 });
             }

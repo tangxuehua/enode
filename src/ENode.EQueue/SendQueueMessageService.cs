@@ -29,7 +29,7 @@ namespace ENode.EQueue
                     _logger.ErrorFormat("ENode message async send failed, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
                     return new AsyncTaskResult(AsyncTaskStatus.IOException, result.ErrorMessage);
                 }
-                _logger.InfoFormat("ENode message async send success, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
+                _logger.DebugFormat("ENode message async send success, sendResult: {0}, routingKey: {1}, messageId: {2}, version: {3}", result, routingKey, messageId, version);
                 return AsyncTaskResult.Success;
             }
             catch (Exception ex)

@@ -84,7 +84,7 @@ namespace ENode.Infrastructure
                 if (_messageDict.TryAdd(message.Sequence, message))
                 {
                     _nextSequence++;
-                    _logger.InfoFormat("{0} enqueued new message, routingKey: {1}, messageSequence: {2}", GetType().Name, RoutingKey, message.Sequence);
+                    _logger.DebugFormat("{0} enqueued new message, routingKey: {1}, messageSequence: {2}", GetType().Name, RoutingKey, message.Sequence);
                     LastActiveTime = DateTime.Now;
                     TryRun();
                 }
@@ -101,7 +101,7 @@ namespace ENode.Infrastructure
                     return;
                 }
                 SetAsRunning();
-                _logger.InfoFormat("{0} start run, routingKey: {1}, consumingSequence: {2}", GetType().Name, RoutingKey, ConsumingSequence);
+                _logger.DebugFormat("{0} start run, routingKey: {1}, consumingSequence: {2}", GetType().Name, RoutingKey, ConsumingSequence);
                 Task.Factory.StartNew(ProcessMessages);
             }
         }
@@ -109,7 +109,7 @@ namespace ENode.Infrastructure
         /// </summary>
         public virtual void CompleteRun()
         {
-            _logger.InfoFormat("{0} complete run, routingKey: {1}", GetType().Name, RoutingKey);
+            _logger.DebugFormat("{0} complete run, routingKey: {1}", GetType().Name, RoutingKey);
             SetAsNotRunning();
             if (HasNextMessage())
             {
@@ -121,7 +121,7 @@ namespace ENode.Infrastructure
         public virtual void Pause()
         {
             IsPauseRequested = true;
-            _logger.InfoFormat("{0} pause requested, routingKey: {1}", GetType().Name, RoutingKey);
+            _logger.DebugFormat("{0} pause requested, routingKey: {1}", GetType().Name, RoutingKey);
             var count = 0L;
             while (IsRunning)
             {
@@ -129,7 +129,7 @@ namespace ENode.Infrastructure
                 count++;
                 if (count % 100 == 0)
                 {
-                    _logger.InfoFormat("{0} pause requested, but wait for too long to stop the current mailbox, routingKey: {1}, waitCount: {2}", GetType().Name, RoutingKey, count);
+                    _logger.DebugFormat("{0} pause requested, but wait for too long to stop the current mailbox, routingKey: {1}, waitCount: {2}", GetType().Name, RoutingKey, count);
                 }
             }
             IsPaused = true;
@@ -140,14 +140,14 @@ namespace ENode.Infrastructure
         {
             IsPauseRequested = false;
             IsPaused = false;
-            _logger.InfoFormat("{0} resume requested, routingKey: {1}, consumingSequence: {2}", GetType().Name, RoutingKey, ConsumingSequence);
+            _logger.DebugFormat("{0} resume requested, routingKey: {1}, consumingSequence: {2}", GetType().Name, RoutingKey, ConsumingSequence);
         }
         public virtual void ResetConsumingSequence(long consumingSequence)
         {
             LastActiveTime = DateTime.Now;
             ConsumingSequence = consumingSequence;
             _requestToCompleteMessageDict.Clear();
-            _logger.InfoFormat("{0} reset consumingSequence, routingKey: {1}, consumingSequence: {2}", GetType().Name, RoutingKey, consumingSequence);
+            _logger.DebugFormat("{0} reset consumingSequence, routingKey: {1}, consumingSequence: {2}", GetType().Name, RoutingKey, consumingSequence);
         }
         public virtual void Clear()
         {
