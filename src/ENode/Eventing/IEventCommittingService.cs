@@ -4,7 +4,7 @@ namespace ENode.Eventing
 {
     /// <summary>Represents a service to commit or publish domain event stream.
     /// </summary>
-    public interface IEventService
+    public interface IEventCommittingService
     {
         /// <summary>Commit the given aggregate's domain events to the eventstore async and publish the domain events.
         /// </summary>

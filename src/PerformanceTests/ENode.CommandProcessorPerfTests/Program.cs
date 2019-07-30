@@ -27,7 +27,7 @@ namespace ENode.CommandProcessorPerfTests
         static Stopwatch _watch;
         static IRepository _repository;
         static ICommandProcessor _commandProcessor;
-        static IEventService _eventService;
+        static IEventCommittingService _eventService;
         static int _commandCount;
         static int _executedCount;
         static int _totalCommandCount;
@@ -104,7 +104,7 @@ namespace ENode.CommandProcessorPerfTests
                 .RegisterBusinessComponents(assemblies)
                 .BuildContainer()
                 .InitializeBusinessAssemblies(assemblies);
-            _eventService = ObjectContainer.Resolve<IEventService>();
+            _eventService = ObjectContainer.Resolve<IEventCommittingService>();
 
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create("main");
             _repository = ObjectContainer.Resolve<IRepository>();

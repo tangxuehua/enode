@@ -91,7 +91,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IEventSerializer, DefaultEventSerializer>();
             _configuration.SetDefault<IEventStore, InMemoryEventStore>();
             _configuration.SetDefault<IPublishedVersionStore, InMemoryPublishedVersionStore>();
-            _configuration.SetDefault<IEventService, DefaultEventService>();
+            _configuration.SetDefault<IEventCommittingService, DefaultEventCommittingService>();
 
             _configuration.SetDefault<IMessageDispatcher, DefaultMessageDispatcher>();
 
@@ -169,7 +169,7 @@ namespace ENode.Configurations
             };
             ObjectContainer.Resolve<IMemoryCache>().Start();
             ObjectContainer.Resolve<ICommandProcessor>().Start();
-            ObjectContainer.Resolve<IEventService>().Start();
+            ObjectContainer.Resolve<IEventCommittingService>().Start();
             ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>().Start();
             return this;
         }
@@ -179,7 +179,7 @@ namespace ENode.Configurations
         {
             ObjectContainer.Resolve<IMemoryCache>().Stop();
             ObjectContainer.Resolve<ICommandProcessor>().Stop();
-            ObjectContainer.Resolve<IEventService>().Stop();
+            ObjectContainer.Resolve<IEventCommittingService>().Stop();
             ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>().Stop();
         }
 

@@ -61,7 +61,7 @@ namespace ENode.EQueue
             var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), applicationMessageType) as IApplicationMessage;
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingApplicationMessage(message, processContext);
-            _logger.DebugFormat("ENode application message received, messageId: {0}, routingKey: {1}", message.Id, message.GetRoutingKey());
+            _logger.DebugFormat("ENode application message received, messageId: {0}", message.Id);
 
             Task.Factory.StartNew(obj =>
             {

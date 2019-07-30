@@ -21,7 +21,7 @@ namespace ENode.Commanding.Impl
         private readonly ICommandHandlerProvider _commandHandlerProvider;
         private readonly ICommandAsyncHandlerProvider _commandAsyncHandlerProvider;
         private readonly ITypeNameProvider _typeNameProvider;
-        private readonly IEventService _eventService;
+        private readonly IEventCommittingService _eventService;
         private readonly IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
         private readonly IMessagePublisher<IPublishableException> _exceptionPublisher;
         private readonly IOHelper _ioHelper;
@@ -39,7 +39,7 @@ namespace ENode.Commanding.Impl
             ICommandHandlerProvider commandHandlerProvider,
             ICommandAsyncHandlerProvider commandAsyncHandlerProvider,
             ITypeNameProvider typeNameProvider,
-            IEventService eventService,
+            IEventCommittingService eventService,
             IMessagePublisher<IApplicationMessage> applicationMessagePublisher,
             IMessagePublisher<IPublishableException> exceptionPublisher,
             IOHelper ioHelper,

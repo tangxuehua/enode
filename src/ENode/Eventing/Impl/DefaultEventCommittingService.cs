@@ -14,7 +14,7 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing.Impl
 {
-    public class DefaultEventService : IEventService
+    public class DefaultEventCommittingService : IEventCommittingService
     {
         #region Private Variables
 
@@ -38,7 +38,7 @@ namespace ENode.Eventing.Impl
 
         #region Constructors
 
-        public DefaultEventService(
+        public DefaultEventCommittingService(
             IJsonSerializer jsonSerializer,
             IScheduleService scheduleService,
             ITypeNameProvider typeNameProvider,
