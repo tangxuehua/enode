@@ -4,6 +4,6 @@ namespace ENode.Commanding
 {
     public interface IProcessingCommandHandler
     {
-       Task Handle(ProcessingCommand processingCommand);
+       Task HandleAsync(ProcessingCommand processingCommand);
     }
 }

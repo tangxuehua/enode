@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -14,7 +15,7 @@ namespace ENode.EQueue
         private const string DefaultMessageConsumerGroup = "ApplicationMessageConsumerGroup";
         private IJsonSerializer _jsonSerializer;
         private ITypeNameProvider _typeNameProvider;
-        private IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage> _processor;
+        private IMessageDispatcher _messageDispatcher;
         private ILogger _logger;
 
         public Consumer Consumer { get; private set; }
@@ -22,7 +23,7 @@ namespace ENode.EQueue
         public ApplicationMessageConsumer InitializeENode()
         {
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>();
+            _messageDispatcher = ObjectContainer.Resolve<IMessageDispatcher>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             return this;
@@ -61,7 +62,14 @@ namespace ENode.EQueue
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingApplicationMessage(message, processContext);
             _logger.DebugFormat("ENode application message received, messageId: {0}, routingKey: {1}", message.Id, message.GetRoutingKey());
-            _processor.Process(processingMessage);
+
+            Task.Factory.StartNew(obj =>
+            {
+                _messageDispatcher.DispatchMessageAsync(((ProcessingApplicationMessage)obj).Message).ContinueWith(x =>
+                {
+                    processingMessage.Complete();
+                });
+            }, processingMessage);
         }
     }
 }

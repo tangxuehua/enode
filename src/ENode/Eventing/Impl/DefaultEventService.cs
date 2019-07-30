@@ -19,7 +19,7 @@ namespace ENode.Eventing.Impl
         #region Private Variables
 
         private readonly int _eventMailboxCount;
-        private readonly List<EventMailBox> _eventMailboxList;
+        private readonly IList<EventCommittingContextMailBox> _eventCommittingContextMailBoxList;
         private readonly IJsonSerializer _jsonSerializer;
         private readonly IScheduleService _scheduleService;
         private readonly ITypeNameProvider _typeNameProvider;
@@ -50,7 +50,7 @@ namespace ENode.Eventing.Impl
             IOHelper ioHelper,
             ILoggerFactory loggerFactory)
         {
-            _eventMailboxList = new List<EventMailBox>();
+            _eventCommittingContextMailBoxList = new List<EventCommittingContextMailBox>();
             _ioHelper = ioHelper;
             _jsonSerializer = jsonSerializer;
             _scheduleService = scheduleService;
@@ -68,7 +68,7 @@ namespace ENode.Eventing.Impl
 
             for (var i = 0; i < _eventMailboxCount; i++)
             {
-                _eventMailboxList.Add(new EventMailBox(i.ToString(), _batchSize, BatchPersistEventCommittingContexts, _logger));
+                _eventCommittingContextMailBoxList.Add(new EventCommittingContextMailBox(i, _batchSize, BatchPersistEventCommittingContexts, _logger));
             }
         }
 
@@ -79,7 +79,7 @@ namespace ENode.Eventing.Impl
         public void CommitDomainEventAsync(EventCommittingContext eventCommittingContext)
         {
             var eventMailboxIndex = GetEventMailBoxIndex(eventCommittingContext.EventStream.AggregateRootId);
-            var eventMailbox = _eventMailboxList[eventMailboxIndex];
+            var eventMailbox = _eventCommittingContextMailBoxList[eventMailboxIndex];
             eventMailbox.EnqueueMessage(eventCommittingContext);
         }
         public void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream)
@@ -126,15 +126,7 @@ namespace ENode.Eventing.Impl
             {
                 return;
             }
-
-            if (_eventStore.SupportBatchAppendEvent)
-            {
-                BatchPersistEventAsync(committingContexts, 0);
-            }
-            else
-            {
-                PersistEventOneByOne(committingContexts);
-            }
+            BatchPersistEventAsync(committingContexts, 0);
         }
         private void BatchPersistEventAsync(IList<EventCommittingContext> committingContexts, int retryTimes)
         {
@@ -147,7 +139,7 @@ namespace ENode.Eventing.Impl
                 if (appendResult == EventAppendResult.Success)
                 {
                     var eventMailBox = committingContexts.First().MailBox;
-                    _logger.DebugFormat("Batch persist event success, routingKey: {0}, eventStreamCount: {1}, minEventVersion: {2}, maxEventVersion: {3}", eventMailBox.RoutingKey, committingContexts.Count, committingContexts.First().EventStream.Version, committingContexts.Last().EventStream.Version);
+                    _logger.DebugFormat("Batch persist event success, mailboxNumber: {0}, eventStreamCount: {1}, minEventVersion: {2}, maxEventVersion: {3}", eventMailBox.Number, committingContexts.Count, committingContexts.First().EventStream.Version, committingContexts.Last().EventStream.Version);
 
                     Task.Factory.StartNew(x =>
                     {
@@ -158,79 +150,24 @@ namespace ENode.Eventing.Impl
                         }
                     }, committingContexts);
 
-                    foreach (var committingContext in committingContexts)
-                    {
-                        committingContext.MailBox.CompleteMessage(committingContext, true);
-                    }
-
                     eventMailBox.CompleteRun();
                 }
                 else if (appendResult == EventAppendResult.DuplicateEvent)
                 {
                     var eventMailBox = committingContexts.First().MailBox;
-                    _logger.WarnFormat("Batch persist event has concurrent version conflict, routingKey: {0}, eventStreamCount: {1}, minEventVersion: {2}, maxEventVersion: {3}", eventMailBox.RoutingKey, committingContexts.Count, committingContexts.First().EventStream.Version, committingContexts.Last().EventStream.Version);
+                    _logger.WarnFormat("Batch persist event has concurrent version conflict, mailboxNumber: {0}, eventStreamCount: {1}, minEventVersion: {2}, maxEventVersion: {3}", eventMailBox.Number, committingContexts.Count, committingContexts.First().EventStream.Version, committingContexts.Last().EventStream.Version);
                     ProcessDuplicateEvent(committingContexts.First());
                 }
                 else if (appendResult == EventAppendResult.DuplicateCommand)
                 {
-                    PersistEventOneByOne(committingContexts);
+                    //TODO
+                    //PersistEventOneByOne(committingContexts);
                 }
             },
             () => string.Format("[contextListCount:{0}]", committingContexts.Count),
             errorMessage =>
             {
                 _logger.Fatal(string.Format("Batch persist event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
-            retryTimes, true);
-        }
-        private void PersistEventOneByOne(IList<EventCommittingContext> contextList)
-        {
-            ConcatContexts(contextList);
-            PersistEventAsync(contextList[0], 0);
-        }
-        private void PersistEventAsync(EventCommittingContext context, int retryTimes)
-        {
-            _ioHelper.TryAsyncActionRecursively("PersistEventAsync",
-            () => _eventStore.AppendAsync(context.EventStream),
-            currentRetryTimes => PersistEventAsync(context, currentRetryTimes),
-            result =>
-            {
-                if (result.Data == EventAppendResult.Success)
-                {
-                    _logger.DebugFormat("Persist event success, eventStream: {0}", context.EventStream);
-
-                    Task.Factory.StartNew(x =>
-                    {
-                        var currentContext = x as EventCommittingContext;
-                        PublishDomainEventAsync(currentContext.ProcessingCommand, currentContext.EventStream);
-                    }, context);
-
-                    if (context.Next != null)
-                    {
-                        PersistEventAsync(context.Next, 0);
-                    }
-                    else
-                    {
-                        context.MailBox.CompleteMessage(context, true);
-                        context.MailBox.CompleteRun();
-                    }
-                }
-                else if (result.Data == EventAppendResult.DuplicateEvent)
-                {
-                    _logger.WarnFormat("Persist event has concurrent version conflict, eventStream: {0}", context.EventStream);
-                    ProcessDuplicateEvent(context);
-                }
-                else if (result.Data == EventAppendResult.DuplicateCommand)
-                {
-                    _logger.WarnFormat("Persist event has duplicate command, eventStream: {0}", context.EventStream);
-                    ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1).ContinueWith(t => { }).ConfigureAwait(false);
-                    TryToRepublishEventAsync(context, 0);
-                }
-            },
-            () => string.Format("[eventStream:{0}]", context.EventStream),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Persist event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
             },
             retryTimes, true);
         }
@@ -250,7 +187,7 @@ namespace ENode.Eventing.Impl
             var processingCommand = context.ProcessingCommand;
             var command = processingCommand.Message;
             var commandMailBox = processingCommand.MailBox;
-            var eventMailBox = context.MailBox as EventMailBox;
+            var eventMailBox = context.MailBox;
             var aggregateRootId = context.EventStream.AggregateRootId;
 
             commandMailBox.Pause();
@@ -263,7 +200,7 @@ namespace ENode.Eventing.Impl
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("ResetCommandMailBoxConsumingOffset has unknown exception, commandId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId), ex);
+                _logger.Error(string.Format("ResetCommandMailBoxConsumingSequence has unknown exception, aggregateRootId: {0}", command.AggregateRootId), ex);
             }
             finally
             {
@@ -388,15 +325,6 @@ namespace ENode.Eventing.Impl
                 _logger.Fatal(string.Format("Publish event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
             },
             retryTimes, true);
-        }
-        private void ConcatContexts(IList<EventCommittingContext> contextList)
-        {
-            for (var i = 0; i < contextList.Count - 1; i++)
-            {
-                var currentContext = contextList[i];
-                var nextContext = contextList[i + 1];
-                currentContext.Next = nextContext;
-            }
         }
         private Task CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)
         {

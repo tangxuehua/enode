@@ -9,6 +9,7 @@ namespace ENode.Commanding.Impl
 {
     public class DefaultCommandProcessor : ICommandProcessor
     {
+        private readonly object _lockObj = new object();
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, ProcessingCommandMailbox> _mailboxDict;
         private readonly IProcessingCommandHandler _handler;
@@ -34,11 +35,14 @@ namespace ENode.Commanding.Impl
                 throw new ArgumentException("aggregateRootId of command cannot be null or empty, commandId:" + processingCommand.Message.Id);
             }
 
-            var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x =>
+            lock (_lockObj)
             {
-                return new ProcessingCommandMailbox(x, _handler, _logger);
-            });
-            mailbox.EnqueueMessage(processingCommand);
+                var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x =>
+                {
+                    return new ProcessingCommandMailbox(x, _handler, _logger);
+                });
+                mailbox.EnqueueMessage(processingCommand);
+            }
         }
         public void Start()
         {
@@ -52,19 +56,26 @@ namespace ENode.Commanding.Impl
         private void CleanInactiveMailbox()
         {
             var inactiveList = new List<KeyValuePair<string, ProcessingCommandMailbox>>();
+
             foreach (var pair in _mailboxDict)
             {
-                if (pair.Value.IsInactive(_timeoutSeconds) && !pair.Value.IsRunning)
+                if (pair.Value.IsInactive(_timeoutSeconds) && !pair.Value.IsRunning && pair.Value.TotalUnHandledMessageCount == 0)
                 {
                     inactiveList.Add(pair);
                 }
             }
+
             foreach (var pair in inactiveList)
             {
-                ProcessingCommandMailbox removed;
-                if (_mailboxDict.TryRemove(pair.Key, out removed))
+                lock (_lockObj)
                 {
-                    _logger.InfoFormat("Removed inactive command mailbox, aggregateRootId: {0}", pair.Key);
+                    if (pair.Value.IsInactive(_timeoutSeconds) && !pair.Value.IsRunning && pair.Value.TotalUnHandledMessageCount == 0)
+                    {
+                        if (_mailboxDict.TryRemove(pair.Key, out ProcessingCommandMailbox removed))
+                        {
+                            _logger.InfoFormat("Removed inactive command mailbox, aggregateRootId: {0}", pair.Key);
+                        }
+                    }
                 }
             }
         }

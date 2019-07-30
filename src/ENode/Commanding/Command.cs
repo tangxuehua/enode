@@ -20,19 +20,7 @@ namespace ENode.Commanding
         /// <param name="aggregateRootId"></param>
         public Command(string aggregateRootId)
         {
-            if (aggregateRootId == null)
-            {
-                throw new ArgumentNullException("aggregateRootId");
-            }
-            AggregateRootId = aggregateRootId;
-        }
-
-        /// <summary>Returns the aggregate root id by default.
-        /// </summary>
-        /// <returns></returns>
-        public override string GetRoutingKey()
-        {
-            return AggregateRootId;
+            AggregateRootId = aggregateRootId ?? throw new ArgumentNullException("aggregateRootId");
         }
     }
     /// <summary>Represents an abstract command with generic aggregate root id.
@@ -63,24 +51,12 @@ namespace ENode.Commanding
         {
             get
             {
-                if (this.AggregateRootId != null)
+                if (AggregateRootId != null)
                 {
-                    return this.AggregateRootId.ToString();
+                    return AggregateRootId.ToString();
                 }
                 return null;
             }
-        }
-
-        /// <summary>Returns the aggregate root id by default.
-        /// </summary>
-        /// <returns></returns>
-        public override string GetRoutingKey()
-        {
-            if (!object.Equals(AggregateRootId, default(TAggregateRootId)))
-            {
-                return ((ICommand)this).AggregateRootId;
-            }
-            return null;
         }
     }
 }

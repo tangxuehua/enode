@@ -6,11 +6,14 @@ using ENode.Infrastructure;
 namespace ENode.Eventing
 {
     [Serializable]
-    public class DomainEventStreamMessage : SequenceMessage<string>
+    public class DomainEventStreamMessage : Message
     {
+        public string AggregateRootId { get; set; }
+        public string AggregateRootTypeName { get; set; }
+        public int Version { get; set; }
         public string CommandId { get; set; }
-        public IDictionary<string, string> Items { get; set; }
         public IEnumerable<IDomainEvent> Events { get; set; }
+        public IDictionary<string, string> Items { get; set; }
 
         public DomainEventStreamMessage() { }
         public DomainEventStreamMessage(string commandId, string aggregateRootId, int version, string aggregateRootTypeName, IEnumerable<IDomainEvent> events, IDictionary<string, string> items)

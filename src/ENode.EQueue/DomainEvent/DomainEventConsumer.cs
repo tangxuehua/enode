@@ -4,7 +4,6 @@ using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Eventing;
-using ENode.Infrastructure;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;
@@ -17,7 +16,7 @@ namespace ENode.EQueue
         private SendReplyService _sendReplyService;
         private IJsonSerializer _jsonSerializer;
         private IEventSerializer _eventSerializer;
-        private IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage> _messageProcessor;
+        private IProcessingDomainEventStreamMessageProcessor _messageProcessor;
         private ILogger _logger;
         private bool _sendEventHandledMessage;
 
@@ -28,7 +27,7 @@ namespace ENode.EQueue
             _sendReplyService = new SendReplyService("EventConsumerSendReplyService");
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
-            _messageProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
+            _messageProcessor = ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _sendEventHandledMessage = sendEventHandledMessage;
             return this;

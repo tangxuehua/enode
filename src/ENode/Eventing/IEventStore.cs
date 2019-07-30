@@ -8,15 +8,9 @@ namespace ENode.Eventing
     /// </summary>
     public interface IEventStore
     {
-        /// <summary>This property indicate whether the event store support batch append events.
-        /// </summary>
-        bool SupportBatchAppendEvent { get; set; }
         /// <summary>Batch append the given event streams to the event store async.
         /// </summary>
         Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams);
-        /// <summary>Append the given event stream to the event store async.
-        /// </summary>
-        Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream);
         /// <summary>Find a single event stream by aggregateRootId and version async.
         /// </summary>
         /// <returns></returns>

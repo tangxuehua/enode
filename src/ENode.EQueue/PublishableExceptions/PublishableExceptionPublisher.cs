@@ -46,7 +46,7 @@ namespace ENode.EQueue
         public Task<AsyncTaskResult> PublishAsync(IPublishableException exception)
         {
             var message = CreateEQueueMessage(exception);
-            return _sendMessageService.SendMessageAsync(Producer, message, exception.GetRoutingKey() ?? exception.Id, exception.Id, null);
+            return _sendMessageService.SendMessageAsync(Producer, message, ((IRoutingKeyMessage)exception).GetRoutingKey(), exception.Id, null);
         }
 
         private EQueueMessage CreateEQueueMessage(IPublishableException exception)

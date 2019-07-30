@@ -64,7 +64,7 @@ namespace ENode.Commanding.Impl
 
         #region Public Methods
 
-        public Task Handle(ProcessingCommand processingCommand)
+        public Task HandleAsync(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Message;
 
@@ -433,7 +433,7 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => PublishMessageAsync(processingCommand, message, currentRetryTimes),
             result =>
             {
-                CompleteCommand(processingCommand, CommandStatus.Success, message.GetTypeName(), _jsonSerializer.Serialize(message));
+                CompleteCommand(processingCommand, CommandStatus.Success, message.GetType().FullName, _jsonSerializer.Serialize(message));
             },
             () => string.Format("[application message:[id:{0},type:{1}],command:[id:{2},type:{3}]]", message.Id, message.GetType().Name, command.Id, command.GetType().Name),
             errorMessage =>

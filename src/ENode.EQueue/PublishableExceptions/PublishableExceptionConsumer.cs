@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -15,7 +16,7 @@ namespace ENode.EQueue
         private const string DefaultExceptionConsumerGroup = "ExceptionConsumerGroup";
         private IJsonSerializer _jsonSerializer;
         private ITypeNameProvider _typeNameProvider;
-        private IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException> _publishableExceptionProcessor;
+        private IMessageDispatcher _messageDispatcher;
         private ILogger _logger;
 
         public Consumer Consumer { get; private set; }
@@ -23,7 +24,7 @@ namespace ENode.EQueue
         public PublishableExceptionConsumer InitializeENode()
         {
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
-            _publishableExceptionProcessor = ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>();
+            _messageDispatcher = ObjectContainer.Resolve<IMessageDispatcher>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             return this;
@@ -63,16 +64,17 @@ namespace ENode.EQueue
             exception.Id = exceptionMessage.UniqueId;
             exception.Timestamp = exceptionMessage.Timestamp;
             exception.RestoreFrom(exceptionMessage.SerializableInfo);
-            var sequenceMessage = exception as ISequenceMessage;
-            if (sequenceMessage != null)
-            {
-                sequenceMessage.AggregateRootTypeName = exceptionMessage.AggregateRootTypeName;
-                sequenceMessage.AggregateRootStringId = exceptionMessage.AggregateRootId;
-            }
             var processContext = new EQueueProcessContext(queueMessage, context);
             var processingMessage = new ProcessingPublishableExceptionMessage(exception, processContext);
             _logger.DebugFormat("ENode exception message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}", exceptionMessage.UniqueId, exceptionMessage.AggregateRootId, exceptionMessage.AggregateRootTypeName);
-            _publishableExceptionProcessor.Process(processingMessage);
+
+            Task.Factory.StartNew(obj =>
+            {
+                _messageDispatcher.DispatchMessageAsync(((ProcessingPublishableExceptionMessage)obj).Message).ContinueWith(x =>
+                {
+                    processingMessage.Complete();
+                });
+            }, processingMessage);
         }
     }
 }

@@ -19,7 +19,6 @@ namespace ENode.EQueue
         private IJsonSerializer _jsonSerializer;
         private ITopicProvider<ICommand> _commandTopicProvider;
         private ITypeNameProvider _typeNameProvider;
-        private ICommandRoutingKeyProvider _commandRouteKeyProvider;
         private SendQueueMessageService _sendMessageService;
         private CommandResultProcessor _commandResultProcessor;
         private IOHelper _ioHelper;
@@ -33,7 +32,6 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
             _commandTopicProvider = ObjectContainer.Resolve<ITopicProvider<ICommand>>();
             _typeNameProvider = ObjectContainer.Resolve<ITypeNameProvider>();
-            _commandRouteKeyProvider = ObjectContainer.Resolve<ICommandRoutingKeyProvider>();
             _sendMessageService = new SendQueueMessageService();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
@@ -69,7 +67,7 @@ namespace ENode.EQueue
         {
             try
             {
-                return _sendMessageService.SendMessageAsync(Producer, BuildCommandMessage(command, false), _commandRouteKeyProvider.GetRoutingKey(command), command.Id, null);
+                return _sendMessageService.SendMessageAsync(Producer, BuildCommandMessage(command, false), ((IRoutingKeyMessage)command).GetRoutingKey(), command.Id, null);
             }
             catch (Exception ex)
             {

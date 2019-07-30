@@ -15,7 +15,6 @@ using ENode.Eventing;
 using ENode.Eventing.Impl;
 using ENode.Infrastructure;
 using ENode.Infrastructure.Impl;
-using ENode.Infrastructure.Impl.InMemory;
 
 namespace ENode.Configurations
 {
@@ -87,7 +86,6 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<ICommandAsyncHandlerProvider, DefaultCommandAsyncHandlerProvider>();
             _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
-            _configuration.SetDefault<ICommandRoutingKeyProvider, DefaultCommandRoutingKeyProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
 
             _configuration.SetDefault<IEventSerializer, DefaultEventSerializer>();
@@ -102,18 +100,9 @@ namespace ENode.Configurations
             _configuration.SetDefault<IMessagePublisher<IPublishableException>, DoNothingPublisher>();
 
             _configuration.SetDefault<IProcessingCommandHandler, DefaultProcessingCommandHandler>();
-            _configuration.SetDefault<IProcessingMessageHandler<ProcessingApplicationMessage, IApplicationMessage>, DefaultProcessingMessageHandler<ProcessingApplicationMessage, IApplicationMessage>>();
-            _configuration.SetDefault<IProcessingMessageHandler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, DomainEventStreamMessageHandler>();
-            _configuration.SetDefault<IProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultProcessingMessageHandler<ProcessingPublishableExceptionMessage, IPublishableException>>();
-
-            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage>, DefaultProcessingMessageScheduler<ProcessingApplicationMessage, IApplicationMessage>>();
-            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, DefaultProcessingMessageScheduler<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
-            _configuration.SetDefault<IProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultProcessingMessageScheduler<ProcessingPublishableExceptionMessage, IPublishableException>>();
 
             _configuration.SetDefault<ICommandProcessor, DefaultCommandProcessor>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>, DefaultApplicationMessageProcessor>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>, DefaultDomainEventProcessor>();
-            _configuration.SetDefault<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>, DefaultPublishableExceptionProcessor>();
+            _configuration.SetDefault<IProcessingDomainEventStreamMessageProcessor, DefaultProcessingDomainEventStreamMessageProcessor>();
 
             _assemblyInitializerServiceTypes.Add(typeof(ITypeNameProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
@@ -181,9 +170,7 @@ namespace ENode.Configurations
             ObjectContainer.Resolve<IMemoryCache>().Start();
             ObjectContainer.Resolve<ICommandProcessor>().Start();
             ObjectContainer.Resolve<IEventService>().Start();
-            ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>().Start();
-            ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>().Start();
-            ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>().Start();
+            ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>().Start();
             return this;
         }
         /// <summary>Stop background tasks.
@@ -193,9 +180,7 @@ namespace ENode.Configurations
             ObjectContainer.Resolve<IMemoryCache>().Stop();
             ObjectContainer.Resolve<ICommandProcessor>().Stop();
             ObjectContainer.Resolve<IEventService>().Stop();
-            ObjectContainer.Resolve<IMessageProcessor<ProcessingApplicationMessage, IApplicationMessage>>().Stop();
-            ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>().Stop();
-            ObjectContainer.Resolve<IMessageProcessor<ProcessingPublishableExceptionMessage, IPublishableException>>().Stop();
+            ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>().Stop();
         }
 
         #region Private Methods

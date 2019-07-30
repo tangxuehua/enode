@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using ENode.Infrastructure;
 
 namespace ENode.Commanding
 {
-    public class ProcessingCommand : IMailBoxMessage<ProcessingCommand, CommandResult>
+    public class ProcessingCommand
     {
-        public IMailBox<ProcessingCommand, CommandResult> MailBox { get; set; }
+        public ProcessingCommandMailbox MailBox { get; set; }
         public long Sequence { get; set; }
         public ICommand Message { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }

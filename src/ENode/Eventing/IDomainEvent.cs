@@ -4,8 +4,20 @@ namespace ENode.Eventing
 {
     /// <summary>Represents a domain event.
     /// </summary>
-    public interface IDomainEvent : ISequenceMessage
+    public interface IDomainEvent : IMessage
     {
+        /// <summary>Represents the aggregate root string id of the sequence message.
+        /// </summary>
+        string AggregateRootStringId { get; set; }
+        /// <summary>Represents the aggregate root type name of the sequence message.
+        /// </summary>
+        string AggregateRootTypeName { get; set; }
+        /// <summary>Represents the main version of the sequence message.
+        /// </summary>
+        int Version { get; set; }
+        /// <summary>Represents the child sequence for the current main version of message.
+        /// </summary>
+        int Sequence { get; set; }
     }
     /// <summary>Represents a domain event with generic type of aggregate root id.
     /// </summary>
