@@ -363,14 +363,11 @@ namespace ENode.Commanding.Impl
                 try
                 {
                     var asyncResult = commandHandler.HandleAsync(command);
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.DebugFormat("Handle command async success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
-                            commandHandler.GetInnerObject().GetType().Name,
-                            command.GetType().Name,
-                            command.Id,
-                            command.AggregateRootId);
-                    }
+                    _logger.DebugFormat("Handle command async success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                        commandHandler.GetInnerObject().GetType().Name,
+                        command.GetType().Name,
+                        command.Id,
+                        command.AggregateRootId);
                     return asyncResult;
                 }
                 catch (IOException ex)

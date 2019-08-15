@@ -169,7 +169,6 @@ namespace ENode.Configurations
             };
             ObjectContainer.Resolve<IMemoryCache>().Start();
             ObjectContainer.Resolve<ICommandProcessor>().Start();
-            ObjectContainer.Resolve<IEventCommittingService>().Start();
             ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>().Start();
             return this;
         }
@@ -179,7 +178,6 @@ namespace ENode.Configurations
         {
             ObjectContainer.Resolve<IMemoryCache>().Stop();
             ObjectContainer.Resolve<ICommandProcessor>().Stop();
-            ObjectContainer.Resolve<IEventCommittingService>().Stop();
             ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>().Stop();
         }
 

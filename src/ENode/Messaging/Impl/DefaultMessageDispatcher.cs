@@ -171,10 +171,7 @@ namespace ENode.Infrastructure.Impl
                 {
                     queueHandler.OnHandlerFinished(handlerProxy);
                 }
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("Message handled success, handlerType:{0}, messageType:{1}, messageId:{2}", handlerTypeName, message.GetType().Name, message.Id);
-                }
+                _logger.DebugFormat("Message handled success, handlerType:{0}, messageType:{1}, messageId:{2}", handlerTypeName, message.GetType().Name, message.Id);
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerProxy.GetInnerObject().GetType().Name),
             errorMessage =>
@@ -199,10 +196,7 @@ namespace ENode.Infrastructure.Impl
                 {
                     queueHandler.OnHandlerFinished(handlerProxy);
                 }
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("TwoMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
-                }
+                _logger.DebugFormat("TwoMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             errorMessage =>
@@ -228,10 +222,7 @@ namespace ENode.Infrastructure.Impl
                 {
                     queueHandler.OnHandlerFinished(handlerProxy);
                 }
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("ThreeMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
-                }
+                _logger.DebugFormat("ThreeMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             errorMessage =>
@@ -267,8 +258,7 @@ namespace ENode.Infrastructure.Impl
             }
             public void OnChildDispatchingFinished(object childDispatching)
             {
-                bool removed;
-                if (_childDispatchingDict.TryRemove(childDispatching, out removed))
+                if (_childDispatchingDict.TryRemove(childDispatching, out bool removed))
                 {
                     if (_childDispatchingDict.IsEmpty)
                     {
@@ -300,8 +290,7 @@ namespace ENode.Infrastructure.Impl
 
             public IMessage DequeueMessage()
             {
-                IMessage message;
-                if (_messageQueue.TryDequeue(out message))
+                if (_messageQueue.TryDequeue(out IMessage message))
                 {
                     return message;
                 }
@@ -320,18 +309,14 @@ namespace ENode.Infrastructure.Impl
         }
         class MultiMessageDisptaching
         {
-            private IMessage[] _messages;
             private ConcurrentDictionary<string, IObjectProxy> _handlerDict;
             private RootDisptaching _rootDispatching;
 
-            public IMessage[] Messages
-            {
-                get { return _messages; }
-            }
+            public IMessage[] Messages { get; }
 
             public MultiMessageDisptaching(IEnumerable<IMessage> messages, IEnumerable<IObjectProxy> handlers, RootDisptaching rootDispatching, ITypeNameProvider typeNameProvider)
             {
-                _messages = messages.ToArray();
+                Messages = messages.ToArray();
                 _handlerDict = new ConcurrentDictionary<string, IObjectProxy>();
                 handlers.ForEach(x => _handlerDict.TryAdd(typeNameProvider.GetTypeName(x.GetInnerObject().GetType()), x));
                 _rootDispatching = rootDispatching;
@@ -340,8 +325,7 @@ namespace ENode.Infrastructure.Impl
 
             public void RemoveHandledHandler(string handlerTypeName)
             {
-                IObjectProxy handler;
-                if (_handlerDict.TryRemove(handlerTypeName, out handler))
+                if (_handlerDict.TryRemove(handlerTypeName, out IObjectProxy handler))
                 {
                     if (_handlerDict.IsEmpty)
                     {
@@ -367,8 +351,7 @@ namespace ENode.Infrastructure.Impl
 
             public void RemoveHandledHandler(string handlerTypeName)
             {
-                IObjectProxy handler;
-                if (_handlerDict.TryRemove(handlerTypeName, out handler))
+                if (_handlerDict.TryRemove(handlerTypeName, out IObjectProxy handler))
                 {
                     if (_handlerDict.IsEmpty)
                     {
@@ -391,8 +374,7 @@ namespace ENode.Infrastructure.Impl
 
             public T DequeueHandler()
             {
-                T handler;
-                if (_handlerQueue.TryDequeue(out handler))
+                if (_handlerQueue.TryDequeue(out T handler))
                 {
                     return handler;
                 }
