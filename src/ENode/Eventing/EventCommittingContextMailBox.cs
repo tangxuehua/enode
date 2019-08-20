@@ -110,13 +110,20 @@ namespace ENode.Eventing
 
                 while (messageList.Count < _batchSize)
                 {
-                    if (_messageQueue.TryDequeue(out EventCommittingContext message)
-                        && _aggregateDictDict.TryGetValue(message.EventStream.AggregateRootId, out ConcurrentDictionary<string, Byte> eventDict)
-                        && eventDict.TryRemove(message.EventStream.Id, out byte removed))
+                    if (_messageQueue.TryDequeue(out EventCommittingContext message))
                     {
-                        messageList.Add(message);
+                        if (_aggregateDictDict.TryGetValue(message.EventStream.AggregateRootId, out ConcurrentDictionary<string, Byte> eventDict)
+                            && eventDict.TryRemove(message.EventStream.Id, out byte removed))
+                        {
+                            messageList.Add(message);
+                        }
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
+
                 if (messageList.Count == 0)
                 {
                     CompleteRun();

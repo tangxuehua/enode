@@ -41,7 +41,7 @@ namespace ENode.Eventing.Impl
         public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
             var eventStreamDict = new Dictionary<string, IList<DomainEventStream>>();
-            var aggregateRootIdList = eventStreams.Select(x => x.AggregateRootId).ToList();
+            var aggregateRootIdList = eventStreams.Select(x => x.AggregateRootId).Distinct().ToList();
             foreach (var aggregateRootId in aggregateRootIdList)
             {
                 var eventStreamList = eventStreams.Where(x => x.AggregateRootId == aggregateRootId).ToList();
@@ -81,17 +81,25 @@ namespace ENode.Eventing.Impl
                 var firstEventStream = eventStreamList.First();
                 var duplicateEventAggregateRootIdList = new List<string>();
 
+                //检查提交过来的第一个事件的版本号是否是当前聚合根的当前版本号的下一个版本号
                 if (firstEventStream.Version != aggregateInfo.CurrentVersion + 1)
                 {
-                    eventAppendResult.DuplicateEventAggregateRootIdList.Add(aggregateRootId);
+                    if (!eventAppendResult.DuplicateEventAggregateRootIdList.Contains(aggregateRootId))
+                    {
+                        eventAppendResult.DuplicateEventAggregateRootIdList.Add(aggregateRootId);
+                    }
                     return;
                 }
 
+                //检查重复处理的命令ID
                 foreach (DomainEventStream eventStream in eventStreamList)
                 {
                     if (aggregateInfo.CommandDict.ContainsKey(eventStream.CommandId))
                     {
-                        eventAppendResult.DuplicateCommandIdList.Add(eventStream.CommandId);
+                        if (!eventAppendResult.DuplicateCommandIdList.Contains(eventStream.CommandId))
+                        {
+                            eventAppendResult.DuplicateCommandIdList.Add(eventStream.CommandId);
+                        }
                     }
                 }
                 if (eventAppendResult.DuplicateCommandIdList.Count > 0)
@@ -99,11 +107,15 @@ namespace ENode.Eventing.Impl
                     return;
                 }
 
+                //检查提交过来的事件本身是否满足版本号的递增关系
                 for (var i = 0; i < eventStreamList.Count - 1; i++)
                 {
-                    if (eventStreamList[i + 1].Version != eventStreamList[i].Version)
+                    if (eventStreamList[i + 1].Version != eventStreamList[i].Version + 1)
                     {
-                        eventAppendResult.DuplicateEventAggregateRootIdList.Add(aggregateRootId);
+                        if (!eventAppendResult.DuplicateEventAggregateRootIdList.Contains(aggregateRootId))
+                        {
+                            eventAppendResult.DuplicateEventAggregateRootIdList.Add(aggregateRootId);
+                        }
                         return;
                     }
                 }
@@ -115,7 +127,10 @@ namespace ENode.Eventing.Impl
                     aggregateInfo.CurrentVersion = eventStream.Version;
                 }
 
-                eventAppendResult.SuccessAggregateRootIdList.Add(aggregateRootId);
+                if (!eventAppendResult.SuccessAggregateRootIdList.Contains(aggregateRootId))
+                {
+                    eventAppendResult.SuccessAggregateRootIdList.Add(aggregateRootId);
+                }
             }
         }
         private DomainEventStream Find(string aggregateRootId, int version)

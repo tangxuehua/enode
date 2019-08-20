@@ -72,8 +72,6 @@ namespace ENode.EQueue
 
             _started = true;
 
-            _logger.InfoFormat("Command result processor started, bindingAddress: {0}", BindingAddress);
-
             return this;
         }
         public CommandResultProcessor Shutdown()

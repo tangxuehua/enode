@@ -52,9 +52,5 @@ namespace BankTransferSample.Domain
             CurrentBalance = double.Parse(serializableInfo["CurrentBalance"]);
             CurrentAvailableBalance = double.Parse(serializableInfo["CurrentAvailableBalance"]);
         }
-        public override string GetRoutingKey()
-        {
-            return AccountId;
-        }
     }
 }

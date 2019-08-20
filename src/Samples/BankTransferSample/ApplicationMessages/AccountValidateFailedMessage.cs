@@ -17,10 +17,5 @@ namespace BankTransferSample.ApplicationMessages
             TransactionId = transactionId;
             Reason = reason;
         }
-
-        public override string GetRoutingKey()
-        {
-            return AccountId;
-        }
     }
 }
