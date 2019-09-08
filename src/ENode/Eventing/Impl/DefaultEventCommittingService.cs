@@ -140,7 +140,7 @@ namespace ENode.Eventing.Impl
                     }
                     if (_logger.IsDebugEnabled)
                     {
-                        _logger.DebugFormat("Batch persist events, mailboxNumber: {0}, succeedAggregateRootCount: {1}, detailEventStreamCount: {2}",
+                        _logger.DebugFormat("Batch persist events, mailboxNumber: {0}, succeedAggregateRootCount: {1}, eventStreamDetail: {2}",
                             eventMailBox.Number,
                             appendResult.SuccessAggregateRootIdList.Count,
                             _jsonSerializer.Serialize(successCommittedContextDict));
@@ -151,9 +151,9 @@ namespace ENode.Eventing.Impl
                         var contextListDict = x as Dictionary<string, IList<EventCommittingContext>>;
                         foreach (var entry in contextListDict)
                         {
-                            foreach (var context in entry.Value)
+                            foreach (var committingContext in entry.Value)
                             {
-                                PublishDomainEventAsync(context.ProcessingCommand, context.EventStream);
+                                PublishDomainEventAsync(committingContext.ProcessingCommand, committingContext.EventStream);
                             }
                         }
                     }, successCommittedContextDict);
@@ -170,8 +170,10 @@ namespace ENode.Eventing.Impl
                     foreach (var commandId in appendResult.DuplicateCommandIdList)
                     {
                         var committingContext = committingContexts.FirstOrDefault(x => x.ProcessingCommand.Message.Id == commandId);
-                        var commandMailBox = committingContext.ProcessingCommand.MailBox;
-                        TryToRepublishEventAsync(committingContext, 0);
+                        if (committingContext != null)
+                        {
+                            TryToRepublishEventAsync(committingContext, 0);
+                        }
                     }
                 }
 
@@ -185,10 +187,10 @@ namespace ENode.Eventing.Impl
 
                     foreach (var aggregateRootId in appendResult.DuplicateEventAggregateRootIdList)
                     {
-                        var context = committingContexts.FirstOrDefault(x => x.EventStream.AggregateRootId == aggregateRootId);
-                        if (context != null)
+                        var committingContext = committingContexts.FirstOrDefault(x => x.EventStream.AggregateRootId == aggregateRootId);
+                        if (committingContext != null)
                         {
-                            ProcessAggregateDuplicateEvent(context);
+                            ProcessAggregateDuplicateEvent(committingContext);
                         }
                     }
                 }

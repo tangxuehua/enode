@@ -7,6 +7,7 @@ using ECommon.Dapper;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Utilities;
+using ENode.Eventing;
 using ENode.Infrastructure;
 
 namespace ENode.SqlServer

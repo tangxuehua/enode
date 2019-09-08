@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using ECommon.IO;
 using ECommon.Logging;
@@ -51,9 +49,6 @@ namespace ENode.Eventing.Impl
                 }
             }
             var eventAppendResult = new EventAppendResult();
-            eventAppendResult.SuccessAggregateRootIdList = new List<string>();
-            eventAppendResult.DuplicateCommandIdList = new List<string>();
-            eventAppendResult.DuplicateEventAggregateRootIdList = new List<string>();
             foreach (var entry in eventStreamDict)
             {
                 BatchAppend(entry.Key, entry.Value, eventAppendResult);
@@ -78,17 +73,21 @@ namespace ENode.Eventing.Impl
             lock (_lockObj)
             {
                 var aggregateInfo = _aggregateInfoDict.GetOrAdd(aggregateRootId, x => new AggregateInfo());
-                var firstEventStream = eventStreamList.First();
-                var duplicateEventAggregateRootIdList = new List<string>();
 
                 //检查提交过来的第一个事件的版本号是否是当前聚合根的当前版本号的下一个版本号
-                if (firstEventStream.Version != aggregateInfo.CurrentVersion + 1)
+                if (eventStreamList.First().Version != aggregateInfo.CurrentVersion + 1)
                 {
-                    if (!eventAppendResult.DuplicateEventAggregateRootIdList.Contains(aggregateRootId))
-                    {
-                        eventAppendResult.DuplicateEventAggregateRootIdList.Add(aggregateRootId);
-                    }
+                    eventAppendResult.AddDuplicateEventAggregateRootId(aggregateRootId);
                     return;
+                }
+                //检查提交过来的事件本身是否满足版本号的递增关系
+                for (var i = 0; i < eventStreamList.Count - 1; i++)
+                {
+                    if (eventStreamList[i + 1].Version != eventStreamList[i].Version + 1)
+                    {
+                        eventAppendResult.AddDuplicateEventAggregateRootId(aggregateRootId);
+                        return;
+                    }
                 }
 
                 //检查重复处理的命令ID
@@ -96,28 +95,12 @@ namespace ENode.Eventing.Impl
                 {
                     if (aggregateInfo.CommandDict.ContainsKey(eventStream.CommandId))
                     {
-                        if (!eventAppendResult.DuplicateCommandIdList.Contains(eventStream.CommandId))
-                        {
-                            eventAppendResult.DuplicateCommandIdList.Add(eventStream.CommandId);
-                        }
+                        eventAppendResult.AddDuplicateCommandId(eventStream.CommandId);
                     }
                 }
                 if (eventAppendResult.DuplicateCommandIdList.Count > 0)
                 {
                     return;
-                }
-
-                //检查提交过来的事件本身是否满足版本号的递增关系
-                for (var i = 0; i < eventStreamList.Count - 1; i++)
-                {
-                    if (eventStreamList[i + 1].Version != eventStreamList[i].Version + 1)
-                    {
-                        if (!eventAppendResult.DuplicateEventAggregateRootIdList.Contains(aggregateRootId))
-                        {
-                            eventAppendResult.DuplicateEventAggregateRootIdList.Add(aggregateRootId);
-                        }
-                        return;
-                    }
                 }
 
                 foreach (DomainEventStream eventStream in eventStreamList)
@@ -127,10 +110,7 @@ namespace ENode.Eventing.Impl
                     aggregateInfo.CurrentVersion = eventStream.Version;
                 }
 
-                if (!eventAppendResult.SuccessAggregateRootIdList.Contains(aggregateRootId))
-                {
-                    eventAppendResult.SuccessAggregateRootIdList.Add(aggregateRootId);
-                }
+                eventAppendResult.AddSuccessAggregateRootId(aggregateRootId);
             }
         }
         private DomainEventStream Find(string aggregateRootId, int version)

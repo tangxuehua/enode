@@ -37,12 +37,6 @@ namespace ENode.SqlServer
 
         #endregion
 
-        #region Public Properties
-
-        public bool SupportBatchAppendEvent { get; set; }
-
-        #endregion
-
         #region Public Methods
 
         public SqlServerEventStore Initialize(
@@ -74,8 +68,6 @@ namespace ENode.SqlServer
             _eventSerializer = ObjectContainer.Resolve<IEventSerializer>();
             _ioHelper = ObjectContainer.Resolve<IOHelper>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
-
-            SupportBatchAppendEvent = true;
 
             return this;
         }
@@ -114,10 +106,6 @@ namespace ENode.SqlServer
         }
         public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
-            if (!SupportBatchAppendEvent)
-            {
-                throw new NotSupportedException("Unsupport batch append event.");
-            }
             if (eventStreams.Count() == 0)
             {
                 throw new ArgumentException("Event streams cannot be empty.");
@@ -192,40 +180,6 @@ namespace ENode.SqlServer
                     return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Failed, ex.Message, EventAppendResult.Failed);
                 }
             }, "BatchAppendEventsAsync");
-        }
-        public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
-        {
-            var record = ConvertTo(eventStream);
-
-            return _ioHelper.TryIOFuncAsync(async () =>
-            {
-                try
-                {
-                    using (var connection = GetConnection())
-                    {
-                        await connection.InsertAsync(record, GetTableName(record.AggregateRootId));
-                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.Success);
-                    }
-                }
-                catch (SqlException ex)
-                {
-                    if (ex.Number == 2601 && ex.Message.Contains(_versionIndexName))
-                    {
-                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateEvent);
-                    }
-                    else if (ex.Number == 2601 && ex.Message.Contains(_commandIndexName))
-                    {
-                        return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, EventAppendResult.DuplicateCommand);
-                    }
-                    _logger.Error(string.Format("Append event has sql exception, eventStream: {0}", eventStream), ex);
-                    return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.IOException, ex.Message, EventAppendResult.Failed);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Append event has unknown exception, eventStream: {0}", eventStream), ex);
-                    return new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Failed, ex.Message, EventAppendResult.Failed);
-                }
-            }, "AppendEventsAsync");
         }
         public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
         {
