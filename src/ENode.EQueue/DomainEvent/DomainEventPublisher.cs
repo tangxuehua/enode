@@ -62,16 +62,17 @@ namespace ENode.EQueue
         }
         private EventStreamMessage CreateEventMessage(DomainEventStreamMessage eventStream)
         {
-            var message = new EventStreamMessage();
-
-            message.Id = eventStream.Id;
-            message.CommandId = eventStream.CommandId;
-            message.AggregateRootTypeName = eventStream.AggregateRootTypeName;
-            message.AggregateRootId = eventStream.AggregateRootId;
-            message.Timestamp = eventStream.Timestamp;
-            message.Version = eventStream.Version;
-            message.Events = _eventSerializer.Serialize(eventStream.Events);
-            message.Items = eventStream.Items;
+            var message = new EventStreamMessage
+            {
+                Id = eventStream.Id,
+                CommandId = eventStream.CommandId,
+                AggregateRootTypeName = eventStream.AggregateRootTypeName,
+                AggregateRootId = eventStream.AggregateRootId,
+                Timestamp = eventStream.Timestamp,
+                Version = eventStream.Version,
+                Events = _eventSerializer.Serialize(eventStream.Events),
+                Items = eventStream.Items
+            };
 
             return message;
         }

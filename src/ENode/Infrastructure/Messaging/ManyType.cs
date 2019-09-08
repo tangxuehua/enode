@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ENode.Infrastructure.Impl
+namespace ENode.Infrastructure
 {
     public class ManyType
     {
@@ -52,7 +52,7 @@ namespace ENode.Infrastructure.Impl
             {
                 return false;
             }
-            if (this._types.Count != other._types.Count)
+            if (_types.Count != other._types.Count)
             {
                 return false;
             }
@@ -69,11 +69,11 @@ namespace ENode.Infrastructure.Impl
         }
         private static bool IsEqual(ManyType left, ManyType right)
         {
-            if (ReferenceEquals(left, null) ^ ReferenceEquals(right, null))
+            if (left is null ^ right is null)
             {
                 return false;
             }
-            return ReferenceEquals(left, null) || left.Equals(right);
+            return left is null || left.Equals(right);
         }
     }
 }

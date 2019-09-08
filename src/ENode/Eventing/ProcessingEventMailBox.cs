@@ -8,21 +8,21 @@ using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
-    public class ProcessingDomainEventStreamMessageMailBox
+    public class ProcessingEventMailBox
     {
         #region Private Variables 
 
         private readonly object _lockObj = new object();
-        private readonly ConcurrentQueue<ProcessingDomainEventStreamMessage> _messageQueue;
-        private readonly ConcurrentDictionary<int, ProcessingDomainEventStreamMessage> _waitingMessageDict = new ConcurrentDictionary<int, ProcessingDomainEventStreamMessage>();
-        private readonly Action<ProcessingDomainEventStreamMessage> _handleMessageAction;
+        private readonly ConcurrentQueue<ProcessingEvent> _messageQueue;
+        private readonly ConcurrentDictionary<int, ProcessingEvent> _waitingMessageDict = new ConcurrentDictionary<int, ProcessingEvent>();
+        private readonly Action<ProcessingEvent> _handleMessageAction;
         private readonly ILogger _logger;
 
         #endregion
 
-        public ProcessingDomainEventStreamMessageMailBox(string aggregateRootId, int latestHandledEventVersion, Action<ProcessingDomainEventStreamMessage> handleMessageAction, ILogger logger)
+        public ProcessingEventMailBox(string aggregateRootId, int latestHandledEventVersion, Action<ProcessingEvent> handleMessageAction, ILogger logger)
         {
-            _messageQueue = new ConcurrentQueue<ProcessingDomainEventStreamMessage>();
+            _messageQueue = new ConcurrentQueue<ProcessingEvent>();
             _handleMessageAction = handleMessageAction;
             _logger = logger;
             AggregateRootId = aggregateRootId;
@@ -46,7 +46,7 @@ namespace ENode.Eventing
         }
         public DateTime LastActiveTime { get; private set; }
 
-        public void EnqueueMessage(ProcessingDomainEventStreamMessage message)
+        public void EnqueueMessage(ProcessingEvent message)
         {
             lock (_lockObj)
             {
@@ -68,7 +68,7 @@ namespace ENode.Eventing
                     LatestHandledEventVersion = eventStream.Version;
 
                     var nextVersion = eventStream.Version + 1;
-                    while (_waitingMessageDict.TryRemove(nextVersion, out ProcessingDomainEventStreamMessage nextMessage))
+                    while (_waitingMessageDict.TryRemove(nextVersion, out ProcessingEvent nextMessage))
                     {
                         var nextEventStream = nextMessage.Message;
                         nextMessage.MailBox = this;
@@ -126,7 +126,7 @@ namespace ENode.Eventing
 
         private void ProcessMessage()
         {
-            if (_messageQueue.TryDequeue(out ProcessingDomainEventStreamMessage message))
+            if (_messageQueue.TryDequeue(out ProcessingEvent message))
             {
                 LastActiveTime = DateTime.Now;
                 try

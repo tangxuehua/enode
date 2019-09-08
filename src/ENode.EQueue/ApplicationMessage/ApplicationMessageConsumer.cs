@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -33,7 +32,7 @@ namespace ENode.EQueue
             InitializeENode();
             Consumer = new Consumer(groupName ?? DefaultMessageConsumerGroup, setting ?? new ConsumerSetting
             {
-                MessageHandleMode = MessageHandleMode.Sequential,
+                MessageHandleMode = MessageHandleMode.Parallel,
                 ConsumeFromWhere = ConsumeFromWhere.FirstOffset
             }, "ApplicationMessageConsumer");
             return this;
@@ -59,17 +58,12 @@ namespace ENode.EQueue
         {
             var applicationMessageType = _typeNameProvider.GetType(queueMessage.Tag);
             var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), applicationMessageType) as IApplicationMessage;
-            var processContext = new EQueueProcessContext(queueMessage, context);
-            var processingMessage = new ProcessingApplicationMessage(message, processContext);
-            _logger.DebugFormat("ENode application message received, messageId: {0}", message.Id);
+            _logger.DebugFormat("ENode application message received, messageId: {0}, messageType: {1}", message.Id, message.GetType().Name);
 
-            Task.Factory.StartNew(obj =>
+            _messageDispatcher.DispatchMessageAsync(message).ContinueWith(x =>
             {
-                _messageDispatcher.DispatchMessageAsync(((ProcessingApplicationMessage)obj).Message).ContinueWith(x =>
-                {
-                    processingMessage.Complete();
-                });
-            }, processingMessage);
+                context.OnMessageHandled(queueMessage);
+            });
         }
     }
 }

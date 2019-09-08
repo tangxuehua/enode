@@ -24,7 +24,7 @@ namespace ENode.Commanding.Impl
             _handler = handler;
             _logger = loggerFactory.Create(GetType().FullName);
             _timeoutSeconds = ENodeConfiguration.Instance.Setting.AggregateRootMaxInactiveSeconds;
-            _taskName = "CleanInactiveAggregates_" + DateTime.Now.Ticks + new Random().Next(10000);
+            _taskName = "CleanInactiveProcessingCommandMailBoxes_" + DateTime.Now.Ticks + new Random().Next(10000);
         }
 
         public void Process(ProcessingCommand processingCommand)

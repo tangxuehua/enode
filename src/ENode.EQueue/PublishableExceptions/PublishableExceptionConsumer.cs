@@ -58,23 +58,20 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var exceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var exceptionType = _typeNameProvider.GetType(queueMessage.Tag);
+            var exceptionMessage = _jsonSerializer.Deserialize<PublishableExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
             var exception = FormatterServices.GetUninitializedObject(exceptionType) as IPublishableException;
             exception.Id = exceptionMessage.UniqueId;
             exception.Timestamp = exceptionMessage.Timestamp;
             exception.RestoreFrom(exceptionMessage.SerializableInfo);
-            var processContext = new EQueueProcessContext(queueMessage, context);
-            var processingMessage = new ProcessingPublishableExceptionMessage(exception, processContext);
-            _logger.DebugFormat("ENode exception message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}", exceptionMessage.UniqueId, exceptionMessage.AggregateRootId, exceptionMessage.AggregateRootTypeName);
+            _logger.DebugFormat("ENode publishable exception message received, messageId: {0}, exceptionType: {1}",
+                exceptionMessage.UniqueId,
+                exceptionType.Name);
 
-            Task.Factory.StartNew(obj =>
+            _messageDispatcher.DispatchMessageAsync(exception).ContinueWith(x =>
             {
-                _messageDispatcher.DispatchMessageAsync(((ProcessingPublishableExceptionMessage)obj).Message).ContinueWith(x =>
-                {
-                    processingMessage.Complete();
-                });
-            }, processingMessage);
+                context.OnMessageHandled(queueMessage);
+            });
         }
     }
 }

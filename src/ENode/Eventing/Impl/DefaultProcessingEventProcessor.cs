@@ -7,12 +7,12 @@ using ECommon.Scheduling;
 using ENode.Configurations;
 using ENode.Infrastructure;
 
-namespace ENode.Eventing
+namespace ENode.Eventing.Impl
 {
-    public class DefaultProcessingDomainEventStreamMessageProcessor : IProcessingDomainEventStreamMessageProcessor
+    public class DefaultProcessingEventProcessor : IProcessingEventProcessor
     {
         private readonly object _lockObj = new object();
-        private readonly ConcurrentDictionary<string, ProcessingDomainEventStreamMessageMailBox> _mailboxDict;
+        private readonly ConcurrentDictionary<string, ProcessingEventMailBox> _mailboxDict;
         private readonly IPublishedVersionStore _publishedVersionStore;
         private readonly IMessageDispatcher _dispatcher;
         private readonly IOHelper _ioHelper;
@@ -23,21 +23,21 @@ namespace ENode.Eventing
         private readonly string _processorName;
         private readonly int _scanExpiredAggregateIntervalMilliseconds;
 
-        public DefaultProcessingDomainEventStreamMessageProcessor(IPublishedVersionStore publishedVersionStore, IMessageDispatcher dispatcher, IOHelper ioHelper, ILoggerFactory loggerFactory, IScheduleService scheduleService)
+        public DefaultProcessingEventProcessor(IPublishedVersionStore publishedVersionStore, IMessageDispatcher dispatcher, IOHelper ioHelper, ILoggerFactory loggerFactory, IScheduleService scheduleService)
         {
-            _mailboxDict = new ConcurrentDictionary<string, ProcessingDomainEventStreamMessageMailBox>();
+            _mailboxDict = new ConcurrentDictionary<string, ProcessingEventMailBox>();
             _publishedVersionStore = publishedVersionStore;
             _dispatcher = dispatcher;
             _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
             _scheduleService = scheduleService;
-            _taskName = "CleanInactiveProcessingDomainEventStreamMessageMailBoxes_" + DateTime.Now.Ticks + new Random().Next(10000);
+            _taskName = "CleanInactiveProcessingEventMailBoxes_" + DateTime.Now.Ticks + new Random().Next(10000);
             _timeoutSeconds = ENodeConfiguration.Instance.Setting.AggregateRootMaxInactiveSeconds;
             _processorName = ENodeConfiguration.Instance.Setting.DomainEventProcessorName;
             _scanExpiredAggregateIntervalMilliseconds = ENodeConfiguration.Instance.Setting.ScanExpiredAggregateIntervalMilliseconds;
         }
 
-        public void Process(ProcessingDomainEventStreamMessage processingMessage)
+        public void Process(ProcessingEvent processingMessage)
         {
             var aggregateRootId = processingMessage.Message.AggregateRootId;
             if (string.IsNullOrEmpty(aggregateRootId))
@@ -50,7 +50,7 @@ namespace ENode.Eventing
                 var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x =>
                 {
                     var latestHandledEventVersion = GetAggregateRootLatestHandledEventVersion(processingMessage.Message.AggregateRootTypeName, aggregateRootId);
-                    return new ProcessingDomainEventStreamMessageMailBox(aggregateRootId, latestHandledEventVersion, y => DispatchProcessingMessageAsync(y, 0), _logger);
+                    return new ProcessingEventMailBox(aggregateRootId, latestHandledEventVersion, y => DispatchProcessingMessageAsync(y, 0), _logger);
                 });
                 mailbox.EnqueueMessage(processingMessage);
             }
@@ -64,7 +64,7 @@ namespace ENode.Eventing
             _scheduleService.StopTask(_taskName);
         }
 
-        private void DispatchProcessingMessageAsync(ProcessingDomainEventStreamMessage processingMessage, int retryTimes)
+        private void DispatchProcessingMessageAsync(ProcessingEvent processingMessage, int retryTimes)
         {
             _ioHelper.TryAsyncActionRecursively("DispatchProcessingMessageAsync",
             () => _dispatcher.DispatchMessagesAsync(processingMessage.Message.Events),
@@ -104,7 +104,7 @@ namespace ENode.Eventing
                 throw new Exception("_publishedVersionStore.GetPublishedVersionAsync has unknown exception.", ex);
             }
         }
-        private void UpdatePublishedVersionAsync(ProcessingDomainEventStreamMessage processingMessage, int retryTimes)
+        private void UpdatePublishedVersionAsync(ProcessingEvent processingMessage, int retryTimes)
         {
             var message = processingMessage.Message;
             _ioHelper.TryAsyncActionRecursively("UpdatePublishedVersionAsync",
@@ -123,7 +123,7 @@ namespace ENode.Eventing
         }
         private void CleanInactiveMailbox()
         {
-            var inactiveList = new List<KeyValuePair<string, ProcessingDomainEventStreamMessageMailBox>>();
+            var inactiveList = new List<KeyValuePair<string, ProcessingEventMailBox>>();
             foreach (var pair in _mailboxDict)
             {
                 if (pair.Value.IsInactive(_timeoutSeconds) && !pair.Value.IsRunning)
@@ -137,7 +137,7 @@ namespace ENode.Eventing
                 {
                     if (pair.Value.IsInactive(_timeoutSeconds) && !pair.Value.IsRunning && pair.Value.TotalUnHandledMessageCount == 0)
                     {
-                        if (_mailboxDict.TryRemove(pair.Key, out ProcessingDomainEventStreamMessageMailBox removed))
+                        if (_mailboxDict.TryRemove(pair.Key, out ProcessingEventMailBox removed))
                         {
                             _logger.InfoFormat("Removed inactive domain event stream mailbox, aggregateRootId: {0}", pair.Key);
                         }

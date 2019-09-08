@@ -102,7 +102,7 @@ namespace ENode.Configurations
             _configuration.SetDefault<IProcessingCommandHandler, DefaultProcessingCommandHandler>();
 
             _configuration.SetDefault<ICommandProcessor, DefaultCommandProcessor>();
-            _configuration.SetDefault<IProcessingDomainEventStreamMessageProcessor, DefaultProcessingDomainEventStreamMessageProcessor>();
+            _configuration.SetDefault<IProcessingEventProcessor, DefaultProcessingEventProcessor>();
 
             _assemblyInitializerServiceTypes.Add(typeof(ITypeNameProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IAggregateRootInternalHandlerProvider));
@@ -169,7 +169,7 @@ namespace ENode.Configurations
             };
             ObjectContainer.Resolve<IMemoryCache>().Start();
             ObjectContainer.Resolve<ICommandProcessor>().Start();
-            ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>().Start();
+            ObjectContainer.Resolve<IProcessingEventProcessor>().Start();
             return this;
         }
         /// <summary>Stop background tasks.
@@ -178,7 +178,7 @@ namespace ENode.Configurations
         {
             ObjectContainer.Resolve<IMemoryCache>().Stop();
             ObjectContainer.Resolve<ICommandProcessor>().Stop();
-            ObjectContainer.Resolve<IProcessingDomainEventStreamMessageProcessor>().Stop();
+            ObjectContainer.Resolve<IProcessingEventProcessor>().Stop();
         }
 
         #region Private Methods

@@ -971,7 +971,7 @@ namespace ENode.Tests
         [Test]
         public void sequence_domain_event_process_test()
         {
-            var processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingDomainEventStreamMessage, DomainEventStreamMessage>>();
+            var processor = ObjectContainer.Resolve<IMessageProcessor<ProcessingEvent, DomainEventStreamMessage>>();
 
             var note = new TestAggregate(ObjectId.GenerateNewStringId(), "initial title");
             var aggregate = note as IAggregateRoot;
@@ -988,9 +988,9 @@ namespace ENode.Tests
             var waitHandle = new ManualResetEvent(false);
             var versionList = new List<int>();
 
-            processor.Process(new ProcessingDomainEventStreamMessage(message1, new DomainEventStreamProcessContext(message1, waitHandle, versionList)));
-            processor.Process(new ProcessingDomainEventStreamMessage(message3, new DomainEventStreamProcessContext(message3, waitHandle, versionList)));
-            processor.Process(new ProcessingDomainEventStreamMessage(message2, new DomainEventStreamProcessContext(message2, waitHandle, versionList)));
+            processor.Process(new ProcessingEvent(message1, new DomainEventStreamProcessContext(message1, waitHandle, versionList)));
+            processor.Process(new ProcessingEvent(message3, new DomainEventStreamProcessContext(message3, waitHandle, versionList)));
+            processor.Process(new ProcessingEvent(message2, new DomainEventStreamProcessContext(message2, waitHandle, versionList)));
 
             waitHandle.WaitOne();
 
