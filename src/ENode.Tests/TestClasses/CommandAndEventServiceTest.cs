@@ -750,103 +750,6 @@ namespace ENode.Tests
             Assert.AreEqual(commandList.Count, ((IAggregateRoot)note).Version);
         }
         [Test]
-        public void create_concurrent_conflict_and_then_update_many_times_not_enable_batch_insert_test()
-        {
-            _eventStore.SupportBatchAppendEvent = false;
-
-            try
-            {
-                create_concurrent_conflict_and_then_update_many_times_test();
-                Thread.Sleep(10);
-            }
-            finally
-            {
-                _eventStore.SupportBatchAppendEvent = true;
-            }
-        }
-        [Test]
-        public void create_concurrent_conflict_and_then_update_many_times_not_enable_batch_insert_test2()
-        {
-            _eventStore.SupportBatchAppendEvent = false;
-
-            try
-            {
-                create_concurrent_conflict_and_then_update_many_times_test2();
-            }
-            finally
-            {
-                _eventStore.SupportBatchAppendEvent = true;
-            }
-        }
-        [Test]
-        public void create_concurrent_conflict_not_enable_batch_insert_test()
-        {
-            _eventStore.SupportBatchAppendEvent = false;
-
-            try
-            {
-                var aggregateId = ObjectId.GenerateNewStringId();
-                var commandId = ObjectId.GenerateNewStringId();
-
-                //往EventStore直接插入事件，用于模拟并发冲突的情况
-                var eventStream = new DomainEventStream(
-                    commandId,
-                    aggregateId,
-                    typeof(TestAggregate).FullName,
-                    1,
-                    DateTime.Now,
-                    new IDomainEvent[] { new TestAggregateTitleChanged("Note Title") { AggregateRootId = aggregateId, Version = 1 } },
-                    null);
-                var result = _eventStore.AppendAsync(eventStream).Result;
-                Assert.IsNotNull(result);
-                Assert.AreEqual(AsyncTaskStatus.Success, result.Status);
-                Assert.AreEqual(EventAppendResult.Success, result.Data);
-                var result2 = _publishedVersionStore.UpdatePublishedVersionAsync("DefaultEventProcessor", typeof(TestAggregate).FullName, aggregateId, 1).Result;
-                Assert.IsNotNull(result2);
-                Assert.AreEqual(AsyncTaskStatus.Success, result2.Status);
-
-                //执行创建聚合根的命令
-                var command = new CreateTestAggregateCommand
-                {
-                    AggregateRootId = aggregateId,
-                    Title = "Sample Note"
-                };
-                var asyncResult = _commandService.ExecuteAsync(command).Result;
-                Assert.IsNotNull(asyncResult);
-                Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-                var commandResult = asyncResult.Data;
-                Assert.IsNotNull(commandResult);
-                Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
-                Assert.AreEqual("Duplicate aggregate creation.", commandResult.Result);
-                var note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
-                Assert.IsNotNull(note);
-                Assert.AreEqual("Note Title", note.Title);
-                Assert.AreEqual(1, ((IAggregateRoot)note).Version);
-
-                //执行创建聚合根的命令
-                command = new CreateTestAggregateCommand
-                {
-                    Id = commandId,
-                    AggregateRootId = aggregateId,
-                    Title = "Sample Note"
-                };
-                asyncResult = _commandService.ExecuteAsync(command).Result;
-                Assert.IsNotNull(asyncResult);
-                Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-                commandResult = asyncResult.Data;
-                Assert.IsNotNull(commandResult);
-                Assert.AreEqual(CommandStatus.Success, commandResult.Status);
-                note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
-                Assert.IsNotNull(note);
-                Assert.AreEqual("Note Title", note.Title);
-                Assert.AreEqual(1, ((IAggregateRoot)note).Version);
-            }
-            finally
-            {
-                _eventStore.SupportBatchAppendEvent = true;
-            }
-        }
-        [Test]
         public void update_concurrent_conflict_test()
         {
             var aggregateId = ObjectId.GenerateNewStringId();
@@ -919,20 +822,6 @@ namespace ENode.Tests
             Assert.IsNotNull(note);
             Assert.AreEqual(2 + commandList.Count, ((IAggregateRoot)note).Version);
             Assert.AreEqual("Changed Note2", note.Title);
-        }
-        [Test]
-        public void update_concurrent_conflict_not_enable_batch_insert_test()
-        {
-            _eventStore.SupportBatchAppendEvent = false;
-
-            try
-            {
-                update_concurrent_conflict_test();
-            }
-            finally
-            {
-                _eventStore.SupportBatchAppendEvent = true;
-            }
         }
 
         #endregion
@@ -1010,7 +899,7 @@ namespace ENode.Tests
                 aggregateRoot.GetChanges(),
                 new Dictionary<string, string>());
         }
-        class DomainEventStreamProcessContext : IMessageProcessContext
+        class DomainEventStreamProcessContext : IEventProcessContext
         {
             private DomainEventStreamMessage _domainEventStreamMessage;
             private ManualResetEvent _waitHandle;
@@ -1022,7 +911,7 @@ namespace ENode.Tests
                 _waitHandle = waitHandle;
                 _versionList = versionList;
             }
-            public void NotifyMessageProcessed()
+            public void NotifyEventProcessed()
             {
                 _versionList.Add(_domainEventStreamMessage.Version);
                 if (_domainEventStreamMessage.Version == 3)

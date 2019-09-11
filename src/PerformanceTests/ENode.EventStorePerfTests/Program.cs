@@ -23,61 +23,8 @@ namespace ENode.EventStorePerfTests
         static void Main(string[] args)
         {
             InitializeENodeFramework();
-            AppendAsyncTest();
             BatchAppendAsyncTest();
             Console.ReadLine();
-        }
-        static void AppendAsyncTest()
-        {
-            var aggreagateRootId = ObjectId.GenerateNewStringId();
-            var count = int.Parse(ConfigurationManager.AppSettings["appendAsyncCount"]);
-            var printSize = count / 10;
-            var eventStore = ObjectContainer.Resolve<IEventStore>();
-            var createEventStream = new Func<int, DomainEventStream>(version =>
-            {
-                var evnt = new TestEvent
-                {
-                    AggregateRootId = aggreagateRootId,
-                    Version = version
-                };
-                var eventStream = new DomainEventStream(ObjectId.GenerateNewStringId(), aggreagateRootId, "SampleAggregateRootTypeName", version, DateTime.Now, new IDomainEvent[] { evnt });
-                return eventStream;
-            });
-
-            Console.WriteLine("start to append test, totalCount:" + count);
-
-            var current = 0;
-            var watch = Stopwatch.StartNew();
-            var waitHandle = new ManualResetEvent(false);
-
-            for (var i = 1; i <= count; i++)
-            {
-                eventStore.AppendAsync(createEventStream(i)).ContinueWith(t =>
-                {
-                    if (t.Result.Data == EventAppendResult.DuplicateEvent)
-                    {
-                        Console.WriteLine("duplicated event stream.");
-                        return;
-                    }
-                    else if (t.Result.Data == EventAppendResult.DuplicateCommand)
-                    {
-                        Console.WriteLine("duplicated command execution.");
-                        return;
-                    }
-                    var local = Interlocked.Increment(ref current);
-                    if (local % printSize == 0)
-                    {
-                        Console.WriteLine("appended {0}, time:{1}", local, watch.ElapsedMilliseconds);
-                        if (local == count)
-                        {
-                            Console.WriteLine("append throughput: {0} events/s", 1000 * local / watch.ElapsedMilliseconds);
-                            waitHandle.Set();
-                        }
-                    }
-                });
-            }
-
-            waitHandle.WaitOne();
         }
         static void BatchAppendAsyncTest()
         {
@@ -147,12 +94,12 @@ namespace ENode.EventStorePerfTests
         {
             var result = await context.EventStore.BatchAppendAsync(context.EventList);
 
-            if (result.Data == EventAppendResult.DuplicateEvent)
+            if (result.Data.DuplicateEventAggregateRootIdList.Count > 0)
             {
                 Console.WriteLine("duplicated event stream.");
                 return;
             }
-            else if (result.Data == EventAppendResult.DuplicateCommand)
+            else if (result.Data.DuplicateCommandIdList.Count > 0)
             {
                 Console.WriteLine("duplicated command execution.");
                 return;
