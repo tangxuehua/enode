@@ -321,7 +321,6 @@ namespace ENode.MySQL
                 record.CommandId,
                 record.AggregateRootId,
                 record.AggregateRootTypeName,
-                record.Version,
                 record.CreatedOn,
                 _eventSerializer.Deserialize<IDomainEvent>(_jsonSerializer.Deserialize<IDictionary<string, string>>(record.Events)));
         }

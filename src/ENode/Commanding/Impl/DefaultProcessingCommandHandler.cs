@@ -220,29 +220,12 @@ namespace ENode.Commanding.Impl
                 processingCommand.Message.Id,
                 dirtyAggregateRoot.UniqueId,
                 _typeNameProvider.GetTypeName(dirtyAggregateRoot.GetType()),
-                changedEvents.First().Version,
                 _timeProvider.GetCurrentTime(),
                 changedEvents,
-                processingCommand.Items);
+                command.Items);
 
             //异步将事件流提交到EventStore
             _eventService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
-        }
-        private DomainEventStream BuildDomainEventStream(IAggregateRoot aggregateRoot, IEnumerable<IDomainEvent> changedEvents, ProcessingCommand processingCommand)
-        {
-            var commandResult = processingCommand.CommandExecuteContext.GetResult();
-            if (commandResult != null)
-            {
-                processingCommand.Items["CommandResult"] = commandResult;
-            }
-            return new DomainEventStream(
-                processingCommand.Message.Id,
-                aggregateRoot.UniqueId,
-                _typeNameProvider.GetTypeName(aggregateRoot.GetType()),
-                changedEvents.First().Version,
-                _timeProvider.GetCurrentTime(),
-                changedEvents,
-                processingCommand.Items);
         }
         private void ProcessIfNoEventsOfCommand(ProcessingCommand processingCommand, int retryTimes)
         {
@@ -292,8 +275,7 @@ namespace ENode.Commanding.Impl
                     //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行。
                     //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；
                     //否则，就记录错误日志，然后认为该command处理失败即可；
-                    var publishableException = exception as IPublishableException;
-                    if (publishableException != null)
+                    if (exception is IPublishableException publishableException)
                     {
                         PublishExceptionAsync(processingCommand, publishableException, 0);
                     }
@@ -313,6 +295,7 @@ namespace ENode.Commanding.Impl
         }
         private void PublishExceptionAsync(ProcessingCommand processingCommand, IPublishableException exception, int retryTimes)
         {
+            exception.MergeItems(processingCommand.Message.Items);
             _ioHelper.TryAsyncActionRecursively("PublishExceptionAsync",
             () => _exceptionPublisher.PublishAsync(exception),
             currentRetryTimes => PublishExceptionAsync(processingCommand, exception, currentRetryTimes),
@@ -409,6 +392,7 @@ namespace ENode.Commanding.Impl
             {
                 if (message != null)
                 {
+                    message.MergeItems(processingCommand.Message.Items);
                     PublishMessageAsync(processingCommand, message, 0);
                 }
                 else

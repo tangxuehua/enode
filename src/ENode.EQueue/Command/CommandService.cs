@@ -67,7 +67,7 @@ namespace ENode.EQueue
         {
             try
             {
-                return _sendMessageService.SendMessageAsync(Producer, BuildCommandMessage(command, false), command.AggregateRootId, command.Id, null);
+                return _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, BuildCommandMessage(command, false), command.AggregateRootId, command.Id, command.Items);
             }
             catch (Exception ex)
             {
@@ -86,7 +86,7 @@ namespace ENode.EQueue
                 var taskCompletionSource = new TaskCompletionSource<AsyncTaskResult<CommandResult>>();
                 _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
 
-                var result = await _sendMessageService.SendMessageAsync(Producer, BuildCommandMessage(command, true), command.AggregateRootId, command.Id, null).ConfigureAwait(false);
+                var result = await _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, BuildCommandMessage(command, true), command.AggregateRootId, command.Id, command.Items).ConfigureAwait(false);
                 if (result.Status == AsyncTaskStatus.Success)
                 {
                     return await taskCompletionSource.Task.ConfigureAwait(false);

@@ -49,7 +49,7 @@ namespace ENode.EQueue
         public Task<AsyncTaskResult> PublishAsync(DomainEventStreamMessage eventStream)
         {
             var message = CreateEQueueMessage(eventStream);
-            return _sendMessageService.SendMessageAsync(Producer, message, eventStream.AggregateRootId, eventStream.Id, eventStream.Version.ToString());
+            return _sendMessageService.SendMessageAsync(Producer, "events", string.Join(",", eventStream.Events.Select(x => x.GetType().Name)), message, eventStream.AggregateRootId, eventStream.Id, eventStream.Items);
         }
 
         private EQueueMessage CreateEQueueMessage(DomainEventStreamMessage eventStream)

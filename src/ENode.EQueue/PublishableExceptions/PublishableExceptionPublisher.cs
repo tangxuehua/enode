@@ -46,7 +46,7 @@ namespace ENode.EQueue
         public Task<AsyncTaskResult> PublishAsync(IPublishableException exception)
         {
             var message = CreateEQueueMessage(exception);
-            return _sendMessageService.SendMessageAsync(Producer, message, exception.Id, exception.Id, null);
+            return _sendMessageService.SendMessageAsync(Producer, "exception", exception.GetType().Name, message, exception.Id, exception.Id, exception.Items);
         }
 
         private EQueueMessage CreateEQueueMessage(IPublishableException exception)
@@ -58,6 +58,7 @@ namespace ENode.EQueue
             {
                 UniqueId = exception.Id,
                 Timestamp = exception.Timestamp,
+                Items = exception.Items,
                 SerializableInfo = serializableInfo
             });
             return new EQueueMessage(

@@ -6,6 +6,9 @@ namespace ENode.Eventing
     /// </summary>
     public interface IDomainEvent : IMessage
     {
+        /// <summary>Represents the id of the command which generates the domain event.
+        /// </summary>
+        string CommandId { get; set; }
         /// <summary>Represents the aggregate root string id of the sequence message.
         /// </summary>
         string AggregateRootStringId { get; set; }
@@ -15,6 +18,9 @@ namespace ENode.Eventing
         /// <summary>Represents the main version of the sequence message.
         /// </summary>
         int Version { get; set; }
+        /// <summary>Represents the event structure version.
+        /// </summary>
+        int SpecVersion { get; set; }
         /// <summary>Represents the child sequence for the current main version of message.
         /// </summary>
         int Sequence { get; set; }

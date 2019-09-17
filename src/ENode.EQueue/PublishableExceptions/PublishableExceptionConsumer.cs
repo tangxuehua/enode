@@ -63,6 +63,7 @@ namespace ENode.EQueue
             var exception = FormatterServices.GetUninitializedObject(exceptionType) as IPublishableException;
             exception.Id = exceptionMessage.UniqueId;
             exception.Timestamp = exceptionMessage.Timestamp;
+            exception.Items = exceptionMessage.Items;
             exception.RestoreFrom(exceptionMessage.SerializableInfo);
             _logger.DebugFormat("ENode publishable exception message received, messageId: {0}, exceptionType: {1}",
                 exceptionMessage.UniqueId,

@@ -46,7 +46,7 @@ namespace ENode.EQueue
         public Task<AsyncTaskResult> PublishAsync(IApplicationMessage message)
         {
             var queueMessage = CreateEQueueMessage(message);
-            return _sendMessageService.SendMessageAsync(Producer, queueMessage, message.Id, message.Id, null);
+            return _sendMessageService.SendMessageAsync(Producer, "applicationMessage", message.GetType().Name, queueMessage, message.Id, message.Id, message.Items);
         }
 
         private EQueueMessage CreateEQueueMessage(IApplicationMessage message)

@@ -97,6 +97,7 @@ namespace ENode.Domain
                 throw new Exception("Aggregate root id cannot be null.");
             }
             domainEvent.AggregateRootId = _id;
+            domainEvent.AggregateRootStringId = ((IAggregateRoot)this).UniqueId;
             domainEvent.Version = _version + 1;
             HandleEvent(domainEvent);
             AppendUncommittedEvent(domainEvent);

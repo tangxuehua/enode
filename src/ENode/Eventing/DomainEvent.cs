@@ -13,6 +13,14 @@ namespace ENode.Eventing
         public string AggregateRootStringId { get; set; }
         public string AggregateRootTypeName { get; set; }
         public int Version { get; set; }
+        public int SpecVersion { get; set; }
         public int Sequence { get; set; }
+
+        public DomainEvent() : base()
+        {
+            Version = 1;
+            SpecVersion = 1;
+            Sequence = 1;
+        }
     }
 }

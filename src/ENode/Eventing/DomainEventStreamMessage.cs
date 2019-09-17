@@ -13,7 +13,6 @@ namespace ENode.Eventing
         public int Version { get; set; }
         public string CommandId { get; set; }
         public IEnumerable<IDomainEvent> Events { get; set; }
-        public IDictionary<string, string> Items { get; set; }
 
         public DomainEventStreamMessage() { }
         public DomainEventStreamMessage(string commandId, string aggregateRootId, int version, string aggregateRootTypeName, IEnumerable<IDomainEvent> events, IDictionary<string, string> items)
@@ -28,14 +27,15 @@ namespace ENode.Eventing
 
         public override string ToString()
         {
-            return string.Format("[MessageId={0},CommandId={1},AggregateRootId={2},AggregateRootTypeName={3},Version={4},Events={5},Items={6}]",
+            return string.Format("[Id={0},CommandId={1},AggregateRootId={2},AggregateRootTypeName={3},Version={4},Events={5},Items={6},Timestamp={7}]",
                 Id,
                 CommandId,
                 AggregateRootId,
                 AggregateRootTypeName,
                 Version,
                 string.Join("|", Events.Select(x => x.GetType().Name)),
-                string.Join("|", Items.Select(x => x.Key + ":" + x.Value)));
+                string.Join("|", Items.Select(x => x.Key + ":" + x.Value)),
+                Timestamp);
         }
     }
 }
