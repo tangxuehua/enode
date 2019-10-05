@@ -84,7 +84,6 @@ namespace ENode.Configurations
             _configuration.SetDefault<IAggregateStorage, EventSourcingAggregateStorage>();
             _configuration.SetDefault<IRepository, DefaultRepository>();
 
-            _configuration.SetDefault<ICommandAsyncHandlerProvider, DefaultCommandAsyncHandlerProvider>();
             _configuration.SetDefault<ICommandHandlerProvider, DefaultCommandHandlerProvider>();
             _configuration.SetDefault<ICommandService, NotImplementedCommandService>();
 
@@ -111,7 +110,6 @@ namespace ENode.Configurations
             _assemblyInitializerServiceTypes.Add(typeof(ITwoMessageHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(IThreeMessageHandlerProvider));
             _assemblyInitializerServiceTypes.Add(typeof(ICommandHandlerProvider));
-            _assemblyInitializerServiceTypes.Add(typeof(ICommandAsyncHandlerProvider));
 
             return this;
         }
@@ -200,7 +198,6 @@ namespace ENode.Configurations
         {
             return type.IsClass && !type.IsAbstract && type.GetInterfaces().Any(x => x.IsGenericType &&
             (x.GetGenericTypeDefinition() == typeof(ICommandHandler<>)
-            || x.GetGenericTypeDefinition() == typeof(ICommandAsyncHandler<>)
             || x.GetGenericTypeDefinition() == typeof(IMessageHandler<>)
             || x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>)
             || x.GetGenericTypeDefinition() == typeof(IMessageHandler<,,>)

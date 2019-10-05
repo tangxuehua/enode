@@ -12,7 +12,7 @@ namespace BankTransferSample.CommandHandlers
     /// </summary>
     public class BankAccountCommandHandlers :
         ICommandHandler<CreateAccountCommand>,                       //开户
-        ICommandAsyncHandler<ValidateAccountCommand>,                //验证账户是否合法
+        ICommandHandler<ValidateAccountCommand>,                     //验证账户是否合法
         ICommandHandler<AddTransactionPreparationCommand>,           //添加预操作
         ICommandHandler<CommitTransactionPreparationCommand>         //提交预操作
     {
@@ -25,7 +25,7 @@ namespace BankTransferSample.CommandHandlers
         {
             return context.AddAsync(new BankAccount(command.AggregateRootId, command.Owner));
         }
-        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(ValidateAccountCommand command)
+        public Task HandleAsync(ICommandContext context, ValidateAccountCommand command)
         {
             var applicationMessage = default(ApplicationMessage);
 
@@ -39,7 +39,8 @@ namespace BankTransferSample.CommandHandlers
                 applicationMessage = new AccountValidatePassedMessage(command.AggregateRootId, command.TransactionId);
             }
 
-            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success, applicationMessage));
+            context.SetApplicationMessage(applicationMessage);
+            return Task.CompletedTask;
         }
         public async Task HandleAsync(ICommandContext context, AddTransactionPreparationCommand command)
         {

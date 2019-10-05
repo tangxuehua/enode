@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{5B28
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BankTransferSample", "src\Samples\BankTransferSample\BankTransferSample.csproj", "{D6782F60-672D-4B31-A3B6-5E3484DFD267}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Tests", "src\ENode.Tests\ENode.Tests.csproj", "{37F38A7C-422F-46AD-A112-B7B423B45A01}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.CommandProcessorPerfTests", "src\PerformanceTests\ENode.CommandProcessorPerfTests\ENode.CommandProcessorPerfTests.csproj", "{4EA8FEEF-775C-4D6C-92EC-8698365A69F9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NoteSample", "NoteSample", "{455C4FF1-6E7F-42DF-8FF8-2B3679D2E1FF}"
@@ -39,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.SqlServer", "src\ENod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.MySQL", "src\ENode.MySQL\ENode.MySQL.csproj", "{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EQueue", "..\equeue\src\EQueue\EQueue.csproj", "{3214B37C-A286-401B-B50F-2DAE0F7561A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ECommon", "..\ecommon\src\ECommon\ECommon.csproj", "{6FF964BD-96BA-4684-879A-3E78DC8EF864}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,10 +53,6 @@ Global
 		{D6782F60-672D-4B31-A3B6-5E3484DFD267}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6782F60-672D-4B31-A3B6-5E3484DFD267}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6782F60-672D-4B31-A3B6-5E3484DFD267}.Release|Any CPU.Build.0 = Release|Any CPU
-		{37F38A7C-422F-46AD-A112-B7B423B45A01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{37F38A7C-422F-46AD-A112-B7B423B45A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{37F38A7C-422F-46AD-A112-B7B423B45A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{37F38A7C-422F-46AD-A112-B7B423B45A01}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4EA8FEEF-775C-4D6C-92EC-8698365A69F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4EA8FEEF-775C-4D6C-92EC-8698365A69F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EA8FEEF-775C-4D6C-92EC-8698365A69F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -107,10 +101,10 @@ Global
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3214B37C-A286-401B-B50F-2DAE0F7561A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3214B37C-A286-401B-B50F-2DAE0F7561A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3214B37C-A286-401B-B50F-2DAE0F7561A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3214B37C-A286-401B-B50F-2DAE0F7561A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FF964BD-96BA-4684-879A-3E78DC8EF864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FF964BD-96BA-4684-879A-3E78DC8EF864}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FF964BD-96BA-4684-879A-3E78DC8EF864}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FF964BD-96BA-4684-879A-3E78DC8EF864}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

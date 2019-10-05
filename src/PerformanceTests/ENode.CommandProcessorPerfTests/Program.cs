@@ -14,6 +14,7 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
 using ENode.Eventing;
+using ENode.Infrastructure;
 using NoteSample.Commands;
 using ECommonConfiguration = ECommon.Configurations.Configuration;
 
@@ -118,6 +119,7 @@ namespace ENode.CommandProcessorPerfTests
             private readonly ConcurrentDictionary<string, IAggregateRoot> _aggregateRoots;
             private readonly int _printSize;
             private string _result;
+            private IApplicationMessage _applicationMessage;
 
             public CommandExecuteContext(int commandCount)
             {
@@ -198,6 +200,16 @@ namespace ENode.CommandProcessorPerfTests
             public string GetResult()
             {
                 return _result;
+            }
+
+            public void SetApplicationMessage(IApplicationMessage applicationMessage)
+            {
+                _applicationMessage = applicationMessage;
+            }
+
+            public IApplicationMessage GetApplicationMessage()
+            {
+                return _applicationMessage;
             }
         }
     }

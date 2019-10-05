@@ -45,9 +45,10 @@ namespace ENode.EventStorePerfTests
                 var evnt = new TestEvent
                 {
                     AggregateRootId = aggregateRootId,
+                    AggregateRootStringId = aggregateRootId,
                     Version = i
                 };
-                var eventStream = new DomainEventStream(ObjectId.GenerateNewStringId(), aggregateRootId, "SampleAggregateRootTypeName", i, DateTime.Now, new IDomainEvent[] { evnt });
+                var eventStream = new DomainEventStream(ObjectId.GenerateNewStringId(), aggregateRootId, "SampleAggregateRootTypeName", DateTime.Now, new IDomainEvent[] { evnt });
                 eventQueue.Enqueue(eventStream);
             }
 

@@ -81,6 +81,7 @@ namespace ENode.EQueue
 
         class CommandExecuteContext : ICommandExecuteContext
         {
+            private IApplicationMessage _applicationMessage;
             private string _result;
             private readonly ConcurrentDictionary<string, IAggregateRoot> _trackingAggregateRootDict;
             private readonly IRepository _repository;
@@ -174,6 +175,16 @@ namespace ENode.EQueue
             public string GetResult()
             {
                 return _result;
+            }
+
+            public void SetApplicationMessage(IApplicationMessage applicationMessage)
+            {
+                _applicationMessage = applicationMessage;
+            }
+
+            public IApplicationMessage GetApplicationMessage()
+            {
+                return _applicationMessage;
             }
         }
     }

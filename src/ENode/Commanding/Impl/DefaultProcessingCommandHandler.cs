@@ -19,9 +19,8 @@ namespace ENode.Commanding.Impl
         private readonly IEventStore _eventStore;
         private readonly IMemoryCache _memoryCache;
         private readonly ICommandHandlerProvider _commandHandlerProvider;
-        private readonly ICommandAsyncHandlerProvider _commandAsyncHandlerProvider;
         private readonly ITypeNameProvider _typeNameProvider;
-        private readonly IEventCommittingService _eventService;
+        private readonly IEventCommittingService _eventCommittingService;
         private readonly IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
         private readonly IMessagePublisher<IPublishableException> _exceptionPublisher;
         private readonly IOHelper _ioHelper;
@@ -37,9 +36,8 @@ namespace ENode.Commanding.Impl
             IEventStore eventStore,
             IMemoryCache memoryCache,
             ICommandHandlerProvider commandHandlerProvider,
-            ICommandAsyncHandlerProvider commandAsyncHandlerProvider,
             ITypeNameProvider typeNameProvider,
-            IEventCommittingService eventService,
+            IEventCommittingService eventCommittingService,
             IMessagePublisher<IApplicationMessage> applicationMessagePublisher,
             IMessagePublisher<IPublishableException> exceptionPublisher,
             IOHelper ioHelper,
@@ -50,9 +48,8 @@ namespace ENode.Commanding.Impl
             _eventStore = eventStore;
             _memoryCache = memoryCache;
             _commandHandlerProvider = commandHandlerProvider;
-            _commandAsyncHandlerProvider = commandAsyncHandlerProvider;
             _typeNameProvider = typeNameProvider;
-            _eventService = eventService;
+            _eventCommittingService = eventCommittingService;
             _applicationMessagePublisher = applicationMessagePublisher;
             _exceptionPublisher = exceptionPublisher;
             _ioHelper = ioHelper;
@@ -64,7 +61,7 @@ namespace ENode.Commanding.Impl
 
         #region Public Methods
 
-        public Task HandleAsync(ProcessingCommand processingCommand)
+        public async Task HandleAsync(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Message;
 
@@ -72,66 +69,47 @@ namespace ENode.Commanding.Impl
             {
                 var errorMessage = string.Format("The aggregateRootId of command cannot be null or empty. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
                 _logger.Error(errorMessage);
-                return CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
             }
 
-            var findResult = GetCommandHandler(processingCommand, commandType => _commandHandlerProvider.GetHandlers(commandType), out ICommandHandlerProxy commandHandler);
+            var findResult = GetCommandHandler(processingCommand, out ICommandHandlerProxy commandHandler);
             if (findResult == HandlerFindResult.Found)
             {
-                return HandleCommand(processingCommand, commandHandler);
+                await HandleCommandInternal(processingCommand, commandHandler, 0, new TaskCompletionSource<bool>());
             }
             else if (findResult == HandlerFindResult.TooManyHandlerData)
             {
                 _logger.ErrorFormat("Found more than one command handler data, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
-                return CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler data found.");
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler data found.");
             }
             else if (findResult == HandlerFindResult.TooManyHandler)
             {
                 _logger.ErrorFormat("Found more than one command handler, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
-                return CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler found.");
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler found.");
             }
             else if (findResult == HandlerFindResult.NotFound)
             {
-                findResult = GetCommandHandler(processingCommand, commandType => _commandAsyncHandlerProvider.GetHandlers(commandType), out ICommandAsyncHandlerProxy commandAsyncHandler);
-                if (findResult == HandlerFindResult.Found)
-                {
-                    return HandleCommand(processingCommand, commandAsyncHandler);
-                }
-                else if (findResult == HandlerFindResult.TooManyHandlerData)
-                {
-                    _logger.ErrorFormat("Found more than one command async handler data, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
-                    return CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command async handler data found.");
-                }
-                else if (findResult == HandlerFindResult.TooManyHandler)
-                {
-                    _logger.ErrorFormat("Found more than one command async handler, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
-                    return CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command async handler found.");
-                }
-                else if (findResult == HandlerFindResult.NotFound)
-                {
-                    var errorMessage = string.Format("No command handler found of command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
-                    _logger.Error(errorMessage);
-                    return CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
-                }
+                var errorMessage = string.Format("No command handler found of command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
+                _logger.Error(errorMessage);
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
             }
-            return Task.CompletedTask;
         }
 
         #endregion
 
-        #region Command Handler Helper Methods
+        #region Private Methods
 
-        private async Task HandleCommand(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler)
+        private Task HandleCommandInternal(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler, int retryTimes, TaskCompletionSource<bool> taskSource)
         {
             var command = processingCommand.Message;
+            var commandContext = processingCommand.CommandExecuteContext;
 
-            processingCommand.CommandExecuteContext.Clear();
+            commandContext.Clear();
 
-            //调用command handler执行当前command
-            var handleSuccess = false;
-            try
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("HandleCommandAsync",
+            async () =>
             {
-                await commandHandler.HandleAsync(processingCommand.CommandExecuteContext, command);
+                await commandHandler.HandleAsync(commandContext, command);
                 if (_logger.IsDebugEnabled)
                 {
                     _logger.DebugFormat("Handle command success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
@@ -140,29 +118,45 @@ namespace ENode.Commanding.Impl
                         command.Id,
                         command.AggregateRootId);
                 }
-                handleSuccess = true;
-            }
-            catch (Exception ex)
+            },
+            currentRetryTimes => HandleCommandInternal(processingCommand, commandHandler, currentRetryTimes, taskSource),
+            async () =>
             {
-                HandleExceptionAsync(processingCommand, commandHandler, ex, 0);
-                return;
-            }
+                if (commandContext.GetApplicationMessage() != null)
+                {
+                    await CommitChangesAsync(processingCommand, true, commandContext.GetApplicationMessage(), null, new TaskCompletionSource<bool>());
+                    taskSource.SetResult(true);
+                }
+                else
+                {
+                    try
+                    {
+                        await CommitAggregateChanges(processingCommand);
+                        taskSource.SetResult(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(string.Format("Commit aggregate changes has unknown exception, handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                            commandHandler.GetInnerObject().GetType().Name,
+                            command.GetType().Name,
+                            command.Id,
+                            command.AggregateRootId), ex);
+                        await CompleteCommand(processingCommand, CommandStatus.Failed, ex.GetType().Name, "Unknown exception caught when committing changes of command.");
+                        taskSource.SetResult(true);
+                    }
+                }
+            },
+            () => string.Format("[command:[id:{0},type:{1}],handlerType:{2},aggregateRootId:{3}]", command.Id, command.GetType().Name, commandHandler.GetInnerObject().GetType().Name, command.AggregateRootId),
+            async (ex, errorMessage) =>
+            {
+                await HandleExceptionAsync(processingCommand, commandHandler, ex, errorMessage, 0, new TaskCompletionSource<bool>());
+                taskSource.SetResult(true);
+            },
+            retryTimes);
 
-            //如果command执行成功，则提交执行后的结果
-            if (handleSuccess)
-            {
-                try
-                {
-                    CommitAggregateChanges(processingCommand);
-                }
-                catch (Exception ex)
-                {
-                    LogCommandExecuteException(processingCommand, commandHandler, ex);
-                    await CompleteCommand(processingCommand, CommandStatus.Failed, ex.GetType().Name, "Unknown exception caught when committing changes of command.");
-                }
-            }
+            return taskSource.Task;
         }
-        private void CommitAggregateChanges(ProcessingCommand processingCommand)
+        private async Task CommitAggregateChanges(ProcessingCommand processingCommand)
         {
             var command = processingCommand.Message;
             var context = processingCommand.CommandExecuteContext;
@@ -183,7 +177,7 @@ namespace ENode.Commanding.Impl
                             command.GetType().Name,
                             command.Id);
                         _logger.ErrorFormat(errorMessage);
-                        CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                        await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
                         return;
                     }
                     dirtyAggregateRoot = aggregateRoot;
@@ -200,7 +194,7 @@ namespace ENode.Commanding.Impl
             //否则，如果我们直接将当前command设置为完成，即对MQ进行ack操作，那该command的事件就永远不会再发布到MQ了，这样就无法保证CQRS数据的最终一致性了。
             if (dirtyAggregateRootCount == 0 || changedEvents == null || changedEvents.Count() == 0)
             {
-                ProcessIfNoEventsOfCommand(processingCommand, 0);
+                await ProcessIfNoEventsOfCommand(processingCommand, 0, new TaskCompletionSource<bool>());
                 return;
             }
 
@@ -208,7 +202,7 @@ namespace ENode.Commanding.Impl
             dirtyAggregateRoot.AcceptChanges();
 
             //刷新聚合根的内存缓存
-            _memoryCache.UpdateAggregateRootCache(dirtyAggregateRoot);
+            await _memoryCache.UpdateAggregateRootCache(dirtyAggregateRoot);
 
             //构造出一个事件流对象
             var commandResult = processingCommand.CommandExecuteContext.GetResult();
@@ -225,42 +219,43 @@ namespace ENode.Commanding.Impl
                 command.Items);
 
             //异步将事件流提交到EventStore
-            _eventService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
+            _eventCommittingService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
         }
-        private void ProcessIfNoEventsOfCommand(ProcessingCommand processingCommand, int retryTimes)
+        private Task ProcessIfNoEventsOfCommand(ProcessingCommand processingCommand, int retryTimes, TaskCompletionSource<bool> taskSource)
         {
             var command = processingCommand.Message;
 
             _ioHelper.TryAsyncActionRecursively("ProcessIfNoEventsOfCommand",
             () => _eventStore.FindAsync(command.AggregateRootId, command.Id),
-            currentRetryTimes => ProcessIfNoEventsOfCommand(processingCommand, currentRetryTimes),
-            result =>
+            currentRetryTimes => ProcessIfNoEventsOfCommand(processingCommand, currentRetryTimes, taskSource),
+            async result =>
             {
                 var existingEventStream = result.Data;
                 if (existingEventStream != null)
                 {
-                    _eventService.PublishDomainEventAsync(processingCommand, existingEventStream);
+                    _eventCommittingService.PublishDomainEventAsync(processingCommand, existingEventStream);
+                    taskSource.SetResult(true);
                 }
                 else
                 {
-                    CompleteCommand(processingCommand, CommandStatus.NothingChanged, typeof(string).FullName, processingCommand.CommandExecuteContext.GetResult());
+                    await CompleteCommand(processingCommand, CommandStatus.NothingChanged, typeof(string).FullName, processingCommand.CommandExecuteContext.GetResult());
+                    taskSource.SetResult(true);
                 }
             },
             () => string.Format("[commandId:{0}]", command.Id),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Find event by commandId has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
+
+            return taskSource.Task;
         }
-        private void HandleExceptionAsync(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler, Exception exception, int retryTimes)
+        private Task HandleExceptionAsync(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler, Exception exception, string errorMessage, int retryTimes, TaskCompletionSource<bool> taskSource)
         {
             var command = processingCommand.Message;
 
             _ioHelper.TryAsyncActionRecursively("FindEventByCommandIdAsync",
             () => _eventStore.FindAsync(command.AggregateRootId, command.Id),
-            currentRetryTimes => HandleExceptionAsync(processingCommand, commandHandler, exception, currentRetryTimes),
-            result =>
+            currentRetryTimes => HandleExceptionAsync(processingCommand, commandHandler, exception, errorMessage, currentRetryTimes, taskSource),
+            async result =>
             {
                 var existingEventStream = result.Data;
                 if (existingEventStream != null)
@@ -268,40 +263,62 @@ namespace ENode.Commanding.Impl
                     //这里，我们需要再重新做一遍发布事件这个操作；
                     //之所以要这样做是因为虽然该command产生的事件已经持久化成功，但并不表示事件已经发布出去了；
                     //因为有可能事件持久化成功了，但那时正好机器断电了，则发布事件就没有做；
-                    _eventService.PublishDomainEventAsync(processingCommand, existingEventStream);
+                    _eventCommittingService.PublishDomainEventAsync(processingCommand, existingEventStream);
+                    taskSource.SetResult(true);
                 }
                 else
                 {
                     //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行。
                     //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；
                     //否则，就记录错误日志，然后认为该command处理失败即可；
-                    if (exception is IPublishableException publishableException)
+                    var publishableException = TryGetPublishableException(exception);
+                    if (publishableException != null)
                     {
-                        PublishExceptionAsync(processingCommand, publishableException, 0);
+                        await PublishExceptionAsync(processingCommand, publishableException, 0, new TaskCompletionSource<bool>());
+                        taskSource.SetResult(true);
                     }
                     else
                     {
-                        LogCommandExecuteException(processingCommand, commandHandler, exception);
-                        CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception.Message);
+                        await CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception != null ? exception.Message : errorMessage);
+                        taskSource.SetResult(true);
                     }
                 }
             },
-            () => string.Format("[commandId:{0}]", command.Id),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Find event by commandId has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            () => string.Format("[command:[id:{0},type:{1}],handlerType:{2},aggregateRootId:{3}]", command.Id, command.GetType().Name, commandHandler.GetInnerObject().GetType().Name, command.AggregateRootId),
+            null,
             retryTimes, true);
+
+            return taskSource.Task;
         }
-        private void PublishExceptionAsync(ProcessingCommand processingCommand, IPublishableException exception, int retryTimes)
+        private IPublishableException TryGetPublishableException(Exception exception)
+        {
+            if (exception == null)
+            {
+                return null;
+            }
+            else if (exception is IPublishableException)
+            {
+                return exception as IPublishableException;
+            }
+            else if (exception is AggregateException)
+            {
+                var aggregateException = exception as AggregateException;
+                var publishableException = aggregateException.InnerExceptions.FirstOrDefault(x => x is IPublishableException) as IPublishableException;
+                return publishableException;
+            }
+            return null;
+        }
+        private Task PublishExceptionAsync(ProcessingCommand processingCommand, IPublishableException exception, int retryTimes, TaskCompletionSource<bool> taskSource)
         {
             exception.MergeItems(processingCommand.Message.Items);
+
             _ioHelper.TryAsyncActionRecursively("PublishExceptionAsync",
             () => _exceptionPublisher.PublishAsync(exception),
-            currentRetryTimes => PublishExceptionAsync(processingCommand, exception, currentRetryTimes),
-            result =>
+            currentRetryTimes => PublishExceptionAsync(processingCommand, exception, currentRetryTimes, taskSource),
+            async result =>
             {
-                CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message);
+                await CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message);
+                taskSource.SetResult(true);
             },
             () =>
             {
@@ -310,128 +327,57 @@ namespace ENode.Commanding.Impl
                 var exceptionInfo = string.Join(",", serializableInfo.Select(x => string.Format("{0}:{1}", x.Key, x.Value)));
                 return string.Format("[commandId:{0}, exceptionInfo:{1}]", processingCommand.Message.Id, exceptionInfo);
             },
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Publish event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
+
+            return taskSource.Task;
         }
-        private void LogCommandExecuteException(ProcessingCommand processingCommand, ICommandHandlerProxy commandHandler, Exception exception)
-        {
-            var command = processingCommand.Message;
-            var errorMessage = string.Format("{0} raised when {1} handling {2}. commandId:{3}, aggregateRootId:{4}",
-                exception.GetType().Name,
-                commandHandler.GetInnerObject().GetType().Name,
-                command.GetType().Name,
-                command.Id,
-                command.AggregateRootId);
-            _logger.Error(errorMessage, exception);
-        }
-
-        #endregion
-
-        #region Command Async Handler Help Methods
-
-        private Task HandleCommand(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandHandler)
-        {
-            return HandleCommandAsync(processingCommand, commandHandler, 0);
-        }
-        private Task HandleCommandAsync(ProcessingCommand processingCommand, ICommandAsyncHandlerProxy commandHandler, int retryTimes)
-        {
-            var command = processingCommand.Message;
-
-            _ioHelper.TryAsyncActionRecursively("HandleCommandAsync",
-            () =>
-            {
-                try
-                {
-                    var asyncResult = commandHandler.HandleAsync(command);
-                    _logger.DebugFormat("Handle command async success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
-                        commandHandler.GetInnerObject().GetType().Name,
-                        command.GetType().Name,
-                        command.Id,
-                        command.AggregateRootId);
-                    return asyncResult;
-                }
-                catch (IOException ex)
-                {
-                    _logger.Error(string.Format("Handle command async has io exception. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
-                        commandHandler.GetInnerObject().GetType().Name,
-                        command.GetType().Name,
-                        command.Id,
-                        command.AggregateRootId), ex);
-                    return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.IOException, ex.Message));
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(string.Format("Handle command async has unknown exception. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
-                        commandHandler.GetInnerObject().GetType().Name,
-                        command.GetType().Name,
-                        command.Id,
-                        command.AggregateRootId), ex);
-                    return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Failed, ex.Message));
-                }
-            },
-            currentRetryTimes => HandleCommandAsync(processingCommand, commandHandler, currentRetryTimes),
-            result =>
-            {
-                CommitChangesAsync(processingCommand, true, result.Data, null);
-            },
-            () => string.Format("[command:[id:{0},type:{1}],handlerType:{2}]", command.Id, command.GetType().Name, commandHandler.GetInnerObject().GetType().Name),
-            errorMessage =>
-            {
-                CommitChangesAsync(processingCommand, false, null, errorMessage);
-            },
-            retryTimes);
-
-            return Task.CompletedTask;
-        }
-        private void CommitChangesAsync(ProcessingCommand processingCommand, bool success, IApplicationMessage message, string errorMessage)
+        private async Task CommitChangesAsync(ProcessingCommand processingCommand, bool success, IApplicationMessage message, string errorMessage, TaskCompletionSource<bool> taskSource)
         {
             if (success)
             {
                 if (message != null)
                 {
                     message.MergeItems(processingCommand.Message.Items);
-                    PublishMessageAsync(processingCommand, message, 0);
+                    await PublishMessageAsync(processingCommand, message, 0, new TaskCompletionSource<bool>());
+                    taskSource.SetResult(true);
                 }
                 else
                 {
-                    CompleteCommand(processingCommand, CommandStatus.Success, null, null);
+                    await CompleteCommand(processingCommand, CommandStatus.Success, null, null);
+                    taskSource.SetResult(true);
                 }
             }
             else
             {
-                CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                taskSource.SetResult(true);
             }
         }
-        private void PublishMessageAsync(ProcessingCommand processingCommand, IApplicationMessage message, int retryTimes)
+        private Task PublishMessageAsync(ProcessingCommand processingCommand, IApplicationMessage message, int retryTimes, TaskCompletionSource<bool> taskSource)
         {
             var command = processingCommand.Message;
 
             _ioHelper.TryAsyncActionRecursively("PublishApplicationMessageAsync",
             () => _applicationMessagePublisher.PublishAsync(message),
-            currentRetryTimes => PublishMessageAsync(processingCommand, message, currentRetryTimes),
-            result =>
+            currentRetryTimes => PublishMessageAsync(processingCommand, message, currentRetryTimes, taskSource),
+            async result =>
             {
-                CompleteCommand(processingCommand, CommandStatus.Success, message.GetType().FullName, _jsonSerializer.Serialize(message));
+                await CompleteCommand(processingCommand, CommandStatus.Success, message.GetType().FullName, _jsonSerializer.Serialize(message));
+                taskSource.SetResult(true);
             },
             () => string.Format("[application message:[id:{0},type:{1}],command:[id:{2},type:{3}]]", message.Id, message.GetType().Name, command.Id, command.GetType().Name),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Publish application message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
+
+            return taskSource.Task;
         }
-
-        #endregion
-
-        private HandlerFindResult GetCommandHandler<T>(ProcessingCommand processingCommand, Func<Type, IEnumerable<MessageHandlerData<T>>> getHandlersFunc, out T handlerProxy) where T : class, IObjectProxy
+        private HandlerFindResult GetCommandHandler<T>(ProcessingCommand processingCommand, out T handlerProxy) where T : class, IObjectProxy
         {
             handlerProxy = null;
 
             var command = processingCommand.Message;
-            var handlerDataList = getHandlersFunc(command.GetType());
+            var handlerDataList = _commandHandlerProvider.GetHandlers(command.GetType());
 
             if (handlerDataList == null || handlerDataList.Count() == 0)
             {
@@ -456,10 +402,10 @@ namespace ENode.Commanding.Impl
 
             return HandlerFindResult.Found;
         }
-        private Task CompleteCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
+        private async Task CompleteCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
         {
             var commandResult = new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType);
-            return processingCommand.MailBox.CompleteMessage(processingCommand, commandResult);
+            await processingCommand.MailBox.CompleteMessage(processingCommand, commandResult);
         }
         private enum HandlerFindResult
         {
@@ -468,5 +414,7 @@ namespace ENode.Commanding.Impl
             TooManyHandlerData,
             TooManyHandler
         }
+
+        #endregion
     }
 }

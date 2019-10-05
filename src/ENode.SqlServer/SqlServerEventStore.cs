@@ -220,10 +220,7 @@ namespace ENode.SqlServer
                 }
             },
             () => string.Format("[aggregateRootId: {0}, eventStreamCount: {1}]", aggregateRootId, eventStreamList.Count),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("BatchAppendAggregateEventsAsync has unknown exception, the code should not be run to here, aggregateRootId: {0}, errorMessage: {1}", aggregateRootId, errorMessage));
-            },
+            null,
             retryTimes, true);
         }
         private async Task<AsyncTaskResult<EventAppendStatus>> BatchAppendAggregateEventsAsync(string aggregateRootId, IList<DomainEventStream> eventStreamList)
@@ -296,10 +293,7 @@ namespace ENode.SqlServer
                 }
             },
             () => string.Format("[aggregateRootId:{0}, commandId:{1}]", aggregateRootId, commandId),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("TryFindEventByCommandIdAsync has unknown exception, the code should not be run to here, aggregateRootId:{0}, commandId:{1}, errorMessage: {2}", aggregateRootId, commandId, errorMessage));
-            },
+            null,
             retryTimes, true);
         }
         private int GetTableIndex(string aggregateRootId)

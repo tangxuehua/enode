@@ -74,10 +74,7 @@ namespace ENode.Eventing.Impl
                 UpdatePublishedVersionAsync(processingMessage, 0);
             },
             () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootId, processingMessage.Message.Version),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Dispatching message has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
         }
         private int GetAggregateRootLatestHandledEventVersion(string aggregateRootType, string aggregateRootId)
@@ -115,10 +112,7 @@ namespace ENode.Eventing.Impl
                 processingMessage.Complete();
             },
             () => string.Format("DomainEventStreamMessage [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", message.Id, message.GetType().Name, message.AggregateRootId, message.Version),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Update published version has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
         }
         private void CleanInactiveMailbox()

@@ -199,10 +199,7 @@ namespace ENode.Eventing.Impl
                 eventMailBox.CompleteRun();
             },
             () => string.Format("[contextListCount:{0}]", committingContexts.Count),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Batch persist event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
         }
         private void ProcessAggregateDuplicateEvent(EventCommittingContext eventCommittingContext)
@@ -272,10 +269,7 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[aggregateRootId:{0}, commandId:{1}]", command.AggregateRootId, command.Id),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Find event by commandId has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
         }
         private void HandleFirstEventDuplicationAsync(EventCommittingContext context, int retryTimes)
@@ -329,10 +323,7 @@ namespace ENode.Eventing.Impl
                 }
             },
             () => string.Format("[eventStream:{0}]", context.EventStream),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Find the first version of event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
         }
         private void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStreamMessage eventStream, int retryTimes)
@@ -348,10 +339,7 @@ namespace ENode.Eventing.Impl
                 CompleteCommand(processingCommand, commandResult);
             },
             () => string.Format("[eventStream:{0}]", eventStream),
-            errorMessage =>
-            {
-                _logger.Fatal(string.Format("Publish event has unknown exception, the code should not be run to here, errorMessage: {0}", errorMessage));
-            },
+            null,
             retryTimes, true);
         }
         private Task CompleteCommand(ProcessingCommand processingCommand, CommandResult commandResult)

@@ -1,4 +1,5 @@
 ﻿using ENode.Domain;
+using ENode.Infrastructure;
 using System.Threading.Tasks;
 
 namespace ENode.Commanding
@@ -30,5 +31,13 @@ namespace ENode.Commanding
         /// </summary>
         /// <returns></returns>
         string GetResult();
+        /// <summary>Set an application message.
+        /// </summary>
+        /// <param name="applicationMessage"></param>
+        void SetApplicationMessage(IApplicationMessage applicationMessage);
+        /// <summary>Get an application message.
+        /// </summary>
+        /// <returns></returns>
+        IApplicationMessage GetApplicationMessage();
     }
 }

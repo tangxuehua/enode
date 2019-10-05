@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ECommon" Version="2.6.1" />
     <PackageReference Include="ECommon.Autofac" Version="2.5.0" />
     <PackageReference Include="ECommon.JsonNet" Version="2.5.0" />
     <PackageReference Include="ECommon.Log4Net" Version="2.5.2" />

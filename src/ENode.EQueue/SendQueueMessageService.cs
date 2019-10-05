@@ -41,14 +41,17 @@ namespace ENode.EQueue
                     );
                     return new AsyncTaskResult(AsyncTaskStatus.IOException, result.ErrorMessage);
                 }
-                _logger.InfoFormat("ENode {0} message send success, equeueMessageId: {1}, routingKey: {2}, messageType: {3}, messageId: {4}, messageExtensionItems: {5}", 
-                    messageType, 
-                    result.MessageStoreResult.MessageId, 
-                    routingKey, 
-                    messageClass,
-                    messageId, 
-                    _jsonSerializer.Serialize(messageExtensionItems)
-                );
+                if (_logger.IsDebugEnabled)
+                {
+                    _logger.DebugFormat("ENode {0} message send success, equeueMessageId: {1}, routingKey: {2}, messageType: {3}, messageId: {4}, messageExtensionItems: {5}",
+                        messageType,
+                        result.MessageStoreResult.MessageId,
+                        routingKey,
+                        messageClass,
+                        messageId,
+                        _jsonSerializer.Serialize(messageExtensionItems)
+                    );
+                }
                 return AsyncTaskResult.Success;
             }
             catch (Exception ex)
