@@ -13,7 +13,7 @@
   <ItemGroup>
     <PackageReference Include="ECommon" Version="2.6.1" />
     <PackageReference Include="ECommon.Dapper" Version="2.5.1" />
-    <PackageReference Include="MySql.Data" Version="6.10.4" />
+    <PackageReference Include="MySql.Data" Version="8.0.17" />
   </ItemGroup>
 
   <ItemGroup>

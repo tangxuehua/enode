@@ -37,8 +37,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.SqlServer", "src\ENod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.MySQL", "src\ENode.MySQL\ENode.MySQL.csproj", "{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ECommon", "..\ecommon\src\ECommon\ECommon.csproj", "{6FF964BD-96BA-4684-879A-3E78DC8EF864}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,10 +99,6 @@ Global
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6FF964BD-96BA-4684-879A-3E78DC8EF864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6FF964BD-96BA-4684-879A-3E78DC8EF864}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6FF964BD-96BA-4684-879A-3E78DC8EF864}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6FF964BD-96BA-4684-879A-3E78DC8EF864}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
