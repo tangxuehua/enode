@@ -1,5 +1,4 @@
-﻿using ENode.Infrastructure;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace ENode.Commanding
 {

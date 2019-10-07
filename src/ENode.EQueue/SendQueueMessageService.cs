@@ -27,7 +27,7 @@ namespace ENode.EQueue
         {
             try
             {
-                var result = await producer.SendAsync(message, routingKey);
+                var result = await producer.SendAsync(message, routingKey).ConfigureAwait(false);
                 if (result.SendStatus != SendStatus.Success)
                 {
                     _logger.ErrorFormat("ENode {0} message send failed, message: {1}, sendResult: {2}, routingKey: {3}, messageType: {4}, messageId: {5}, messageExtensionItems: {6}", 

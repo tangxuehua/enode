@@ -145,11 +145,11 @@ namespace ENode.EQueue
 
                 if (firstFromCache)
                 {
-                    aggregateRoot = await _repository.GetAsync<T>(id);
+                    aggregateRoot = await _repository.GetAsync<T>(id).ConfigureAwait(false);
                 }
                 else
                 {
-                    aggregateRoot = await _aggregateRootStorage.GetAsync(typeof(T), aggregateRootId);
+                    aggregateRoot = await _aggregateRootStorage.GetAsync(typeof(T), aggregateRootId).ConfigureAwait(false);
                 }
 
                 if (aggregateRoot != null)

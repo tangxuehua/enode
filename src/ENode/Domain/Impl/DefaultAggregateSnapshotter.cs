@@ -17,7 +17,7 @@ namespace ENode.Domain.Impl
             var aggregateRepository = _aggregateRepositoryProvider.GetRepository(aggregateRootType);
             if (aggregateRepository != null)
             {
-                return await aggregateRepository.GetAsync(aggregateRootId);
+                return await aggregateRepository.GetAsync(aggregateRootId).ConfigureAwait(false);
             }
             return null;
         }

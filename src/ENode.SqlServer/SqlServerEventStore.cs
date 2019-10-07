@@ -86,7 +86,7 @@ namespace ENode.SqlServer
                             AggregateRootId = aggregateRootId,
                             MinVersion = minVersion,
                             MaxVersion = maxVersion
-                        });
+                        }).ConfigureAwait(false);
                         var streams = result.Select(record => ConvertFrom(record));
                         return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, streams);
                     }
@@ -140,7 +140,7 @@ namespace ENode.SqlServer
                 {
                     using (var connection = GetConnection())
                     {
-                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, GetTableName(aggregateRootId));
+                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, GetTableName(aggregateRootId)).ConfigureAwait(false);
                         var record = result.SingleOrDefault();
                         var stream = record != null ? ConvertFrom(record) : null;
                         return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, stream);
@@ -166,7 +166,7 @@ namespace ENode.SqlServer
                 {
                     using (var connection = GetConnection())
                     {
-                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, GetTableName(aggregateRootId));
+                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, GetTableName(aggregateRootId)).ConfigureAwait(false);
                         var record = result.SingleOrDefault();
                         var stream = record != null ? ConvertFrom(record) : null;
                         return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, stream);
@@ -235,15 +235,15 @@ namespace ENode.SqlServer
 
                 using (var connection = GetConnection())
                 {
-                    await connection.OpenAsync();
-                    var transaction = await Task.Run(() => connection.BeginTransaction());
+                    await connection.OpenAsync().ConfigureAwait(false);
+                    var transaction = await Task.Run(() => connection.BeginTransaction()).ConfigureAwait(false);
 
                     using (var copy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, transaction))
                     {
                         InitializeSqlBulkCopy(copy, aggregateRootId);
                         try
                         {
-                            await copy.WriteToServerAsync(table.CreateDataReader());
+                            await copy.WriteToServerAsync(table.CreateDataReader()).ConfigureAwait(false);
                         }
                         catch
                         {
@@ -259,7 +259,7 @@ namespace ENode.SqlServer
                         }
                     }
 
-                    await Task.Run(() => transaction.Commit());
+                    await Task.Run(() => transaction.Commit()).ConfigureAwait(false);
                     return new AsyncTaskResult<EventAppendStatus>(AsyncTaskStatus.Success, EventAppendStatus.Success);
                 }
             }

@@ -34,14 +34,14 @@ namespace ENode.Domain.Impl
             if (aggregateRootType == null) throw new ArgumentNullException("aggregateRootType");
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
 
-            var aggregateRoot = await TryGetFromSnapshot(aggregateRootId, aggregateRootType);
+            var aggregateRoot = await TryGetFromSnapshot(aggregateRootId, aggregateRootType).ConfigureAwait(false);
             if (aggregateRoot != null)
             {
                 return aggregateRoot;
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var taskResult = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion);
+            var taskResult = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion).ConfigureAwait(false);
             if (taskResult.Status == AsyncTaskStatus.Success)
             {
                 aggregateRoot = RebuildAggregateRoot(aggregateRootType, taskResult.Data);
@@ -55,7 +55,7 @@ namespace ENode.Domain.Impl
 
         private async Task<IAggregateRoot> TryGetFromSnapshot(string aggregateRootId, Type aggregateRootType)
         {
-            var aggregateRoot = await _aggregateSnapshotter.RestoreFromSnapshotAsync(aggregateRootType, aggregateRootId);
+            var aggregateRoot = await _aggregateSnapshotter.RestoreFromSnapshotAsync(aggregateRootType, aggregateRootId).ConfigureAwait(false);
 
             if (aggregateRoot == null)
             {
@@ -72,7 +72,7 @@ namespace ENode.Domain.Impl
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var taskResult = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, aggregateRoot.Version + 1, int.MaxValue);
+            var taskResult = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, aggregateRoot.Version + 1, int.MaxValue).ConfigureAwait(false);
             if (taskResult.Status == AsyncTaskStatus.Success)
             {
                 aggregateRoot.ReplayEvents(taskResult.Data);

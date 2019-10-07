@@ -177,7 +177,6 @@ namespace ENode.Eventing.Impl
                             {
                                 TryToRepublishEventAsync(committingContext, 0);
                             }).ConfigureAwait(false);
-
                         }
                     }
                 }
@@ -229,7 +228,7 @@ namespace ENode.Eventing.Impl
             try
             {
                 eventMailBox.RemoveAggregateAllEventCommittingContexts(aggregateRootId);
-                var refreshedAggregateRoot = await _memoryCache.RefreshAggregateFromEventStoreAsync(context.EventStream.AggregateRootTypeName, aggregateRootId);
+                var refreshedAggregateRoot = await _memoryCache.RefreshAggregateFromEventStoreAsync(context.EventStream.AggregateRootTypeName, aggregateRootId).ConfigureAwait(false);
                 commandMailBox.ResetConsumingSequence(consumingSequence);
             }
             catch (Exception ex)

@@ -17,7 +17,7 @@ namespace ENode.Domain.Impl
         }
         public async Task<IAggregateRoot> GetAsync(string aggregateRootId)
         {
-            return await _aggregateRepository.GetAsync(aggregateRootId);
+            return await _aggregateRepository.GetAsync(aggregateRootId).ConfigureAwait(false);
         }
     }
 }

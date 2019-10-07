@@ -17,7 +17,7 @@ namespace ENode.Domain.Impl
             if (aggregateRootType == null) throw new ArgumentNullException("aggregateRootType");
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
 
-            var aggregateRoot = await _aggregateSnapshotter.RestoreFromSnapshotAsync(aggregateRootType, aggregateRootId);
+            var aggregateRoot = await _aggregateSnapshotter.RestoreFromSnapshotAsync(aggregateRootType, aggregateRootId).ConfigureAwait(false);
 
             if (aggregateRoot != null && (aggregateRoot.GetType() != aggregateRootType || aggregateRoot.UniqueId != aggregateRootId))
             {

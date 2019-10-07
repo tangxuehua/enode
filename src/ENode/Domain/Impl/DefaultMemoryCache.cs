@@ -46,7 +46,7 @@ namespace ENode.Domain.Impl
                 }
                 if (aggregateRoot.GetChanges().Count() > 0)
                 {
-                    var lastestAggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId.ToString());
+                    var lastestAggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId.ToString()).ConfigureAwait(false);
                     if (lastestAggregateRoot != null)
                     {
                         ResetAggregateRootCache(lastestAggregateRoot);
@@ -59,7 +59,7 @@ namespace ENode.Domain.Impl
         }
         public async Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot
         {
-            return await GetAsync(aggregateRootId, typeof(T)) as T;
+            return await GetAsync(aggregateRootId, typeof(T)).ConfigureAwait(false) as T;
         }
         public Task UpdateAggregateRootCache(IAggregateRoot aggregateRoot)
         {
@@ -85,7 +85,7 @@ namespace ENode.Domain.Impl
 
             try
             {
-                var aggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId.ToString());
+                var aggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId.ToString()).ConfigureAwait(false);
                 if (aggregateRoot != null)
                 {
                     ResetAggregateRootCache(aggregateRoot);

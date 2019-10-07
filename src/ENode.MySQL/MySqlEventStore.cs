@@ -82,7 +82,7 @@ namespace ENode.MySQL
                             AggregateRootId = aggregateRootId,
                             MinVersion = minVersion,
                             MaxVersion = maxVersion
-                        });
+                        }).ConfigureAwait(false);
                         var streams = result.Select(ConvertFrom);
                         return new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, streams);
                     }
@@ -135,7 +135,7 @@ namespace ENode.MySQL
                 {
                     using (var connection = GetConnection())
                     {
-                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, GetTableName(aggregateRootId));
+                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, Version = version }, GetTableName(aggregateRootId)).ConfigureAwait(false);
                         var record = result.SingleOrDefault();
                         var stream = record != null ? ConvertFrom(record) : null;
                         return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, stream);
@@ -161,7 +161,7 @@ namespace ENode.MySQL
                 {
                     using (var connection = GetConnection())
                     {
-                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, GetTableName(aggregateRootId));
+                        var result = await connection.QueryListAsync<StreamRecord>(new { AggregateRootId = aggregateRootId, CommandId = commandId }, GetTableName(aggregateRootId)).ConfigureAwait(false);
                         var record = result.SingleOrDefault();
                         var stream = record != null ? ConvertFrom(record) : null;
                         return new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, stream);
@@ -226,12 +226,12 @@ namespace ENode.MySQL
                 var streamRecords = eventStreamList.Select(ConvertTo);
                 using (var connection = GetConnection())
                 {
-                    await connection.OpenAsync();
-                    var transaction = await Task.Run(() => connection.BeginTransaction());
+                    await connection.OpenAsync().ConfigureAwait(false);
+                    var transaction = await Task.Run(() => connection.BeginTransaction()).ConfigureAwait(false);
                     try
                     {
-                        await connection.ExecuteAsync(sql, streamRecords, transaction: transaction, commandTimeout: _batchInsertTimeoutSeconds);
-                        await Task.Run(() => transaction.Commit());
+                        await connection.ExecuteAsync(sql, streamRecords, transaction: transaction, commandTimeout: _batchInsertTimeoutSeconds).ConfigureAwait(false);
+                        await Task.Run(() => transaction.Commit()).ConfigureAwait(false);
                         return new AsyncTaskResult<EventAppendStatus>(AsyncTaskStatus.Success, EventAppendStatus.Success);
                     }
                     catch

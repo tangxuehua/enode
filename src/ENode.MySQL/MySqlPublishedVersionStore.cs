@@ -62,7 +62,7 @@ namespace ENode.MySQL
                             Version = 1,
                             CreatedOn = currentTime,
                             UpdatedOn = currentTime
-                        }, GetTableName(aggregateRootId));
+                        }, GetTableName(aggregateRootId)).ConfigureAwait(false);
                         return AsyncTaskResult.Success;
                     }
                 }
@@ -98,7 +98,7 @@ namespace ENode.MySQL
                             ProcessorName = processorName,
                             AggregateRootId = aggregateRootId,
                             Version = publishedVersion - 1
-                        }, GetTableName(aggregateRootId));
+                        }, GetTableName(aggregateRootId)).ConfigureAwait(false);
                         return AsyncTaskResult.Success;
                     }
                 }
@@ -124,7 +124,7 @@ namespace ENode.MySQL
                     {
                         ProcessorName = processorName,
                         AggregateRootId = aggregateRootId
-                    }, GetTableName(aggregateRootId), "Version");
+                    }, GetTableName(aggregateRootId), "Version").ConfigureAwait(false);
                     return new AsyncTaskResult<int>(AsyncTaskStatus.Success, result.SingleOrDefault());
                 }
             }

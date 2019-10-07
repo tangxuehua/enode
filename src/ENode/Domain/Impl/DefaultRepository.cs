@@ -14,7 +14,7 @@ namespace ENode.Domain.Impl
 
         public async Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot
         {
-            return await GetAsync(typeof(T), aggregateRootId) as T;
+            return await GetAsync(typeof(T), aggregateRootId).ConfigureAwait(false) as T;
         }
         public async Task<IAggregateRoot> GetAsync(Type aggregateRootType, object aggregateRootId)
         {
@@ -26,10 +26,10 @@ namespace ENode.Domain.Impl
             {
                 throw new ArgumentNullException("aggregateRootId");
             }
-            var aggregateRoot = await _memoryCache.GetAsync(aggregateRootId, aggregateRootType);
+            var aggregateRoot = await _memoryCache.GetAsync(aggregateRootId, aggregateRootType).ConfigureAwait(false);
             if (aggregateRoot == null)
             {
-                aggregateRoot = await _memoryCache.RefreshAggregateFromEventStoreAsync(aggregateRootType, aggregateRootId);
+                aggregateRoot = await _memoryCache.RefreshAggregateFromEventStoreAsync(aggregateRootType, aggregateRootId).ConfigureAwait(false);
             }
             return aggregateRoot;
         }

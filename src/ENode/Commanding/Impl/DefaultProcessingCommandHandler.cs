@@ -70,29 +70,29 @@ namespace ENode.Commanding.Impl
             {
                 var errorMessage = string.Format("The aggregateRootId of command cannot be null or empty. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
                 _logger.Error(errorMessage);
-                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage).ConfigureAwait(false);
             }
 
             var findResult = GetCommandHandler(processingCommand, out ICommandHandlerProxy commandHandler);
             if (findResult == HandlerFindResult.Found)
             {
-                await HandleCommandInternal(processingCommand, commandHandler, 0, new TaskCompletionSource<bool>());
+                await HandleCommandInternal(processingCommand, commandHandler, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
             }
             else if (findResult == HandlerFindResult.TooManyHandlerData)
             {
                 _logger.ErrorFormat("Found more than one command handler data, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
-                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler data found.");
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler data found.").ConfigureAwait(false);
             }
             else if (findResult == HandlerFindResult.TooManyHandler)
             {
                 _logger.ErrorFormat("Found more than one command handler, commandType:{0}, commandId:{1}", command.GetType().FullName, command.Id);
-                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler found.");
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, "More than one command handler found.").ConfigureAwait(false);
             }
             else if (findResult == HandlerFindResult.NotFound)
             {
                 var errorMessage = string.Format("No command handler found of command. commandType:{0}, commandId:{1}", command.GetType().Name, command.Id);
                 _logger.Error(errorMessage);
-                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage).ConfigureAwait(false);
             }
         }
 
@@ -110,7 +110,7 @@ namespace ENode.Commanding.Impl
             _ioHelper.TryAsyncActionRecursivelyWithoutResult("HandleCommandAsync",
             async () =>
             {
-                await commandHandler.HandleAsync(commandContext, command);
+                await commandHandler.HandleAsync(commandContext, command).ConfigureAwait(false);
                 if (_logger.IsDebugEnabled)
                 {
                     _logger.DebugFormat("Handle command success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
@@ -125,14 +125,14 @@ namespace ENode.Commanding.Impl
             {
                 if (commandContext.GetApplicationMessage() != null)
                 {
-                    await CommitChangesAsync(processingCommand, true, commandContext.GetApplicationMessage(), null, new TaskCompletionSource<bool>());
+                    await CommitChangesAsync(processingCommand, true, commandContext.GetApplicationMessage(), null, new TaskCompletionSource<bool>()).ConfigureAwait(false);
                     taskSource.SetResult(true);
                 }
                 else
                 {
                     try
                     {
-                        await CommitAggregateChanges(processingCommand);
+                        await CommitAggregateChanges(processingCommand).ConfigureAwait(false);
                         taskSource.SetResult(true);
                     }
                     catch (Exception ex)
@@ -142,7 +142,7 @@ namespace ENode.Commanding.Impl
                             command.GetType().Name,
                             command.Id,
                             command.AggregateRootId), ex);
-                        await CompleteCommand(processingCommand, CommandStatus.Failed, ex.GetType().Name, "Unknown exception caught when committing changes of command.");
+                        await CompleteCommand(processingCommand, CommandStatus.Failed, ex.GetType().Name, "Unknown exception caught when committing changes of command.").ConfigureAwait(false);
                         taskSource.SetResult(true);
                     }
                 }
@@ -150,7 +150,7 @@ namespace ENode.Commanding.Impl
             () => string.Format("[command:[id:{0},type:{1}],handlerType:{2},aggregateRootId:{3}]", command.Id, command.GetType().Name, commandHandler.GetInnerObject().GetType().Name, command.AggregateRootId),
             async (ex, errorMessage) =>
             {
-                await HandleExceptionAsync(processingCommand, commandHandler, ex, errorMessage, 0, new TaskCompletionSource<bool>());
+                await HandleExceptionAsync(processingCommand, commandHandler, ex, errorMessage, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
                 taskSource.SetResult(true);
             },
             retryTimes);
@@ -178,7 +178,7 @@ namespace ENode.Commanding.Impl
                             command.GetType().Name,
                             command.Id);
                         _logger.ErrorFormat(errorMessage);
-                        await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                        await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage).ConfigureAwait(false);
                         return;
                     }
                     dirtyAggregateRoot = aggregateRoot;
@@ -195,7 +195,7 @@ namespace ENode.Commanding.Impl
             //否则，如果我们直接将当前command设置为完成，即对MQ进行ack操作，那该command的事件就永远不会再发布到MQ了，这样就无法保证CQRS数据的最终一致性了。
             if (dirtyAggregateRootCount == 0 || changedEvents == null || changedEvents.Count() == 0)
             {
-                await ProcessIfNoEventsOfCommand(processingCommand, 0, new TaskCompletionSource<bool>());
+                await ProcessIfNoEventsOfCommand(processingCommand, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
                 return;
             }
 
@@ -203,7 +203,7 @@ namespace ENode.Commanding.Impl
             dirtyAggregateRoot.AcceptChanges();
 
             //刷新聚合根的内存缓存
-            await _memoryCache.UpdateAggregateRootCache(dirtyAggregateRoot);
+            await _memoryCache.UpdateAggregateRootCache(dirtyAggregateRoot).ConfigureAwait(false);
 
             //构造出一个事件流对象
             var commandResult = processingCommand.CommandExecuteContext.GetResult();
@@ -239,7 +239,7 @@ namespace ENode.Commanding.Impl
                 }
                 else
                 {
-                    await CompleteCommand(processingCommand, CommandStatus.NothingChanged, typeof(string).FullName, processingCommand.CommandExecuteContext.GetResult());
+                    await CompleteCommand(processingCommand, CommandStatus.NothingChanged, typeof(string).FullName, processingCommand.CommandExecuteContext.GetResult()).ConfigureAwait(false);
                     taskSource.SetResult(true);
                 }
             },
@@ -275,12 +275,12 @@ namespace ENode.Commanding.Impl
                     var domainException = TryGetDomainException(exception);
                     if (domainException != null)
                     {
-                        await PublishExceptionAsync(processingCommand, domainException, 0, new TaskCompletionSource<bool>());
+                        await PublishExceptionAsync(processingCommand, domainException, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
                         taskSource.SetResult(true);
                     }
                     else
                     {
-                        await CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception != null ? exception.Message : errorMessage);
+                        await CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception != null ? exception.Message : errorMessage).ConfigureAwait(false);
                         taskSource.SetResult(true);
                     }
                 }
@@ -318,7 +318,7 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => PublishExceptionAsync(processingCommand, exception, currentRetryTimes, taskSource),
             async result =>
             {
-                await CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message);
+                await CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message).ConfigureAwait(false);
                 taskSource.SetResult(true);
             },
             () =>
@@ -340,18 +340,18 @@ namespace ENode.Commanding.Impl
                 if (message != null)
                 {
                     message.MergeItems(processingCommand.Message.Items);
-                    await PublishMessageAsync(processingCommand, message, 0, new TaskCompletionSource<bool>());
+                    await PublishMessageAsync(processingCommand, message, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
                     taskSource.SetResult(true);
                 }
                 else
                 {
-                    await CompleteCommand(processingCommand, CommandStatus.Success, null, null);
+                    await CompleteCommand(processingCommand, CommandStatus.Success, null, null).ConfigureAwait(false);
                     taskSource.SetResult(true);
                 }
             }
             else
             {
-                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage);
+                await CompleteCommand(processingCommand, CommandStatus.Failed, typeof(string).FullName, errorMessage).ConfigureAwait(false);
                 taskSource.SetResult(true);
             }
         }
@@ -364,7 +364,7 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => PublishMessageAsync(processingCommand, message, currentRetryTimes, taskSource),
             async result =>
             {
-                await CompleteCommand(processingCommand, CommandStatus.Success, message.GetType().FullName, _jsonSerializer.Serialize(message));
+                await CompleteCommand(processingCommand, CommandStatus.Success, message.GetType().FullName, _jsonSerializer.Serialize(message)).ConfigureAwait(false);
                 taskSource.SetResult(true);
             },
             () => string.Format("[application message:[id:{0},type:{1}],command:[id:{2},type:{3}]]", message.Id, message.GetType().Name, command.Id, command.GetType().Name),
@@ -406,7 +406,7 @@ namespace ENode.Commanding.Impl
         private async Task CompleteCommand(ProcessingCommand processingCommand, CommandStatus commandStatus, string resultType, string result)
         {
             var commandResult = new CommandResult(commandStatus, processingCommand.Message.Id, processingCommand.Message.AggregateRootId, result, resultType);
-            await processingCommand.MailBox.CompleteMessage(processingCommand, commandResult);
+            await processingCommand.MailBox.CompleteMessage(processingCommand, commandResult).ConfigureAwait(false);
         }
         private enum HandlerFindResult
         {

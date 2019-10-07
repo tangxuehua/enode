@@ -135,7 +135,7 @@ namespace ENode.Commanding
                 if (_messageDict.TryRemove(message.Sequence, out ProcessingCommand removed))
                 {
                     LastActiveTime = DateTime.Now;
-                    await message.CompleteAsync(result);
+                    await message.CompleteAsync(result).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -150,7 +150,7 @@ namespace ENode.Commanding
 
         private async Task ProcessMessages()
         {
-            using (await _asyncLock.LockAsync())
+            using (await _asyncLock.LockAsync().ConfigureAwait(false))
             {
                 LastActiveTime = DateTime.Now;
                 try
@@ -161,7 +161,7 @@ namespace ENode.Commanding
                         var message = GetMessage(ConsumingSequence);
                         if (message != null)
                         {
-                            await _messageHandler.HandleAsync(message);
+                            await _messageHandler.HandleAsync(message).ConfigureAwait(false);
                         }
                         scannedCount++;
                         ConsumingSequence++;
