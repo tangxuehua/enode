@@ -37,7 +37,7 @@ namespace ENode.Tests.Commands
     }
     public class AggregateThrowExceptionCommand : Command<string>
     {
-        public bool PublishableException { get; set; }
+        public bool IsDomainException { get; set; }
     }
     public class NoHandlerCommand : Command<string>
     {

@@ -24,20 +24,20 @@ namespace ENode.Tests
         protected IPublishedVersionStore _publishedVersionStore;
         protected IMessagePublisher<DomainEventStreamMessage> _domainEventPublisher;
         protected IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
-        protected IMessagePublisher<IPublishableException> _publishableExceptionPublisher;
+        protected IMessagePublisher<IDomainException> _domainExceptionPublisher;
 
         protected void Initialize(
             bool useMockEventStore = false,
             bool useMockPublishedVersionStore = false,
             bool useMockDomainEventPublisher = false,
             bool useMockApplicationMessagePublisher = false,
-            bool useMockPublishableExceptionPublisher = false)
+            bool useMockDomainExceptionPublisher = false)
         {
             InitializeENode(useMockEventStore,
                 useMockPublishedVersionStore,
                 useMockDomainEventPublisher,
                 useMockApplicationMessagePublisher,
-                useMockPublishableExceptionPublisher);
+                useMockDomainExceptionPublisher);
         }
 
         [SetUp]
@@ -65,7 +65,7 @@ namespace ENode.Tests
             bool useMockPublishedVersionStore = false,
             bool useMockDomainEventPublisher = false,
             bool useMockApplicationMessagePublisher = false,
-            bool useMockPublishableExceptionPublisher = false)
+            bool useMockDomainExceptionPublisher = false)
         {
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
             var assemblies = new[]
@@ -86,7 +86,7 @@ namespace ENode.Tests
                 .UsePublishedVersionStore(useMockPublishedVersionStore)
                 .RegisterBusinessComponents(assemblies)
                 .InitializeEQueue()
-                .UseEQueue(useMockDomainEventPublisher, useMockApplicationMessagePublisher, useMockPublishableExceptionPublisher)
+                .UseEQueue(useMockDomainEventPublisher, useMockApplicationMessagePublisher, useMockDomainExceptionPublisher)
                 .BuildContainer();
 
             if (!useMockEventStore)
@@ -109,7 +109,7 @@ namespace ENode.Tests
             _publishedVersionStore = ObjectContainer.Resolve<IPublishedVersionStore>();
             _domainEventPublisher = ObjectContainer.Resolve<IMessagePublisher<DomainEventStreamMessage>>();
             _applicationMessagePublisher = ObjectContainer.Resolve<IMessagePublisher<IApplicationMessage>>();
-            _publishableExceptionPublisher = ObjectContainer.Resolve<IMessagePublisher<IPublishableException>>();
+            _domainExceptionPublisher = ObjectContainer.Resolve<IMessagePublisher<IDomainException>>();
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(typeof(BaseTest));
             _logger.Info("----ENode initialized.");
         }

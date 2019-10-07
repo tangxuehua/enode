@@ -77,7 +77,7 @@ namespace ENode.Tests.CommandHandlers
         public async Task HandleAsync(ICommandContext context, AggregateThrowExceptionCommand command)
         {
             var testAggregate = await context.GetAsync<TestAggregate>(command.AggregateRootId);
-            testAggregate.ThrowException(command.PublishableException);
+            testAggregate.ThrowException(command.IsDomainException);
         }
         public async Task HandleAsync(ICommandContext context, TestEventPriorityCommand command)
         {

@@ -96,7 +96,7 @@ namespace ENode.Configurations
 
             _configuration.SetDefault<IMessagePublisher<IApplicationMessage>, DoNothingPublisher>();
             _configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DoNothingPublisher>();
-            _configuration.SetDefault<IMessagePublisher<IPublishableException>, DoNothingPublisher>();
+            _configuration.SetDefault<IMessagePublisher<IDomainException>, DoNothingPublisher>();
 
             _configuration.SetDefault<IProcessingCommandHandler, DefaultProcessingCommandHandler>();
 

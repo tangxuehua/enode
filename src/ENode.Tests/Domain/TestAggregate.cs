@@ -21,11 +21,11 @@ namespace ENode.Tests.Domain
         {
             ApplyEvent(new TestAggregateTitleChanged(title));
         }
-        public void ThrowException(bool publishableException)
+        public void ThrowException(bool isDomainException)
         {
-            if (publishableException)
+            if (isDomainException)
             {
-                throw new TestPublishableException(Id);
+                throw new TestDomainException(Id);
             }
             else
             {
@@ -79,11 +79,11 @@ namespace ENode.Tests.Domain
     public class Event1 : DomainEvent<string> { }
     public class Event2 : DomainEvent<string> { }
     public class Event3 : DomainEvent<string> { }
-    public class TestPublishableException : PublishableException
+    public class TestDomainException : DomainException
     {
         public string AggregateRootId { get; private set; }
 
-        public TestPublishableException(string aggregateRootId) : base()
+        public TestDomainException(string aggregateRootId) : base()
         {
             AggregateRootId = aggregateRootId;
         }

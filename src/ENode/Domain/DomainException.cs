@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using ECommon.Utilities;
 
-namespace ENode.Infrastructure
+namespace ENode.Domain
 {
-    public abstract class PublishableException : Exception, IPublishableException
+    public abstract class DomainException : Exception, IDomainException
     {
         public string Id { get; set; }
         public DateTime Timestamp { get; set; }
         public IDictionary<string, string> Items { get; set; }
 
-        public PublishableException()
+        public DomainException()
         {
             Id = ObjectId.GenerateNewStringId();
             Timestamp = DateTime.UtcNow;

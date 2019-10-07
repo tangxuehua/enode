@@ -416,7 +416,7 @@ namespace ENode.Tests
             var command1 = new AggregateThrowExceptionCommand
             {
                 AggregateRootId = aggregateId,
-                PublishableException = false
+                IsDomainException = false
             };
             var asyncResult = _commandService.ExecuteAsync(command1).Result;
             Assert.IsNotNull(asyncResult);
@@ -428,7 +428,7 @@ namespace ENode.Tests
             var command2 = new AggregateThrowExceptionCommand
             {
                 AggregateRootId = aggregateId,
-                PublishableException = true
+                IsDomainException = true
             };
             asyncResult = _commandService.ExecuteAsync(command2).Result;
             Assert.IsNotNull(asyncResult);

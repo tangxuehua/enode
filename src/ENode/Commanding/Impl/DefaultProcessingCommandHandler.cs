@@ -22,7 +22,7 @@ namespace ENode.Commanding.Impl
         private readonly ITypeNameProvider _typeNameProvider;
         private readonly IEventCommittingService _eventCommittingService;
         private readonly IMessagePublisher<IApplicationMessage> _applicationMessagePublisher;
-        private readonly IMessagePublisher<IPublishableException> _exceptionPublisher;
+        private readonly IMessagePublisher<IDomainException> _exceptionPublisher;
         private readonly IOHelper _ioHelper;
         private readonly ILogger _logger;
         private readonly ITimeProvider _timeProvider;
@@ -39,7 +39,7 @@ namespace ENode.Commanding.Impl
             ITypeNameProvider typeNameProvider,
             IEventCommittingService eventCommittingService,
             IMessagePublisher<IApplicationMessage> applicationMessagePublisher,
-            IMessagePublisher<IPublishableException> exceptionPublisher,
+            IMessagePublisher<IDomainException> exceptionPublisher,
             IOHelper ioHelper,
             ILoggerFactory loggerFactory,
             ITimeProvider timeProvider)
@@ -271,10 +271,10 @@ namespace ENode.Commanding.Impl
                     //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行。
                     //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；
                     //否则，就记录错误日志，然后认为该command处理失败即可；
-                    var publishableException = TryGetPublishableException(exception);
-                    if (publishableException != null)
+                    var domainException = TryGetDomainException(exception);
+                    if (domainException != null)
                     {
-                        await PublishExceptionAsync(processingCommand, publishableException, 0, new TaskCompletionSource<bool>());
+                        await PublishExceptionAsync(processingCommand, domainException, 0, new TaskCompletionSource<bool>());
                         taskSource.SetResult(true);
                     }
                     else
@@ -290,25 +290,25 @@ namespace ENode.Commanding.Impl
 
             return taskSource.Task;
         }
-        private IPublishableException TryGetPublishableException(Exception exception)
+        private IDomainException TryGetDomainException(Exception exception)
         {
             if (exception == null)
             {
                 return null;
             }
-            else if (exception is IPublishableException)
+            else if (exception is IDomainException)
             {
-                return exception as IPublishableException;
+                return exception as IDomainException;
             }
             else if (exception is AggregateException)
             {
                 var aggregateException = exception as AggregateException;
-                var publishableException = aggregateException.InnerExceptions.FirstOrDefault(x => x is IPublishableException) as IPublishableException;
-                return publishableException;
+                var domainException = aggregateException.InnerExceptions.FirstOrDefault(x => x is IDomainException) as IDomainException;
+                return domainException;
             }
             return null;
         }
-        private Task PublishExceptionAsync(ProcessingCommand processingCommand, IPublishableException exception, int retryTimes, TaskCompletionSource<bool> taskSource)
+        private Task PublishExceptionAsync(ProcessingCommand processingCommand, IDomainException exception, int retryTimes, TaskCompletionSource<bool> taskSource)
         {
             exception.MergeItems(processingCommand.Message.Items);
 

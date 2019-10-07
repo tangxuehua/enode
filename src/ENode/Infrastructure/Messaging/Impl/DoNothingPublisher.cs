@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using ECommon.IO;
+using ENode.Domain;
 using ENode.Eventing;
 
 namespace ENode.Infrastructure.Impl
@@ -7,7 +8,7 @@ namespace ENode.Infrastructure.Impl
     public class DoNothingPublisher :
         IMessagePublisher<DomainEventStreamMessage>,
         IMessagePublisher<IApplicationMessage>,
-        IMessagePublisher<IPublishableException>
+        IMessagePublisher<IDomainException>
     {
         private static Task<AsyncTaskResult> _successResultTask = Task.FromResult(AsyncTaskResult.Success);
 
@@ -19,7 +20,7 @@ namespace ENode.Infrastructure.Impl
         {
             return _successResultTask;
         }
-        public Task<AsyncTaskResult> PublishAsync(IPublishableException exception)
+        public Task<AsyncTaskResult> PublishAsync(IDomainException exception)
         {
             return _successResultTask;
         }

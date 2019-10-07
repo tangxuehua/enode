@@ -13,6 +13,7 @@ using ECommon.Serializing;
 using ECommon.Socketing;
 using ENode.Commanding;
 using ENode.Configurations;
+using ENode.Domain;
 using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -37,8 +38,8 @@ namespace ENode.Tests
         private static DomainEventConsumer _eventConsumer;
         private static ApplicationMessagePublisher _applicationMessagePublisher;
         private static ApplicationMessageConsumer _applicationMessageConsumer;
-        private static PublishableExceptionPublisher _publishableExceptionPublisher;
-        private static PublishableExceptionConsumer _publishableExceptionConsumer;
+        private static DomainExceptionPublisher _domainExceptionPublisher;
+        private static DomainExceptionConsumer _domainExceptionConsumer;
         private static SocketRemotingClient _nameServerSocketRemotingClient;
         private static bool _isEQueueInitialized;
         private static bool _isEQueueStarted;
@@ -58,7 +59,7 @@ namespace ENode.Tests
             _commandService = new CommandService();
             _eventPublisher = new DomainEventPublisher();
             _applicationMessagePublisher = new ApplicationMessagePublisher();
-            _publishableExceptionPublisher = new PublishableExceptionPublisher();
+            _domainExceptionPublisher = new DomainExceptionPublisher();
 
             _isEQueueInitialized = true;
 
@@ -67,7 +68,7 @@ namespace ENode.Tests
         public static ENodeConfiguration UseEQueue(this ENodeConfiguration enodeConfiguration,
             bool useMockDomainEventPublisher = false,
             bool useMockApplicationMessagePublisher = false,
-            bool useMockPublishableExceptionPublisher = false)
+            bool useMockDomainExceptionPublisher = false)
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
             enodeConfiguration.RegisterTopicProviders(assemblies);
@@ -93,13 +94,13 @@ namespace ENode.Tests
                 configuration.SetDefault<IMessagePublisher<IApplicationMessage>, ApplicationMessagePublisher>(_applicationMessagePublisher);
             }
 
-            if (useMockPublishableExceptionPublisher)
+            if (useMockDomainExceptionPublisher)
             {
-                configuration.SetDefault<IMessagePublisher<IPublishableException>, MockPublishableExceptionPublisher>();
+                configuration.SetDefault<IMessagePublisher<IDomainException>, MockDomainExceptionPublisher>();
             }
             else
             {
-                configuration.SetDefault<IMessagePublisher<IPublishableException>, PublishableExceptionPublisher>(_publishableExceptionPublisher);
+                configuration.SetDefault<IMessagePublisher<IDomainException>, DomainExceptionPublisher>(_domainExceptionPublisher);
             }
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
@@ -113,12 +114,12 @@ namespace ENode.Tests
                 _commandService.InitializeENode();
                 _eventPublisher.InitializeENode();
                 _applicationMessagePublisher.InitializeENode();
-                _publishableExceptionPublisher.InitializeENode();
+                _domainExceptionPublisher.InitializeENode();
 
                 _commandConsumer.InitializeENode();
                 _eventConsumer.InitializeENode();
                 _applicationMessageConsumer.InitializeENode();
-                _publishableExceptionConsumer.InitializeENode();
+                _domainExceptionConsumer.InitializeENode();
 
                 return enodeConfiguration;
             }
@@ -137,12 +138,12 @@ namespace ENode.Tests
             _commandService.InitializeEQueue(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
             _eventPublisher.InitializeEQueue();
             _applicationMessagePublisher.InitializeEQueue();
-            _publishableExceptionPublisher.InitializeEQueue();
+            _domainExceptionPublisher.InitializeEQueue();
 
             _commandConsumer = new CommandConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("CommandTopic");
             _eventConsumer = new DomainEventConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("EventTopic");
             _applicationMessageConsumer = new ApplicationMessageConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("ApplicationMessageTopic");
-            _publishableExceptionConsumer = new PublishableExceptionConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("PublishableExceptionTopic");
+            _domainExceptionConsumer = new DomainExceptionConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("DomainExceptionTopic");
             _nameServerSocketRemotingClient = new SocketRemotingClient("NameServerRemotingClient", new IPEndPoint(SocketUtils.GetLocalIPV4(), 9493));
 
             _nameServerController.Start();
@@ -150,9 +151,9 @@ namespace ENode.Tests
             _eventConsumer.Start();
             _commandConsumer.Start();
             _applicationMessageConsumer.Start();
-            _publishableExceptionConsumer.Start();
+            _domainExceptionConsumer.Start();
             _applicationMessagePublisher.Start();
-            _publishableExceptionPublisher.Start();
+            _domainExceptionPublisher.Start();
             _eventPublisher.Start();
             _commandService.Start();
             _nameServerSocketRemotingClient.Start();
@@ -207,11 +208,11 @@ namespace ENode.Tests
                 _commandService.Producer.ClientService.LoadTopicMessageQueuesFromNameServerAsync(Constants.CommandTopic).Wait();
                 _eventPublisher.Producer.ClientService.LoadTopicMessageQueuesFromNameServerAsync(Constants.EventTopic).Wait();
                 _applicationMessagePublisher.Producer.ClientService.LoadTopicMessageQueuesFromNameServerAsync(Constants.ApplicationMessageTopic).Wait();
-                _publishableExceptionPublisher.Producer.ClientService.LoadTopicMessageQueuesFromNameServerAsync(Constants.ExceptionTopic).Wait();
+                _domainExceptionPublisher.Producer.ClientService.LoadTopicMessageQueuesFromNameServerAsync(Constants.ExceptionTopic).Wait();
                 var availableQueues1 = _commandService.Producer.GetAvailableMessageQueues(Constants.CommandTopic);
                 var availableQueues2 = _eventPublisher.Producer.GetAvailableMessageQueues(Constants.EventTopic);
                 var availableQueues3 = _applicationMessagePublisher.Producer.GetAvailableMessageQueues(Constants.ApplicationMessageTopic);
-                var availableQueues4 = _publishableExceptionPublisher.Producer.GetAvailableMessageQueues(Constants.ExceptionTopic);
+                var availableQueues4 = _domainExceptionPublisher.Producer.GetAvailableMessageQueues(Constants.ExceptionTopic);
                 if (availableQueues1 != null
                  && availableQueues1 != null
                  && availableQueues1 != null
@@ -240,7 +241,7 @@ namespace ENode.Tests
                 if (_eventConsumer.Consumer.GetCurrentQueues().Count() == 4
                  && _commandConsumer.Consumer.GetCurrentQueues().Count() == 4
                  && _applicationMessageConsumer.Consumer.GetCurrentQueues().Count() == 4
-                 && _publishableExceptionConsumer.Consumer.GetCurrentQueues().Count() == 4)
+                 && _domainExceptionConsumer.Consumer.GetCurrentQueues().Count() == 4)
                 {
                     waitHandle.Set();
                 }

@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using ENode.Infrastructure;
 
-namespace ENode.Infrastructure
+namespace ENode.Domain
 {
-    /// <summary>Represents an exception which can be published.
+    /// <summary>Represents a domain exception which is raised from domain layer.
     /// </summary>
-    public interface IPublishableException : IMessage
+    public interface IDomainException : IMessage
     {
         /// <summary>Serialize the current exception info to the given dictionary.
         /// </summary>

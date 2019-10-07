@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using ENode.Infrastructure;
+using ENode.Domain;
 
 namespace BankTransferSample.Domain
 {
-    public class InsufficientBalanceException : PublishableException
+    public class InsufficientBalanceException : DomainException
     {
         /// <summary>账户ID
         /// </summary>

@@ -14,6 +14,7 @@ using ECommon.Serializing;
 using ECommon.Socketing;
 using ENode.Commanding;
 using ENode.Configurations;
+using ENode.Domain;
 using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -36,8 +37,8 @@ namespace BankTransferSample
         private static ApplicationMessageConsumer _applicationMessageConsumer;
         private static DomainEventPublisher _domainEventPublisher;
         private static DomainEventConsumer _eventConsumer;
-        private static PublishableExceptionPublisher _exceptionPublisher;
-        private static PublishableExceptionConsumer _exceptionConsumer;
+        private static DomainExceptionPublisher _exceptionPublisher;
+        private static DomainExceptionConsumer _exceptionConsumer;
         private static SocketRemotingClient _nameServerSocketRemotingClient;
 
         public static ENodeConfiguration BuildContainer(this ENodeConfiguration enodeConfiguration)
@@ -56,12 +57,12 @@ namespace BankTransferSample
             _commandService = new CommandService();
             _applicationMessagePublisher = new ApplicationMessagePublisher();
             _domainEventPublisher = new DomainEventPublisher();
-            _exceptionPublisher = new PublishableExceptionPublisher();
+            _exceptionPublisher = new DomainExceptionPublisher();
 
             configuration.SetDefault<ICommandService, CommandService>(_commandService);
             configuration.SetDefault<IMessagePublisher<IApplicationMessage>, ApplicationMessagePublisher>(_applicationMessagePublisher);
             configuration.SetDefault<IMessagePublisher<DomainEventStreamMessage>, DomainEventPublisher>(_domainEventPublisher);
-            configuration.SetDefault<IMessagePublisher<IPublishableException>, PublishableExceptionPublisher>(_exceptionPublisher);
+            configuration.SetDefault<IMessagePublisher<IDomainException>, DomainExceptionPublisher>(_exceptionPublisher);
 
             return enodeConfiguration;
         }
@@ -84,7 +85,7 @@ namespace BankTransferSample
             _commandConsumer = new CommandConsumer().InitializeEQueue().Subscribe(Constants.CommandTopic);
             _applicationMessageConsumer = new ApplicationMessageConsumer().InitializeEQueue().Subscribe(Constants.ApplicationMessageTopic);
             _eventConsumer = new DomainEventConsumer().InitializeEQueue().Subscribe(Constants.EventTopic);
-            _exceptionConsumer = new PublishableExceptionConsumer().InitializeEQueue().Subscribe(Constants.ExceptionTopic);
+            _exceptionConsumer = new DomainExceptionConsumer().InitializeEQueue().Subscribe(Constants.ExceptionTopic);
             _nameServerSocketRemotingClient = new SocketRemotingClient("NameServerRemotingClient", new IPEndPoint(SocketUtils.GetLocalIPV4(), 9493));
 
             _nameServerController.Start();

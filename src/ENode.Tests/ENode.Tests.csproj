@@ -101,19 +101,19 @@
     <Compile Include="Mocks\MockApplicationMessagePublisher.cs" />
     <Compile Include="Mocks\MockDomainEventPublisher.cs" />
     <Compile Include="Mocks\MockEventStore.cs" />
-    <Compile Include="Mocks\MockPublishableExceptionPublisher.cs" />
+    <Compile Include="Mocks\MockDomainExceptionPublisher.cs" />
     <Compile Include="Mocks\MockPublishedVersionStore.cs" />
     <Compile Include="Providers\ApplicationMessageTopicProvider.cs" />
     <Compile Include="Providers\CommandTopicProvider.cs" />
-    <Compile Include="Providers\EventTopicProvider.cs" />
-    <Compile Include="Providers\PublishableExceptionTopicProvider.cs" />
+    <Compile Include="Providers\DomainEventTopicProvider.cs" />
+    <Compile Include="Providers\DomainExceptionTopicProvider.cs" />
     <Compile Include="TestClasses\BaseTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestClasses\CommandAndEventServiceTest.cs" />
     <Compile Include="TestClasses\IOFailedTests\ApplicationMessagePublisherFailedTest.cs" />
     <Compile Include="TestClasses\IOFailedTests\EventPublisherFailedTest.cs" />
     <Compile Include="TestClasses\IOFailedTests\EventStoreFailedTest.cs" />
-    <Compile Include="TestClasses\IOFailedTests\PublishableExceptionPublisherFailedTest.cs" />
+    <Compile Include="TestClasses\IOFailedTests\DomainExceptionPublisherFailedTest.cs" />
     <Compile Include="TestClasses\IOFailedTests\PublishedVersionStoreFailedTest.cs" />
   </ItemGroup>
   <ItemGroup>
