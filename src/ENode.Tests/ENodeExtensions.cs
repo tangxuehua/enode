@@ -24,7 +24,6 @@ using EQueue.NameServer;
 using EQueue.Protocols;
 using EQueue.Protocols.NameServers;
 using EQueue.Protocols.NameServers.Requests;
-using EQueueMessage = EQueue.Protocols.Message;
 
 namespace ENode.Tests
 {

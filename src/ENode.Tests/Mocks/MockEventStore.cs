@@ -56,27 +56,6 @@ namespace ENode.Tests
             }
             return _inMemoryEventStore.BatchAppendAsync(eventStreams);
         }
-        public Task<AsyncTaskResult<EventAppendResult>> AppendAsync(DomainEventStream eventStream)
-        {
-            if (_currentFailedCount < _expectFailedCount)
-            {
-                _currentFailedCount++;
-
-                if (_failedType == FailedType.UnKnownException)
-                {
-                    throw new Exception("AppendAsyncUnKnownException" + _currentFailedCount);
-                }
-                else if (_failedType == FailedType.IOException)
-                {
-                    throw new IOException("AppendAsyncIOException" + _currentFailedCount);
-                }
-                else if (_failedType == FailedType.TaskIOException)
-                {
-                    return Task.FromResult(new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Failed, "AppendAsyncError" + _currentFailedCount));
-                }
-            }
-            return _inMemoryEventStore.AppendAsync(eventStream);
-        }
         public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
         {
             if (_currentFailedCount < _expectFailedCount)

@@ -172,7 +172,11 @@ namespace ENode.Eventing.Impl
                         var committingContext = committingContexts.FirstOrDefault(x => x.ProcessingCommand.Message.Id == commandId);
                         if (committingContext != null)
                         {
-                            TryToRepublishEventAsync(committingContext, 0);
+                            ResetCommandMailBoxConsumingSequence(committingContext, committingContext.ProcessingCommand.Sequence + 1).ContinueWith(t =>
+                            {
+                                TryToRepublishEventAsync(committingContext, 0);
+                            }).ConfigureAwait(false);
+
                         }
                     }
                 }

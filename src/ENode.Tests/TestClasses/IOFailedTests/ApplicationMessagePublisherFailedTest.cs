@@ -16,13 +16,12 @@ namespace ENode.Tests
         }
 
         [Test]
-        public void async_command_application_message_publish_failed_test()
+        public void command_application_message_publish_failed_test()
         {
             ((MockApplicationMessagePublisher)_applicationMessagePublisher).SetExpectFailedCount(FailedType.UnKnownException, 5);
-            var asyncResult = _commandService.ExecuteAsync(new AsyncHandlerCommand()
+            var asyncResult = _commandService.ExecuteAsync(new SetApplicatonMessageCommand()
             {
-                AggregateRootId = ObjectId.GenerateNewStringId(),
-                ShouldGenerateApplicationMessage = true
+                AggregateRootId = ObjectId.GenerateNewStringId()
             }).Result;
             Assert.IsNotNull(asyncResult);
             Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
@@ -32,10 +31,9 @@ namespace ENode.Tests
             ((MockApplicationMessagePublisher)_applicationMessagePublisher).Reset();
 
             ((MockApplicationMessagePublisher)_applicationMessagePublisher).SetExpectFailedCount(FailedType.IOException, 5);
-            asyncResult = _commandService.ExecuteAsync(new AsyncHandlerCommand()
+            asyncResult = _commandService.ExecuteAsync(new SetApplicatonMessageCommand()
             {
-                AggregateRootId = ObjectId.GenerateNewStringId(),
-                ShouldGenerateApplicationMessage = true
+                AggregateRootId = ObjectId.GenerateNewStringId()
             }).Result;
             Assert.IsNotNull(asyncResult);
             Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
@@ -45,10 +43,9 @@ namespace ENode.Tests
             ((MockApplicationMessagePublisher)_applicationMessagePublisher).Reset();
 
             ((MockApplicationMessagePublisher)_applicationMessagePublisher).SetExpectFailedCount(FailedType.TaskIOException, 5);
-            asyncResult = _commandService.ExecuteAsync(new AsyncHandlerCommand()
+            asyncResult = _commandService.ExecuteAsync(new SetApplicatonMessageCommand()
             {
-                AggregateRootId = ObjectId.GenerateNewStringId(),
-                ShouldGenerateApplicationMessage = true
+                AggregateRootId = ObjectId.GenerateNewStringId()
             }).Result;
             Assert.IsNotNull(asyncResult);
             Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);

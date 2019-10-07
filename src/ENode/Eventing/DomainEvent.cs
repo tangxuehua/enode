@@ -8,8 +8,18 @@ namespace ENode.Eventing
     [Serializable]
     public abstract class DomainEvent<TAggregateRootId> : Message, IDomainEvent<TAggregateRootId>
     {
+        private TAggregateRootId _aggregateRootId;
+
         public string CommandId { get; set; }
-        public TAggregateRootId AggregateRootId { get; set; }
+        public TAggregateRootId AggregateRootId
+        {
+            get { return _aggregateRootId; }
+            set
+            {
+                _aggregateRootId = value;
+                AggregateRootStringId = value?.ToString();
+            }
+        }
         public string AggregateRootStringId { get; set; }
         public string AggregateRootTypeName { get; set; }
         public int Version { get; set; }

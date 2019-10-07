@@ -49,6 +49,14 @@ namespace ENode.Tests.CommandHandlers
         {
             return Task.CompletedTask;
         }
+        public class SetApplicatonMessageCommandHandler : ICommandHandler<SetApplicatonMessageCommand>
+        {
+            public Task HandleAsync(ICommandContext context, SetApplicatonMessageCommand command)
+            {
+                context.SetApplicationMessage(new TestApplicationMessage(command.AggregateRootId));
+                return Task.CompletedTask;
+            }
+        }
         public Task HandleAsync(ICommandContext context, SetResultCommand command)
         {
             context.Add(new TestAggregate(command.AggregateRootId, ""));
@@ -109,108 +117,6 @@ namespace ENode.Tests.CommandHandlers
         }
     }
 
-    public class AsyncHandlerCommandHandler : ICommandAsyncHandler<AsyncHandlerCommand>
-    {
-        private int _count;
-
-        public bool CheckCommandHandledFirst
-        {
-            get { return true; }
-        }
-
-        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(AsyncHandlerCommand command)
-        {
-            if (command.ShouldGenerateApplicationMessage)
-            {
-                return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success, new TestApplicationMessage(command.AggregateRootId)));
-            }
-            else if (command.ShouldThrowException)
-            {
-                throw new Exception("AsyncCommandException");
-            }
-            else if (command.ShouldThrowIOException)
-            {
-                _count++;
-                if (_count <= 5)
-                {
-                    throw new IOException("AsyncCommandIOException" + _count);
-                }
-                _count = 0;
-                return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
-            }
-            else
-            {
-                return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
-            }
-        }
-    }
-    public class TestCommandAsyncHandler1 : ICommandAsyncHandler<TwoAsyncHandlersCommand>
-    {
-        public bool CheckCommandHandledFirst
-        {
-            get { return true; }
-        }
-        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(TwoAsyncHandlersCommand command)
-        {
-            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
-        }
-    }
-    public class TestCommandAsyncHandler2 : ICommandAsyncHandler<TwoAsyncHandlersCommand>
-    {
-        public bool CheckCommandHandledFirst
-        {
-            get { return true; }
-        }
-        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(TwoAsyncHandlersCommand command)
-        {
-            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
-        }
-    }
-    public class NotCheckAsyncHandlerExistCommandHandler : ICommandAsyncHandler<NotCheckAsyncHandlerExistCommand>
-    {
-        public bool CheckCommandHandledFirst
-        {
-            get { return false; }
-        }
-        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(NotCheckAsyncHandlerExistCommand command)
-        {
-            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
-        }
-    }
-    public class NotCheckAsyncHandlerExistWithResultCommandHandler : ICommandAsyncHandler<NotCheckAsyncHandlerExistWithResultCommand>
-    {
-        public bool CheckCommandHandledFirst
-        {
-            get { return false; }
-        }
-        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(NotCheckAsyncHandlerExistWithResultCommand command)
-        {
-            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success, new TestApplicationMessage(command.AggregateRootId)));
-        }
-    }
-    public class AsyncHandlerBaseCommandAsyncHandler : ICommandAsyncHandler<AsyncHandlerBaseCommand>
-    {
-        public bool CheckCommandHandledFirst
-        {
-            get { return true; }
-        }
-        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(AsyncHandlerBaseCommand command)
-        {
-            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
-        }
-    }
-    public class AsyncHandlerChildCommandAsyncHandler : ICommandAsyncHandler<AsyncHandlerChildCommand>
-    {
-        public bool CheckCommandHandledFirst
-        {
-            get { return true; }
-        }
-        public Task<AsyncTaskResult<IApplicationMessage>> HandleAsync(AsyncHandlerChildCommand command)
-        {
-            return Task.FromResult(new AsyncTaskResult<IApplicationMessage>(AsyncTaskStatus.Success));
-        }
-    }
-
     public class TestApplicationMessage : ApplicationMessage
     {
         public string AggregateRootId { get; set; }
@@ -219,11 +125,6 @@ namespace ENode.Tests.CommandHandlers
         public TestApplicationMessage(string aggregateRootId)
         {
             AggregateRootId = aggregateRootId;
-        }
-
-        public override string GetRoutingKey()
-        {
-            return AggregateRootId;
         }
     }
 }

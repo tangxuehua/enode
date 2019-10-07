@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ECommon.IO;
-using ENode.Infrastructure;
-using ENode.Infrastructure.Impl.InMemory;
+using ENode.Eventing;
+using ENode.Eventing.Impl;
 
 namespace ENode.Tests
 {

@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ENode.MySQL", "src\ENode.My
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extensions", "Extensions", "{665B7F8A-7363-4D26-BBCF-9A72B0F1F275}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ENode.Tests", "src\ENode.Tests\ENode.Tests.csproj", "{37F38A7C-422F-46AD-A112-B7B423B45A01}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,10 @@ Global
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27ED65CD-2BE4-4AE3-9D42-A2F4FDEA703C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37F38A7C-422F-46AD-A112-B7B423B45A01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37F38A7C-422F-46AD-A112-B7B423B45A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37F38A7C-422F-46AD-A112-B7B423B45A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37F38A7C-422F-46AD-A112-B7B423B45A01}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
