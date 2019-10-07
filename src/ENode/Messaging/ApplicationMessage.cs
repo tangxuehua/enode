@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ENode.Infrastructure
+namespace ENode.Messaging
 {
     /// <summary>Represents an abstract application message.
     /// </summary>

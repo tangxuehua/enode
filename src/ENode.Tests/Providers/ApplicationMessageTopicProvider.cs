@@ -1,5 +1,5 @@
 ﻿using ENode.EQueue;
-using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Tests
 {

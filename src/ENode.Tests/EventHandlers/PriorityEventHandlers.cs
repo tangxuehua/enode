@@ -2,7 +2,8 @@
 using System.Threading.Tasks;
 using ECommon.IO;
 using ECommon.Logging;
-using ENode.Infrastructure;
+using ENode.Eventing;
+using ENode.Messaging;
 using ENode.Tests.Domain;
 
 namespace ENode.Tests

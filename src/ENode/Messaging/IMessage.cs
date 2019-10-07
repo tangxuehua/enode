@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ENode.Infrastructure
+namespace ENode.Messaging
 {
     /// <summary>Represents a message.
     /// </summary>

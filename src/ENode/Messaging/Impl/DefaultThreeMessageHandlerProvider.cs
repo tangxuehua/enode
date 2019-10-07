@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ENode.Infrastructure.Impl;
 
-namespace ENode.Infrastructure.Impl
+namespace ENode.Messaging.Impl
 {
     public class DefaultThreeMessageHandlerProvider : AbstractHandlerProvider<ManyType, IMessageHandlerProxy3, IEnumerable<Type>>, IThreeMessageHandlerProvider
     {

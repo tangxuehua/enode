@@ -1,5 +1,6 @@
 ﻿using ENode.Domain;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using System.Threading.Tasks;
 
 namespace ENode.Commanding

@@ -1,4 +1,4 @@
-﻿using ENode.Infrastructure;
+﻿using ENode.Messaging;
 
 namespace ENode.Commanding
 {

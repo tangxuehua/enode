@@ -7,7 +7,7 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
 using ENode.Eventing;
-using ENode.Infrastructure;
+using ENode.Messaging;
 using ENode.SqlServer;
 using NUnit.Framework;
 using ECommonConfiguration = ECommon.Configurations.Configuration;

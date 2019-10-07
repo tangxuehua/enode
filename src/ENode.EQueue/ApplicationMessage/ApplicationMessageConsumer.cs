@@ -3,6 +3,7 @@ using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;

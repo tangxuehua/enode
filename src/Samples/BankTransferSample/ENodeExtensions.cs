@@ -18,6 +18,7 @@ using ENode.Domain;
 using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using EQueue.Broker;
 using EQueue.Configurations;
 using EQueue.NameServer;

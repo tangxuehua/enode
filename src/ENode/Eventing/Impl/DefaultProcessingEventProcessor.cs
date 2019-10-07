@@ -6,6 +6,7 @@ using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Configurations;
 using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Eventing.Impl
 {

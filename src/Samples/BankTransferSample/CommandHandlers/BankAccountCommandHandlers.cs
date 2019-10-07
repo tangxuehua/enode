@@ -5,6 +5,7 @@ using BankTransferSample.Domain;
 using ECommon.IO;
 using ENode.Commanding;
 using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace BankTransferSample.CommandHandlers
 {

@@ -17,6 +17,7 @@ using ENode.Domain;
 using ENode.EQueue;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using ENode.SqlServer;
 using EQueue.Broker;
 using EQueue.Clients.Consumers;

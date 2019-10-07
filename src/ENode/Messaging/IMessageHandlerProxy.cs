@@ -1,7 +1,8 @@
 ﻿using System.Threading.Tasks;
 using ECommon.IO;
+using ENode.Infrastructure;
 
-namespace ENode.Infrastructure
+namespace ENode.Messaging
 {
     /// <summary>Represents a message handler proxy.
     /// </summary>

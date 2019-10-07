@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using ENode.Infrastructure;
 
-namespace ENode.Infrastructure
+namespace ENode.Messaging
 {
     public class MessageHandlerData<T> where T : IObjectProxy
     {

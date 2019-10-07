@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ENode.Infrastructure
+namespace ENode.Messaging
 {
     public class ManyType
     {

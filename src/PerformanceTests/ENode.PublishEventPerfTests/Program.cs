@@ -9,6 +9,7 @@ using ECommon.Utilities;
 using ENode.Configurations;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using NoteSample.Domain;
 
 namespace ENode.PublishEventPerfTests

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ENode.Infrastructure
+namespace ENode.Eventing
 {
     /// <summary>An attribute to specify the priority of message handler.
     /// </summary>

@@ -6,6 +6,7 @@ using ECommon.IO;
 using ECommon.Serializing;
 using ENode.Domain;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using EQueue.Clients.Producers;
 using EQueueMessage = EQueue.Protocols.Message;
 

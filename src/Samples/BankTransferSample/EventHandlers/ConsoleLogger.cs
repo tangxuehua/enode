@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using BankTransferSample.ApplicationMessages;
 using BankTransferSample.Domain;
 using ECommon.IO;
-using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace BankTransferSample.EventHandlers
 {

@@ -1,4 +1,4 @@
-﻿namespace ENode.Infrastructure
+﻿namespace ENode.Eventing
 {
     /// <summary>Represents the event processing context.
     /// </summary>

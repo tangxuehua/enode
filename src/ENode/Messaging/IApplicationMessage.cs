@@ -1,4 +1,4 @@
-﻿namespace ENode.Infrastructure
+﻿namespace ENode.Messaging
 {
     /// <summary>Represents an application message.
     /// </summary>

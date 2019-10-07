@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Logging;
+using ENode.Infrastructure;
 
-namespace ENode.Infrastructure.Impl
+namespace ENode.Messaging.Impl
 {
     public class DefaultMessageDispatcher : IMessageDispatcher
     {

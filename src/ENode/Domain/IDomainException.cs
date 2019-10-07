@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Domain
 {

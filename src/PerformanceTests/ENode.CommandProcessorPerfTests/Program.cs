@@ -15,6 +15,7 @@ using ENode.Configurations;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using NoteSample.Commands;
 using ECommonConfiguration = ECommon.Configurations.Configuration;
 

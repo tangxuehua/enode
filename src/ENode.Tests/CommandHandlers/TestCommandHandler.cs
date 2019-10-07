@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ECommon.IO;
 using ENode.Commanding;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using ENode.Tests.Commands;
 using ENode.Tests.Domain;
 

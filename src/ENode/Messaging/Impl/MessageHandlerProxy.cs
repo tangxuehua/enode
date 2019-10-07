@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.IO;
 
-namespace ENode.Infrastructure.Impl
+namespace ENode.Messaging.Impl
 {
     public class MessageHandlerProxy1<T> : IMessageHandlerProxy1 where T : class, IMessage
     {

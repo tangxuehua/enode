@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ENode.Infrastructure.Impl;
 
-namespace ENode.Infrastructure.Impl
+namespace ENode.Messaging.Impl
 {
     public class DefaultTwoMessageHandlerProvider : AbstractHandlerProvider<ManyType, IMessageHandlerProxy2, IEnumerable<Type>>, ITwoMessageHandlerProvider
     {

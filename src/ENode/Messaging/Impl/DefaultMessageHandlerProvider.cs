@@ -3,8 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using ECommon.IO;
 using ENode.Eventing;
+using ENode.Infrastructure.Impl;
 
-namespace ENode.Infrastructure.Impl
+namespace ENode.Messaging.Impl
 {
     public class DefaultMessageHandlerProvider : AbstractHandlerProvider<Type, IMessageHandlerProxy1, Type>, IMessageHandlerProvider
     {

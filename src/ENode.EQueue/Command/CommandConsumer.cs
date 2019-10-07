@@ -9,6 +9,7 @@ using ECommon.Serializing;
 using ENode.Commanding;
 using ENode.Domain;
 using ENode.Infrastructure;
+using ENode.Messaging;
 using EQueue.Clients.Consumers;
 using EQueue.Protocols;
 using IQueueMessageHandler = EQueue.Clients.Consumers.IMessageHandler;

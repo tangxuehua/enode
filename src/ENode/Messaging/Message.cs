@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using ECommon.Utilities;
 
-namespace ENode.Infrastructure
+namespace ENode.Messaging
 {
     /// <summary>Represents an abstract message.
     /// </summary>

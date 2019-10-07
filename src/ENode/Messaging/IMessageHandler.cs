@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using ECommon.IO;
 
-namespace ENode.Infrastructure
+namespace ENode.Messaging
 {
     /// <summary>Represents a message handler.
     /// </summary>

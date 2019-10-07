@@ -8,6 +8,7 @@ using ECommon.Serializing;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Commanding.Impl
 {

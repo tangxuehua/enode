@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Commanding
 {

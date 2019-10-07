@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ECommon.IO;
-using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Tests
 {

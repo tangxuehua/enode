@@ -1,12 +1,14 @@
 ﻿using System.Threading.Tasks;
 using ECommon.IO;
 using ECommon.Logging;
-using ENode.Infrastructure;
+using ENode.Messaging;
 using NoteSample.Domain;
 
 namespace NoteSample.QuickStart
 {
-    public class NoteEventHandler : IMessageHandler<NoteCreated>, IMessageHandler<NoteTitleChanged>
+    public class NoteEventHandler :
+        IMessageHandler<NoteCreated>,
+        IMessageHandler<NoteTitleChanged>
     {
         private ILogger _logger;
 

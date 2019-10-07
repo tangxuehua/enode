@@ -3,7 +3,7 @@ using ECommon.IO;
 using ENode.Domain;
 using ENode.Eventing;
 
-namespace ENode.Infrastructure.Impl
+namespace ENode.Messaging.Impl
 {
     public class DoNothingPublisher :
         IMessagePublisher<DomainEventStreamMessage>,

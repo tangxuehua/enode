@@ -11,6 +11,7 @@ using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
 using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Eventing.Impl
 {

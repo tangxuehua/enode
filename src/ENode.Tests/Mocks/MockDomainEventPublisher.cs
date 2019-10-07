@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using ECommon.IO;
 using ENode.Eventing;
-using ENode.Infrastructure;
+using ENode.Messaging;
 
 namespace ENode.Tests
 {
