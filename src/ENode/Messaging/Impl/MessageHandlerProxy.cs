@@ -16,7 +16,7 @@ namespace ENode.Messaging.Impl
             _handlerType = handlerType;
         }
 
-        public Task<AsyncTaskResult> HandleAsync(IMessage message)
+        public Task HandleAsync(IMessage message)
         {
             var handler = GetInnerObject() as IMessageHandler<T>;
             return handler.HandleAsync(message as T);
@@ -43,7 +43,7 @@ namespace ENode.Messaging.Impl
             _handlerType = handlerType;
         }
 
-        public Task<AsyncTaskResult> HandleAsync(IMessage message1, IMessage message2)
+        public Task HandleAsync(IMessage message1, IMessage message2)
         {
             var handler = GetInnerObject() as IMessageHandler<T1, T2>;
             if (message1 is T1)
@@ -78,7 +78,7 @@ namespace ENode.Messaging.Impl
             _handlerType = handlerType;
         }
 
-        public Task<AsyncTaskResult> HandleAsync(IMessage message1, IMessage message2, IMessage message3)
+        public Task HandleAsync(IMessage message1, IMessage message2, IMessage message3)
         {
             T1 t1 = null;
             T2 t2 = null;

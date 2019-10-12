@@ -25,10 +25,7 @@ namespace ENode.Tests
                 Title = "Sample Note"
             };
             mockEventStore.SetExpectFailedCount(FailedType.UnKnownException, 5);
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             mockEventStore.Reset();
@@ -39,24 +36,7 @@ namespace ENode.Tests
                 Title = "Sample Note"
             };
             mockEventStore.SetExpectFailedCount(FailedType.IOException, 5);
-            asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
-            Assert.IsNotNull(commandResult);
-            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
-            mockEventStore.Reset();
-
-            command = new CreateTestAggregateCommand
-            {
-                AggregateRootId = ObjectId.GenerateNewStringId(),
-                Title = "Sample Note"
-            };
-            mockEventStore.SetExpectFailedCount(FailedType.TaskIOException, 5);
-            asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             mockEventStore.Reset();

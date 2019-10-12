@@ -16,13 +16,6 @@ namespace ENode.Tests
         private FailedType _failedType;
         private InMemoryEventStore _inMemoryEventStore = new InMemoryEventStore(ObjectContainer.Resolve<ILoggerFactory>());
 
-        public bool SupportBatchAppendEvent { get; set; }
-
-        public MockEventStore()
-        {
-            SupportBatchAppendEvent = true;
-        }
-
         public void Reset()
         {
             _failedType = FailedType.None;
@@ -35,7 +28,7 @@ namespace ENode.Tests
             _expectFailedCount = count;
         }
 
-        public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
+        public Task<EventAppendResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
             if (_currentFailedCount < _expectFailedCount)
             {
@@ -49,14 +42,10 @@ namespace ENode.Tests
                 {
                     throw new IOException("BatchAppendAsyncIOException" + _currentFailedCount);
                 }
-                else if (_failedType == FailedType.TaskIOException)
-                {
-                    return Task.FromResult(new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Failed, "BatchAppendAsyncError" + _currentFailedCount));
-                }
             }
             return _inMemoryEventStore.BatchAppendAsync(eventStreams);
         }
-        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
+        public Task<DomainEventStream> FindAsync(string aggregateRootId, int version)
         {
             if (_currentFailedCount < _expectFailedCount)
             {
@@ -70,14 +59,10 @@ namespace ENode.Tests
                 {
                     throw new IOException("AppendAsyncIOException" + _currentFailedCount);
                 }
-                else if (_failedType == FailedType.TaskIOException)
-                {
-                    return Task.FromResult(new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Failed, "AppendAsyncError" + _currentFailedCount));
-                }
             }
             return _inMemoryEventStore.FindAsync(aggregateRootId, version);
         }
-        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
+        public Task<DomainEventStream> FindAsync(string aggregateRootId, string commandId)
         {
             return _inMemoryEventStore.FindAsync(aggregateRootId, commandId);
         }
@@ -86,7 +71,7 @@ namespace ENode.Tests
         {
             throw new NotImplementedException();
         }
-        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
+        public Task<IEnumerable<DomainEventStream>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
             throw new NotImplementedException();
         }

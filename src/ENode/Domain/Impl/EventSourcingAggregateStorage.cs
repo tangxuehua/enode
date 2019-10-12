@@ -41,14 +41,9 @@ namespace ENode.Domain.Impl
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var taskResult = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion).ConfigureAwait(false);
-            if (taskResult.Status == AsyncTaskStatus.Success)
-            {
-                aggregateRoot = RebuildAggregateRoot(aggregateRootType, taskResult.Data);
-
-                return aggregateRoot;
-            }
-            return null;
+            var eventStreams = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion).ConfigureAwait(false);
+            aggregateRoot = RebuildAggregateRoot(aggregateRootType, eventStreams);
+            return aggregateRoot;
         }
 
         #region Helper Methods
@@ -72,14 +67,9 @@ namespace ENode.Domain.Impl
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var taskResult = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, aggregateRoot.Version + 1, int.MaxValue).ConfigureAwait(false);
-            if (taskResult.Status == AsyncTaskStatus.Success)
-            {
-                aggregateRoot.ReplayEvents(taskResult.Data);
-                return aggregateRoot;
-            }
-
-            return null;
+            var eventStreams = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, aggregateRoot.Version + 1, int.MaxValue).ConfigureAwait(false);
+            aggregateRoot.ReplayEvents(eventStreams);
+            return aggregateRoot;
         }
         private IAggregateRoot RebuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> eventStreams)
         {

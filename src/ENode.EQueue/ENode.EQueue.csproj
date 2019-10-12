@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ECommon" Version="2.6.1" />
+    <PackageReference Include="ECommon" Version="2.6.2" />
     <PackageReference Include="EQueue" Version="2.6.0" />
   </ItemGroup>
 

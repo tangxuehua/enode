@@ -5,7 +5,6 @@ using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Configurations;
-using ENode.Infrastructure;
 using ENode.Messaging;
 
 namespace ENode.Eventing.Impl
@@ -67,14 +66,14 @@ namespace ENode.Eventing.Impl
 
         private void DispatchProcessingMessageAsync(ProcessingEvent processingMessage, int retryTimes)
         {
-            _ioHelper.TryAsyncActionRecursively("DispatchProcessingMessageAsync",
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("DispatchProcessingMessageAsync",
             () => _dispatcher.DispatchMessagesAsync(processingMessage.Message.Events),
             currentRetryTimes => DispatchProcessingMessageAsync(processingMessage, currentRetryTimes),
-            result =>
+            () =>
             {
                 UpdatePublishedVersionAsync(processingMessage, 0);
             },
-            () => string.Format("sequence message [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootId, processingMessage.Message.Version),
+            () => string.Format("Message[messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", processingMessage.Message.Id, processingMessage.Message.GetType().Name, processingMessage.Message.AggregateRootId, processingMessage.Message.Version),
             null,
             retryTimes, true);
         }
@@ -82,33 +81,20 @@ namespace ENode.Eventing.Impl
         {
             try
             {
-                var task = _publishedVersionStore.GetPublishedVersionAsync(_processorName, aggregateRootType, aggregateRootId);
-                task.Wait();
-                if (task.Exception != null)
-                {
-                    throw task.Exception;
-                }
-                else if (task.Result.Status == AsyncTaskStatus.Success)
-                {
-                    return task.Result.Data;
-                }
-                else
-                {
-                    throw new Exception("_publishedVersionStore.GetPublishedVersionAsync has unknown exception, errorMessage: " + task.Result.ErrorMessage);
-                }
+                return _publishedVersionStore.GetPublishedVersionAsync(_processorName, aggregateRootType, aggregateRootId).Result;
             }
             catch (Exception ex)
             {
-                throw new Exception("_publishedVersionStore.GetPublishedVersionAsync has unknown exception.", ex);
+                throw new Exception(string.Format("_publishedVersionStore.GetPublishedVersionAsync has unknown exception, aggregateRootType: {0}, aggregateRootId: {1}", aggregateRootType, aggregateRootId), ex);
             }
         }
         private void UpdatePublishedVersionAsync(ProcessingEvent processingMessage, int retryTimes)
         {
             var message = processingMessage.Message;
-            _ioHelper.TryAsyncActionRecursively("UpdatePublishedVersionAsync",
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("UpdatePublishedVersionAsync",
             () => _publishedVersionStore.UpdatePublishedVersionAsync(_processorName, message.AggregateRootTypeName, message.AggregateRootId, message.Version),
             currentRetryTimes => UpdatePublishedVersionAsync(processingMessage, currentRetryTimes),
-            result =>
+            () =>
             {
                 processingMessage.Complete();
             },

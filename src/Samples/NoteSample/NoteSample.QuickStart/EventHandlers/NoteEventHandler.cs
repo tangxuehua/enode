@@ -17,15 +17,15 @@ namespace NoteSample.QuickStart
             _logger = loggerFactory.Create(typeof(NoteEventHandler).Name);
         }
 
-        public Task<AsyncTaskResult> HandleAsync(NoteCreated evnt)
+        public Task HandleAsync(NoteCreated evnt)
         {
             _logger.InfoFormat("Note denormalized, title：{0}, Version: {1}", evnt.Title, evnt.Version);
-            return Task.FromResult(AsyncTaskResult.Success);
+            return Task.CompletedTask;
         }
-        public Task<AsyncTaskResult> HandleAsync(NoteTitleChanged evnt)
+        public Task HandleAsync(NoteTitleChanged evnt)
         {
             _logger.InfoFormat("Note denormalized, title：{0}, Version: {1}", evnt.Title, evnt.Version);
-            return Task.FromResult(AsyncTaskResult.Success);
+            return Task.CompletedTask;
         }
     }
 }

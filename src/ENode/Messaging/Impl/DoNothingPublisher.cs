@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using ECommon.IO;
 using ENode.Domain;
 using ENode.Eventing;
 
@@ -10,19 +9,17 @@ namespace ENode.Messaging.Impl
         IMessagePublisher<IApplicationMessage>,
         IMessagePublisher<IDomainException>
     {
-        private static Task<AsyncTaskResult> _successResultTask = Task.FromResult(AsyncTaskResult.Success);
-
-        public Task<AsyncTaskResult> PublishAsync(DomainEventStreamMessage message)
+        public Task PublishAsync(DomainEventStreamMessage message)
         {
-            return _successResultTask;
+            return Task.CompletedTask;
         }
-        public Task<AsyncTaskResult> PublishAsync(IApplicationMessage message)
+        public Task PublishAsync(IApplicationMessage message)
         {
-            return _successResultTask;
+            return Task.CompletedTask;
         }
-        public Task<AsyncTaskResult> PublishAsync(IDomainException exception)
+        public Task PublishAsync(IDomainException exception)
         {
-            return _successResultTask;
+            return Task.CompletedTask;
         }
     }
 }

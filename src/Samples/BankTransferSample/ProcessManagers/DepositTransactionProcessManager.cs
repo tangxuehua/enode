@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using BankTransferSample.Commands;
 using BankTransferSample.Domain;
-using ECommon.IO;
 using ENode.Commanding;
 using ENode.Messaging;
 
@@ -22,9 +21,9 @@ namespace BankTransferSample.ProcessManagers
             _commandService = commandService;
         }
 
-        public Task<AsyncTaskResult> HandleAsync(DepositTransactionStartedEvent evnt)
+        public async Task HandleAsync(DepositTransactionStartedEvent evnt)
         {
-            return _commandService.SendAsync(new AddTransactionPreparationCommand(
+            await _commandService.SendAsync(new AddTransactionPreparationCommand(
                 evnt.AccountId,
                 evnt.AggregateRootId,
                 TransactionType.DepositTransaction,
@@ -34,27 +33,25 @@ namespace BankTransferSample.ProcessManagers
                 Id = evnt.Id
             });
         }
-        public Task<AsyncTaskResult> HandleAsync(TransactionPreparationAddedEvent evnt)
+        public async Task HandleAsync(TransactionPreparationAddedEvent evnt)
         {
             if (evnt.TransactionPreparation.TransactionType == TransactionType.DepositTransaction &&
                 evnt.TransactionPreparation.PreparationType == PreparationType.CreditPreparation)
             {
-                return _commandService.SendAsync(new ConfirmDepositPreparationCommand(evnt.TransactionPreparation.TransactionId) { Id = evnt.Id });
+                await _commandService.SendAsync(new ConfirmDepositPreparationCommand(evnt.TransactionPreparation.TransactionId) { Id = evnt.Id });
             }
-            return Task.FromResult(AsyncTaskResult.Success);
         }
-        public Task<AsyncTaskResult> HandleAsync(DepositTransactionPreparationCompletedEvent evnt)
+        public async Task HandleAsync(DepositTransactionPreparationCompletedEvent evnt)
         {
-            return _commandService.SendAsync(new CommitTransactionPreparationCommand(evnt.AccountId, evnt.AggregateRootId) { Id = evnt.Id });
+            await _commandService.SendAsync(new CommitTransactionPreparationCommand(evnt.AccountId, evnt.AggregateRootId) { Id = evnt.Id });
         }
-        public Task<AsyncTaskResult> HandleAsync(TransactionPreparationCommittedEvent evnt)
+        public async Task HandleAsync(TransactionPreparationCommittedEvent evnt)
         {
             if (evnt.TransactionPreparation.TransactionType == TransactionType.DepositTransaction &&
                 evnt.TransactionPreparation.PreparationType == PreparationType.CreditPreparation)
             {
-                return _commandService.SendAsync(new ConfirmDepositCommand(evnt.TransactionPreparation.TransactionId) { Id = evnt.Id });
+                await _commandService.SendAsync(new ConfirmDepositCommand(evnt.TransactionPreparation.TransactionId) { Id = evnt.Id });
             }
-            return Task.FromResult(AsyncTaskResult.Success);
         }
     }
 }

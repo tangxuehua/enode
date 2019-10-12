@@ -43,23 +43,23 @@ namespace ENode.Messaging.Impl
 
         #endregion
 
-        public Task<AsyncTaskResult> DispatchMessageAsync(IMessage message)
+        public Task DispatchMessageAsync(IMessage message)
         {
             return DispatchMessages(new List<IMessage> { message });
         }
-        public Task<AsyncTaskResult> DispatchMessagesAsync(IEnumerable<IMessage> messages)
+        public Task DispatchMessagesAsync(IEnumerable<IMessage> messages)
         {
             return DispatchMessages(messages);
         }
 
         #region Private Methods
 
-        private Task<AsyncTaskResult> DispatchMessages(IEnumerable<IMessage> messages)
+        private Task DispatchMessages(IEnumerable<IMessage> messages)
         {
             var messageCount = messages.Count();
             if (messageCount == 0)
             {
-                return Task.FromResult<AsyncTaskResult>(AsyncTaskResult.Success);
+                return Task.CompletedTask;
             }
             var rootDispatching = new RootDisptaching();
 
@@ -162,10 +162,10 @@ namespace ENode.Messaging.Impl
         {
             var message = singleMessageDispatching.Message;
 
-            _ioHelper.TryAsyncActionRecursively("HandleSingleMessageAsync",
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("HandleSingleMessageAsync",
             () => handlerProxy.HandleAsync(message),
             currentRetryTimes => HandleSingleMessageAsync(singleMessageDispatching, handlerProxy, handlerTypeName, messageTypeName, queueHandler, currentRetryTimes),
-            result =>
+            () =>
             {
                 singleMessageDispatching.RemoveHandledHandler(handlerTypeName);
                 if (queueHandler != null)
@@ -184,10 +184,10 @@ namespace ENode.Messaging.Impl
             var message1 = messages[0];
             var message2 = messages[1];
 
-            _ioHelper.TryAsyncActionRecursively("HandleTwoMessageAsync",
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("HandleTwoMessageAsync",
             () => handlerProxy.HandleAsync(message1, message2),
             currentRetryTimes => HandleTwoMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, currentRetryTimes),
-            result =>
+            () =>
             {
                 multiMessageDispatching.RemoveHandledHandler(handlerTypeName);
                 if (queueHandler != null)
@@ -207,10 +207,10 @@ namespace ENode.Messaging.Impl
             var message2 = messages[1];
             var message3 = messages[2];
 
-            _ioHelper.TryAsyncActionRecursively("HandleThreeMessageAsync",
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("HandleThreeMessageAsync",
             () => handlerProxy.HandleAsync(message1, message2, message3),
             currentRetryTimes => HandleThreeMessageAsync(multiMessageDispatching, handlerProxy, handlerTypeName, queueHandler, currentRetryTimes),
-            result =>
+            () =>
             {
                 multiMessageDispatching.RemoveHandledHandler(handlerTypeName);
                 if (queueHandler != null)
@@ -230,17 +230,17 @@ namespace ENode.Messaging.Impl
 
         class RootDisptaching
         {
-            private TaskCompletionSource<AsyncTaskResult> _taskCompletionSource;
+            private TaskCompletionSource<bool> _taskCompletionSource;
             private ConcurrentDictionary<object, bool> _childDispatchingDict;
 
-            public Task<AsyncTaskResult> Task
+            public Task<bool> Task
             {
                 get { return _taskCompletionSource.Task; }
             }
 
             public RootDisptaching()
             {
-                _taskCompletionSource = new TaskCompletionSource<AsyncTaskResult>();
+                _taskCompletionSource = new TaskCompletionSource<bool>();
                 _childDispatchingDict = new ConcurrentDictionary<object, bool>();
             }
 
@@ -258,7 +258,7 @@ namespace ENode.Messaging.Impl
                         {
                             if (!_taskCompletionSource.Task.IsCompleted)
                             {
-                                _taskCompletionSource.SetResult(AsyncTaskResult.Success);
+                                _taskCompletionSource.SetResult(true);
                             }
                         }
                     }

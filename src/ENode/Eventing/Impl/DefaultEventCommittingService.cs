@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -65,7 +64,7 @@ namespace ENode.Eventing.Impl
 
             for (var i = 0; i < _eventMailboxCount; i++)
             {
-                _eventCommittingContextMailBoxList.Add(new EventCommittingContextMailBox(i, _batchSize, BatchPersistEventCommittingContexts, _logger));
+                _eventCommittingContextMailBoxList.Add(new EventCommittingContextMailBox(i, _batchSize, x => BatchPersistEventAsync(x, 0), _logger));
             }
         }
 
@@ -109,115 +108,98 @@ namespace ENode.Eventing.Impl
                 return hash % _eventMailboxCount;
             }
         }
-        private void BatchPersistEventCommittingContexts(IList<EventCommittingContext> committingContexts)
+        private void BatchPersistEventAsync(IList<EventCommittingContext> committingContexts, int retryTimes)
         {
             if (committingContexts == null || committingContexts.Count == 0)
             {
                 return;
             }
-            BatchPersistEventAsync(committingContexts, 0);
-        }
-        private void BatchPersistEventAsync(IList<EventCommittingContext> committingContexts, int retryTimes)
-        {
+
             _ioHelper.TryAsyncActionRecursively("BatchPersistEventAsync",
             () => _eventStore.BatchAppendAsync(committingContexts.Select(x => x.EventStream)),
             currentRetryTimes => BatchPersistEventAsync(committingContexts, currentRetryTimes),
-            result =>
+            async result =>
             {
                 var eventMailBox = committingContexts.First().MailBox;
-                var appendResult = result.Data;
 
-                //针对持久化成功的聚合根，发布这些聚合根的事件到Q端
-                if (appendResult.SuccessAggregateRootIdList != null && appendResult.SuccessAggregateRootIdList.Count > 0)
+                if (result == null)
                 {
-                    var successCommittedContextDict = new Dictionary<string, IList<EventCommittingContext>>();
-                    foreach (var aggregateRootId in appendResult.SuccessAggregateRootIdList)
-                    {
-                        var contextList = committingContexts.Where(x => x.EventStream.AggregateRootId == aggregateRootId).ToList();
-                        if (contextList.Count > 0)
-                        {
-                            successCommittedContextDict.Add(aggregateRootId, contextList);
-                        }
-                    }
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.DebugFormat("Batch persist events, mailboxNumber: {0}, succeedAggregateRootCount: {1}, eventStreamDetail: {2}",
-                            eventMailBox.Number,
-                            appendResult.SuccessAggregateRootIdList.Count,
-                            _jsonSerializer.Serialize(successCommittedContextDict));
-                    }
+                    _logger.FatalFormat("Batch persist events success, but the persist result is null, the current event committing mailbox should be pending, mailboxNumber: {0}", eventMailBox.Number);
+                    return;
+                }
 
-                    Task.Factory.StartNew(x =>
+                //针对持久化成功的聚合根，正常发布这些聚合根的事件到Q端
+                if (result.SuccessAggregateRootIdList != null && result.SuccessAggregateRootIdList.Count > 0)
+                {
+                    foreach (var aggregateRootId in result.SuccessAggregateRootIdList)
                     {
-                        var contextListDict = x as Dictionary<string, IList<EventCommittingContext>>;
-                        foreach (var entry in contextListDict)
+                        var committingContextList = committingContexts.Where(x => x.EventStream.AggregateRootId == aggregateRootId).ToList();
+                        if (committingContextList.Count > 0)
                         {
-                            foreach (var committingContext in entry.Value)
+                            foreach (var committingContext in committingContextList)
                             {
                                 PublishDomainEventAsync(committingContext.ProcessingCommand, committingContext.EventStream);
                             }
+                            if (_logger.IsDebugEnabled)
+                            {
+                                _logger.DebugFormat("Batch persist events success, mailboxNumber: {0}, aggregateRootId: {1}",
+                                    eventMailBox.Number,
+                                    aggregateRootId);
+                            }
                         }
-                    }, successCommittedContextDict);
+                    }
                 }
 
-                //针对持久化出现重复的命令ID，则重新发布这些命令对应的领域事件到Q端
-                if (appendResult.DuplicateCommandIdList != null && appendResult.DuplicateCommandIdList.Count > 0)
+                //针对持久化出现重复的命令ID，在命令MailBox中标记为已重复，在事件MailBox中清除对应聚合根产生的事件，且重新发布这些命令对应的领域事件到Q端
+                if (result.DuplicateCommandAggregateRootIdList != null && result.DuplicateCommandAggregateRootIdList.Count > 0)
                 {
-                    _logger.WarnFormat("Batch persist events, mailboxNumber: {0}, duplicateCommandIdCount: {1}, detail: {2}",
-                        eventMailBox.Number,
-                        appendResult.DuplicateCommandIdList.Count,
-                        _jsonSerializer.Serialize(appendResult.DuplicateCommandIdList));
-
-                    foreach (var commandId in appendResult.DuplicateCommandIdList)
+                    foreach (var entry in result.DuplicateCommandAggregateRootIdList)
                     {
-                        var committingContext = committingContexts.FirstOrDefault(x => x.ProcessingCommand.Message.Id == commandId);
+                        var committingContext = committingContexts.FirstOrDefault(x => x.AggregateRoot.UniqueId == entry.Key);
                         if (committingContext != null)
                         {
-                            ResetCommandMailBoxConsumingSequence(committingContext, committingContext.ProcessingCommand.Sequence + 1).ContinueWith(t =>
-                            {
-                                TryToRepublishEventAsync(committingContext, 0);
-                            }).ConfigureAwait(false);
+                            _logger.WarnFormat("Batch persist events has duplicate commandIds, mailboxNumber: {0}, aggregateRootId: {1}, commandIds: {2}",
+                                eventMailBox.Number,
+                                entry.Key,
+                                string.Join(",", entry.Value));
+                            await ResetCommandMailBoxConsumingSequence(committingContext, committingContext.ProcessingCommand.Sequence, entry.Value).ConfigureAwait(false);
+                            TryToRepublishEventAsync(committingContext, 0);
                         }
                     }
                 }
 
                 //针对持久化出现版本冲突的聚合根，则自动处理每个聚合根的冲突
-                if (appendResult.DuplicateEventAggregateRootIdList != null && appendResult.DuplicateEventAggregateRootIdList.Count > 0)
+                if (result.DuplicateEventAggregateRootIdList != null && result.DuplicateEventAggregateRootIdList.Count > 0)
                 {
-                    _logger.WarnFormat("Batch persist events, mailboxNumber: {0}, duplicateEventAggregateRootCount: {1}, detail: {2}",
-                        eventMailBox.Number,
-                        appendResult.DuplicateEventAggregateRootIdList.Count,
-                        _jsonSerializer.Serialize(appendResult.DuplicateEventAggregateRootIdList));
-
-                    foreach (var aggregateRootId in appendResult.DuplicateEventAggregateRootIdList)
+                    foreach (var aggregateRootId in result.DuplicateEventAggregateRootIdList)
                     {
                         var committingContext = committingContexts.FirstOrDefault(x => x.EventStream.AggregateRootId == aggregateRootId);
                         if (committingContext != null)
                         {
-                            ProcessAggregateDuplicateEvent(committingContext);
+                            _logger.WarnFormat("Batch persist events has version confliction, mailboxNumber: {0}, aggregateRootId: {1}, conflictVersion: {2}",
+                                eventMailBox.Number,
+                                committingContext.EventStream.AggregateRootId,
+                                committingContext.EventStream.Version);
+
+                            if (committingContext.EventStream.Version == 1)
+                            {
+                                await HandleFirstEventDuplicationAsync(committingContext, 0);
+                            }
+                            else
+                            {
+                                await ResetCommandMailBoxConsumingSequence(committingContext, committingContext.ProcessingCommand.Sequence, null).ContinueWith(t => { }).ConfigureAwait(false);
+                            }
                         }
                     }
                 }
 
-                //最终，将当前的EventMailBox的本次处理标记为处理完成，然后继续可以处理下一批事件
-                eventMailBox.CompleteRun();
+                committingContexts.First().MailBox.CompleteRun();
             },
             () => string.Format("[contextListCount:{0}]", committingContexts.Count),
             null,
             retryTimes, true);
         }
-        private void ProcessAggregateDuplicateEvent(EventCommittingContext eventCommittingContext)
-        {
-            if (eventCommittingContext.EventStream.Version == 1)
-            {
-                HandleFirstEventDuplicationAsync(eventCommittingContext, 0);
-            }
-            else
-            {
-                ResetCommandMailBoxConsumingSequence(eventCommittingContext, eventCommittingContext.ProcessingCommand.Sequence).ContinueWith(t => { }).ConfigureAwait(false);
-            }
-        }
-        private async Task ResetCommandMailBoxConsumingSequence(EventCommittingContext context, long consumingSequence)
+        private async Task ResetCommandMailBoxConsumingSequence(EventCommittingContext context, long consumingSequence, IList<string> duplicateCommandIdList)
         {
             var commandMailBox = context.ProcessingCommand.MailBox;
             var eventMailBox = context.MailBox;
@@ -229,6 +211,13 @@ namespace ENode.Eventing.Impl
             {
                 eventMailBox.RemoveAggregateAllEventCommittingContexts(aggregateRootId);
                 var refreshedAggregateRoot = await _memoryCache.RefreshAggregateFromEventStoreAsync(context.EventStream.AggregateRootTypeName, aggregateRootId).ConfigureAwait(false);
+                if (duplicateCommandIdList != null)
+                {
+                    foreach (var commandId in duplicateCommandIdList)
+                    {
+                        commandMailBox.AddDuplicateCommandId(commandId);
+                    }
+                }
                 commandMailBox.ResetConsumingSequence(consumingSequence);
             }
             catch (Exception ex)
@@ -250,7 +239,7 @@ namespace ENode.Eventing.Impl
             currentRetryTimes => TryToRepublishEventAsync(context, currentRetryTimes),
             result =>
             {
-                var existingEventStream = result.Data;
+                var existingEventStream = result;
                 if (existingEventStream != null)
                 {
                     //这里，我们需要再重新做一遍发布事件这个操作；
@@ -276,40 +265,38 @@ namespace ENode.Eventing.Impl
             null,
             retryTimes, true);
         }
-        private void HandleFirstEventDuplicationAsync(EventCommittingContext context, int retryTimes)
+        private Task HandleFirstEventDuplicationAsync(EventCommittingContext context, int retryTimes)
         {
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+
             _ioHelper.TryAsyncActionRecursively("FindFirstEventByVersion",
             () => _eventStore.FindAsync(context.EventStream.AggregateRootId, 1),
             currentRetryTimes => HandleFirstEventDuplicationAsync(context, currentRetryTimes),
-            result =>
+            async result =>
             {
-                var firstEventStream = result.Data;
-                if (firstEventStream != null)
+                if (result != null)
                 {
+                    var eventStream = result;
                     //判断是否是同一个command，如果是，则再重新做一遍发布事件；
                     //之所以要这样做，是因为虽然该command产生的事件已经持久化成功，但并不表示事件也已经发布出去了；
                     //有可能事件持久化成功了，但那时正好机器断电了，则发布事件都没有做；
-                    if (context.ProcessingCommand.Message.Id == firstEventStream.CommandId)
+                    if (context.ProcessingCommand.Message.Id == eventStream.CommandId)
                     {
-                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1).ContinueWith(t =>
-                        {
-                            PublishDomainEventAsync(context.ProcessingCommand, firstEventStream);
-                        }).ConfigureAwait(false);
+                        await ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1, null).ConfigureAwait(false);
+                        PublishDomainEventAsync(context.ProcessingCommand, eventStream);
                     }
                     else
                     {
                         //如果不是同一个command，则认为是两个不同的command重复创建ID相同的聚合根，我们需要记录错误日志，然后通知当前command的处理完成；
                         var errorMessage = string.Format("Duplicate aggregate creation. current commandId:{0}, existing commandId:{1}, aggregateRootId:{2}, aggregateRootTypeName:{3}",
                             context.ProcessingCommand.Message.Id,
-                            firstEventStream.CommandId,
-                            firstEventStream.AggregateRootId,
-                            firstEventStream.AggregateRootTypeName);
+                            eventStream.CommandId,
+                            eventStream.AggregateRootId,
+                            eventStream.AggregateRootTypeName);
                         _logger.Error(errorMessage);
-                        ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1).ContinueWith(t =>
-                        {
-                            var commandResult = new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, "Duplicate aggregate creation.", typeof(string).FullName);
-                            CompleteCommand(context.ProcessingCommand, commandResult);
-                        }).ConfigureAwait(false);
+                        await ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1, null).ConfigureAwait(false);
+                        var commandResult = new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, "Duplicate aggregate creation.", typeof(string).FullName);
+                        await CompleteCommand(context.ProcessingCommand, commandResult);
                     }
                 }
                 else
@@ -319,23 +306,25 @@ namespace ENode.Eventing.Impl
                         context.EventStream.AggregateRootId,
                         context.EventStream.AggregateRootTypeName);
                     _logger.Fatal(errorMessage);
-                    ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1).ContinueWith(t =>
-                    {
-                        var commandResult = new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore.", typeof(string).FullName);
-                        CompleteCommand(context.ProcessingCommand, commandResult);
-                    }).ConfigureAwait(false);
+                    await ResetCommandMailBoxConsumingSequence(context, context.ProcessingCommand.Sequence + 1, null).ConfigureAwait(false);
+                    var commandResult = new CommandResult(CommandStatus.Failed, context.ProcessingCommand.Message.Id, context.EventStream.AggregateRootId, "Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore.", typeof(string).FullName);
+                    await CompleteCommand(context.ProcessingCommand, commandResult);
                 }
+
+                taskCompletionSource.SetResult(true);
             },
             () => string.Format("[eventStream:{0}]", context.EventStream),
             null,
             retryTimes, true);
+
+            return taskCompletionSource.Task;
         }
         private void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStreamMessage eventStream, int retryTimes)
         {
-            _ioHelper.TryAsyncActionRecursively("PublishEventAsync",
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("PublishEventAsync",
             () => _domainEventPublisher.PublishAsync(eventStream),
             currentRetryTimes => PublishDomainEventAsync(processingCommand, eventStream, currentRetryTimes),
-            result =>
+            () =>
             {
                 _logger.DebugFormat("Publish event success, {0}", eventStream);
                 var commandHandleResult = processingCommand.CommandExecuteContext.GetResult();

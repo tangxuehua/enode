@@ -15,6 +15,7 @@ namespace ENode.Commanding
         private readonly object _lockObj = new object();
         private readonly AsyncLock _asyncLock = new AsyncLock();
         private readonly ConcurrentDictionary<long, ProcessingCommand> _messageDict;
+        private readonly ConcurrentDictionary<string, Byte> _duplicateCommandIdDict;
         private readonly IProcessingCommandHandler _messageHandler;
         private readonly int _batchSize;
         private readonly ILogger _logger;
@@ -24,6 +25,7 @@ namespace ENode.Commanding
         public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandHandler messageHandler, ILogger logger)
         {
             _messageDict = new ConcurrentDictionary<long, ProcessingCommand>();
+            _duplicateCommandIdDict = new ConcurrentDictionary<string, byte>();
             _messageHandler = messageHandler;
             _logger = logger;
             _batchSize = ENodeConfiguration.Instance.Setting.CommandMailBoxProcessBatchSize;
@@ -121,6 +123,10 @@ namespace ENode.Commanding
             LastActiveTime = DateTime.Now;
             _logger.DebugFormat("{0} reset consumingSequence, aggregateRootId: {1}, consumingSequence: {2}", GetType().Name, AggregateRootId, consumingSequence);
         }
+        public void AddDuplicateCommandId(string commandId)
+        {
+            _duplicateCommandIdDict.TryAdd(commandId, 1);
+        }
         public void Clear()
         {
             _messageDict.Clear();
@@ -134,6 +140,7 @@ namespace ENode.Commanding
             {
                 if (_messageDict.TryRemove(message.Sequence, out ProcessingCommand removed))
                 {
+                    _duplicateCommandIdDict.TryRemove(message.Message.Id, out byte data);
                     LastActiveTime = DateTime.Now;
                     await message.CompleteAsync(result).ConfigureAwait(false);
                 }
@@ -161,7 +168,10 @@ namespace ENode.Commanding
                         var message = GetMessage(ConsumingSequence);
                         if (message != null)
                         {
-                            await _messageHandler.HandleAsync(message).ConfigureAwait(false);
+                            if (!_duplicateCommandIdDict.TryGetValue(message.Message.Id, out byte data))
+                            {
+                                await _messageHandler.HandleAsync(message).ConfigureAwait(false);
+                            }
                         }
                         scannedCount++;
                         ConsumingSequence++;

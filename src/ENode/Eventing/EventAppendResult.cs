@@ -4,37 +4,47 @@ namespace ENode.Eventing
 {
     public class EventAppendResult
     {
+        private readonly object _lockObj = new object();
         public IList<string> SuccessAggregateRootIdList { get; set; }
         public IList<string> DuplicateEventAggregateRootIdList { get; set; }
-        public IList<string> DuplicateCommandIdList { get; set; }
+        public IDictionary<string, IList<string>> DuplicateCommandAggregateRootIdList { get; set; }
 
         public EventAppendResult()
         {
             SuccessAggregateRootIdList = new List<string>();
-            DuplicateCommandIdList = new List<string>();
             DuplicateEventAggregateRootIdList = new List<string>();
+            DuplicateCommandAggregateRootIdList = new Dictionary<string, IList<string>>();
         }
 
 
         public void AddSuccessAggregateRootId(string aggregateRootId)
         {
-            if (!SuccessAggregateRootIdList.Contains(aggregateRootId))
+            lock (_lockObj)
             {
-                SuccessAggregateRootIdList.Add(aggregateRootId);
+                if (!SuccessAggregateRootIdList.Contains(aggregateRootId))
+                {
+                    SuccessAggregateRootIdList.Add(aggregateRootId);
+                }
             }
         }
         public void AddDuplicateEventAggregateRootId(string aggregateRootId)
         {
-            if (!DuplicateEventAggregateRootIdList.Contains(aggregateRootId))
+            lock (_lockObj)
             {
-                DuplicateEventAggregateRootIdList.Add(aggregateRootId);
+                if (!DuplicateEventAggregateRootIdList.Contains(aggregateRootId))
+                {
+                    DuplicateEventAggregateRootIdList.Add(aggregateRootId);
+                }
             }
         }
-        public void AddDuplicateCommandId(string commandId)
+        public void AddDuplicateCommandIds(string aggregateRootId, IList<string> aggregateDuplicateCommandIdList)
         {
-            if (!DuplicateCommandIdList.Contains(commandId))
+            lock (_lockObj)
             {
-                DuplicateCommandIdList.Add(commandId);
+                if (!DuplicateCommandAggregateRootIdList.ContainsKey(aggregateRootId))
+                {
+                    DuplicateCommandAggregateRootIdList.Add(aggregateRootId, aggregateDuplicateCommandIdList);
+                }
             }
         }
     }

@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using ECommon.IO;
 
 namespace ENode.Messaging
 {
@@ -11,6 +10,6 @@ namespace ENode.Messaging
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        Task<AsyncTaskResult> PublishAsync(TMessage message);
+        Task PublishAsync(TMessage message);
     }
 }

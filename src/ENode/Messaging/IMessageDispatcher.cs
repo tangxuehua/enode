@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using ECommon.IO;
 
 namespace ENode.Messaging
 {
@@ -12,11 +11,11 @@ namespace ENode.Messaging
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        Task<AsyncTaskResult> DispatchMessageAsync(IMessage message);
+        Task DispatchMessageAsync(IMessage message);
         /// <summary>Dispatch the given messages async.
         /// </summary>
         /// <param name="messages"></param>
         /// <returns></returns>
-        Task<AsyncTaskResult> DispatchMessagesAsync(IEnumerable<IMessage> messages);
+        Task DispatchMessagesAsync(IEnumerable<IMessage> messages);
     }
 }

@@ -2,8 +2,11 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 using Dapper;
+using ECommon.Components;
 using ECommon.Dapper;
+using ECommon.IO;
 using ECommon.Utilities;
 using ENode.Infrastructure;
 
@@ -16,6 +19,7 @@ namespace ENode.SqlServer
         private string _connectionString;
         private string _tableName;
         private string _lockKeySqlFormat;
+        private IOHelper _ioHelper;
 
         #endregion
 
@@ -31,43 +35,52 @@ namespace ENode.SqlServer
 
             _lockKeySqlFormat = "SELECT * FROM " + _tableName + " WITH (UPDLOCK) WHERE Name = '{0}'";
 
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
+
             return this;
         }
-        public void AddLockKey(string lockKey)
+        public async Task AddLockKey(string lockKey)
         {
-            using (var connection = GetConnection())
+            await _ioHelper.TryIOActionAsync(async () =>
             {
-                var count = connection.QueryList(new { Name = lockKey }, _tableName).Count();
-                if (count == 0)
+                using (var connection = GetConnection())
                 {
-                    connection.Insert(new { Name = lockKey }, _tableName);
+                    await connection.OpenAsync().ConfigureAwait(false);
+                    var list = await connection.QueryListAsync(new { Name = lockKey }, _tableName);
+                    if (list.Count() == 0)
+                    {
+                        await connection.InsertAsync(new { Name = lockKey }, _tableName);
+                    }
                 }
-            }
+            }, "AddLockKey");
         }
-        public void ExecuteInLock(string lockKey, Action action)
+        public async Task ExecuteInLock(string lockKey, Func<Task> action)
         {
-            using (var connection = GetConnection())
+            await _ioHelper.TryIOActionAsync(async () =>
             {
-                connection.Open();
-                var transaction = connection.BeginTransaction();
-                try
+                using (var connection = GetConnection())
                 {
-                    LockKey(transaction, lockKey);
-                    action();
-                    transaction.Commit();
+                    await connection.OpenAsync().ConfigureAwait(false);
+                    var transaction = await Task.Run(() => connection.BeginTransaction()).ConfigureAwait(false);
+                    try
+                    {
+                        await LockKey(transaction, lockKey);
+                        await action();
+                        await Task.Run(() => transaction.Commit()).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        await Task.Run(() => transaction.Rollback()).ConfigureAwait(false);
+                        throw;
+                    }
                 }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
-            }
+            }, "ExecuteInLock");
         }
 
-        private void LockKey(IDbTransaction transaction, string key)
+        private Task LockKey(IDbTransaction transaction, string key)
         {
             var sql = string.Format(_lockKeySqlFormat, key);
-            transaction.Connection.Query(sql, transaction: transaction);
+            return transaction.Connection.QueryAsync(sql, transaction: transaction);
         }
         private SqlConnection GetConnection()
         {

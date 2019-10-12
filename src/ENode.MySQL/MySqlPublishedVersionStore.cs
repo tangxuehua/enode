@@ -25,6 +25,7 @@ namespace ENode.MySQL
         private string _uniqueIndexName;
         private ILogger _logger;
         private ITimeProvider _timeProvider;
+        private IOHelper _ioHelper;
 
         #endregion
 
@@ -42,102 +43,116 @@ namespace ENode.MySQL
 
             _logger = ObjectContainer.Resolve<ILoggerFactory>().Create(GetType().FullName);
             _timeProvider = ObjectContainer.Resolve<ITimeProvider>();
+            _ioHelper = ObjectContainer.Resolve<IOHelper>();
 
             return this;
         }
-        public async Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId, int publishedVersion)
+        public async Task UpdatePublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId, int publishedVersion)
         {
-            if (publishedVersion == 1)
+            await _ioHelper.TryIOActionAsync(async () =>
             {
-                try
+                if (publishedVersion == 1)
                 {
-                    using (var connection = GetConnection())
+                    try
                     {
-                        var currentTime = _timeProvider.GetCurrentTime();
-                        await connection.InsertAsync(new
+                        using (var connection = GetConnection())
                         {
-                            ProcessorName = processorName,
-                            AggregateRootTypeName = aggregateRootTypeName,
-                            AggregateRootId = aggregateRootId,
-                            Version = 1,
-                            CreatedOn = currentTime,
-                            UpdatedOn = currentTime
-                        }, GetTableName(aggregateRootId)).ConfigureAwait(false);
-                        return AsyncTaskResult.Success;
+                            var currentTime = _timeProvider.GetCurrentTime();
+                            await connection.OpenAsync().ConfigureAwait(false);
+                            await connection.InsertAsync(new
+                            {
+                                ProcessorName = processorName,
+                                AggregateRootTypeName = aggregateRootTypeName,
+                                AggregateRootId = aggregateRootId,
+                                Version = 1,
+                                CreatedOn = currentTime,
+                                UpdatedOn = currentTime
+                            }, GetTableName(aggregateRootId)).ConfigureAwait(false);
+                        }
+                    }
+                    catch (MySqlException ex)
+                    {
+                        if (ex.Number == 1062 && ex.Message.Contains(_uniqueIndexName))
+                        {
+                            return;
+                        }
+                        var errorMessage = string.Format("Insert aggregate published version has sql exception, aggregateRootType: {0}, aggregateRootId: {1}", aggregateRootTypeName, aggregateRootId);
+                        _logger.Error(errorMessage, ex);
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        var errorMessage = string.Format("Insert aggregate published version has unknown exception, aggregateRootType: {0}, aggregateRootId: {1}", aggregateRootTypeName, aggregateRootId);
+                        _logger.Error(errorMessage, ex);
+                        throw;
                     }
                 }
-                catch (MySqlException ex)
+                else
                 {
-                    if (ex.Number == 1062 && ex.Message.Contains(_uniqueIndexName))
+                    try
                     {
-                        return AsyncTaskResult.Success;
+                        using (var connection = GetConnection())
+                        {
+                            await connection.OpenAsync().ConfigureAwait(false);
+                            await connection.UpdateAsync(
+                            new
+                            {
+                                Version = publishedVersion,
+                                UpdatedOn = _timeProvider.GetCurrentTime()
+                            },
+                            new
+                            {
+                                ProcessorName = processorName,
+                                AggregateRootId = aggregateRootId,
+                                Version = publishedVersion - 1
+                            }, GetTableName(aggregateRootId)).ConfigureAwait(false);
+                        }
                     }
-                    _logger.Error("Insert aggregate published version has sql exception.", ex);
-                    return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error("Insert aggregate published version has unknown exception.", ex);
-                    return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
-                }
-            }
-            else
-            {
-                try
-                {
-                    using (var connection = GetConnection())
+                    catch (MySqlException ex)
                     {
-                        await connection.UpdateAsync(
-                        new
-                        {
-                            Version = publishedVersion,
-                            UpdatedOn = _timeProvider.GetCurrentTime()
-                        },
-                        new
-                        {
-                            ProcessorName = processorName,
-                            AggregateRootId = aggregateRootId,
-                            Version = publishedVersion - 1
-                        }, GetTableName(aggregateRootId)).ConfigureAwait(false);
-                        return AsyncTaskResult.Success;
+                        var errorMessage = string.Format("Update aggregate published version has sql exception, aggregateRootType: {0}, aggregateRootId: {1}", aggregateRootTypeName, aggregateRootId);
+                        _logger.Error(errorMessage, ex);
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        var errorMessage = string.Format("Update aggregate published version has unknown exception, aggregateRootType: {0}, aggregateRootId: {1}", aggregateRootTypeName, aggregateRootId);
+                        _logger.Error(errorMessage, ex);
+                        throw;
                     }
                 }
-                catch (MySqlException ex)
-                {
-                    _logger.Error("Update aggregate published version has sql exception.", ex);
-                    return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error("Update aggregate published version has unknown exception.", ex);
-                    return new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message);
-                }
-            }
+            }, "UpdatePublishedVersionAsync");
         }
-        public async Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId)
+        public async Task<int> GetPublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId)
         {
-            try
+            return await _ioHelper.TryIOFuncAsync(async () =>
             {
-                using (var connection = GetConnection())
+                try
                 {
-                    var result = await connection.QueryListAsync<int>(new
+                    using (var connection = GetConnection())
                     {
-                        ProcessorName = processorName,
-                        AggregateRootId = aggregateRootId
-                    }, GetTableName(aggregateRootId), "Version").ConfigureAwait(false);
-                    return new AsyncTaskResult<int>(AsyncTaskStatus.Success, result.SingleOrDefault());
+                        await connection.OpenAsync().ConfigureAwait(false);
+                        var result = await connection.QueryListAsync<int>(new
+                        {
+                            ProcessorName = processorName,
+                            AggregateRootId = aggregateRootId
+                        }, GetTableName(aggregateRootId), "Version").ConfigureAwait(false);
+                        return result.SingleOrDefault();
+                    }
                 }
-            }
-            catch (MySqlException ex)
-            {
-                _logger.Error("Get aggregate published version has sql exception.", ex);
-                return new AsyncTaskResult<int>(AsyncTaskStatus.IOException, ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error("Get aggregate published version has unknown exception.", ex);
-                return new AsyncTaskResult<int>(AsyncTaskStatus.Failed, ex.Message);
-            }
+                catch (MySqlException ex)
+                {
+                    var errorMessage = string.Format("Get aggregate published version has sql exception, aggregateRootType: {0}, aggregateRootId: {1}", aggregateRootTypeName, aggregateRootId);
+                    _logger.Error(errorMessage, ex);
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    var errorMessage = string.Format("Get aggregate published version has unknown exception, aggregateRootType: {0}, aggregateRootId: {1}", aggregateRootTypeName, aggregateRootId);
+                    _logger.Error(errorMessage, ex);
+                    throw;
+                }
+            }, "GetPublishedVersionAsync");
         }
 
         private int GetTableIndex(string aggregateRootId)

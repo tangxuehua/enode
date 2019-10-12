@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ECommon.IO;
 using ECommon.Logging;
 
 namespace ENode.Eventing.Impl
@@ -36,7 +35,7 @@ namespace ENode.Eventing.Impl
 
             return aggregateInfo.EventDict.Where(x => x.Key >= min && x.Key <= max).Select(x => x.Value).ToList();
         }
-        public Task<AsyncTaskResult<EventAppendResult>> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
+        public Task<EventAppendResult> BatchAppendAsync(IEnumerable<DomainEventStream> eventStreams)
         {
             var eventStreamDict = new Dictionary<string, IList<DomainEventStream>>();
             var aggregateRootIdList = eventStreams.Select(x => x.AggregateRootId).Distinct().ToList();
@@ -53,19 +52,19 @@ namespace ENode.Eventing.Impl
             {
                 BatchAppend(entry.Key, entry.Value, eventAppendResult);
             }
-            return Task.FromResult(new AsyncTaskResult<EventAppendResult>(AsyncTaskStatus.Success, eventAppendResult));
+            return Task.FromResult(eventAppendResult);
         }
-        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, int version)
+        public Task<DomainEventStream> FindAsync(string aggregateRootId, int version)
         {
-            return Task.FromResult(new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, null, Find(aggregateRootId, version)));
+            return Task.FromResult(Find(aggregateRootId, version));
         }
-        public Task<AsyncTaskResult<DomainEventStream>> FindAsync(string aggregateRootId, string commandId)
+        public Task<DomainEventStream> FindAsync(string aggregateRootId, string commandId)
         {
-            return Task.FromResult(new AsyncTaskResult<DomainEventStream>(AsyncTaskStatus.Success, null, Find(aggregateRootId, commandId)));
+            return Task.FromResult(Find(aggregateRootId, commandId));
         }
-        public Task<AsyncTaskResult<IEnumerable<DomainEventStream>>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
+        public Task<IEnumerable<DomainEventStream>> QueryAggregateEventsAsync(string aggregateRootId, string aggregateRootTypeName, int minVersion, int maxVersion)
         {
-            return Task.FromResult(new AsyncTaskResult<IEnumerable<DomainEventStream>>(AsyncTaskStatus.Success, null, QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion)));
+            return Task.FromResult(QueryAggregateEvents(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion));
         }
 
         private void BatchAppend(string aggregateRootId, IList<DomainEventStream> eventStreamList, EventAppendResult eventAppendResult)
@@ -91,15 +90,17 @@ namespace ENode.Eventing.Impl
                 }
 
                 //检查重复处理的命令ID
+                var duplicateCommandIds = new List<string>();
                 foreach (DomainEventStream eventStream in eventStreamList)
                 {
                     if (aggregateInfo.CommandDict.ContainsKey(eventStream.CommandId))
                     {
-                        eventAppendResult.AddDuplicateCommandId(eventStream.CommandId);
+                        duplicateCommandIds.Add(eventStream.CommandId);
                     }
                 }
-                if (eventAppendResult.DuplicateCommandIdList.Count > 0)
+                if (duplicateCommandIds.Count > 0)
                 {
+                    eventAppendResult.AddDuplicateCommandIds(aggregateRootId, duplicateCommandIds);
                     return;
                 }
 

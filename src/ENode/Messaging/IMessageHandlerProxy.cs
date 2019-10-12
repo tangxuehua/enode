@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using ECommon.IO;
 using ENode.Infrastructure;
 
 namespace ENode.Messaging
@@ -11,7 +10,7 @@ namespace ENode.Messaging
         /// <summary>Handle the given message async.
         /// </summary>
         /// <param name="message"></param>
-        Task<AsyncTaskResult> HandleAsync(IMessage message);
+        Task HandleAsync(IMessage message);
     }
     /// <summary>Represents a message handler proxy.
     /// </summary>
@@ -21,7 +20,7 @@ namespace ENode.Messaging
         /// </summary>
         /// <param name="message1"></param>
         /// <param name="message2"></param>
-        Task<AsyncTaskResult> HandleAsync(IMessage message1, IMessage message2);
+        Task HandleAsync(IMessage message1, IMessage message2);
     }
     /// <summary>Represents a message handler proxy.
     /// </summary>
@@ -32,6 +31,6 @@ namespace ENode.Messaging
         /// <param name="message1"></param>
         /// <param name="message2"></param>
         /// <param name="message3"></param>
-        Task<AsyncTaskResult> HandleAsync(IMessage message1, IMessage message2, IMessage message3);
+        Task HandleAsync(IMessage message1, IMessage message2, IMessage message3);
     }
 }

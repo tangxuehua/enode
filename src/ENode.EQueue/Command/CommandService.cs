@@ -63,41 +63,31 @@ namespace ENode.EQueue
             }
             return this;
         }
-        public Task<AsyncTaskResult> SendAsync(ICommand command)
+        public Task SendAsync(ICommand command)
         {
-            try
-            {
-                return _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, BuildCommandMessage(command, false), command.AggregateRootId, command.Id, command.Items);
-            }
-            catch (Exception ex)
-            {
-                return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, ex.Message));
-            }
+            return _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, BuildCommandMessage(command, false), command.AggregateRootId, command.Id, command.Items);
         }
-        public Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command)
+        public Task<CommandResult> ExecuteAsync(ICommand command)
         {
             return ExecuteAsync(command, CommandReturnType.CommandExecuted);
         }
-        public async Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command, CommandReturnType commandReturnType)
+        public async Task<CommandResult> ExecuteAsync(ICommand command, CommandReturnType commandReturnType)
         {
+            Ensure.NotNull(_commandResultProcessor, "commandResultProcessor");
+            var taskCompletionSource = new TaskCompletionSource<CommandResult>();
+            _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
+
             try
             {
-                Ensure.NotNull(_commandResultProcessor, "commandResultProcessor");
-                var taskCompletionSource = new TaskCompletionSource<AsyncTaskResult<CommandResult>>();
-                _commandResultProcessor.RegisterProcessingCommand(command, commandReturnType, taskCompletionSource);
-
-                var result = await _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, BuildCommandMessage(command, true), command.AggregateRootId, command.Id, command.Items).ConfigureAwait(false);
-                if (result.Status == AsyncTaskStatus.Success)
-                {
-                    return await taskCompletionSource.Task.ConfigureAwait(false);
-                }
-                _commandResultProcessor.ProcessFailedSendingCommand(command);
-                return new AsyncTaskResult<CommandResult>(result.Status, result.ErrorMessage);
+                await _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, BuildCommandMessage(command, true), command.AggregateRootId, command.Id, command.Items).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch
             {
-                return new AsyncTaskResult<CommandResult>(AsyncTaskStatus.Failed, ex.Message);
+                _commandResultProcessor.ProcessFailedSendingCommand(command);
+                throw;
             }
+
+            return await taskCompletionSource.Task.ConfigureAwait(false);
         }
 
         private EQueueMessage BuildCommandMessage(ICommand command, bool needReply = false)

@@ -23,36 +23,38 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
         }
 
-        public async Task<AsyncTaskResult> SendMessageAsync(Producer producer, string messageType, string messageClass, EQueueMessage message, string routingKey, string messageId, IDictionary<string, string> messageExtensionItems)
+        public async Task SendMessageAsync(Producer producer, string messageType, string messageClass, EQueueMessage message, string routingKey, string messageId, IDictionary<string, string> messageExtensionItems)
         {
             try
             {
                 var result = await producer.SendAsync(message, routingKey).ConfigureAwait(false);
-                if (result.SendStatus != SendStatus.Success)
+                if (result.SendStatus == SendStatus.Success)
                 {
-                    _logger.ErrorFormat("ENode {0} message send failed, message: {1}, sendResult: {2}, routingKey: {3}, messageType: {4}, messageId: {5}, messageExtensionItems: {6}", 
+                    if (_logger.IsDebugEnabled)
+                    {
+                        _logger.DebugFormat("ENode {0} message send success, equeueMessageId: {1}, routingKey: {2}, messageType: {3}, messageId: {4}, messageExtensionItems: {5}",
+                            messageType,
+                            result.MessageStoreResult.MessageId,
+                            routingKey,
+                            messageClass,
+                            messageId,
+                            _jsonSerializer.Serialize(messageExtensionItems)
+                        );
+                    }
+                }
+                else
+                {
+                    _logger.ErrorFormat("ENode {0} message send failed, message: {1}, sendResult: {2}, routingKey: {3}, messageType: {4}, messageId: {5}, messageExtensionItems: {6}",
                         messageType,
                         message,
-                        result, 
-                        routingKey,
-                        messageClass,
-                        messageId, 
-                        _jsonSerializer.Serialize(messageExtensionItems)
-                    );
-                    return new AsyncTaskResult(AsyncTaskStatus.IOException, result.ErrorMessage);
-                }
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("ENode {0} message send success, equeueMessageId: {1}, routingKey: {2}, messageType: {3}, messageId: {4}, messageExtensionItems: {5}",
-                        messageType,
-                        result.MessageStoreResult.MessageId,
+                        result,
                         routingKey,
                         messageClass,
                         messageId,
                         _jsonSerializer.Serialize(messageExtensionItems)
                     );
+                    throw new IOException(result.ErrorMessage);
                 }
-                return AsyncTaskResult.Success;
             }
             catch (Exception ex)
             {
@@ -64,7 +66,7 @@ namespace ENode.EQueue
                     messageId, 
                     _jsonSerializer.Serialize(messageExtensionItems)
                 ), ex);
-                return new AsyncTaskResult(AsyncTaskStatus.IOException, ex.Message);
+                throw new IOException("Send equeue message has exception.", ex);
             }
         }
     }

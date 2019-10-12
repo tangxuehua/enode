@@ -27,14 +27,14 @@ namespace BankTransferSample.EventHandlers
             _waitHandle.WaitOne();
         }
 
-        public Task<AsyncTaskResult> HandleAsync(TransferTransactionCompletedEvent message)
+        public Task HandleAsync(TransferTransactionCompletedEvent message)
         {
             var currentCount = Interlocked.Increment(ref _currentCount);
             if (currentCount == _expectedCount)
             {
                 _waitHandle.Set();
             }
-            return Task.FromResult(AsyncTaskResult.Success);
+            return Task.CompletedTask;
         }
     }
 }

@@ -39,10 +39,7 @@ namespace ENode.Tests
             };
 
             //执行创建聚合根的命令
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            NUnit.Framework.Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             var note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
@@ -56,10 +53,7 @@ namespace ENode.Tests
                 AggregateRootId = aggregateId,
                 Title = "Changed Note"
             };
-            asyncResult = _commandService.ExecuteAsync(command2).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command2).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
@@ -78,10 +72,7 @@ namespace ENode.Tests
             };
 
             //执行创建聚合根的命令
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            NUnit.Framework.Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             var note = _memoryCache.GetAsync<InheritTestAggregate>(aggregateId).Result;
@@ -95,10 +86,7 @@ namespace ENode.Tests
                 AggregateRootId = aggregateId,
                 Title = "Changed Note"
             };
-            asyncResult = _commandService.ExecuteAsync(command2).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command2).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             note = _memoryCache.GetAsync<InheritTestAggregate>(aggregateId).Result;
@@ -120,7 +108,7 @@ namespace ENode.Tests
             //执行创建聚合根的命令
             var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
-            Assert.AreEqual(CommandStatus.Success, commandResult.Data.Status);
+            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             var note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
             Assert.IsNotNull(note);
             Assert.AreEqual("Sample Note", note.Title);
@@ -134,7 +122,7 @@ namespace ENode.Tests
             };
             commandResult = _commandService.ExecuteAsync(command2).Result;
             Assert.IsNotNull(commandResult);
-            Assert.AreEqual(CommandStatus.Success, commandResult.Data.Status);
+            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
             Assert.IsNotNull(note);
             Assert.AreEqual("Changed Note", note.Title);
@@ -151,10 +139,7 @@ namespace ENode.Tests
             };
 
             //执行创建聚合根的命令
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             var note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
@@ -163,10 +148,7 @@ namespace ENode.Tests
             Assert.AreEqual(1, ((IAggregateRoot)note).Version);
 
             //用同一个命令再次执行创建聚合根的命令
-            asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             Assert.AreEqual("Sample Note", note.Title);
@@ -178,10 +160,7 @@ namespace ENode.Tests
                 AggregateRootId = aggregateId,
                 Title = "Sample Note"
             };
-            asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
             Assert.AreEqual("Sample Note", note.Title);
@@ -198,7 +177,7 @@ namespace ENode.Tests
             };
 
             //先创建一个聚合根
-            var status = _commandService.ExecuteAsync(command1).Result.Data.Status;
+            var status = _commandService.ExecuteAsync(command1).Result.Status;
             Assert.AreEqual(CommandStatus.Success, status);
 
             var command2 = new ChangeTestAggregateTitleCommand
@@ -208,10 +187,7 @@ namespace ENode.Tests
             };
 
             //执行修改聚合根的命令
-            var asyncResult = _commandService.ExecuteAsync(command2, CommandReturnType.EventHandled).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command2, CommandReturnType.EventHandled).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             var note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
@@ -220,10 +196,7 @@ namespace ENode.Tests
             Assert.AreEqual(2, ((IAggregateRoot)note).Version);
 
             //在重复执行该命令
-            asyncResult = _commandService.ExecuteAsync(command2).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command2).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
@@ -242,10 +215,7 @@ namespace ENode.Tests
             };
 
             //执行创建聚合根的命令
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             var note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
@@ -268,9 +238,7 @@ namespace ENode.Tests
                 {
                     var result = t.Result;
                     Assert.IsNotNull(result);
-                    Assert.AreEqual(AsyncTaskStatus.Success, result.Status);
-                    Assert.IsNotNull(result.Data);
-                    Assert.AreEqual(CommandStatus.Success, result.Data.Status);
+                    Assert.AreEqual(CommandStatus.Success, result.Status);
 
                     var current = Interlocked.Increment(ref finishedCount);
                     if (current == totalCount)
@@ -292,10 +260,7 @@ namespace ENode.Tests
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.NothingChanged, commandResult.Status);
         }
@@ -306,10 +271,7 @@ namespace ENode.Tests
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
         }
@@ -321,10 +283,7 @@ namespace ENode.Tests
                 AggregateRootId = ObjectId.GenerateNewStringId(),
                 Result = "CommandResult"
             };
-            var asyncResult = _commandService.ExecuteAsync(command, CommandReturnType.EventHandled).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command, CommandReturnType.EventHandled).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             Assert.AreEqual("CommandResult", commandResult.Result);
@@ -352,10 +311,7 @@ namespace ENode.Tests
                 AggregateRootId1 = command1.AggregateRootId,
                 AggregateRootId2 = command2.AggregateRootId
             };
-            var asyncResult = _commandService.ExecuteAsync(command3).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command3).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
@@ -366,10 +322,7 @@ namespace ENode.Tests
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
@@ -380,10 +333,7 @@ namespace ENode.Tests
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
@@ -394,10 +344,7 @@ namespace ENode.Tests
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
@@ -418,10 +365,7 @@ namespace ENode.Tests
                 AggregateRootId = aggregateId,
                 IsDomainException = false
             };
-            var asyncResult = _commandService.ExecuteAsync(command1).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command1).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
 
@@ -430,10 +374,7 @@ namespace ENode.Tests
                 AggregateRootId = aggregateId,
                 IsDomainException = true
             };
-            asyncResult = _commandService.ExecuteAsync(command2).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command2).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
         }
@@ -444,10 +385,7 @@ namespace ENode.Tests
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.NothingChanged, commandResult.Status);
             Assert.AreEqual("ResultFromBaseCommand", commandResult.Result);
@@ -456,10 +394,7 @@ namespace ENode.Tests
             {
                 AggregateRootId = ObjectId.GenerateNewStringId()
             };
-            asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.NothingChanged, commandResult.Status);
             Assert.AreEqual("ResultFromChildCommand", commandResult.Result);
@@ -485,13 +420,10 @@ namespace ENode.Tests
                 null);
             var result = _eventStore.BatchAppendAsync(new DomainEventStream[] { eventStream }).Result;
             Assert.IsNotNull(result);
-            Assert.AreEqual(AsyncTaskStatus.Success, result.Status);
-            Assert.AreEqual(aggregateId, result.Data.SuccessAggregateRootIdList[0]);
+            Assert.AreEqual(aggregateId, result.SuccessAggregateRootIdList[0]);
             _logger.Info("----create_concurrent_conflict_and_then_update_many_times_test, _eventStore.AppendAsync success");
 
-            var result2 = _publishedVersionStore.UpdatePublishedVersionAsync("DefaultEventProcessor", typeof(TestAggregate).FullName, aggregateId, 1).Result;
-            Assert.IsNotNull(result2);
-            Assert.AreEqual(AsyncTaskStatus.Success, result2.Status);
+            _publishedVersionStore.UpdatePublishedVersionAsync("DefaultEventProcessor", typeof(TestAggregate).FullName, aggregateId, 1).Wait();
             _logger.Info("----create_concurrent_conflict_and_then_update_many_times_test, UpdatePublishedVersionAsync success");
 
             //执行创建聚合根的命令
@@ -501,10 +433,7 @@ namespace ENode.Tests
                 AggregateRootId = aggregateId,
                 Title = "Sample Note"
             };
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             _logger.Info("----create_concurrent_conflict_and_then_update_many_times_test, _commandService.ExecuteAsync create success");
@@ -526,8 +455,7 @@ namespace ENode.Tests
                 _commandService.ExecuteAsync(updateCommand).ContinueWith(t =>
                 {
                     Assert.IsNotNull(t.Result);
-                    Assert.AreEqual(AsyncTaskStatus.Success, t.Result.Status);
-                    var updateCommandResult = t.Result.Data;
+                    var updateCommandResult = t.Result;
                     Assert.IsNotNull(updateCommandResult);
                     Assert.AreEqual(CommandStatus.Success, updateCommandResult.Status);
                     var totalCount = Interlocked.Increment(ref count);
@@ -559,12 +487,9 @@ namespace ENode.Tests
                 null);
             var result = _eventStore.BatchAppendAsync(new DomainEventStream[] { eventStream }).Result;
             Assert.IsNotNull(result);
-            Assert.AreEqual(AsyncTaskStatus.Success, result.Status);
-            Assert.AreEqual(aggregateId, result.Data.SuccessAggregateRootIdList[0]);
+            Assert.AreEqual(aggregateId, result.SuccessAggregateRootIdList[0]);
 
-            var result2 = _publishedVersionStore.UpdatePublishedVersionAsync("DefaultEventProcessor", typeof(TestAggregate).FullName, aggregateId, 1).Result;
-            Assert.IsNotNull(result2);
-            Assert.AreEqual(AsyncTaskStatus.Success, result2.Status);
+            _publishedVersionStore.UpdatePublishedVersionAsync("DefaultEventProcessor", typeof(TestAggregate).FullName, aggregateId, 1).Wait();
 
             var commandList = new List<ICommand>();
             commandList.Add(new CreateTestAggregateCommand
@@ -590,8 +515,7 @@ namespace ENode.Tests
                 _commandService.ExecuteAsync(updateCommand).ContinueWith(t =>
                 {
                     Assert.IsNotNull(t.Result);
-                    Assert.AreEqual(AsyncTaskStatus.Success, t.Result.Status);
-                    var commandResult = t.Result.Data;
+                    var commandResult = t.Result;
                     Assert.IsNotNull(commandResult);
                     Assert.AreEqual(CommandStatus.Success, commandResult.Status);
                     if (commandResult.CommandId != commandId)
@@ -625,10 +549,7 @@ namespace ENode.Tests
             };
 
             //执行创建聚合根的命令
-            var asyncResult = _commandService.ExecuteAsync(command).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Success, commandResult.Status);
             var note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
@@ -646,12 +567,9 @@ namespace ENode.Tests
                 null);
             var result = _eventStore.BatchAppendAsync(new DomainEventStream[] { eventStream }).Result;
             Assert.IsNotNull(result);
-            Assert.AreEqual(AsyncTaskStatus.Success, result.Status);
-            Assert.AreEqual(aggregateId, result.Data.SuccessAggregateRootIdList[0]);
+            Assert.AreEqual(aggregateId, result.SuccessAggregateRootIdList[0]);
 
-            var result2 = _publishedVersionStore.UpdatePublishedVersionAsync("DefaultEventProcessor", typeof(TestAggregate).FullName, aggregateId, 2).Result;
-            Assert.IsNotNull(result2);
-            Assert.AreEqual(AsyncTaskStatus.Success, result2.Status);
+            _publishedVersionStore.UpdatePublishedVersionAsync("DefaultEventProcessor", typeof(TestAggregate).FullName, aggregateId, 2).Wait();
 
             var commandList = new List<ICommand>();
             for (var i = 0; i < 50; i++)
@@ -670,8 +588,7 @@ namespace ENode.Tests
                 _commandService.ExecuteAsync(updateCommand).ContinueWith(t =>
                 {
                     Assert.IsNotNull(t.Result);
-                    Assert.AreEqual(AsyncTaskStatus.Success, t.Result.Status);
-                    var currentCommandResult = t.Result.Data;
+                    var currentCommandResult = t.Result;
                     Assert.IsNotNull(currentCommandResult);
                     Assert.AreEqual(CommandStatus.Success, currentCommandResult.Status);
                     var totalCount = Interlocked.Increment(ref count);
@@ -696,8 +613,8 @@ namespace ENode.Tests
             var noteId = ObjectId.GenerateNewStringId();
             var command1 = new CreateTestAggregateCommand { AggregateRootId = noteId, Title = "Sample Title1" };
             var command2 = new TestEventPriorityCommand { AggregateRootId = noteId };
-            var commandResult1 = _commandService.ExecuteAsync(command1, CommandReturnType.EventHandled).Result.Data;
-            var commandResult2 = _commandService.ExecuteAsync(command2, CommandReturnType.EventHandled).Result.Data;
+            var commandResult1 = _commandService.ExecuteAsync(command1, CommandReturnType.EventHandled).Result;
+            var commandResult2 = _commandService.ExecuteAsync(command2, CommandReturnType.EventHandled).Result;
 
             Thread.Sleep(3000);
 

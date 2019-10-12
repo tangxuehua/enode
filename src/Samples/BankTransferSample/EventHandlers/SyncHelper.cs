@@ -1,7 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using BankTransferSample.Domain;
-using ECommon.IO;
 using ENode.Messaging;
 
 namespace BankTransferSample.EventHandlers
@@ -18,23 +17,23 @@ namespace BankTransferSample.EventHandlers
             _waitHandle.WaitOne();
         }
 
-        public Task<AsyncTaskResult> HandleAsync(DepositTransactionCompletedEvent message)
+        public Task HandleAsync(DepositTransactionCompletedEvent message)
         {
             _waitHandle.Set();
             _waitHandle = new ManualResetEvent(false);
-            return Task.FromResult(AsyncTaskResult.Success);
+            return Task.CompletedTask;
         }
-        public Task<AsyncTaskResult> HandleAsync(TransferTransactionCompletedEvent message)
+        public Task HandleAsync(TransferTransactionCompletedEvent message)
         {
             _waitHandle.Set();
             _waitHandle = new ManualResetEvent(false);
-            return Task.FromResult(AsyncTaskResult.Success);
+            return Task.CompletedTask;
         }
-        public Task<AsyncTaskResult> HandleAsync(TransferTransactionCanceledEvent message)
+        public Task HandleAsync(TransferTransactionCanceledEvent message)
         {
             _waitHandle.Set();
             _waitHandle = new ManualResetEvent(false);
-            return Task.FromResult(AsyncTaskResult.Success);
+            return Task.CompletedTask;
         }
     }
 }

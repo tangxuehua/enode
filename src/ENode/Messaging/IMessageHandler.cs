@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using ECommon.IO;
 
 namespace ENode.Messaging
 {
@@ -13,7 +12,7 @@ namespace ENode.Messaging
         /// <summary>Handle the given message async.
         /// </summary>
         /// <param name="message"></param>
-        Task<AsyncTaskResult> HandleAsync(T message);
+        Task HandleAsync(T message);
     }
     /// <summary>Represents a message handler.
     /// </summary>
@@ -25,7 +24,7 @@ namespace ENode.Messaging
         /// </summary>
         /// <param name="message1"></param>
         /// <param name="message2"></param>
-        Task<AsyncTaskResult> HandleAsync(T1 message1, T2 message2);
+        Task HandleAsync(T1 message1, T2 message2);
     }
     /// <summary>Represents a message handler.
     /// </summary>
@@ -39,6 +38,6 @@ namespace ENode.Messaging
         /// <param name="message1"></param>
         /// <param name="message2"></param>
         /// <param name="message3"></param>
-        Task<AsyncTaskResult> HandleAsync(T1 message1, T2 message2, T3 message3);
+        Task HandleAsync(T1 message1, T2 message2, T3 message3);
     }
 }

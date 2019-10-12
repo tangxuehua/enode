@@ -45,7 +45,7 @@ namespace ENode.EQueue
             Producer.Shutdown();
             return this;
         }
-        public Task<AsyncTaskResult> PublishAsync(IDomainException exception)
+        public Task PublishAsync(IDomainException exception)
         {
             var message = CreateEQueueMessage(exception);
             return _sendMessageService.SendMessageAsync(Producer, "exception", exception.GetType().Name, message, exception.Id, exception.Id, exception.Items);

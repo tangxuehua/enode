@@ -30,7 +30,7 @@ namespace ENode.Tests
             _expectUpdateFailedCount = count;
         }
 
-        public Task<AsyncTaskResult> UpdatePublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId, int publishedVersion)
+        public Task UpdatePublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId, int publishedVersion)
         {
             if (_currentUpdateFailedCount < _expectUpdateFailedCount)
             {
@@ -44,15 +44,11 @@ namespace ENode.Tests
                 {
                     throw new IOException("UpdatePublishedVersionAsyncIOException" + _currentUpdateFailedCount);
                 }
-                else if (_failedType == FailedType.TaskIOException)
-                {
-                    return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, "UpdatePublishedVersionAsyncError" + _currentUpdateFailedCount));
-                }
             }
             return _inMemoryPublishedVersionStore.UpdatePublishedVersionAsync(processorName, aggregateRootTypeName, aggregateRootId, publishedVersion);
         }
 
-        public Task<AsyncTaskResult<int>> GetPublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId)
+        public Task<int> GetPublishedVersionAsync(string processorName, string aggregateRootTypeName, string aggregateRootId)
         {
             if (_currentGetFailedCount < _expectGetFailedCount)
             {
@@ -65,10 +61,6 @@ namespace ENode.Tests
                 else if (_failedType == FailedType.IOException)
                 {
                     throw new IOException("GetPublishedVersionAsyncIOException" + _currentGetFailedCount);
-                }
-                else if (_failedType == FailedType.TaskIOException)
-                {
-                    return Task.FromResult(new AsyncTaskResult<int>(AsyncTaskStatus.Failed, "GetPublishedVersionAsyncError" + _currentGetFailedCount));
                 }
             }
             return _inMemoryPublishedVersionStore.GetPublishedVersionAsync(processorName, aggregateRootTypeName, aggregateRootId);

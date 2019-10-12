@@ -4,7 +4,6 @@
     {
         None,
         UnKnownException,
-        IOException,
-        TaskIOException
+        IOException
     }
 }

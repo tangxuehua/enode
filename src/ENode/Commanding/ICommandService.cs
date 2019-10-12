@@ -10,18 +10,18 @@ namespace ENode.Commanding
         /// <summary>Send a command asynchronously.
         /// </summary>
         /// <param name="command">The command to send.</param>
-        /// <returns>A task which contains the send result of the command.</returns>
-        Task<AsyncTaskResult> SendAsync(ICommand command);
+        /// <returns>Returns a send command task object.</returns>
+        Task SendAsync(ICommand command);
         /// <summary>Execute a command asynchronously with the default command return type.
         /// </summary>
         /// <param name="command">The command to execute.</param>
         /// <returns>A task which contains the result of the command.</returns>
-        Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command);
+        Task<CommandResult> ExecuteAsync(ICommand command);
         /// <summary>Execute a command asynchronously with the specified command return type.
         /// </summary>
         /// <param name="command">The command to execute.</param>
         /// <param name="commandReturnType">The return type of the command.</param>
         /// <returns>A task which contains the result of the command.</returns>
-        Task<AsyncTaskResult<CommandResult>> ExecuteAsync(ICommand command, CommandReturnType commandReturnType);
+        Task<CommandResult> ExecuteAsync(ICommand command, CommandReturnType commandReturnType);
     }
 }

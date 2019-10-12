@@ -111,6 +111,10 @@ namespace ENode.Commanding.Impl
             async () =>
             {
                 await commandHandler.HandleAsync(commandContext, command).ConfigureAwait(false);
+            },
+            currentRetryTimes => HandleCommandInternal(processingCommand, commandHandler, currentRetryTimes, taskSource),
+            async () =>
+            {
                 if (_logger.IsDebugEnabled)
                 {
                     _logger.DebugFormat("Handle command success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
@@ -119,10 +123,6 @@ namespace ENode.Commanding.Impl
                         command.Id,
                         command.AggregateRootId);
                 }
-            },
-            currentRetryTimes => HandleCommandInternal(processingCommand, commandHandler, currentRetryTimes, taskSource),
-            async () =>
-            {
                 if (commandContext.GetApplicationMessage() != null)
                 {
                     await CommitChangesAsync(processingCommand, true, commandContext.GetApplicationMessage(), null, new TaskCompletionSource<bool>()).ConfigureAwait(false);
@@ -231,7 +231,7 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => ProcessIfNoEventsOfCommand(processingCommand, currentRetryTimes, taskSource),
             async result =>
             {
-                var existingEventStream = result.Data;
+                var existingEventStream = result;
                 if (existingEventStream != null)
                 {
                     _eventCommittingService.PublishDomainEventAsync(processingCommand, existingEventStream);
@@ -258,7 +258,7 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => HandleExceptionAsync(processingCommand, commandHandler, exception, errorMessage, currentRetryTimes, taskSource),
             async result =>
             {
-                var existingEventStream = result.Data;
+                var existingEventStream = result;
                 if (existingEventStream != null)
                 {
                     //这里，我们需要再重新做一遍发布事件这个操作；
@@ -313,10 +313,10 @@ namespace ENode.Commanding.Impl
         {
             exception.MergeItems(processingCommand.Message.Items);
 
-            _ioHelper.TryAsyncActionRecursively("PublishExceptionAsync",
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("PublishExceptionAsync",
             () => _exceptionPublisher.PublishAsync(exception),
             currentRetryTimes => PublishExceptionAsync(processingCommand, exception, currentRetryTimes, taskSource),
-            async result =>
+            async () =>
             {
                 await CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, (exception as Exception).Message).ConfigureAwait(false);
                 taskSource.SetResult(true);
@@ -359,10 +359,10 @@ namespace ENode.Commanding.Impl
         {
             var command = processingCommand.Message;
 
-            _ioHelper.TryAsyncActionRecursively("PublishApplicationMessageAsync",
+            _ioHelper.TryAsyncActionRecursivelyWithoutResult("PublishApplicationMessageAsync",
             () => _applicationMessagePublisher.PublishAsync(message),
             currentRetryTimes => PublishMessageAsync(processingCommand, message, currentRetryTimes, taskSource),
-            async result =>
+            async () =>
             {
                 await CompleteCommand(processingCommand, CommandStatus.Success, message.GetType().FullName, _jsonSerializer.Serialize(message)).ConfigureAwait(false);
                 taskSource.SetResult(true);

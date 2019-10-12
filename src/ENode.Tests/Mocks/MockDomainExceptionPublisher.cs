@@ -8,7 +8,6 @@ namespace ENode.Tests
 {
     public class MockDomainExceptionPublisher : IMessagePublisher<IDomainException>
     {
-        private static Task<AsyncTaskResult> _successResultTask = Task.FromResult(AsyncTaskResult.Success);
         private int _expectFailedCount = 0;
         private int _currentFailedCount = 0;
         private FailedType _failedType;
@@ -24,7 +23,7 @@ namespace ENode.Tests
             _failedType = failedType;
             _expectFailedCount = count;
         }
-        public Task<AsyncTaskResult> PublishAsync(IDomainException message)
+        public Task PublishAsync(IDomainException message)
         {
             if (_currentFailedCount < _expectFailedCount)
             {
@@ -38,12 +37,8 @@ namespace ENode.Tests
                 {
                     throw new IOException("PublishDomainExceptionAsyncIOException" + _currentFailedCount);
                 }
-                else if (_failedType == FailedType.TaskIOException)
-                {
-                    return Task.FromResult(new AsyncTaskResult(AsyncTaskStatus.Failed, "PublishDomainExceptionAsyncError" + _currentFailedCount));
-                }
             }
-            return _successResultTask;
+            return Task.CompletedTask;
         }
     }
 }

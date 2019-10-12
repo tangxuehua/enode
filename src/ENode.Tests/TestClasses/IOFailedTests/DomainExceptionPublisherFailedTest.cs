@@ -33,28 +33,13 @@ namespace ENode.Tests
                 IsDomainException = true
             };
             ((MockDomainExceptionPublisher)_domainExceptionPublisher).SetExpectFailedCount(FailedType.UnKnownException, 5);
-            var asyncResult = _commandService.ExecuteAsync(command1).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            var commandResult = asyncResult.Data;
+            var commandResult = _commandService.ExecuteAsync(command1).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
             ((MockDomainExceptionPublisher)_domainExceptionPublisher).Reset();
 
             ((MockDomainExceptionPublisher)_domainExceptionPublisher).SetExpectFailedCount(FailedType.IOException, 5);
-            asyncResult = _commandService.ExecuteAsync(command1).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
-            Assert.IsNotNull(commandResult);
-            Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
-            ((MockDomainExceptionPublisher)_domainExceptionPublisher).Reset();
-
-            ((MockDomainExceptionPublisher)_domainExceptionPublisher).SetExpectFailedCount(FailedType.TaskIOException, 5);
-            asyncResult = _commandService.ExecuteAsync(command1).Result;
-            Assert.IsNotNull(asyncResult);
-            Assert.AreEqual(AsyncTaskStatus.Success, asyncResult.Status);
-            commandResult = asyncResult.Data;
+            commandResult = _commandService.ExecuteAsync(command1).Result;
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.Failed, commandResult.Status);
             ((MockDomainExceptionPublisher)_domainExceptionPublisher).Reset();

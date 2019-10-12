@@ -95,12 +95,12 @@ namespace ENode.EventStorePerfTests
         {
             var result = await context.EventStore.BatchAppendAsync(context.EventList);
 
-            if (result.Data.DuplicateEventAggregateRootIdList.Count > 0)
+            if (result.DuplicateEventAggregateRootIdList.Count > 0)
             {
                 Console.WriteLine("duplicated event stream.");
                 return;
             }
-            else if (result.Data.DuplicateCommandIdList.Count > 0)
+            else if (result.DuplicateCommandAggregateRootIdList.Count > 0)
             {
                 Console.WriteLine("duplicated command execution.");
                 return;
