@@ -3,6 +3,7 @@ using System.Reflection;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.Logging;
+using ECommon.Serilog;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
@@ -72,12 +73,15 @@ namespace ENode.Tests
             {
                 Assembly.GetExecutingAssembly()
             };
-
+            var loggerFactory = new SerilogLoggerFactory();
+            loggerFactory.AddFileLogger("ECommon", "ecommon");
+            loggerFactory.AddFileLogger("EQueue", "equeue");
+            loggerFactory.AddFileLogger("ENode", "enode");
             _enodeConfiguration = ECommonConfiguration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseLog4Net()
+                .UseSerilog(loggerFactory)
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()

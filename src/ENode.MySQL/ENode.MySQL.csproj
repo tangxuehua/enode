@@ -11,9 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ECommon" Version="2.6.2" />
-    <PackageReference Include="ECommon.Dapper" Version="2.5.1" />
-    <PackageReference Include="MySql.Data" Version="8.0.17" />
+    <PackageReference Include="ECommon" Version="2.6.3" />
+    <PackageReference Include="ECommon.Dapper" Version="2.5.2" />
+    <PackageReference Include="MySql.Data" Version="8.0.18" />
   </ItemGroup>
 
   <ItemGroup>

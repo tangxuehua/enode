@@ -6,22 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ECommon.Autofac" Version="2.5.0" />
-    <PackageReference Include="ECommon.JsonNet" Version="2.5.0" />
-    <PackageReference Include="ECommon.Log4Net" Version="2.5.2" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.0" />
+    <PackageReference Include="ECommon.Autofac" Version="2.5.1" />
+    <PackageReference Include="ECommon.JsonNet" Version="2.5.1" />
+    <PackageReference Include="ECommon.Serilog" Version="1.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.6.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\ENode.EQueue\ENode.EQueue.csproj" />
     <ProjectReference Include="..\..\ENode\ENode.csproj" />
     <ProjectReference Include="..\..\Samples\NoteSample\NoteSample.Commands\NoteSample.Commands.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="log4net.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

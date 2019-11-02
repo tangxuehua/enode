@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.Logging;
+using ECommon.Serilog;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
 using ENode.Domain;
 using ENode.Eventing;
-using ENode.Infrastructure;
 using ENode.Messaging;
 using NoteSample.Commands;
 using ECommonConfiguration = ECommon.Configurations.Configuration;
@@ -93,12 +93,15 @@ namespace ENode.CommandProcessorPerfTests
                 Assembly.Load("NoteSample.CommandHandlers"),
                 Assembly.GetExecutingAssembly()
             };
-
+            var loggerFactory = new SerilogLoggerFactory();
+            loggerFactory.AddFileLogger("ECommon", "ecommon");
+            loggerFactory.AddFileLogger("EQueue", "equeue");
+            loggerFactory.AddFileLogger("ENode", "enode");
             _configuration = ECommonConfiguration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseLog4Net()
+                .UseSerilog(loggerFactory)
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()

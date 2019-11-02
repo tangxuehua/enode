@@ -9,6 +9,7 @@ using BankTransferSample.Domain;
 using BankTransferSample.EventHandlers;
 using ECommon.Components;
 using ECommon.Configurations;
+using ECommon.Serilog;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
@@ -35,12 +36,15 @@ namespace BankTransferSample
         static void NormalTest()
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
-
+            var loggerFactory = new SerilogLoggerFactory();
+            loggerFactory.AddFileLogger("ECommon", "ecommon");
+            loggerFactory.AddFileLogger("EQueue", "equeue");
+            loggerFactory.AddFileLogger("ENode", "enode");
             _configuration = ECommon.Configurations.Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseLog4Net()
+                .UseSerilog(loggerFactory)
                 .UseJsonNet()
                 .CreateENode()
                 .RegisterENodeComponents()
@@ -124,7 +128,7 @@ namespace BankTransferSample
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseLog4Net()
+                .UseSerilog()
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()

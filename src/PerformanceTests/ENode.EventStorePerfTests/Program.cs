@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ECommon.Components;
 using ECommon.Configurations;
+using ECommon.Serilog;
 using ECommon.Utilities;
 using ENode.Configurations;
 using ENode.Eventing;
@@ -116,11 +117,15 @@ namespace ENode.EventStorePerfTests
         static void InitializeENodeFramework()
         {
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
+            var loggerFactory = new SerilogLoggerFactory();
+            loggerFactory.AddFileLogger("ECommon", "ecommon");
+            loggerFactory.AddFileLogger("EQueue", "equeue");
+            loggerFactory.AddFileLogger("ENode", "enode");
             _configuration = ECommonConfiguration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseLog4Net()
+                .UseSerilog(loggerFactory)
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()

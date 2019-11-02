@@ -3,6 +3,7 @@ using System.Reflection;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.Logging;
+using ECommon.Serilog;
 using ECommon.Utilities;
 using ENode.Commanding;
 using ENode.Configurations;
@@ -46,11 +47,15 @@ namespace NoteSample.QuickStart
                 Assembly.Load("NoteSample.CommandHandlers"),
                 Assembly.GetExecutingAssembly()
             };
+            var loggerFactory = new SerilogLoggerFactory();
+            loggerFactory.AddFileLogger("ECommon", "ecommon");
+            loggerFactory.AddFileLogger("EQueue", "equeue");
+            loggerFactory.AddFileLogger("ENode", "enode");
             _configuration = Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseLog4Net()
+                .UseSerilog(loggerFactory)
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()
