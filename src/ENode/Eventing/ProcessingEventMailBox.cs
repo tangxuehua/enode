@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ECommon.Logging;
-using ENode.Infrastructure;
 
 namespace ENode.Eventing
 {
@@ -46,7 +45,7 @@ namespace ENode.Eventing
         }
         public DateTime LastActiveTime { get; private set; }
 
-        public void EnqueueMessage(ProcessingEvent message)
+        public bool EnqueueMessage(ProcessingEvent message)
         {
             lock (_lockObj)
             {
@@ -89,11 +88,15 @@ namespace ENode.Eventing
 
                     LastActiveTime = DateTime.Now;
                     TryRun();
+
+                    return true;
                 }
                 else if (eventStream.Version > LatestHandledEventVersion + 1)
                 {
                     _waitingMessageDict.TryAdd(eventStream.Version, message);
+                    return true;
                 }
+                return false;
             }
         }
         public void TryRun()

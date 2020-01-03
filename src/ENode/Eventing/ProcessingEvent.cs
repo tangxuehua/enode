@@ -1,23 +1,20 @@
-﻿using ENode.Infrastructure;
-
-namespace ENode.Eventing
+﻿namespace ENode.Eventing
 {
     public class ProcessingEvent
     {
-        private IEventProcessContext _processContext;
-
+        public IEventProcessContext ProcessContext { get; private set; }
         public ProcessingEventMailBox MailBox { get; set; }
         public DomainEventStreamMessage Message { get; private set; }
 
         public ProcessingEvent(DomainEventStreamMessage message, IEventProcessContext processContext)
         {
             Message = message;
-            _processContext = processContext;
+            ProcessContext = processContext;
         }
 
         public void Complete()
         {
-            _processContext.NotifyEventProcessed();
+            ProcessContext.NotifyEventProcessed();
             if (MailBox != null)
             {
                 MailBox.CompleteRun();

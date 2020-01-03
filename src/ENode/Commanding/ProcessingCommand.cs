@@ -10,6 +10,7 @@ namespace ENode.Commanding
         public ICommand Message { get; private set; }
         public ICommandExecuteContext CommandExecuteContext { get; private set; }
         public IDictionary<string, string> Items { get; private set; }
+        public bool IsDuplicated { get; set; }
 
         public ProcessingCommand(ICommand command, ICommandExecuteContext commandExecuteContext, IDictionary<string, string> items)
         {

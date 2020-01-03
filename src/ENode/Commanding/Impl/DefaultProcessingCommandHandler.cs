@@ -107,6 +107,11 @@ namespace ENode.Commanding.Impl
 
             commandContext.Clear();
 
+            if (processingCommand.IsDuplicated)
+            {
+                return RepublishCommandEvents(processingCommand, 0, new TaskCompletionSource<bool>());
+            }
+
             _ioHelper.TryAsyncActionRecursivelyWithoutResult("HandleCommandAsync",
             async () =>
             {
@@ -195,7 +200,7 @@ namespace ENode.Commanding.Impl
             //否则，如果我们直接将当前command设置为完成，即对MQ进行ack操作，那该command的事件就永远不会再发布到MQ了，这样就无法保证CQRS数据的最终一致性了。
             if (dirtyAggregateRootCount == 0 || changedEvents == null || changedEvents.Count() == 0)
             {
-                await ProcessIfNoEventsOfCommand(processingCommand, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
+                await RepublishCommandEvents(processingCommand, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
                 return;
             }
 
@@ -222,13 +227,13 @@ namespace ENode.Commanding.Impl
             //异步将事件流提交到EventStore
             _eventCommittingService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
         }
-        private Task ProcessIfNoEventsOfCommand(ProcessingCommand processingCommand, int retryTimes, TaskCompletionSource<bool> taskSource)
+        private Task RepublishCommandEvents(ProcessingCommand processingCommand, int retryTimes, TaskCompletionSource<bool> taskSource)
         {
             var command = processingCommand.Message;
 
             _ioHelper.TryAsyncActionRecursively("ProcessIfNoEventsOfCommand",
             () => _eventStore.FindAsync(command.AggregateRootId, command.Id),
-            currentRetryTimes => ProcessIfNoEventsOfCommand(processingCommand, currentRetryTimes, taskSource),
+            currentRetryTimes => RepublishCommandEvents(processingCommand, currentRetryTimes, taskSource),
             async result =>
             {
                 var existingEventStream = result;

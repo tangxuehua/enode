@@ -52,7 +52,10 @@ namespace ENode.Eventing.Impl
                     var latestHandledEventVersion = GetAggregateRootLatestHandledEventVersion(processingMessage.Message.AggregateRootTypeName, aggregateRootId);
                     return new ProcessingEventMailBox(aggregateRootId, latestHandledEventVersion, y => DispatchProcessingMessageAsync(y, 0), _logger);
                 });
-                mailbox.EnqueueMessage(processingMessage);
+                if (!mailbox.EnqueueMessage(processingMessage))
+                {
+                    processingMessage.ProcessContext.NotifyEventProcessed();
+                }
             }
         }
         public void Start()

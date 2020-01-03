@@ -64,9 +64,13 @@ namespace ENode.Commanding
                 if (_messageDict.TryAdd(message.Sequence, message))
                 {
                     NextSequence++;
-                    _logger.DebugFormat("{0} enqueued new message, aggregateRootId: {1}, messageId: {2}, messageSequence: {3}", GetType().Name, AggregateRootId, message.Message.Id, message.Sequence);
+                    _logger.DebugFormat("{0} enqueued new command, aggregateRootId: {1}, messageId: {2}, messageSequence: {3}", GetType().Name, AggregateRootId, message.Message.Id, message.Sequence);
                     LastActiveTime = DateTime.Now;
                     TryRun();
+                }
+                else
+                {
+                    _logger.ErrorFormat("{0} enqueue command failed, aggregateRootId: {1}, messageId: {2}, messageSequence: {3}", GetType().Name, AggregateRootId, message.Message.Id, message.Sequence);
                 }
             }
         }
@@ -168,10 +172,11 @@ namespace ENode.Commanding
                         var message = GetMessage(ConsumingSequence);
                         if (message != null)
                         {
-                            if (!_duplicateCommandIdDict.TryGetValue(message.Message.Id, out byte data))
+                            if (_duplicateCommandIdDict.ContainsKey(message.Message.Id))
                             {
-                                await _messageHandler.HandleAsync(message).ConfigureAwait(false);
+                                message.IsDuplicated = true;
                             }
+                            await _messageHandler.HandleAsync(message).ConfigureAwait(false);
                         }
                         scannedCount++;
                         ConsumingSequence++;
