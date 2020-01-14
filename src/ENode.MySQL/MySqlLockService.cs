@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Dapper;
 using ECommon.Components;
 using ECommon.Dapper;
+using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Utilities;
 using ENode.Infrastructure;
@@ -56,7 +57,7 @@ namespace ENode.MySQL
         }
         public async Task ExecuteInLock(string lockKey, Func<Task> action)
         {
-            await _ioHelper.TryIOActionAsync(async () =>
+            try
             {
                 using (var connection = GetConnection())
                 {
@@ -70,11 +71,23 @@ namespace ENode.MySQL
                     }
                     catch
                     {
-                        transaction.Rollback();
+                        await Task.Run(() => transaction.Rollback()).ConfigureAwait(false);
                         throw;
                     }
                 }
-            }, "ExecuteInLock");
+            }
+            catch (AggregateException aggregateException)
+            {
+                if (aggregateException.InnerExceptions.IsNotEmpty()
+                 && aggregateException.InnerExceptions.Any(x => x is MySqlException))
+                {
+                    throw new IOException("ExecuteInLock has io exception, lockKey: " + lockKey, aggregateException);
+                }
+            }
+            catch (MySqlException ex)
+            {
+                throw new IOException("ExecuteInLock has io exception, lockKey: " + lockKey, ex);
+            }
         }
 
         private Task LockKey(IDbTransaction transaction, string key)

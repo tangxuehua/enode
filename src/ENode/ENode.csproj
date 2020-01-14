@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.9.4</Version>
-    <AssemblyVersion>2.9.4.0</AssemblyVersion>
-    <FileVersion>2.9.4.0</FileVersion>
+    <Version>2.9.5</Version>
+    <AssemblyVersion>2.9.5.0</AssemblyVersion>
+    <FileVersion>2.9.5.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ECommon" Version="2.6.3" />
+    <PackageReference Include="ECommon" Version="2.6.4" />
   </ItemGroup>
 
 </Project>

@@ -36,10 +36,10 @@ namespace BankTransferSample
         static void NormalTest()
         {
             var assemblies = new[] { Assembly.GetExecutingAssembly() };
-            var loggerFactory = new SerilogLoggerFactory();
-            loggerFactory.AddFileLogger("ECommon", "ecommon");
-            loggerFactory.AddFileLogger("EQueue", "equeue");
-            loggerFactory.AddFileLogger("ENode", "enode");
+            var loggerFactory = new SerilogLoggerFactory()
+                .AddFileLogger("ECommon", "logs\\ecommon")
+                .AddFileLogger("EQueue", "logs\\equeue")
+                .AddFileLogger("ENode", "logs\\enode");
             _configuration = ECommon.Configurations.Configuration
                 .Create()
                 .UseAutofac()
@@ -123,12 +123,15 @@ namespace BankTransferSample
             {
                 Assembly.GetExecutingAssembly()
             };
-
+            var loggerFactory = new SerilogLoggerFactory()
+                .AddFileLogger("ECommon", "logs\\ecommon")
+                .AddFileLogger("EQueue", "logs\\equeue")
+                .AddFileLogger("ENode", "logs\\enode");
             _configuration = ECommon.Configurations.Configuration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseSerilog()
+                .UseSerilog(loggerFactory)
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()

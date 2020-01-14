@@ -47,10 +47,10 @@ namespace NoteSample.QuickStart
                 Assembly.Load("NoteSample.CommandHandlers"),
                 Assembly.GetExecutingAssembly()
             };
-            var loggerFactory = new SerilogLoggerFactory();
-            loggerFactory.AddFileLogger("ECommon", "ecommon");
-            loggerFactory.AddFileLogger("EQueue", "equeue");
-            loggerFactory.AddFileLogger("ENode", "enode");
+            var loggerFactory = new SerilogLoggerFactory()
+                .AddFileLogger("ECommon", "logs\\ecommon")
+                .AddFileLogger("EQueue", "logs\\equeue")
+                .AddFileLogger("ENode", "logs\\enode");
             _configuration = Configuration
                 .Create()
                 .UseAutofac()

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dapper;
 using ECommon.Components;
 using ECommon.Dapper;
+using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Utilities;
 using ENode.Infrastructure;
@@ -56,7 +57,7 @@ namespace ENode.SqlServer
         }
         public async Task ExecuteInLock(string lockKey, Func<Task> action)
         {
-            await _ioHelper.TryIOActionAsync(async () =>
+            try
             {
                 using (var connection = GetConnection())
                 {
@@ -74,7 +75,19 @@ namespace ENode.SqlServer
                         throw;
                     }
                 }
-            }, "ExecuteInLock");
+            }
+            catch (AggregateException aggregateException)
+            {
+                if (aggregateException.InnerExceptions.IsNotEmpty()
+                 && aggregateException.InnerExceptions.Any(x => x is SqlException))
+                {
+                    throw new IOException("ExecuteInLock has io exception, lockKey: " + lockKey, aggregateException);
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new IOException("ExecuteInLock has io exception, lockKey: " + lockKey, ex);
+            }
         }
 
         private Task LockKey(IDbTransaction transaction, string key)

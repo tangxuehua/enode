@@ -18,6 +18,7 @@ namespace ENode.Tests
     public abstract class BaseTest
     {
         private ENodeConfiguration _enodeConfiguration;
+        private static SerilogLoggerFactory _serilogLoggerFactory;
         protected ILogger _logger;
         protected ICommandService _commandService;
         protected IMemoryCache _memoryCache;
@@ -73,15 +74,18 @@ namespace ENode.Tests
             {
                 Assembly.GetExecutingAssembly()
             };
-            var loggerFactory = new SerilogLoggerFactory();
-            loggerFactory.AddFileLogger("ECommon", "ecommon");
-            loggerFactory.AddFileLogger("EQueue", "equeue");
-            loggerFactory.AddFileLogger("ENode", "enode");
+            if (_serilogLoggerFactory == null)
+            {
+                _serilogLoggerFactory = new SerilogLoggerFactory(defaultLoggerFileName: "logs\\default")
+                    .AddFileLogger("ECommon", "logs\\ecommon")
+                    .AddFileLogger("EQueue", "logs\\equeue")
+                    .AddFileLogger("ENode", "logs\\enode");
+            }
             _enodeConfiguration = ECommonConfiguration
                 .Create()
                 .UseAutofac()
                 .RegisterCommonComponents()
-                .UseSerilog(loggerFactory)
+                .UseSerilog(_serilogLoggerFactory)
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
                 .CreateENode()

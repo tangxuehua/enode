@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ECommon.Extensions;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -277,15 +278,15 @@ namespace ENode.Commanding.Impl
                     //到这里，说明当前command执行遇到异常，然后当前command之前也没执行过，是第一次被执行。
                     //那就判断当前异常是否是需要被发布出去的异常，如果是，则发布该异常给所有消费者；
                     //否则，就记录错误日志，然后认为该command处理失败即可；
-                    var domainException = TryGetDomainException(exception);
-                    if (domainException != null)
+                    var realException = GetRealException(exception);
+                    if (realException is IDomainException)
                     {
-                        await PublishExceptionAsync(processingCommand, domainException, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
+                        await PublishExceptionAsync(processingCommand, realException as IDomainException, 0, new TaskCompletionSource<bool>()).ConfigureAwait(false);
                         taskSource.SetResult(true);
                     }
                     else
                     {
-                        await CompleteCommand(processingCommand, CommandStatus.Failed, exception.GetType().Name, exception != null ? exception.Message : errorMessage).ConfigureAwait(false);
+                        await CompleteCommand(processingCommand, CommandStatus.Failed, realException.GetType().Name, exception != null ? realException.Message : errorMessage).ConfigureAwait(false);
                         taskSource.SetResult(true);
                     }
                 }
@@ -296,23 +297,13 @@ namespace ENode.Commanding.Impl
 
             return taskSource.Task;
         }
-        private IDomainException TryGetDomainException(Exception exception)
+        private Exception GetRealException(Exception exception)
         {
-            if (exception == null)
+            if (exception is AggregateException && ((AggregateException)exception).InnerExceptions.IsNotEmpty())
             {
-                return null;
+                return ((AggregateException)exception).InnerExceptions.First();
             }
-            else if (exception is IDomainException)
-            {
-                return exception as IDomainException;
-            }
-            else if (exception is AggregateException)
-            {
-                var aggregateException = exception as AggregateException;
-                var domainException = aggregateException.InnerExceptions.FirstOrDefault(x => x is IDomainException) as IDomainException;
-                return domainException;
-            }
-            return null;
+            return exception;
         }
         private Task PublishExceptionAsync(ProcessingCommand processingCommand, IDomainException exception, int retryTimes, TaskCompletionSource<bool> taskSource)
         {

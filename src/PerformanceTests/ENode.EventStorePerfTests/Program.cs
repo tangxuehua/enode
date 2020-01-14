@@ -117,10 +117,10 @@ namespace ENode.EventStorePerfTests
         static void InitializeENodeFramework()
         {
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
-            var loggerFactory = new SerilogLoggerFactory();
-            loggerFactory.AddFileLogger("ECommon", "ecommon");
-            loggerFactory.AddFileLogger("EQueue", "equeue");
-            loggerFactory.AddFileLogger("ENode", "enode");
+            var loggerFactory = new SerilogLoggerFactory()
+                .AddFileLogger("ECommon", "logs\\ecommon")
+                .AddFileLogger("EQueue", "logs\\equeue")
+                .AddFileLogger("ENode", "logs\\enode");
             _configuration = ECommonConfiguration
                 .Create()
                 .UseAutofac()
