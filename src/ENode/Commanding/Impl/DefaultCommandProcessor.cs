@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Configurations;
@@ -35,14 +36,28 @@ namespace ENode.Commanding.Impl
                 throw new ArgumentException("aggregateRootId of command cannot be null or empty, commandId:" + processingCommand.Message.Id);
             }
 
-            lock (_lockObj)
+            var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x =>
             {
-                var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x =>
+                return new ProcessingCommandMailbox(x, _handler, _logger);
+            });
+
+            var mailboxTryUsingCount = 0L;
+            while (!mailbox.TryUsing())
+            {
+                Thread.Sleep(1);
+                mailboxTryUsingCount++;
+                if (mailboxTryUsingCount % 10000 == 0)
                 {
-                    return new ProcessingCommandMailbox(x, _handler, _logger);
-                });
-                mailbox.EnqueueMessage(processingCommand);
+                    _logger.WarnFormat("Command mailbox try using count: {0}, aggregateRootId: {1}", mailboxTryUsingCount, mailbox.AggregateRootId);
+                }
             }
+            if (mailbox.IsRemoved)
+            {
+                mailbox = new ProcessingCommandMailbox(aggregateRootId, _handler, _logger);
+                _mailboxDict.TryAdd(aggregateRootId, mailbox);
+            }
+            mailbox.EnqueueMessage(processingCommand);
+            mailbox.ExitUsing();
         }
         public void Start()
         {
@@ -59,7 +74,7 @@ namespace ENode.Commanding.Impl
 
             foreach (var pair in _mailboxDict)
             {
-                if (pair.Value.IsInactive(_timeoutSeconds) && !pair.Value.IsRunning && pair.Value.TotalUnHandledMessageCount == 0)
+                if (IsMailBoxAllowRemove(pair.Value))
                 {
                     inactiveList.Add(pair);
                 }
@@ -67,17 +82,24 @@ namespace ENode.Commanding.Impl
 
             foreach (var pair in inactiveList)
             {
-                lock (_lockObj)
+                var mailbox = pair.Value;
+                if (mailbox.TryUsing())
                 {
-                    if (pair.Value.IsInactive(_timeoutSeconds) && !pair.Value.IsRunning && pair.Value.TotalUnHandledMessageCount == 0)
+                    if (IsMailBoxAllowRemove(mailbox))
                     {
                         if (_mailboxDict.TryRemove(pair.Key, out ProcessingCommandMailbox removed))
                         {
+                            removed.MarkAsRemoved();
                             _logger.InfoFormat("Removed inactive command mailbox, aggregateRootId: {0}", pair.Key);
                         }
                     }
                 }
+                mailbox.ExitUsing();
             }
+        }
+        private bool IsMailBoxAllowRemove(ProcessingCommandMailbox mailbox)
+        {
+            return mailbox.IsInactive(_timeoutSeconds) && !mailbox.IsRunning && mailbox.TotalUnHandledMessageCount == 0;
         }
     }
 }

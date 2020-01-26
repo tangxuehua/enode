@@ -19,6 +19,9 @@ namespace ENode.Commanding
         private readonly IProcessingCommandHandler _messageHandler;
         private readonly int _batchSize;
         private readonly ILogger _logger;
+        private volatile int _isUsing;
+        private volatile int _isRemoved;
+        private long _nextSequence;
 
         #endregion
 
@@ -35,23 +38,24 @@ namespace ENode.Commanding
 
         public string AggregateRootId { get; private set; }
         public DateTime LastActiveTime { get; private set; }
+        public bool IsUsing { get { return _isUsing == 1; } }
+        public bool IsRemoved { get { return _isRemoved == 1; } }
         public bool IsRunning { get; private set; }
         public bool IsPauseRequested { get; private set; }
         public bool IsPaused { get; private set; }
-        public long NextSequence { get; private set; }
         public long ConsumingSequence { get; private set; }
         public long TotalUnHandledMessageCount
         {
             get
             {
-                return NextSequence - ConsumingSequence;
+                return _nextSequence - ConsumingSequence;
             }
         }
         public long MaxMessageSequence
         {
             get
             {
-                return NextSequence - 1;
+                return _nextSequence - 1;
             }
         }
 
@@ -59,11 +63,11 @@ namespace ENode.Commanding
         {
             lock (_lockObj)
             {
-                message.Sequence = NextSequence;
+                message.Sequence = _nextSequence;
                 message.MailBox = this;
                 if (_messageDict.TryAdd(message.Sequence, message))
                 {
-                    NextSequence++;
+                    _nextSequence++;
                     _logger.DebugFormat("{0} enqueued new command, aggregateRootId: {1}, messageId: {2}, messageSequence: {3}", GetType().Name, AggregateRootId, message.Message.Id, message.Sequence);
                     LastActiveTime = DateTime.Now;
                     TryRun();
@@ -131,13 +135,6 @@ namespace ENode.Commanding
         {
             _duplicateCommandIdDict.TryAdd(commandId, 1);
         }
-        public void Clear()
-        {
-            _messageDict.Clear();
-            NextSequence = 0;
-            ConsumingSequence = 0;
-            LastActiveTime = DateTime.Now;
-        }
         public async Task CompleteMessage(ProcessingCommand message, CommandResult result)
         {
             try
@@ -157,6 +154,18 @@ namespace ENode.Commanding
         public bool IsInactive(int timeoutSeconds)
         {
             return (DateTime.Now - LastActiveTime).TotalSeconds >= timeoutSeconds;
+        }
+        public bool TryUsing()
+        {
+            return Interlocked.CompareExchange(ref _isUsing, 1, 0) == 0;
+        }
+        public void ExitUsing()
+        {
+            Interlocked.Exchange(ref _isUsing, 0);
+        }
+        public void MarkAsRemoved()
+        {
+            Interlocked.Exchange(ref _isRemoved, 1);
         }
 
         private async Task ProcessMessages()

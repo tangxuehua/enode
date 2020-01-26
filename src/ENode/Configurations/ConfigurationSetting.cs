@@ -8,6 +8,9 @@
         /// <summary>当使用默认的从内存清理聚合根的服务时，该属性用于配置扫描过期的聚合根的时间间隔，默认为5秒；
         /// </summary>
         public int ScanExpiredAggregateIntervalMilliseconds { get; set; }
+        /// <summary>处理聚合根的事件的版本号有不连续的问题的定时任务的处理间隔，默认为5秒；
+        /// </summary>
+        public int ProcessProblemAggregateIntervalMilliseconds { get; set; }
         /// <summary>当使用默认的MemoryCache时，该属性用于配置聚合根的最长允许的不活跃时间，超过这个时间就认为是过期，就可以从内存清除了；然后下次如果再需要用的时候再重新加载进来；默认为3天；
         /// </summary>
         public int AggregateRootMaxInactiveSeconds { get; set; }
@@ -25,6 +28,7 @@
         {
             DomainEventProcessorName = "DefaultEventProcessor";
             ScanExpiredAggregateIntervalMilliseconds = 5000;
+            ProcessProblemAggregateIntervalMilliseconds = 5000;
             AggregateRootMaxInactiveSeconds = 3600 * 24 * 3;
             CommandMailBoxProcessBatchSize = 1000;
             EventMailBoxCount = 4;
