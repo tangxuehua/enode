@@ -100,6 +100,10 @@ namespace ENode.Eventing.Impl
         private void ProcessProblemAggregates()
         {
             var entryList = _problemAggregateRootMailBoxDict.ToArray();
+            if (entryList.Length == 0)
+            {
+                return;
+            }
             var problemMailboxList = new List<ProcessingEventMailBox>();
             var recoveredMailboxList = new List<ProcessingEventMailBox>();
             foreach (var entry in entryList)

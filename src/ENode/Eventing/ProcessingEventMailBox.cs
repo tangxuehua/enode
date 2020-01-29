@@ -84,7 +84,20 @@ namespace ENode.Eventing
                 }
                 else if (processingEvent.Message.Version > _nextExpectingEventVersion)
                 {
-                    _waitingProcessingEventDict.TryAdd(processingEvent.Message.Version, processingEvent);
+                    if (_waitingProcessingEventDict.TryAdd(processingEvent.Message.Version, processingEvent))
+                    {
+                        _logger.WarnFormat("{0} later version of message arrived, added it to the waiting list, aggregateRootType: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventTypes: {6}, eventIds: {7}, _nextExpectingEventVersion: {8}",
+                            GetType().Name,
+                            processingEvent.Message.AggregateRootTypeName,
+                            processingEvent.Message.AggregateRootId,
+                            processingEvent.Message.CommandId,
+                            processingEvent.Message.Version,
+                            processingEvent.Message.Id,
+                            string.Join("|", processingEvent.Message.Events.Select(x => x.GetType().Name)),
+                            string.Join("|", processingEvent.Message.Events.Select(x => x.Id)),
+                            _nextExpectingEventVersion
+                        );
+                    }
                     return EnqueueMessageResult.AddToWaitingList;
                 }
                 return EnqueueMessageResult.Ignored;
