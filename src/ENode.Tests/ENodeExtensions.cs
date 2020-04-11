@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -6,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using ECommon.Components;
+using ECommon.Extensions;
 using ECommon.Logging;
 using ECommon.Remoting;
 using ECommon.Scheduling;
@@ -16,11 +18,11 @@ using ENode.Configurations;
 using ENode.Domain;
 using ENode.EQueue;
 using ENode.Eventing;
-using ENode.Infrastructure;
 using ENode.Messaging;
 using ENode.SqlServer;
 using EQueue.Broker;
 using EQueue.Clients.Consumers;
+using EQueue.Clients.Producers;
 using EQueue.Configurations;
 using EQueue.NameServer;
 using EQueue.Protocols;
@@ -125,27 +127,47 @@ namespace ENode.Tests
                 return enodeConfiguration;
             }
 
+            var localIp = SocketUtils.GetLocalIPV4();
+            var nameserverPoint = 9493;
+            var nameserverSetting = new NameServerSetting { BindingAddress = new IPEndPoint(localIp, nameserverPoint) };
             var brokerStorePath = @"d:\equeue-store-enode-ut";
-            var brokerSetting = new BrokerSetting(chunkFileStoreRootPath: brokerStorePath);
+            var brokerSetting = new BrokerSetting(chunkFileStoreRootPath: brokerStorePath)
+            {
+                NameServerList = new List<IPEndPoint> { new IPEndPoint(localIp, nameserverPoint) }
+            };
+            brokerSetting.BrokerInfo.ProducerAddress = new IPEndPoint(localIp, 5000).ToAddress();
+            brokerSetting.BrokerInfo.ConsumerAddress = new IPEndPoint(localIp, 5001).ToAddress();
+            brokerSetting.BrokerInfo.AdminAddress = new IPEndPoint(localIp, 5002).ToAddress();
+
+            var producerSetting = new ProducerSetting
+            {
+                NameServerList = new List<IPEndPoint> { new IPEndPoint(localIp, nameserverPoint) }
+            };
+            var consumerSetting = new ConsumerSetting
+            {
+                NameServerList = new List<IPEndPoint> { new IPEndPoint(localIp, nameserverPoint) },
+                ConsumeFromWhere = ConsumeFromWhere.LastOffset
+            };
 
             if (Directory.Exists(brokerStorePath))
             {
                 Directory.Delete(brokerStorePath, true);
             }
 
-            _nameServerController = new NameServerController();
+            _nameServerController = new NameServerController(nameserverSetting);
             _broker = BrokerController.Create(brokerSetting);
 
-            _commandService.InitializeEQueue(new CommandResultProcessor().Initialize(new IPEndPoint(SocketUtils.GetLocalIPV4(), 9001)));
-            _eventPublisher.InitializeEQueue();
-            _applicationMessagePublisher.InitializeEQueue();
-            _domainExceptionPublisher.InitializeEQueue();
+            var commandResultProcessor = new CommandResultProcessor().Initialize(new IPEndPoint(localIp, 9001));
+            _commandService.InitializeEQueue(commandResultProcessor, producerSetting);
+            _eventPublisher.InitializeEQueue(producerSetting);
+            _applicationMessagePublisher.InitializeEQueue(producerSetting);
+            _domainExceptionPublisher.InitializeEQueue(producerSetting);
 
-            _commandConsumer = new CommandConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("CommandTopic");
-            _eventConsumer = new DomainEventConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("EventTopic");
-            _applicationMessageConsumer = new ApplicationMessageConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("ApplicationMessageTopic");
-            _domainExceptionConsumer = new DomainExceptionConsumer().InitializeEQueue(setting: new ConsumerSetting { ConsumeFromWhere = ConsumeFromWhere.LastOffset }).Subscribe("DomainExceptionTopic");
-            _nameServerSocketRemotingClient = new SocketRemotingClient("NameServerRemotingClient", new IPEndPoint(SocketUtils.GetLocalIPV4(), 9493));
+            _commandConsumer = new CommandConsumer().InitializeEQueue(setting: consumerSetting).Subscribe("CommandTopic");
+            _eventConsumer = new DomainEventConsumer().InitializeEQueue(setting: consumerSetting).Subscribe("EventTopic");
+            _applicationMessageConsumer = new ApplicationMessageConsumer().InitializeEQueue(setting: consumerSetting).Subscribe("ApplicationMessageTopic");
+            _domainExceptionConsumer = new DomainExceptionConsumer().InitializeEQueue(setting: consumerSetting).Subscribe("DomainExceptionTopic");
+            _nameServerSocketRemotingClient = new SocketRemotingClient("NameServerRemotingClient", new IPEndPoint(localIp, nameserverPoint));
 
             _nameServerController.Start();
             _broker.Start();
