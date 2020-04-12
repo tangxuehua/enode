@@ -22,10 +22,11 @@ namespace ENode.Eventing.Impl
         private readonly int _timeoutSeconds;
         private readonly string _scanInactiveMailBoxTaskName;
         private readonly string _processProblemAggregateTaskName;
-        private readonly string _processorName;
         private readonly int _scanExpiredAggregateIntervalMilliseconds;
         private readonly int _processProblemAggregateIntervalMilliseconds;
         private readonly ConcurrentDictionary<string, ProcessingEventMailBox> _problemAggregateRootMailBoxDict;
+
+        public string Name { get; }
 
         public DefaultProcessingEventProcessor(IPublishedVersionStore publishedVersionStore, IMessageDispatcher dispatcher, IOHelper ioHelper, ILoggerFactory loggerFactory, IScheduleService scheduleService)
         {
@@ -39,7 +40,7 @@ namespace ENode.Eventing.Impl
             _scanInactiveMailBoxTaskName = "CleanInactiveProcessingEventMailBoxes_" + DateTime.Now.Ticks + new Random().Next(10000);
             _processProblemAggregateTaskName = "ProcessProblemAggregate_" + DateTime.Now.Ticks + new Random().Next(10000);
             _timeoutSeconds = ENodeConfiguration.Instance.Setting.AggregateRootMaxInactiveSeconds;
-            _processorName = ENodeConfiguration.Instance.Setting.DomainEventProcessorName;
+            Name = ENodeConfiguration.Instance.Setting.DomainEventProcessorName;
             _scanExpiredAggregateIntervalMilliseconds = ENodeConfiguration.Instance.Setting.ScanExpiredAggregateIntervalMilliseconds;
             _processProblemAggregateIntervalMilliseconds = ENodeConfiguration.Instance.Setting.ProcessProblemAggregateIntervalMilliseconds;
         }
@@ -95,7 +96,10 @@ namespace ENode.Eventing.Impl
         }
         private void AddProblemAggregateMailBoxToDict(ProcessingEventMailBox mailbox)
         {
-            _problemAggregateRootMailBoxDict.TryAdd(mailbox.AggregateRootId, mailbox);
+            if (_problemAggregateRootMailBoxDict.TryAdd(mailbox.AggregateRootId, mailbox))
+            {
+                _logger.WarnFormat("Added problem aggregate mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", mailbox.AggregateRootTypeName, mailbox.AggregateRootId);
+            }
         }
         private void ProcessProblemAggregates()
         {
@@ -125,7 +129,10 @@ namespace ENode.Eventing.Impl
             }
             foreach (var mailbox in recoveredMailboxList)
             {
-                _problemAggregateRootMailBoxDict.TryRemove(mailbox.AggregateRootId, out ProcessingEventMailBox removed);
+                if (_problemAggregateRootMailBoxDict.TryRemove(mailbox.AggregateRootId, out ProcessingEventMailBox removed))
+                {
+                    _logger.InfoFormat("Removed problem aggregate mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", removed.AggregateRootTypeName, removed.AggregateRootId);
+                }
             }
         }
         private void DispatchProcessingMessageAsync(ProcessingEvent processingMessage, int retryTimes)
@@ -145,7 +152,7 @@ namespace ENode.Eventing.Impl
         {
             try
             {
-                return _publishedVersionStore.GetPublishedVersionAsync(_processorName, aggregateRootTypeName, aggregateRootId).Result;
+                return _publishedVersionStore.GetPublishedVersionAsync(Name, aggregateRootTypeName, aggregateRootId).Result;
             }
             catch (Exception ex)
             {
@@ -156,7 +163,7 @@ namespace ENode.Eventing.Impl
         {
             var message = processingMessage.Message;
             _ioHelper.TryAsyncActionRecursivelyWithoutResult("UpdatePublishedVersionAsync",
-            () => _publishedVersionStore.UpdatePublishedVersionAsync(_processorName, message.AggregateRootTypeName, message.AggregateRootId, message.Version),
+            () => _publishedVersionStore.UpdatePublishedVersionAsync(Name, message.AggregateRootTypeName, message.AggregateRootId, message.Version),
             currentRetryTimes => UpdatePublishedVersionAsync(processingMessage, currentRetryTimes),
             () =>
             {
@@ -186,7 +193,7 @@ namespace ENode.Eventing.Impl
                         if (_mailboxDict.TryRemove(pair.Key, out ProcessingEventMailBox removed))
                         {
                             removed.MarkAsRemoved();
-                            _logger.InfoFormat("Removed inactive domain event stream mailbox, aggregateRootId: {0}", pair.Key);
+                            _logger.InfoFormat("Removed inactive domain event stream mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", removed.AggregateRootTypeName, removed.AggregateRootId);
                         }
                     }
                 }

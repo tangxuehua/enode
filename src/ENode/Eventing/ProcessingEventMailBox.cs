@@ -65,8 +65,10 @@ namespace ENode.Eventing
                 if (nextExpectingEventVersion > _nextExpectingEventVersion)
                 {
                     _nextExpectingEventVersion = nextExpectingEventVersion;
-                    _logger.InfoFormat("{0} refreshed next expecting event version, aggregateRootId: {1}, aggregateRootTypeName: {2}", GetType().Name, AggregateRootId, AggregateRootTypeName);
+                    _logger.InfoFormat("{0} refreshed nextExpectingEventVersion, aggregateRootId: {1}, aggregateRootTypeName: {2}, version: {3}", GetType().Name, AggregateRootId, AggregateRootTypeName, nextExpectingEventVersion);
                     TryEnqueueWaitingMessage();
+                    LastActiveTime = DateTime.Now;
+                    TryRun();
                 }
             }
         }
@@ -148,6 +150,7 @@ namespace ENode.Eventing
             while (_waitingProcessingEventDict.TryRemove(_nextExpectingEventVersion, out ProcessingEvent nextProcessingEvent))
             {
                 EnqueueEventStream(nextProcessingEvent);
+                _logger.InfoFormat("{0} enqueued waiting processingEvent, aggregateRootId: {1}, aggregateRootTypeName: {2}, eventVersion: {3}", GetType().Name, AggregateRootId, AggregateRootTypeName, nextProcessingEvent.Message.Version);
             }
         }
         private void ProcessMessage()

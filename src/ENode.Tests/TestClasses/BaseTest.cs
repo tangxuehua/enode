@@ -1,5 +1,6 @@
 ﻿using System.Configuration;
 using System.Reflection;
+using System.Threading;
 using ECommon.Components;
 using ECommon.Configurations;
 using ECommon.Logging;
@@ -59,6 +60,7 @@ namespace ENode.Tests
             if (_enodeConfiguration != null)
             {
                 CleanupEnode();
+                Thread.Sleep(3000);
             }
         }
 
@@ -81,6 +83,10 @@ namespace ENode.Tests
                     .AddFileLogger("EQueue", "logs\\equeue")
                     .AddFileLogger("ENode", "logs\\enode");
             }
+            var configurationSetting = new ConfigurationSetting
+            {
+                ProcessProblemAggregateIntervalMilliseconds = 1000
+            };
             _enodeConfiguration = ECommonConfiguration
                 .Create()
                 .UseAutofac()
@@ -88,7 +94,7 @@ namespace ENode.Tests
                 .UseSerilog(_serilogLoggerFactory)
                 .UseJsonNet()
                 .RegisterUnhandledExceptionHandler()
-                .CreateENode()
+                .CreateENode(configurationSetting)
                 .RegisterENodeComponents()
                 .UseEventStore(useMockEventStore)
                 .UsePublishedVersionStore(useMockPublishedVersionStore)
