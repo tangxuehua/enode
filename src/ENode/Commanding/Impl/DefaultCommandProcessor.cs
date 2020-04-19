@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using ECommon.Logging;
 using ECommon.Scheduling;
 using ENode.Configurations;
@@ -28,7 +29,7 @@ namespace ENode.Commanding.Impl
             _taskName = "CleanInactiveProcessingCommandMailBoxes_" + DateTime.Now.Ticks + new Random().Next(10000);
         }
 
-        public void Process(ProcessingCommand processingCommand)
+        public async Task ProcessAsync(ProcessingCommand processingCommand)
         {
             var aggregateRootId = processingCommand.Message.AggregateRootId;
             if (string.IsNullOrEmpty(aggregateRootId))
@@ -44,7 +45,8 @@ namespace ENode.Commanding.Impl
             var mailboxTryUsingCount = 0L;
             while (!mailbox.TryUsing())
             {
-                Thread.Sleep(1);
+                //todo: consider use Task.Yield() to release ThreadPool task thread.
+                await Task.Delay(1);
                 mailboxTryUsingCount++;
                 if (mailboxTryUsingCount % 10000 == 0)
                 {

@@ -77,7 +77,7 @@ namespace ENode.EQueue
             var commandExecuteContext = new CommandExecuteContext(_repository, _aggregateStorage, queueMessage, context, commandMessage, _sendReplyService);
             commandItems["CommandReplyAddress"] = commandMessage.ReplyAddress;
             _logger.DebugFormat("ENode command message received, messageId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
-            _commandProcessor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
+            _commandProcessor.ProcessAsync(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
 
         class CommandExecuteContext : ICommandExecuteContext

@@ -1,4 +1,6 @@
-﻿namespace ENode.Commanding
+﻿using System.Threading.Tasks;
+
+namespace ENode.Commanding
 {
     /// <summary>Represents a processor to process command.
     /// </summary>
@@ -7,7 +9,7 @@
         /// <summary>Process the given command.
         /// </summary>
         /// <param name="processingCommand"></param>
-        void Process(ProcessingCommand processingCommand);
+        Task ProcessAsync(ProcessingCommand processingCommand);
         /// <summary>Start the processor.
         /// </summary>
         void Start();

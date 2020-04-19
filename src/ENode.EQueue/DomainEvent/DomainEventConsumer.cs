@@ -72,7 +72,7 @@ namespace ENode.EQueue
             var processContext = new DomainEventStreamProcessContext(this, domainEventStreamMessage, queueMessage, context);
             var processingMessage = new ProcessingEvent(domainEventStreamMessage, processContext);
             _logger.DebugFormat("ENode event stream message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}, version: {3}", domainEventStreamMessage.Id, domainEventStreamMessage.AggregateRootId, domainEventStreamMessage.AggregateRootTypeName, domainEventStreamMessage.Version);
-            _messageProcessor.Process(processingMessage);
+            _messageProcessor.ProcessAsync(processingMessage);
         }
 
         private DomainEventStreamMessage ConvertToDomainEventStream(EventStreamMessage message)

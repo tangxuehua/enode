@@ -35,7 +35,7 @@ namespace ENode.CommandProcessorPerfTests
         static int _totalCommandCount;
         static bool _isUpdating;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             _commandCount = int.Parse(ConfigurationManager.AppSettings["count"]);
 
@@ -59,7 +59,7 @@ namespace ENode.CommandProcessorPerfTests
 
             _totalCommandCount = 1;
             _waitHandle = new ManualResetEvent(false);
-            _commandProcessor.Process(createCommand);
+            await _commandProcessor.ProcessAsync(createCommand);
             _waitHandle.WaitOne();
 
             _isUpdating = true;
@@ -70,11 +70,11 @@ namespace ENode.CommandProcessorPerfTests
             Console.WriteLine("");
             Console.WriteLine("--Start to update aggregate concurrently, total count: {0}.", _totalCommandCount);
 
-            Task.Factory.StartNew(() =>
+            await Task.Factory.StartNew(async () =>
             {
                 foreach (var updateCommand in updateCommands)
                 {
-                    _commandProcessor.Process(updateCommand);
+                    await _commandProcessor.ProcessAsync(updateCommand);
                 }
             });
 
