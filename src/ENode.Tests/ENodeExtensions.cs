@@ -129,11 +129,15 @@ namespace ENode.Tests
 
             var localIp = SocketUtils.GetLocalIPV4();
             var nameserverPoint = 9493;
-            var nameserverSetting = new NameServerSetting { BindingAddress = new IPEndPoint(localIp, nameserverPoint) };
+            var nameserverSetting = new NameServerSetting {
+                BindingAddress = new IPEndPoint(localIp, nameserverPoint),
+                IsDebugMode = true
+            };
             var brokerStorePath = @"d:\equeue-store-enode-ut";
             var brokerSetting = new BrokerSetting(chunkFileStoreRootPath: brokerStorePath)
             {
-                NameServerList = new List<IPEndPoint> { new IPEndPoint(localIp, nameserverPoint) }
+                NameServerList = new List<IPEndPoint> { new IPEndPoint(localIp, nameserverPoint) },
+                IsDebugMode = true
             };
             brokerSetting.BrokerInfo.ProducerAddress = new IPEndPoint(localIp, 5000).ToAddress();
             brokerSetting.BrokerInfo.ConsumerAddress = new IPEndPoint(localIp, 5001).ToAddress();

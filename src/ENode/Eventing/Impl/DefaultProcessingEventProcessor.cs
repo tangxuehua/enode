@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Scheduling;
@@ -21,28 +22,30 @@ namespace ENode.Eventing.Impl
         private readonly IScheduleService _scheduleService;
         private readonly int _timeoutSeconds;
         private readonly string _scanInactiveMailBoxTaskName;
-        private readonly string _processProblemAggregateTaskName;
+        private readonly string _processTryToRefreshAggregateTaskName;
         private readonly int _scanExpiredAggregateIntervalMilliseconds;
-        private readonly int _processProblemAggregateIntervalMilliseconds;
-        private readonly ConcurrentDictionary<string, ProcessingEventMailBox> _problemAggregateRootMailBoxDict;
+        private readonly int _processTryToRefreshAggregateIntervalMilliseconds;
+        private readonly ConcurrentDictionary<string, ProcessingEventMailBox> _toRefreshAggregateRootMailBoxDict;
+        private readonly ConcurrentDictionary<string, bool> _refreshingAggregateRootDict;
 
         public string Name { get; }
 
         public DefaultProcessingEventProcessor(IPublishedVersionStore publishedVersionStore, IMessageDispatcher dispatcher, IOHelper ioHelper, ILoggerFactory loggerFactory, IScheduleService scheduleService)
         {
             _mailboxDict = new ConcurrentDictionary<string, ProcessingEventMailBox>();
-            _problemAggregateRootMailBoxDict = new ConcurrentDictionary<string, ProcessingEventMailBox>();
+            _toRefreshAggregateRootMailBoxDict = new ConcurrentDictionary<string, ProcessingEventMailBox>();
+            _refreshingAggregateRootDict = new ConcurrentDictionary<string, bool>();
             _publishedVersionStore = publishedVersionStore;
             _dispatcher = dispatcher;
             _ioHelper = ioHelper;
             _logger = loggerFactory.Create(GetType().FullName);
             _scheduleService = scheduleService;
             _scanInactiveMailBoxTaskName = "CleanInactiveProcessingEventMailBoxes_" + DateTime.Now.Ticks + new Random().Next(10000);
-            _processProblemAggregateTaskName = "ProcessProblemAggregate_" + DateTime.Now.Ticks + new Random().Next(10000);
+            _processTryToRefreshAggregateTaskName = "ProcessTryToRefreshAggregate_" + DateTime.Now.Ticks + new Random().Next(10000);
             _timeoutSeconds = ENodeConfiguration.Instance.Setting.AggregateRootMaxInactiveSeconds;
             Name = ENodeConfiguration.Instance.Setting.DomainEventProcessorName;
             _scanExpiredAggregateIntervalMilliseconds = ENodeConfiguration.Instance.Setting.ScanExpiredAggregateIntervalMilliseconds;
-            _processProblemAggregateIntervalMilliseconds = ENodeConfiguration.Instance.Setting.ProcessProblemAggregateIntervalMilliseconds;
+            _processTryToRefreshAggregateIntervalMilliseconds = ENodeConfiguration.Instance.Setting.ProcessTryToRefreshAggregateIntervalMilliseconds;
         }
 
         public void Process(ProcessingEvent processingMessage)
@@ -52,7 +55,8 @@ namespace ENode.Eventing.Impl
             {
                 throw new ArgumentException("aggregateRootId of domain event stream cannot be null or empty, domainEventStreamId:" + processingMessage.Message.Id);
             }
-            var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x => BuildProcessingEventMailBox(processingMessage));
+
+            var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x => new ProcessingEventMailBox(processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, y => DispatchProcessingMessageAsync(y, 0), _logger));
             var mailboxTryUsingCount = 0L;
             while (!mailbox.TryUsing())
             {
@@ -65,8 +69,7 @@ namespace ENode.Eventing.Impl
             }
             if (mailbox.IsRemoved)
             {
-                mailbox = BuildProcessingEventMailBox(processingMessage);
-                _mailboxDict.TryAdd(aggregateRootId, mailbox);
+                mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x => new ProcessingEventMailBox(processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, y => DispatchProcessingMessageAsync(y, 0), _logger));
             }
             ProcessingEventMailBox.EnqueueMessageResult enqueueResult = mailbox.EnqueueMessage(processingMessage);
             if (enqueueResult == ProcessingEventMailBox.EnqueueMessageResult.Ignored)
@@ -75,63 +78,73 @@ namespace ENode.Eventing.Impl
             }
             else if (enqueueResult == ProcessingEventMailBox.EnqueueMessageResult.AddToWaitingList)
             {
-                AddProblemAggregateMailBoxToDict(mailbox);
+                AddToRefreshAggregateMailBoxToDict(mailbox);
             }
             mailbox.ExitUsing();
         }
         public void Start()
         {
             _scheduleService.StartTask(_scanInactiveMailBoxTaskName, CleanInactiveMailbox, _scanExpiredAggregateIntervalMilliseconds, _scanExpiredAggregateIntervalMilliseconds);
-            _scheduleService.StartTask(_processProblemAggregateTaskName, ProcessProblemAggregates, _processProblemAggregateIntervalMilliseconds, _processProblemAggregateIntervalMilliseconds);
+            _scheduleService.StartTask(_processTryToRefreshAggregateTaskName, ProcessToRefreshAggregateRootMailBoxs, _processTryToRefreshAggregateIntervalMilliseconds, _processTryToRefreshAggregateIntervalMilliseconds);
         }
         public void Stop()
         {
             _scheduleService.StopTask(_scanInactiveMailBoxTaskName);
         }
 
-        private ProcessingEventMailBox BuildProcessingEventMailBox(ProcessingEvent processingMessage)
+        private void AddToRefreshAggregateMailBoxToDict(ProcessingEventMailBox mailbox)
         {
-            var latestHandledEventVersion = GetAggregateRootLatestHandledEventVersion(processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId);
-            return new ProcessingEventMailBox(processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, latestHandledEventVersion + 1, y => DispatchProcessingMessageAsync(y, 0), _logger);
-        }
-        private void AddProblemAggregateMailBoxToDict(ProcessingEventMailBox mailbox)
-        {
-            if (_problemAggregateRootMailBoxDict.TryAdd(mailbox.AggregateRootId, mailbox))
+            if (_toRefreshAggregateRootMailBoxDict.TryAdd(mailbox.AggregateRootId, mailbox))
             {
-                _logger.WarnFormat("Added problem aggregate mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", mailbox.AggregateRootTypeName, mailbox.AggregateRootId);
+                TryToRefreshAggregateMailBoxNextExpectingEventVersion(mailbox);
+                if (mailbox.NextExpectingEventVersion > 1)
+                {
+                    _logger.WarnFormat("Added toRefreshPublishedVersion aggregate mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", mailbox.AggregateRootTypeName, mailbox.AggregateRootId);
+                }
             }
         }
-        private void ProcessProblemAggregates()
+        private void TryToRefreshAggregateMailBoxNextExpectingEventVersion(ProcessingEventMailBox processingEventMailBox)
         {
-            var entryList = _problemAggregateRootMailBoxDict.ToArray();
+            if (_refreshingAggregateRootDict.TryAdd(processingEventMailBox.AggregateRootId, true))
+            {
+                Task.Factory.StartNew(async () =>
+                {
+                    var latestPublishedEventVersion = await GetAggregateRootLatestPublishedEventVersion(processingEventMailBox.AggregateRootTypeName, processingEventMailBox.AggregateRootId);
+                    processingEventMailBox.SetNextExpectingEventVersion(latestPublishedEventVersion + 1);
+                    _refreshingAggregateRootDict.TryRemove(processingEventMailBox.AggregateRootId, out bool removed);
+                });
+            }
+        }
+        private void ProcessToRefreshAggregateRootMailBoxs()
+        {
+            var entryList = _toRefreshAggregateRootMailBoxDict.ToArray();
             if (entryList.Length == 0)
             {
                 return;
             }
-            var problemMailboxList = new List<ProcessingEventMailBox>();
+            var remainingMailboxList = new List<ProcessingEventMailBox>();
             var recoveredMailboxList = new List<ProcessingEventMailBox>();
             foreach (var entry in entryList)
             {
                 var aggregateRootMailBox = entry.Value;
                 if (aggregateRootMailBox.WaitingMessageCount > 0)
                 {
-                    problemMailboxList.Add(aggregateRootMailBox);
+                    remainingMailboxList.Add(aggregateRootMailBox);
                 }
                 else
                 {
                     recoveredMailboxList.Add(aggregateRootMailBox);
                 }
             }
-            foreach (var mailbox in problemMailboxList)
+            foreach (var mailbox in remainingMailboxList)
             {
-                var latestHandledEventVersion = GetAggregateRootLatestHandledEventVersion(mailbox.AggregateRootTypeName, mailbox.AggregateRootId);
-                mailbox.SetNextExpectingEventVersion(latestHandledEventVersion + 1);
+                TryToRefreshAggregateMailBoxNextExpectingEventVersion(mailbox);
             }
             foreach (var mailbox in recoveredMailboxList)
             {
-                if (_problemAggregateRootMailBoxDict.TryRemove(mailbox.AggregateRootId, out ProcessingEventMailBox removed))
+                if (_toRefreshAggregateRootMailBoxDict.TryRemove(mailbox.AggregateRootId, out ProcessingEventMailBox removed))
                 {
-                    _logger.InfoFormat("Removed problem aggregate mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", removed.AggregateRootTypeName, removed.AggregateRootId);
+                    _logger.InfoFormat("Removed healthy aggregate mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", removed.AggregateRootTypeName, removed.AggregateRootId);
                 }
             }
         }
@@ -148,11 +161,11 @@ namespace ENode.Eventing.Impl
             null,
             retryTimes, true);
         }
-        private int GetAggregateRootLatestHandledEventVersion(string aggregateRootTypeName, string aggregateRootId)
+        private async Task<int> GetAggregateRootLatestPublishedEventVersion(string aggregateRootTypeName, string aggregateRootId)
         {
             try
             {
-                return _publishedVersionStore.GetPublishedVersionAsync(Name, aggregateRootTypeName, aggregateRootId).Result;
+                return await _publishedVersionStore.GetPublishedVersionAsync(Name, aggregateRootTypeName, aggregateRootId);
             }
             catch (Exception ex)
             {

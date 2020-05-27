@@ -17,7 +17,7 @@ namespace ENode.Eventing
         }
         #region Private Variables 
 
-        private int _nextExpectingEventVersion;
+        private int _nextExpectingEventVersion = 1;
         private volatile int _isUsing;
         private volatile int _isRemoved;
         private volatile int _isRunning;
@@ -29,14 +29,13 @@ namespace ENode.Eventing
 
         #endregion
 
-        public ProcessingEventMailBox(string aggregateRootTypeName, string aggregateRootId, int nextExpectingEventVersion, Action<ProcessingEvent> handleProcessingEventAction, ILogger logger)
+        public ProcessingEventMailBox(string aggregateRootTypeName, string aggregateRootId, Action<ProcessingEvent> handleProcessingEventAction, ILogger logger)
         {
             _processingEventQueue = new ConcurrentQueue<ProcessingEvent>();
             _handleProcessingEventAction = handleProcessingEventAction;
             _logger = logger;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeName = aggregateRootTypeName;
-            _nextExpectingEventVersion = nextExpectingEventVersion;
             LastActiveTime = DateTime.Now;
         }
 
@@ -51,6 +50,10 @@ namespace ENode.Eventing
             {
                 return _processingEventQueue.Count;
             }
+        }
+        public int NextExpectingEventVersion
+        {
+            get { return _nextExpectingEventVersion; }
         }
         public long WaitingMessageCount
         {
@@ -70,12 +73,20 @@ namespace ENode.Eventing
                     LastActiveTime = DateTime.Now;
                     TryRun();
                 }
+                else
+                {
+                    _logger.InfoFormat("{0} nextExpectingEventVersion ignored, aggregateRootId: {1}, aggregateRootTypeName: {2}, nextExpectingEventVersion: {3}, current _nextExpectingEventVersion: {4}", GetType().Name, AggregateRootId, AggregateRootTypeName, nextExpectingEventVersion, _nextExpectingEventVersion);
+                }
             }
         }
         public EnqueueMessageResult EnqueueMessage(ProcessingEvent processingEvent)
         {
             lock (_lockObj)
             {
+                if (IsRemoved)
+                {
+                    throw new Exception(string.Format("ProcessingEventMailBox was removed, cannot allow to enqueue message, aggregateRootTypeName: {0}, aggregateRootId: {1}", AggregateRootTypeName, AggregateRootId));
+                }
                 if (processingEvent.Message.Version == _nextExpectingEventVersion)
                 {
                     EnqueueEventStream(processingEvent);

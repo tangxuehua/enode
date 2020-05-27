@@ -85,7 +85,7 @@ namespace ENode.Tests
             }
             var configurationSetting = new ConfigurationSetting
             {
-                ProcessProblemAggregateIntervalMilliseconds = 1000
+                ProcessTryToRefreshAggregateIntervalMilliseconds = 1000
             };
             _enodeConfiguration = ECommonConfiguration
                 .Create()
