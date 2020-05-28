@@ -96,11 +96,8 @@ namespace ENode.Eventing.Impl
         {
             if (_toRefreshAggregateRootMailBoxDict.TryAdd(mailbox.AggregateRootId, mailbox))
             {
+                _logger.InfoFormat("Added toRefreshPublishedVersion aggregate mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", mailbox.AggregateRootTypeName, mailbox.AggregateRootId);
                 TryToRefreshAggregateMailBoxNextExpectingEventVersion(mailbox);
-                if (mailbox.NextExpectingEventVersion > 1)
-                {
-                    _logger.WarnFormat("Added toRefreshPublishedVersion aggregate mailbox, aggregateRootTypeName: {0}, aggregateRootId: {1}", mailbox.AggregateRootTypeName, mailbox.AggregateRootId);
-                }
             }
         }
         private void TryToRefreshAggregateMailBoxNextExpectingEventVersion(ProcessingEventMailBox processingEventMailBox)
