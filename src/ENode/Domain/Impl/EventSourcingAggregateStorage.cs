@@ -16,17 +16,20 @@ namespace ENode.Domain.Impl
         private readonly IEventStore _eventStore;
         private readonly IAggregateSnapshotter _aggregateSnapshotter;
         private readonly ITypeNameProvider _typeNameProvider;
+        private readonly IOHelper _ioHelper;
 
         public EventSourcingAggregateStorage(
             IAggregateRootFactory aggregateRootFactory,
             IEventStore eventStore,
             IAggregateSnapshotter aggregateSnapshotter,
-            ITypeNameProvider typeNameProvider)
+            ITypeNameProvider typeNameProvider,
+            IOHelper ioHelper)
         {
             _aggregateRootFactory = aggregateRootFactory;
             _eventStore = eventStore;
             _aggregateSnapshotter = aggregateSnapshotter;
             _typeNameProvider = typeNameProvider;
+            _ioHelper = ioHelper;
         }
 
         public async Task<IAggregateRoot> GetAsync(Type aggregateRootType, string aggregateRootId)
@@ -41,17 +44,17 @@ namespace ENode.Domain.Impl
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var eventStreams = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion).ConfigureAwait(false);
-            aggregateRoot = RebuildAggregateRoot(aggregateRootType, eventStreams);
-            return aggregateRoot;
+
+            var eventStreams = await TryQueryAggregateEventsAsync(aggregateRootType, aggregateRootTypeName, aggregateRootId, minVersion, maxVersion, 0, new TaskCompletionSource<IEnumerable<DomainEventStream>>()).ConfigureAwait(false);
+
+            return RebuildAggregateRoot(aggregateRootType, eventStreams);
         }
 
         #region Helper Methods
 
         private async Task<IAggregateRoot> TryGetFromSnapshot(string aggregateRootId, Type aggregateRootType)
         {
-            var aggregateRoot = await _aggregateSnapshotter.RestoreFromSnapshotAsync(aggregateRootType, aggregateRootId).ConfigureAwait(false);
-
+            var aggregateRoot = await TryRestoreFromSnapshotAsync(aggregateRootType, aggregateRootId, 0, new TaskCompletionSource<IAggregateRoot>()).ConfigureAwait(false);
             if (aggregateRoot == null)
             {
                 return null;
@@ -67,9 +70,37 @@ namespace ENode.Domain.Impl
             }
 
             var aggregateRootTypeName = _typeNameProvider.GetTypeName(aggregateRootType);
-            var eventStreams = await _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, aggregateRoot.Version + 1, int.MaxValue).ConfigureAwait(false);
+            var eventStreams = await TryQueryAggregateEventsAsync(aggregateRootType, aggregateRootTypeName, aggregateRootId, aggregateRoot.Version + 1, maxVersion, 0, new TaskCompletionSource<IEnumerable<DomainEventStream>>()).ConfigureAwait(false);
             aggregateRoot.ReplayEvents(eventStreams);
             return aggregateRoot;
+        }
+        private Task<IAggregateRoot> TryRestoreFromSnapshotAsync(Type aggregateRootType, string aggregateRootId, int retryTimes, TaskCompletionSource<IAggregateRoot> taskSource)
+        {
+            _ioHelper.TryAsyncActionRecursively("TryRestoreFromSnapshotAsync",
+            () => _aggregateSnapshotter.RestoreFromSnapshotAsync(aggregateRootType, aggregateRootId),
+            currentRetryTimes => TryRestoreFromSnapshotAsync(aggregateRootType, aggregateRootId, currentRetryTimes, taskSource),
+            result =>
+            {
+                taskSource.SetResult(result);
+            },
+            () => string.Format("_aggregateSnapshotter.TryRestoreFromSnapshotAsync has unknown exception, aggregateRootType: {0}, aggregateRootId: {1}", aggregateRootType.FullName, aggregateRootId),
+            null,
+            retryTimes, true);
+            return taskSource.Task;
+        }
+        private Task<IEnumerable<DomainEventStream>> TryQueryAggregateEventsAsync(Type aggregateRootType, string aggregateRootTypeName, string aggregateRootId, int minVersion, int maxVersion, int retryTimes, TaskCompletionSource<IEnumerable<DomainEventStream>> taskSource)
+        {
+            _ioHelper.TryAsyncActionRecursively("TryQueryAggregateEventsAsync",
+            () => _eventStore.QueryAggregateEventsAsync(aggregateRootId, aggregateRootTypeName, minVersion, maxVersion),
+            currentRetryTimes => TryQueryAggregateEventsAsync(aggregateRootType, aggregateRootTypeName, aggregateRootId, minVersion, maxVersion, currentRetryTimes, taskSource),
+            result =>
+            {
+                taskSource.SetResult(result);
+            },
+            () => string.Format("_eventStore.QueryAggregateEventsAsync has unknown exception, aggregateRootTypeName: {0}, aggregateRootId: {1}", aggregateRootTypeName, aggregateRootId),
+            null,
+            retryTimes, true);
+            return taskSource.Task;
         }
         private IAggregateRoot RebuildAggregateRoot(Type aggregateRootType, IEnumerable<DomainEventStream> eventStreams)
         {

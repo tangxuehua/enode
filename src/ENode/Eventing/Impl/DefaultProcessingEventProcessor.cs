@@ -104,12 +104,7 @@ namespace ENode.Eventing.Impl
         {
             if (_refreshingAggregateRootDict.TryAdd(processingEventMailBox.AggregateRootId, true))
             {
-                Task.Factory.StartNew(async () =>
-                {
-                    var latestPublishedEventVersion = await GetAggregateRootLatestPublishedEventVersion(processingEventMailBox.AggregateRootTypeName, processingEventMailBox.AggregateRootId);
-                    processingEventMailBox.SetNextExpectingEventVersion(latestPublishedEventVersion + 1);
-                    _refreshingAggregateRootDict.TryRemove(processingEventMailBox.AggregateRootId, out bool removed);
-                });
+                GetAggregateRootLatestPublishedEventVersion(processingEventMailBox, 0);
             }
         }
         private void ProcessToRefreshAggregateRootMailBoxs()
@@ -158,16 +153,19 @@ namespace ENode.Eventing.Impl
             null,
             retryTimes, true);
         }
-        private async Task<int> GetAggregateRootLatestPublishedEventVersion(string aggregateRootTypeName, string aggregateRootId)
+        private void GetAggregateRootLatestPublishedEventVersion(ProcessingEventMailBox processingEventMailBox, int retryTimes)
         {
-            try
+            _ioHelper.TryAsyncActionRecursively("GetAggregateRootLatestPublishedEventVersion",
+            () => _publishedVersionStore.GetPublishedVersionAsync(Name, processingEventMailBox.AggregateRootTypeName, processingEventMailBox.AggregateRootId),
+            currentRetryTimes => GetAggregateRootLatestPublishedEventVersion(processingEventMailBox, currentRetryTimes),
+            result =>
             {
-                return await _publishedVersionStore.GetPublishedVersionAsync(Name, aggregateRootTypeName, aggregateRootId);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(string.Format("_publishedVersionStore.GetPublishedVersionAsync has unknown exception, aggregateRootTypeName: {0}, aggregateRootId: {1}", aggregateRootTypeName, aggregateRootId), ex);
-            }
+                processingEventMailBox.SetNextExpectingEventVersion(result + 1);
+                _refreshingAggregateRootDict.TryRemove(processingEventMailBox.AggregateRootId, out bool removed);
+            },
+            () => string.Format("_publishedVersionStore.GetPublishedVersionAsync has unknown exception, aggregateRootTypeName: {0}, aggregateRootId: {1}", processingEventMailBox.AggregateRootTypeName, processingEventMailBox.AggregateRootId),
+            null,
+            retryTimes, true);
         }
         private void UpdatePublishedVersionAsync(ProcessingEvent processingMessage, int retryTimes)
         {

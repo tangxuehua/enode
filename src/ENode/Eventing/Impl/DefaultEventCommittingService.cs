@@ -20,12 +20,7 @@ namespace ENode.Eventing.Impl
 
         private readonly int _eventMailboxCount;
         private readonly IList<EventCommittingContextMailBox> _eventCommittingContextMailBoxList;
-        private readonly IJsonSerializer _jsonSerializer;
-        private readonly IScheduleService _scheduleService;
-        private readonly ITypeNameProvider _typeNameProvider;
         private readonly IMemoryCache _memoryCache;
-        private readonly IAggregateRootFactory _aggregateRootFactory;
-        private readonly IAggregateStorage _aggregateStorage;
         private readonly IEventStore _eventStore;
         private readonly IMessagePublisher<DomainEventStreamMessage> _domainEventPublisher;
         private readonly IOHelper _ioHelper;
@@ -37,12 +32,7 @@ namespace ENode.Eventing.Impl
         #region Constructors
 
         public DefaultEventCommittingService(
-            IJsonSerializer jsonSerializer,
-            IScheduleService scheduleService,
-            ITypeNameProvider typeNameProvider,
             IMemoryCache memoryCache,
-            IAggregateRootFactory aggregateRootFactory,
-            IAggregateStorage aggregateStorage,
             IEventStore eventStore,
             IMessagePublisher<DomainEventStreamMessage> domainEventPublisher,
             IOHelper ioHelper,
@@ -50,12 +40,7 @@ namespace ENode.Eventing.Impl
         {
             _eventCommittingContextMailBoxList = new List<EventCommittingContextMailBox>();
             _ioHelper = ioHelper;
-            _jsonSerializer = jsonSerializer;
-            _scheduleService = scheduleService;
-            _typeNameProvider = typeNameProvider;
             _memoryCache = memoryCache;
-            _aggregateRootFactory = aggregateRootFactory;
-            _aggregateStorage = aggregateStorage;
             _eventStore = eventStore;
             _domainEventPublisher = domainEventPublisher;
             _logger = loggerFactory.Create(GetType().FullName);

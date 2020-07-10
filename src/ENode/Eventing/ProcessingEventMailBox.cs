@@ -17,7 +17,7 @@ namespace ENode.Eventing
         }
         #region Private Variables 
 
-        private int _nextExpectingEventVersion = 1;
+        private int? _nextExpectingEventVersion;
         private volatile int _isUsing;
         private volatile int _isRemoved;
         private volatile int _isRunning;
@@ -51,7 +51,7 @@ namespace ENode.Eventing
                 return _processingEventQueue.Count;
             }
         }
-        public int NextExpectingEventVersion
+        public int? NextExpectingEventVersion
         {
             get { return _nextExpectingEventVersion; }
         }
@@ -65,11 +65,12 @@ namespace ENode.Eventing
         {
             lock (_lockObj)
             {
-                if (nextExpectingEventVersion > _nextExpectingEventVersion)
+                TryRemovedInvalidWaitingMessages(nextExpectingEventVersion);
+                if (_nextExpectingEventVersion == null || nextExpectingEventVersion > _nextExpectingEventVersion)
                 {
                     _nextExpectingEventVersion = nextExpectingEventVersion;
                     _logger.InfoFormat("{0} refreshed nextExpectingEventVersion, aggregateRootId: {1}, aggregateRootTypeName: {2}, version: {3}", GetType().Name, AggregateRootId, AggregateRootTypeName, nextExpectingEventVersion);
-                    TryEnqueueWaitingMessage();
+                    TryEnqueueValidWaitingMessage();
                     LastActiveTime = DateTime.Now;
                     TryRun();
                 }
@@ -87,19 +88,11 @@ namespace ENode.Eventing
                 {
                     throw new Exception(string.Format("ProcessingEventMailBox was removed, cannot allow to enqueue message, aggregateRootTypeName: {0}, aggregateRootId: {1}", AggregateRootTypeName, AggregateRootId));
                 }
-                if (processingEvent.Message.Version == _nextExpectingEventVersion)
-                {
-                    EnqueueEventStream(processingEvent);
-                    TryEnqueueWaitingMessage();
-                    LastActiveTime = DateTime.Now;
-                    TryRun();
-                    return EnqueueMessageResult.Success;
-                }
-                else if (processingEvent.Message.Version > _nextExpectingEventVersion)
+                if (_nextExpectingEventVersion == null || processingEvent.Message.Version > _nextExpectingEventVersion.Value)
                 {
                     if (_waitingProcessingEventDict.TryAdd(processingEvent.Message.Version, processingEvent))
                     {
-                        _logger.WarnFormat("{0} later version of message arrived, added it to the waiting list, aggregateRootType: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventTypes: {6}, eventIds: {7}, _nextExpectingEventVersion: {8}",
+                        _logger.WarnFormat("{0} waiting message added, aggregateRootType: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventTypes: {6}, eventIds: {7}, _nextExpectingEventVersion: {8}",
                             GetType().Name,
                             processingEvent.Message.AggregateRootTypeName,
                             processingEvent.Message.AggregateRootId,
@@ -112,6 +105,14 @@ namespace ENode.Eventing
                         );
                     }
                     return EnqueueMessageResult.AddToWaitingList;
+                }
+                else if (processingEvent.Message.Version == _nextExpectingEventVersion)
+                {
+                    EnqueueEventStream(processingEvent);
+                    TryEnqueueValidWaitingMessage();
+                    LastActiveTime = DateTime.Now;
+                    TryRun();
+                    return EnqueueMessageResult.Success;
                 }
                 return EnqueueMessageResult.Ignored;
             }
@@ -156,9 +157,34 @@ namespace ENode.Eventing
             Interlocked.Exchange(ref _isRemoved, 1);
         }
 
-        private void TryEnqueueWaitingMessage()
+        private void TryRemovedInvalidWaitingMessages(int nextExpectingEventVersion)
         {
-            while (_waitingProcessingEventDict.TryRemove(_nextExpectingEventVersion, out ProcessingEvent nextProcessingEvent))
+            var toRemoveKeyList = _waitingProcessingEventDict.Keys.Where(x => x < nextExpectingEventVersion);
+            foreach (var key in toRemoveKeyList)
+            {
+                if (_waitingProcessingEventDict.TryRemove(key, out ProcessingEvent processingEvent))
+                {
+                    _logger.WarnFormat("{0} invalid waiting message removed, aggregateRootType: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventTypes: {6}, eventIds: {7}, nextExpectingEventVersion: {8}",
+                        GetType().Name,
+                        processingEvent.Message.AggregateRootTypeName,
+                        processingEvent.Message.AggregateRootId,
+                        processingEvent.Message.CommandId,
+                        processingEvent.Message.Version,
+                        processingEvent.Message.Id,
+                        string.Join("|", processingEvent.Message.Events.Select(x => x.GetType().Name)),
+                        string.Join("|", processingEvent.Message.Events.Select(x => x.Id)),
+                        nextExpectingEventVersion
+                    );
+                }
+            }
+        }
+        private void TryEnqueueValidWaitingMessage()
+        {
+            if (_nextExpectingEventVersion == null)
+            {
+                return;
+            }
+            while (_waitingProcessingEventDict.TryRemove(_nextExpectingEventVersion.Value, out ProcessingEvent nextProcessingEvent))
             {
                 EnqueueEventStream(nextProcessingEvent);
                 _logger.InfoFormat("{0} enqueued waiting processingEvent, aggregateRootId: {1}, aggregateRootTypeName: {2}, eventVersion: {3}", GetType().Name, AggregateRootId, AggregateRootTypeName, nextProcessingEvent.Message.Version);
