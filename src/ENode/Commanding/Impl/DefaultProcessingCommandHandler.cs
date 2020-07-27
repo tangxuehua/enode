@@ -141,6 +141,17 @@ namespace ENode.Commanding.Impl
                         await CommitAggregateChanges(processingCommand).ConfigureAwait(false);
                         taskSource.SetResult(true);
                     }
+                    catch (AggregateRootReferenceChangedException aggregateRootReferenceChangedException)
+                    {
+                        _logger.InfoFormat("Aggregate root reference changed when processing command, try to re-handle the command. aggregateRootId: {0}, aggregateRootType: {1}, commandId: {2}, commandType: {3}, handlerType: {4}",
+                            aggregateRootReferenceChangedException.AggregateRoot.UniqueId,
+                            aggregateRootReferenceChangedException.AggregateRoot.GetType().Name,
+                            command.Id,
+                            command.GetType().Name,
+                            commandHandler.GetInnerObject().GetType().Name
+                        );
+                        await HandleCommandInternal(processingCommand, commandHandler, 0, taskSource).ConfigureAwait(false);
+                    }
                     catch (Exception ex)
                     {
                         _logger.Error(string.Format("Commit aggregate changes has unknown exception, handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
@@ -205,12 +216,6 @@ namespace ENode.Commanding.Impl
                 return;
             }
 
-            //接受聚合根的最新修改
-            dirtyAggregateRoot.AcceptChanges();
-
-            //刷新聚合根的内存缓存
-            await _memoryCache.UpdateAggregateRootCache(dirtyAggregateRoot).ConfigureAwait(false);
-
             //构造出一个事件流对象
             var commandResult = processingCommand.CommandExecuteContext.GetResult();
             if (commandResult != null)
@@ -225,8 +230,11 @@ namespace ENode.Commanding.Impl
                 changedEvents,
                 command.Items);
 
-            //异步将事件流提交到EventStore
-            _eventCommittingService.CommitDomainEventAsync(new EventCommittingContext(dirtyAggregateRoot, eventStream, processingCommand));
+            //内存先接受聚合根的更新，需要检查聚合根引用是否已变化，如果已变化，会抛出异常
+            await _memoryCache.AcceptAggregateRootChanges(dirtyAggregateRoot).ConfigureAwait(false);
+
+            //提交事件流进行后续的处理
+            _eventCommittingService.CommitDomainEventAsync(new EventCommittingContext(eventStream, processingCommand));
         }
         private Task RepublishCommandEvents(ProcessingCommand processingCommand, int retryTimes, TaskCompletionSource<bool> taskSource)
         {

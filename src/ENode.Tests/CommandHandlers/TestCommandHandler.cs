@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ECommon.Components;
 using ECommon.IO;
 using ENode.Commanding;
+using ENode.Domain;
 using ENode.Infrastructure;
 using ENode.Messaging;
 using ENode.Tests.Commands;
@@ -13,6 +15,7 @@ namespace ENode.Tests.CommandHandlers
     public class TestCommandHandler :
         ICommandHandler<CreateTestAggregateCommand>,
         ICommandHandler<ChangeTestAggregateTitleCommand>,
+        ICommandHandler<ChangeTestAggregateTitleWhenDirtyCommand>,
         ICommandHandler<CreateInheritTestAggregateCommand>,
         ICommandHandler<ChangeInheritTestAggregateTitleCommand>,
         ICommandHandler<TestEventPriorityCommand>,
@@ -35,6 +38,16 @@ namespace ENode.Tests.CommandHandlers
         {
             var testAggregate = await context.GetAsync<TestAggregate>(command.AggregateRootId);
             testAggregate.ChangeTitle(command.Title);
+        }
+        public async Task HandleAsync(ICommandContext context, ChangeTestAggregateTitleWhenDirtyCommand command)
+        {
+            var testAggregate = await context.GetAsync<TestAggregate>(command.AggregateRootId);
+            if (command.IsFirstExecute)
+            {
+                await ObjectContainer.Resolve<IMemoryCache>().RefreshAggregateFromEventStoreAsync(typeof(TestAggregate).FullName, command.AggregateRootId);
+            }
+            testAggregate.ChangeTitle(command.Title);
+            command.IsFirstExecute = false;
         }
         public Task HandleAsync(ICommandContext context, CreateInheritTestAggregateCommand command)
         {

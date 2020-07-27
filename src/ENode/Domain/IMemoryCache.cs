@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ENode.Domain
@@ -20,11 +19,11 @@ namespace ENode.Domain
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
         Task<T> GetAsync<T>(object aggregateRootId) where T : class, IAggregateRoot;
-        /// <summary>Update the given aggregate root's memory cache.
+        /// <summary>Accept the given aggregate root's changes.
         /// </summary>
         /// <param name="aggregateRoot"></param>
         /// <returns></returns>
-        Task UpdateAggregateRootCache(IAggregateRoot aggregateRoot);
+        Task AcceptAggregateRootChanges(IAggregateRoot aggregateRoot);
         /// <summary>Refresh the aggregate memory cache by replaying events of event store, and return the refreshed aggregate root.
         /// </summary>
         Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, object aggregateRootId);

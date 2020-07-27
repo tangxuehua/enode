@@ -58,7 +58,7 @@ namespace ENode.Eventing
                     _logger.DebugFormat("{0} enqueued new message, mailboxNumber: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventIds: {6}",
                         GetType().Name,
                         Number,
-                        message.AggregateRoot.UniqueId,
+                        message.EventStream.AggregateRootId,
                         message.ProcessingCommand.Message.Id,
                         message.EventStream.Version,
                         message.EventStream.Id,

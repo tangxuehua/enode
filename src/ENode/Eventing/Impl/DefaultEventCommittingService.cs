@@ -140,15 +140,22 @@ namespace ENode.Eventing.Impl
                 {
                     foreach (var entry in result.DuplicateCommandAggregateRootIdList)
                     {
-                        var committingContext = committingContexts.FirstOrDefault(x => x.AggregateRoot.UniqueId == entry.Key);
+                        var committingContext = committingContexts.FirstOrDefault(x => x.EventStream.AggregateRootId == entry.Key);
                         if (committingContext != null)
                         {
                             _logger.WarnFormat("Batch persist events has duplicate commandIds, mailboxNumber: {0}, aggregateRootId: {1}, commandIds: {2}",
                                 eventMailBox.Number,
                                 entry.Key,
                                 string.Join(",", entry.Value));
-                            await ResetCommandMailBoxConsumingSequence(committingContext, committingContext.ProcessingCommand.Sequence, entry.Value).ConfigureAwait(false);
-                            TryToRepublishEventAsync(committingContext, 0);
+
+                            if (committingContext.EventStream.Version == 1)
+                            {
+                                await HandleFirstEventDuplicationAsync(committingContext, 0);
+                            }
+                            else
+                            {
+                                await ResetCommandMailBoxConsumingSequence(committingContext, committingContext.ProcessingCommand.Sequence, entry.Value).ContinueWith(t => { }).ConfigureAwait(false);
+                            }
                         }
                     }
                 }

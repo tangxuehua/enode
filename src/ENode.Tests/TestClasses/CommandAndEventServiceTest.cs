@@ -6,6 +6,7 @@ using ECommon.Components;
 using ECommon.IO;
 using ECommon.Utilities;
 using ENode.Commanding;
+using ENode.Configurations;
 using ENode.Domain;
 using ENode.Eventing;
 using ENode.Infrastructure;
@@ -398,6 +399,60 @@ namespace ENode.Tests
             Assert.IsNotNull(commandResult);
             Assert.AreEqual(CommandStatus.NothingChanged, commandResult.Status);
             Assert.AreEqual("ResultFromChildCommand", commandResult.Result);
+        }
+        [Test]
+        public void create_and_update_dirty_aggregate_test()
+        {
+            var aggregateId = ObjectId.GenerateNewStringId();
+            var command = new CreateTestAggregateCommand
+            {
+                AggregateRootId = aggregateId,
+                Title = "Sample Note"
+            };
+
+            //执行创建聚合根的命令
+            var commandResult = _commandService.ExecuteAsync(command).Result;
+            Assert.IsNotNull(commandResult);
+            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
+            var note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
+            Assert.IsNotNull(note);
+            Assert.AreEqual("Sample Note", note.Title);
+            Assert.AreEqual(1, ((IAggregateRoot)note).Version);
+
+            var directUpdateEventStoreCommandId = ObjectId.GenerateNewStringId();
+            var eventStore = ObjectContainer.Resolve<IEventStore>();
+            var publishedVersionStore = ObjectContainer.Resolve<IPublishedVersionStore>();
+            var eventStreamList = new List<DomainEventStream>();
+            var evnts = new List<IDomainEvent>();
+            var evnt = new TestAggregateTitleChanged("Note Title2")
+            {
+                AggregateRootId = aggregateId,
+                AggregateRootTypeName = typeof(TestAggregate).FullName,
+                CommandId = directUpdateEventStoreCommandId,
+                Version = 2
+            };
+            evnts.Add(evnt);
+            var eventStream = new DomainEventStream(ObjectId.GenerateNewStringId(), aggregateId, typeof(TestAggregate).FullName, DateTime.UtcNow, evnts);
+            eventStreamList.Add(eventStream);
+            eventStore.BatchAppendAsync(eventStreamList).Wait();
+
+            var eventProcessorName = ENodeConfiguration.Instance.Setting.DomainEventProcessorName;
+            publishedVersionStore.UpdatePublishedVersionAsync(eventProcessorName, typeof(TestAggregate).FullName, aggregateId, 2).Wait();
+
+            //执行修改聚合根的命令
+            var command2 = new ChangeTestAggregateTitleWhenDirtyCommand
+            {
+                AggregateRootId = aggregateId,
+                Title = "Changed Note",
+                IsFirstExecute = true
+            };
+            commandResult = _commandService.ExecuteAsync(command2, CommandReturnType.EventHandled).Result;
+            Assert.IsNotNull(commandResult);
+            Assert.AreEqual(CommandStatus.Success, commandResult.Status);
+            note = _memoryCache.GetAsync<TestAggregate>(aggregateId).Result;
+            Assert.IsNotNull(note);
+            Assert.AreEqual("Changed Note", note.Title);
+            Assert.AreEqual(3, ((IAggregateRoot)note).Version);
         }
 
         #endregion

@@ -61,9 +61,34 @@ namespace ENode.Domain.Impl
         {
             return await GetAsync(aggregateRootId, typeof(T)).ConfigureAwait(false) as T;
         }
-        public Task UpdateAggregateRootCache(IAggregateRoot aggregateRoot)
+        public Task AcceptAggregateRootChanges(IAggregateRoot aggregateRoot)
         {
-            ResetAggregateRootCache(aggregateRoot);
+            lock (_lockObj)
+            {
+                if (aggregateRoot == null)
+                {
+                    throw new ArgumentNullException("aggregateRoot");
+                }
+                _aggregateRootInfoDict.AddOrUpdate(aggregateRoot.UniqueId, x =>
+                {
+                    _logger.DebugFormat("Aggregate root in-memory cache init, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootVersion: {2}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version);
+                    return new AggregateCacheInfo(aggregateRoot);
+                }, (x, existing) =>
+                {
+                    //更新到内存缓存前需要先检查聚合根引用是否有变化，有变化说明此聚合根已经被重置过状态了
+                    if (aggregateRoot.Version > 1 && existing.AggregateRoot != aggregateRoot)
+                    {
+                        throw new AggregateRootReferenceChangedException(aggregateRoot);
+                    }
+                    //接受聚合根的最新事件修改，更新聚合根版本号
+                    aggregateRoot.AcceptChanges();
+                    var existingAggregateRoot = existing.AggregateRoot;
+                    existing.AggregateRoot = aggregateRoot;
+                    existing.LastUpdateTime = DateTime.Now;
+                    _logger.DebugFormat("Aggregate root in-memory cache changed, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootNewVersion: {2}, aggregateRootOldVersion: {3}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version, existingAggregateRoot.Version);
+                    return existing;
+                });
+            }
             return Task.CompletedTask;
         }
         public Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, object aggregateRootId)
@@ -121,10 +146,10 @@ namespace ENode.Domain.Impl
                     return new AggregateCacheInfo(aggregateRoot);
                 }, (x, existing) =>
                 {
-                    var aggregateRootOldVersion = existing.AggregateRoot.Version;
+                    var existingAggregateRoot = existing.AggregateRoot;
                     existing.AggregateRoot = aggregateRoot;
                     existing.LastUpdateTime = DateTime.Now;
-                    _logger.DebugFormat("Aggregate root in-memory cache reset, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootNewVersion: {2}, aggregateRootOldVersion: {3}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version, aggregateRootOldVersion);
+                    _logger.DebugFormat("Aggregate root in-memory cache reset, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootNewVersion: {2}, aggregateRootOldVersion: {3}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version, existingAggregateRoot.Version);
                     return existing;
                 });
             }
@@ -141,8 +166,7 @@ namespace ENode.Domain.Impl
             }
             foreach (var pair in inactiveList)
             {
-                AggregateCacheInfo removed;
-                if (_aggregateRootInfoDict.TryRemove(pair.Key, out removed))
+                if (_aggregateRootInfoDict.TryRemove(pair.Key, out _))
                 {
                     _logger.InfoFormat("Removed inactive aggregate root, id: {0}", pair.Key);
                 }

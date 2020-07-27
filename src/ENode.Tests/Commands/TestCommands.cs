@@ -11,6 +11,11 @@ namespace ENode.Tests.Commands
     {
         public string Title { get; set; }
     }
+    public class ChangeTestAggregateTitleWhenDirtyCommand : Command<string>
+    {
+        public string Title { get; set; }
+        public bool IsFirstExecute { get; set; }
+    }
     public class CreateInheritTestAggregateCommand : Command<string>
     {
         public string Title { get; set; }
