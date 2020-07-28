@@ -112,10 +112,7 @@ namespace ENode.EQueue
                     _commandTaskDict.Remove(commandResult.CommandId);
                     if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(commandResult))
                     {
-                        if (_logger.IsDebugEnabled)
-                        {
-                            _logger.DebugFormat("Command result return, {0}", commandResult);
-                        }
+                        _logger.InfoFormat("Command result return, {0}", commandResult);
                     }
                 }
                 else if (commandTaskCompletionSource.CommandReturnType == CommandReturnType.EventHandled)
@@ -125,10 +122,7 @@ namespace ENode.EQueue
                         _commandTaskDict.Remove(commandResult.CommandId);
                         if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(commandResult))
                         {
-                            if (_logger.IsDebugEnabled)
-                            {
-                                _logger.DebugFormat("Command result return, {0}", commandResult);
-                            }
+                            _logger.InfoFormat("Command result return, {0}", commandResult);
                         }
                     }
                 }
@@ -141,10 +135,7 @@ namespace ENode.EQueue
                 var commandResult = new CommandResult(CommandStatus.Success, message.CommandId, message.AggregateRootId, message.CommandResult, message.CommandResult != null ? typeof(string).FullName : null);
                 if (commandTaskCompletionSource.TaskCompletionSource.TrySetResult(commandResult))
                 {
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.DebugFormat("Command result return, {0}", commandResult);
-                    }
+                    _logger.InfoFormat("Command result return, {0}", commandResult);
                 }
             }
         }

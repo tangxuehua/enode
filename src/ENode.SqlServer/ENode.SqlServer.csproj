@@ -13,7 +13,7 @@
   <ItemGroup>
     <PackageReference Include="ECommon" Version="2.6.4" />
     <PackageReference Include="ECommon.Dapper" Version="2.5.2" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
   </ItemGroup>
 
   <ItemGroup>

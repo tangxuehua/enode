@@ -126,14 +126,14 @@ namespace ENode.Eventing
                     return;
                 }
                 SetAsRunning();
-                _logger.DebugFormat("{0} start run, aggregateRootId: {1}", GetType().Name, AggregateRootId);
+                _logger.InfoFormat("{0} start run, aggregateRootId: {1}", GetType().Name, AggregateRootId);
                 Task.Factory.StartNew(ProcessMessage);
             }
         }
         public void CompleteRun()
         {
             LastActiveTime = DateTime.Now;
-            _logger.DebugFormat("{0} complete run, aggregateRootId: {1}", GetType().Name, AggregateRootId);
+            _logger.InfoFormat("{0} complete run, aggregateRootId: {1}", GetType().Name, AggregateRootId);
             SetAsNotRunning();
             if (TotalUnHandledMessageCount > 0)
             {
@@ -226,19 +226,17 @@ namespace ENode.Eventing
                 processingEvent.MailBox = this;
                 _processingEventQueue.Enqueue(processingEvent);
                 _nextExpectingEventVersion = processingEvent.Message.Version + 1;
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("{0} enqueued new message, aggregateRootType: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventTypes: {6}, eventIds: {7}",
-                        GetType().Name,
-                        processingEvent.Message.AggregateRootTypeName,
-                        processingEvent.Message.AggregateRootId,
-                        processingEvent.Message.CommandId,
-                        processingEvent.Message.Version,
-                        processingEvent.Message.Id,
-                        string.Join("|", processingEvent.Message.Events.Select(x => x.GetType().Name)),
-                        string.Join("|", processingEvent.Message.Events.Select(x => x.Id))
-                    );
-                }
+
+                _logger.InfoFormat("{0} enqueued new message, aggregateRootType: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventTypes: {6}, eventIds: {7}",
+                    GetType().Name,
+                    processingEvent.Message.AggregateRootTypeName,
+                    processingEvent.Message.AggregateRootId,
+                    processingEvent.Message.CommandId,
+                    processingEvent.Message.Version,
+                    processingEvent.Message.Id,
+                    string.Join("|", processingEvent.Message.Events.Select(x => x.GetType().Name)),
+                    string.Join("|", processingEvent.Message.Events.Select(x => x.Id))
+                );
             }
         }
     }

@@ -55,7 +55,7 @@ namespace ENode.Eventing
                 {
                     message.MailBox = this;
                     _messageQueue.Enqueue(message);
-                    _logger.DebugFormat("{0} enqueued new message, mailboxNumber: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventIds: {6}",
+                    _logger.InfoFormat("{0} enqueued new message, mailboxNumber: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventIds: {6}",
                         GetType().Name,
                         Number,
                         message.EventStream.AggregateRootId,
@@ -78,14 +78,14 @@ namespace ENode.Eventing
                     return;
                 }
                 SetAsRunning();
-                _logger.DebugFormat("{0} start run, mailboxNumber: {1}", GetType().Name, Number);
+                _logger.InfoFormat("{0} start run, mailboxNumber: {1}", GetType().Name, Number);
                 Task.Factory.StartNew(ProcessMessages);
             }
         }
         public void CompleteRun()
         {
             LastActiveTime = DateTime.Now;
-            _logger.DebugFormat("{0} complete run, mailboxNumber: {1}", GetType().Name, Number);
+            _logger.InfoFormat("{0} complete run, mailboxNumber: {1}", GetType().Name, Number);
             SetAsNotRunning();
             if (TotalUnHandledMessageCount > 0)
             {

@@ -121,14 +121,11 @@ namespace ENode.Commanding.Impl
             currentRetryTimes => HandleCommandInternal(processingCommand, commandHandler, currentRetryTimes, taskSource),
             async () =>
             {
-                if (_logger.IsDebugEnabled)
-                {
-                    _logger.DebugFormat("Handle command success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
-                        commandHandler.GetInnerObject().GetType().Name,
-                        command.GetType().Name,
-                        command.Id,
-                        command.AggregateRootId);
-                }
+                _logger.InfoFormat("Handle command success. handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                    commandHandler.GetInnerObject().GetType().Name,
+                    command.GetType().Name,
+                    command.Id,
+                    command.AggregateRootId);
                 if (commandContext.GetApplicationMessage() != null)
                 {
                     await CommitChangesAsync(processingCommand, true, commandContext.GetApplicationMessage(), null, new TaskCompletionSource<bool>()).ConfigureAwait(false);

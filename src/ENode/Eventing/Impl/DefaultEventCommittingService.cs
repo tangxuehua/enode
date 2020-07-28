@@ -125,12 +125,10 @@ namespace ENode.Eventing.Impl
                             {
                                 PublishDomainEventAsync(committingContext.ProcessingCommand, committingContext.EventStream);
                             }
-                            if (_logger.IsDebugEnabled)
-                            {
-                                _logger.DebugFormat("Batch persist events success, mailboxNumber: {0}, aggregateRootId: {1}",
-                                    eventMailBox.Number,
-                                    aggregateRootId);
-                            }
+
+                            _logger.InfoFormat("Batch persist events success, mailboxNumber: {0}, aggregateRootId: {1}",
+                                eventMailBox.Number,
+                                aggregateRootId);
                         }
                     }
                 }
@@ -318,7 +316,7 @@ namespace ENode.Eventing.Impl
             currentRetryTimes => PublishDomainEventAsync(processingCommand, eventStream, currentRetryTimes),
             () =>
             {
-                _logger.DebugFormat("Publish event success, {0}", eventStream);
+                _logger.InfoFormat("Publish event success, {0}", eventStream);
                 var commandHandleResult = processingCommand.CommandExecuteContext.GetResult();
                 var commandResult = new CommandResult(CommandStatus.Success, processingCommand.Message.Id, eventStream.AggregateRootId, commandHandleResult, typeof(string).FullName);
                 CompleteCommand(processingCommand, commandResult);

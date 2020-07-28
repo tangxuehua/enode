@@ -172,7 +172,7 @@ namespace ENode.Messaging.Impl
                 {
                     queueHandler.OnHandlerFinished(handlerProxy);
                 }
-                _logger.DebugFormat("Message handled success, handlerType:{0}, messageType:{1}, messageId:{2}", handlerTypeName, message.GetType().Name, message.Id);
+                _logger.InfoFormat("Message handled success, handlerType:{0}, messageType:{1}, messageId:{2}", handlerTypeName, message.GetType().Name, message.Id);
             },
             () => string.Format("[messageId:{0}, messageType:{1}, handlerType:{2}]", message.Id, message.GetType().Name, handlerProxy.GetInnerObject().GetType().Name),
             null,
@@ -194,7 +194,7 @@ namespace ENode.Messaging.Impl
                 {
                     queueHandler.OnHandlerFinished(handlerProxy);
                 }
-                _logger.DebugFormat("TwoMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
+                _logger.InfoFormat("TwoMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,
@@ -217,7 +217,7 @@ namespace ENode.Messaging.Impl
                 {
                     queueHandler.OnHandlerFinished(handlerProxy);
                 }
-                _logger.DebugFormat("ThreeMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
+                _logger.InfoFormat("ThreeMessage handled success, [messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerTypeName);
             },
             () => string.Format("[messages:[{0}], handlerType:{1}]", string.Join("|", messages.Select(x => string.Format("id:{0},type:{1}", x.Id, x.GetType().Name))), handlerProxy.GetInnerObject().GetType().Name),
             null,

@@ -55,7 +55,6 @@ namespace BankTransferSample
                 .StartEQueue()
                 .Start();
 
-            Console.WriteLine(string.Empty);
             Console.WriteLine("ENode started...");
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
@@ -63,21 +62,16 @@ namespace BankTransferSample
             var account1 = ObjectId.GenerateNewStringId();
             var account2 = ObjectId.GenerateNewStringId();
             var account3 = "INVALID-" + ObjectId.GenerateNewStringId();
-            Console.WriteLine(string.Empty);
 
             //创建两个银行账户
             commandService.ExecuteAsync(new CreateAccountCommand(account1, "雪华"), CommandReturnType.EventHandled).Wait();
             commandService.ExecuteAsync(new CreateAccountCommand(account2, "凯锋"), CommandReturnType.EventHandled).Wait();
-
-            Console.WriteLine(string.Empty);
 
             //每个账户都存入1000元
             commandService.SendAsync(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), account1, 1000)).Wait();
             syncHelper.WaitOne();
             commandService.SendAsync(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), account2, 1000)).Wait();
             syncHelper.WaitOne();
-
-            Console.WriteLine(string.Empty);
 
             //账户1向账户3转账300元，交易会失败，因为账户3不存在
             commandService.SendAsync(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account1, account3, 300D))
@@ -88,7 +82,6 @@ namespace BankTransferSample
                 }
             }).Wait();
             syncHelper.WaitOne();
-            Console.WriteLine(string.Empty);
 
             //账户1向账户2转账1200元，交易会失败，因为余额不足
             commandService.SendAsync(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account1, account2, 1200D))
@@ -99,7 +92,6 @@ namespace BankTransferSample
                 }
             }).Wait();
             syncHelper.WaitOne();
-            Console.WriteLine(string.Empty);
 
             //账户2向账户1转账500元，交易成功
             commandService.SendAsync(new StartTransferTransactionCommand(ObjectId.GenerateNewStringId(), new TransferTransactionInfo(account2, account1, 500D))
@@ -112,7 +104,6 @@ namespace BankTransferSample
             syncHelper.WaitOne();
 
             Thread.Sleep(200);
-            Console.WriteLine(string.Empty);
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
             _configuration.ShutdownEQueue();
@@ -126,7 +117,7 @@ namespace BankTransferSample
             var loggerFactory = new SerilogLoggerFactory()
                 .AddFileLogger("ECommon", "logs\\ecommon")
                 .AddFileLogger("EQueue", "logs\\equeue")
-                .AddFileLogger("ENode", "logs\\enode");
+                .AddFileLogger("ENode", "logs\\enode", minimumLevel: Serilog.Events.LogEventLevel.Error);
             _configuration = ECommon.Configurations.Configuration
                 .Create()
                 .UseAutofac()
@@ -142,14 +133,14 @@ namespace BankTransferSample
                 .InitializeBusinessAssemblies(assemblies)
                 .StartEQueue();
 
-            Console.WriteLine(string.Empty);
             Console.WriteLine("ENode started...");
 
             var commandService = ObjectContainer.Resolve<ICommandService>();
             var syncHelper = ObjectContainer.Resolve<SyncHelper>();
             var countSyncHelper = ObjectContainer.Resolve<CountSyncHelper>();
+            var consoleLogger = ObjectContainer.Resolve<ConsoleLogger>();
 
-            Console.WriteLine(string.Empty);
+            consoleLogger.IsPerformanceTest = true;
 
             var accountList = new List<string>();
             var accountCount = 100;
@@ -165,16 +156,12 @@ namespace BankTransferSample
                 accountList.Add(accountId);
             }
 
-            Console.WriteLine(string.Empty);
-
             //每个账户都存入初始额度
             foreach (var accountId in accountList)
             {
                 commandService.SendAsync(new StartDepositTransactionCommand(ObjectId.GenerateNewStringId(), accountId, depositAmount)).Wait();
                 syncHelper.WaitOne();
             }
-
-            Console.WriteLine(string.Empty);
 
             countSyncHelper.SetExpectedCount(transactionCount);
 
@@ -192,8 +179,7 @@ namespace BankTransferSample
 
             var spentTime = watch.ElapsedMilliseconds;
             Thread.Sleep(500);
-            Console.WriteLine(string.Empty);
-            Console.WriteLine("All transfer transactions completed, time spent: {0}ms, throughput: {1} transactions per second.", spentTime, transactionCount * 1000 / spentTime);
+            Console.WriteLine("All transfer transactions completed, time spent: {0}ms, transactionCount: {1}, throughput: {2} transactions per second.", spentTime, transactionCount, transactionCount * 1000 / spentTime);
             Console.WriteLine("Press Enter to exit...");
             Console.ReadLine();
             _configuration.ShutdownEQueue();

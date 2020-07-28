@@ -59,7 +59,7 @@ namespace ENode.EQueue
         {
             var applicationMessageType = _typeNameProvider.GetType(queueMessage.Tag);
             var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), applicationMessageType) as IApplicationMessage;
-            _logger.DebugFormat("ENode application message received, messageId: {0}, messageType: {1}", message.Id, message.GetType().Name);
+            _logger.InfoFormat("ENode application message received, messageId: {0}, messageType: {1}", message.Id, message.GetType().Name);
 
             _messageDispatcher.DispatchMessageAsync(message).ContinueWith(x =>
             {

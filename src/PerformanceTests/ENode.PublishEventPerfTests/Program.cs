@@ -86,7 +86,7 @@ namespace ENode.PublishEventPerfTests
             var loggerFactory = new SerilogLoggerFactory()
                 .AddFileLogger("ECommon", "logs\\ecommon")
                 .AddFileLogger("EQueue", "logs\\equeue")
-                .AddFileLogger("ENode", "logs\\enode");
+                .AddFileLogger("ENode", "logs\\enode", minimumLevel: Serilog.Events.LogEventLevel.Error);
             _configuration = Configuration
                 .Create()
                 .UseAutofac()

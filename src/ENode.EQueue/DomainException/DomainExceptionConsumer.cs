@@ -66,7 +66,7 @@ namespace ENode.EQueue
             exception.Timestamp = exceptionMessage.Timestamp;
             exception.Items = exceptionMessage.Items;
             exception.RestoreFrom(exceptionMessage.SerializableInfo);
-            _logger.DebugFormat("ENode domain exception message received, messageId: {0}, exceptionType: {1}",
+            _logger.InfoFormat("ENode domain exception message received, messageId: {0}, exceptionType: {1}",
                 exceptionMessage.UniqueId,
                 exceptionType.Name);
 

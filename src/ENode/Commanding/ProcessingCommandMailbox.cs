@@ -68,7 +68,7 @@ namespace ENode.Commanding
                 if (_messageDict.TryAdd(message.Sequence, message))
                 {
                     _nextSequence++;
-                    _logger.DebugFormat("{0} enqueued new command, aggregateRootId: {1}, messageId: {2}, messageSequence: {3}", GetType().Name, AggregateRootId, message.Message.Id, message.Sequence);
+                    _logger.InfoFormat("{0} enqueued new command, aggregateRootId: {1}, messageId: {2}, messageSequence: {3}", GetType().Name, AggregateRootId, message.Message.Id, message.Sequence);
                     LastActiveTime = DateTime.Now;
                     TryRun();
                 }
@@ -87,14 +87,14 @@ namespace ENode.Commanding
                     return;
                 }
                 SetAsRunning();
-                _logger.DebugFormat("{0} start run, aggregateRootId: {1}, consumingSequence: {2}", GetType().Name, AggregateRootId, ConsumingSequence);
+                _logger.InfoFormat("{0} start run, aggregateRootId: {1}, consumingSequence: {2}", GetType().Name, AggregateRootId, ConsumingSequence);
                 Task.Factory.StartNew(ProcessMessages);
             }
         }
         public void CompleteRun()
         {
             LastActiveTime = DateTime.Now;
-            _logger.DebugFormat("{0} complete run, aggregateRootId: {1}", GetType().Name, AggregateRootId);
+            _logger.InfoFormat("{0} complete run, aggregateRootId: {1}", GetType().Name, AggregateRootId);
             SetAsNotRunning();
             if (TotalUnHandledMessageCount > 0)
             {
@@ -104,7 +104,7 @@ namespace ENode.Commanding
         public void Pause()
         {
             IsPauseRequested = true;
-            _logger.DebugFormat("{0} pause requested, aggregateRootId: {1}", GetType().Name, AggregateRootId);
+            _logger.InfoFormat("{0} pause requested, aggregateRootId: {1}", GetType().Name, AggregateRootId);
             var count = 0L;
             while (IsRunning)
             {
@@ -112,7 +112,7 @@ namespace ENode.Commanding
                 count++;
                 if (count % 100 == 0)
                 {
-                    _logger.DebugFormat("{0} pause requested, but wait for too long to stop the current mailbox, aggregateRootId: {1}, waitCount: {2}", GetType().Name, AggregateRootId, count);
+                    _logger.InfoFormat("{0} pause requested, but wait for too long to stop the current mailbox, aggregateRootId: {1}, waitCount: {2}", GetType().Name, AggregateRootId, count);
                 }
             }
             LastActiveTime = DateTime.Now;
@@ -123,13 +123,13 @@ namespace ENode.Commanding
             IsPauseRequested = false;
             IsPaused = false;
             LastActiveTime = DateTime.Now;
-            _logger.DebugFormat("{0} resume requested, aggregateRootId: {1}, consumingSequence: {2}", GetType().Name, AggregateRootId, ConsumingSequence);
+            _logger.InfoFormat("{0} resume requested, aggregateRootId: {1}, consumingSequence: {2}", GetType().Name, AggregateRootId, ConsumingSequence);
         }
         public void ResetConsumingSequence(long consumingSequence)
         {
             ConsumingSequence = consumingSequence;
             LastActiveTime = DateTime.Now;
-            _logger.DebugFormat("{0} reset consumingSequence, aggregateRootId: {1}, consumingSequence: {2}", GetType().Name, AggregateRootId, consumingSequence);
+            _logger.InfoFormat("{0} reset consumingSequence, aggregateRootId: {1}, consumingSequence: {2}", GetType().Name, AggregateRootId, consumingSequence);
         }
         public void AddDuplicateCommandId(string commandId)
         {

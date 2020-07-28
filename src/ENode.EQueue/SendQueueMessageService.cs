@@ -30,17 +30,14 @@ namespace ENode.EQueue
                 var result = await producer.SendAsync(message, routingKey).ConfigureAwait(false);
                 if (result.SendStatus == SendStatus.Success)
                 {
-                    if (_logger.IsDebugEnabled)
-                    {
-                        _logger.DebugFormat("ENode {0} message send success, equeueMessageId: {1}, routingKey: {2}, messageType: {3}, messageId: {4}, messageExtensionItems: {5}",
-                            messageType,
-                            result.MessageStoreResult.MessageId,
-                            routingKey,
-                            messageClass,
-                            messageId,
-                            _jsonSerializer.Serialize(messageExtensionItems)
-                        );
-                    }
+                    _logger.InfoFormat("ENode {0} message send success, equeueMessageId: {1}, routingKey: {2}, messageType: {3}, messageId: {4}, messageExtensionItems: {5}",
+                        messageType,
+                        result.MessageStoreResult.MessageId,
+                        routingKey,
+                        messageClass,
+                        messageId,
+                        _jsonSerializer.Serialize(messageExtensionItems)
+                    );
                 }
                 else
                 {
