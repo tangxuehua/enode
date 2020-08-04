@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Scheduling;
@@ -176,6 +175,7 @@ namespace ENode.Eventing.Impl
             () =>
             {
                 processingMessage.Complete();
+                _logger.InfoFormat("AggregateRoot publishedVersion updated, aggregateRootTypeName: {0}, aggregateRootId: {1}, publishedVersion: {2}", message.AggregateRootTypeName, message.AggregateRootId, message.Version);
             },
             () => string.Format("DomainEventStreamMessage [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", message.Id, message.GetType().Name, message.AggregateRootId, message.Version),
             null,

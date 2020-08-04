@@ -76,7 +76,7 @@ namespace ENode.EQueue
             var command = _jsonSerializer.Deserialize(commandMessage.CommandData, commandType) as ICommand;
             var commandExecuteContext = new CommandExecuteContext(_repository, _aggregateStorage, queueMessage, context, commandMessage, _sendReplyService);
             commandItems["CommandReplyAddress"] = commandMessage.ReplyAddress;
-            _logger.InfoFormat("ENode command message received, messageId: {0}, aggregateRootId: {1}", command.Id, command.AggregateRootId);
+            _logger.InfoFormat("ENode command message received, messageId: {0}, commandType: {1}, aggregateRootId: {2}", command.Id, command.GetType().Name, command.AggregateRootId);
             _commandProcessor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
 

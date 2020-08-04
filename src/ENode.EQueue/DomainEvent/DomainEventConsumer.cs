@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 using ECommon.Components;
 using ECommon.Logging;
 using ECommon.Serializing;
@@ -71,7 +72,7 @@ namespace ENode.EQueue
             var domainEventStreamMessage = ConvertToDomainEventStream(message);
             var processContext = new DomainEventStreamProcessContext(this, domainEventStreamMessage, queueMessage, context);
             var processingMessage = new ProcessingEvent(domainEventStreamMessage, processContext);
-            _logger.InfoFormat("ENode event stream message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}, version: {3}", domainEventStreamMessage.Id, domainEventStreamMessage.AggregateRootId, domainEventStreamMessage.AggregateRootTypeName, domainEventStreamMessage.Version);
+            _logger.InfoFormat("ENode event stream message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}, version: {3}, evnts: {4}", domainEventStreamMessage.Id, domainEventStreamMessage.AggregateRootId, domainEventStreamMessage.AggregateRootTypeName, domainEventStreamMessage.Version, _jsonSerializer.Serialize(domainEventStreamMessage.Events.Select(x => x.GetType().Name)));
             _messageProcessor.Process(processingMessage);
         }
 
