@@ -174,8 +174,8 @@ namespace ENode.Eventing.Impl
             currentRetryTimes => UpdatePublishedVersionAsync(processingMessage, currentRetryTimes),
             () =>
             {
-                processingMessage.Complete();
                 _logger.InfoFormat("AggregateRoot publishedVersion updated, aggregateRootTypeName: {0}, aggregateRootId: {1}, publishedVersion: {2}", message.AggregateRootTypeName, message.AggregateRootId, message.Version);
+                processingMessage.Complete();
             },
             () => string.Format("DomainEventStreamMessage [messageId:{0}, messageType:{1}, aggregateRootId:{2}, aggregateRootVersion:{3}]", message.Id, message.GetType().Name, message.AggregateRootId, message.Version),
             null,

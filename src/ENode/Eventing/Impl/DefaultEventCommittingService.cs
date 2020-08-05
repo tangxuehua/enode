@@ -126,9 +126,10 @@ namespace ENode.Eventing.Impl
                                 PublishDomainEventAsync(committingContext.ProcessingCommand, committingContext.EventStream);
                             }
 
-                            _logger.InfoFormat("Batch persist events success, mailboxNumber: {0}, aggregateRootId: {1}",
+                            _logger.InfoFormat("Batch persist events success, mailboxNumber: {0}, aggregateRootId: {1}, evnts: {2}",
                                 eventMailBox.Number,
-                                aggregateRootId);
+                                aggregateRootId,
+                                string.Join(",", committingContextList.Select(x => x.EventStream.ToString())));
                         }
                     }
                 }
