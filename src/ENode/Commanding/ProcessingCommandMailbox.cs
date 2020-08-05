@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using ECommon.Logging;
+using ECommon.Serializing;
 using ENode.Configurations;
 using ENode.Infrastructure;
 
@@ -18,6 +19,7 @@ namespace ENode.Commanding
         private readonly ConcurrentDictionary<string, Byte> _duplicateCommandIdDict;
         private readonly IProcessingCommandHandler _messageHandler;
         private readonly int _batchSize;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
         private volatile int _isUsing;
         private volatile int _isRemoved;
@@ -25,11 +27,12 @@ namespace ENode.Commanding
 
         #endregion
 
-        public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandHandler messageHandler, ILogger logger)
+        public ProcessingCommandMailbox(string aggregateRootId, IProcessingCommandHandler messageHandler, IJsonSerializer jsonSerializer, ILogger logger)
         {
             _messageDict = new ConcurrentDictionary<long, ProcessingCommand>();
             _duplicateCommandIdDict = new ConcurrentDictionary<string, byte>();
             _messageHandler = messageHandler;
+            _jsonSerializer = jsonSerializer;
             _logger = logger;
             _batchSize = ENodeConfiguration.Instance.Setting.CommandMailBoxProcessBatchSize;
             AggregateRootId = aggregateRootId;
@@ -68,13 +71,13 @@ namespace ENode.Commanding
                 if (_messageDict.TryAdd(message.Sequence, message))
                 {
                     _nextSequence++;
-                    _logger.InfoFormat("{0} enqueued new command, aggregateRootId: {1}, messageId: {2}, messageSequence: {3}", GetType().Name, AggregateRootId, message.Message.Id, message.Sequence);
+                    _logger.InfoFormat("{0} enqueued new message, message: {1}, sequence: {2}", GetType().Name, _jsonSerializer.Serialize(message), message.Sequence);
                     LastActiveTime = DateTime.Now;
                     TryRun();
                 }
                 else
                 {
-                    _logger.ErrorFormat("{0} enqueue command failed, aggregateRootId: {1}, messageId: {2}, messageSequence: {3}", GetType().Name, AggregateRootId, message.Message.Id, message.Sequence);
+                    _logger.ErrorFormat("{0} enqueue message failed, message: {1}, sequence: {2}", GetType().Name, _jsonSerializer.Serialize(message), message.Sequence);
                 }
             }
         }

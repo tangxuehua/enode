@@ -48,18 +48,15 @@ namespace ENode.EQueue
         }
         public Task PublishAsync(DomainEventStreamMessage eventStream)
         {
-            var message = CreateEQueueMessage(eventStream);
-            return _sendMessageService.SendMessageAsync(Producer, "events", string.Join(",", eventStream.Events.Select(x => x.GetType().Name)), message, eventStream.AggregateRootId, eventStream.Id, eventStream.Items);
-        }
-
-        private EQueueMessage CreateEQueueMessage(DomainEventStreamMessage eventStream)
-        {
             Ensure.NotNull(eventStream.AggregateRootId, "aggregateRootId");
             var eventMessage = CreateEventMessage(eventStream);
             var topic = _eventTopicProvider.GetTopic(eventStream.Events.First());
             var data = _jsonSerializer.Serialize(eventMessage);
-            return new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, Encoding.UTF8.GetBytes(data));
+            var equeueMessage = new EQueueMessage(topic, (int)EQueueMessageTypeCode.DomainEventStreamMessage, Encoding.UTF8.GetBytes(data));
+
+            return _sendMessageService.SendMessageAsync(Producer, "events", string.Join(",", eventStream.Events.Select(x => x.GetType().Name)), equeueMessage, data, eventStream.AggregateRootId, eventStream.Id, eventStream.Items);
         }
+
         private EventStreamMessage CreateEventMessage(DomainEventStreamMessage eventStream)
         {
             var message = new EventStreamMessage

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ECommon.Logging;
+using ECommon.Serializing;
 using ENode.Infrastructure;
 
 namespace ENode.Eventing
@@ -15,20 +15,21 @@ namespace ENode.Eventing
 
         private readonly object _lockObj = new object();
         private readonly object _processMessageLockObj = new object();
-        private readonly AsyncLock _asyncLock = new AsyncLock();
         private readonly ConcurrentQueue<EventCommittingContext> _messageQueue;
         private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, Byte>> _aggregateDictDict;
         private readonly Action<IList<EventCommittingContext>> _handleMessageAction;
         private readonly int _batchSize;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
 
         #endregion
 
-        public EventCommittingContextMailBox(int number, int batchSize, Action<IList<EventCommittingContext>> handleMessageAction, ILogger logger)
+        public EventCommittingContextMailBox(int number, int batchSize, Action<IList<EventCommittingContext>> handleMessageAction, IJsonSerializer jsonSerializer, ILogger logger)
         {
             _messageQueue = new ConcurrentQueue<EventCommittingContext>();
             _aggregateDictDict = new ConcurrentDictionary<string, ConcurrentDictionary<string, Byte>>();
             _handleMessageAction = handleMessageAction;
+            _jsonSerializer = jsonSerializer;
             _logger = logger;
             _batchSize = batchSize;
             Number = number;
@@ -55,17 +56,13 @@ namespace ENode.Eventing
                 {
                     message.MailBox = this;
                     _messageQueue.Enqueue(message);
-                    _logger.InfoFormat("{0} enqueued new message, mailboxNumber: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventIds: {6}",
-                        GetType().Name,
-                        Number,
-                        message.EventStream.AggregateRootId,
-                        message.ProcessingCommand.Message.Id,
-                        message.EventStream.Version,
-                        message.EventStream.Id,
-                        string.Join("|", message.EventStream.Events.Select(x => x.Id))
-                    );
+                    _logger.InfoFormat("{0} enqueued new message, mailboxNumber: {1}, message: {2}", GetType().Name, Number, _jsonSerializer.Serialize(message.EventStream));
                     LastActiveTime = DateTime.Now;
                     TryRun();
+                }
+                else
+                {
+                    throw new DuplicateEventStreamException(message.EventStream);
                 }
             }
         }

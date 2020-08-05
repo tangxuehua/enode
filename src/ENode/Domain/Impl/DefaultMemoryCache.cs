@@ -47,10 +47,7 @@ namespace ENode.Domain.Impl
                 if (aggregateRoot.GetChanges().Count() > 0)
                 {
                     var lastestAggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId.ToString()).ConfigureAwait(false);
-                    if (lastestAggregateRoot != null)
-                    {
-                        ResetAggregateRootCache(lastestAggregateRoot);
-                    }
+                    ResetAggregateRootCache(aggregateRootType, aggregateRootId.ToString(), lastestAggregateRoot);
                     return lastestAggregateRoot;
                 }
                 return aggregateRoot;
@@ -91,7 +88,7 @@ namespace ENode.Domain.Impl
             }
             return Task.CompletedTask;
         }
-        public Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, object aggregateRootId)
+        public Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, string aggregateRootId)
         {
             if (aggregateRootTypeName == null) throw new ArgumentNullException("aggregateRootTypeName");
 
@@ -103,7 +100,7 @@ namespace ENode.Domain.Impl
             }
             return RefreshAggregateFromEventStoreAsync(aggregateRootType, aggregateRootId);
         }
-        public async Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(Type aggregateRootType, object aggregateRootId)
+        public async Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(Type aggregateRootType, string aggregateRootId)
         {
             if (aggregateRootId == null) throw new ArgumentNullException("aggregateRootId");
             if (aggregateRootType == null) throw new ArgumentNullException("aggregateRootType");
@@ -111,10 +108,7 @@ namespace ENode.Domain.Impl
             try
             {
                 var aggregateRoot = await _aggregateStorage.GetAsync(aggregateRootType, aggregateRootId.ToString()).ConfigureAwait(false);
-                if (aggregateRoot != null)
-                {
-                    ResetAggregateRootCache(aggregateRoot);
-                }
+                ResetAggregateRootCache(aggregateRootType, aggregateRootId, aggregateRoot);
                 return aggregateRoot;
             }
             catch (Exception ex)
@@ -132,14 +126,20 @@ namespace ENode.Domain.Impl
             _scheduleService.StopTask(_taskName);
         }
 
-        private void ResetAggregateRootCache(IAggregateRoot aggregateRoot)
+        private void ResetAggregateRootCache(Type aggregateRootType, string aggregateRootId, IAggregateRoot aggregateRoot)
         {
+            if (_aggregateRootInfoDict.TryRemove(aggregateRootId, out AggregateCacheInfo aggregateCacheInfo))
+            {
+                _logger.InfoFormat("Removed dirty in-memory aggregate, aggregateRootType: {0}, aggregateRootId: {1}, version: {2}", aggregateRootType.Name, aggregateRootId, aggregateCacheInfo.AggregateRoot.Version);
+            }
+
+            if (aggregateRoot == null)
+            {
+                return;
+            }
+
             lock (_lockObj)
             {
-                if (aggregateRoot == null)
-                {
-                    throw new ArgumentNullException("aggregateRoot");
-                }
                 _aggregateRootInfoDict.AddOrUpdate(aggregateRoot.UniqueId, x =>
                 {
                     _logger.InfoFormat("Aggregate root in-memory cache reset, aggregateRootType: {0}, aggregateRootId: {1}, aggregateRootVersion: {2}", aggregateRoot.GetType().FullName, aggregateRoot.UniqueId, aggregateRoot.Version);

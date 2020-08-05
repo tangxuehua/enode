@@ -29,7 +29,7 @@ namespace ENode.Domain.Impl
             var aggregateRoot = await _memoryCache.GetAsync(aggregateRootId, aggregateRootType).ConfigureAwait(false);
             if (aggregateRoot == null)
             {
-                aggregateRoot = await _memoryCache.RefreshAggregateFromEventStoreAsync(aggregateRootType, aggregateRootId).ConfigureAwait(false);
+                aggregateRoot = await _memoryCache.RefreshAggregateFromEventStoreAsync(aggregateRootType, aggregateRootId.ToString()).ConfigureAwait(false);
             }
             return aggregateRoot;
         }

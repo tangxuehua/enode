@@ -21,6 +21,7 @@ namespace ENode.Eventing
             Timestamp = timestamp;
             Events = events;
             Items = items ?? new Dictionary<string, string>();
+            Id = aggregateRootId + "_" + Version;
             var sequence = 1;
             foreach (var evnt in Events)
             {

@@ -26,13 +26,13 @@ namespace ENode.Domain
         Task AcceptAggregateRootChanges(IAggregateRoot aggregateRoot);
         /// <summary>Refresh the aggregate memory cache by replaying events of event store, and return the refreshed aggregate root.
         /// </summary>
-        Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, object aggregateRootId);
+        Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(string aggregateRootTypeName, string aggregateRootId);
         /// <summary>Refresh the aggregate memory cache by replaying events of event store, and return the refreshed aggregate root.
         /// </summary>
         /// <param name="aggregateRootType"></param>
         /// <param name="aggregateRootId"></param>
         /// <returns></returns>
-        Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(Type aggregateRootType, object aggregateRootId);
+        Task<IAggregateRoot> RefreshAggregateFromEventStoreAsync(Type aggregateRootType, string aggregateRootId);
         /// <summary>Start background tasks.
         /// </summary>
         void Start();

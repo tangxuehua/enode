@@ -70,13 +70,16 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
+            var commandMessageString = Encoding.UTF8.GetString(queueMessage.Body);
+
+            _logger.InfoFormat("Received command equeue message: {0}, commandMessage: {1}", queueMessage, commandMessageString);
+
             var commandItems = new Dictionary<string, string>();
-            var commandMessage = _jsonSerializer.Deserialize<CommandMessage>(Encoding.UTF8.GetString(queueMessage.Body));
+            var commandMessage = _jsonSerializer.Deserialize<CommandMessage>(commandMessageString);
             var commandType = _typeNameProvider.GetType(queueMessage.Tag);
             var command = _jsonSerializer.Deserialize(commandMessage.CommandData, commandType) as ICommand;
             var commandExecuteContext = new CommandExecuteContext(_repository, _aggregateStorage, queueMessage, context, commandMessage, _sendReplyService);
             commandItems["CommandReplyAddress"] = commandMessage.ReplyAddress;
-            _logger.InfoFormat("ENode command message received, messageId: {0}, commandType: {1}, aggregateRootId: {2}", command.Id, command.GetType().Name, command.AggregateRootId);
             _commandProcessor.Process(new ProcessingCommand(command, commandExecuteContext, commandItems));
         }
 

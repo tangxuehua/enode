@@ -24,6 +24,7 @@ namespace ENode.Eventing.Impl
         private readonly IEventStore _eventStore;
         private readonly IMessagePublisher<DomainEventStreamMessage> _domainEventPublisher;
         private readonly IOHelper _ioHelper;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
         private readonly int _batchSize;
 
@@ -36,6 +37,7 @@ namespace ENode.Eventing.Impl
             IEventStore eventStore,
             IMessagePublisher<DomainEventStreamMessage> domainEventPublisher,
             IOHelper ioHelper,
+            IJsonSerializer jsonSerializer,
             ILoggerFactory loggerFactory)
         {
             _eventCommittingContextMailBoxList = new List<EventCommittingContextMailBox>();
@@ -43,13 +45,14 @@ namespace ENode.Eventing.Impl
             _memoryCache = memoryCache;
             _eventStore = eventStore;
             _domainEventPublisher = domainEventPublisher;
+            _jsonSerializer = jsonSerializer;
             _logger = loggerFactory.Create(GetType().FullName);
             _eventMailboxCount = ENodeConfiguration.Instance.Setting.EventMailBoxCount;
             _batchSize = ENodeConfiguration.Instance.Setting.EventMailBoxPersistenceMaxBatchSize;
 
             for (var i = 0; i < _eventMailboxCount; i++)
             {
-                _eventCommittingContextMailBoxList.Add(new EventCommittingContextMailBox(i, _batchSize, x => BatchPersistEventAsync(x, 0), _logger));
+                _eventCommittingContextMailBoxList.Add(new EventCommittingContextMailBox(i, _batchSize, x => BatchPersistEventAsync(x, 0), _jsonSerializer, _logger));
             }
         }
 
@@ -109,7 +112,7 @@ namespace ENode.Eventing.Impl
 
                 if (result == null)
                 {
-                    _logger.FatalFormat("Batch persist events success, but the persist result is null, the current event committing mailbox should be pending, mailboxNumber: {0}", eventMailBox.Number);
+                    _logger.FatalFormat("BatchPersistAggregateEvents result is null, the current event committing mailbox should be pending, mailboxNumber: {0}", eventMailBox.Number);
                     return;
                 }
 
@@ -121,15 +124,15 @@ namespace ENode.Eventing.Impl
                         var committingContextList = committingContexts.Where(x => x.EventStream.AggregateRootId == aggregateRootId).ToList();
                         if (committingContextList.Count > 0)
                         {
+                            _logger.InfoFormat("BatchPersistAggregateEvents success, mailboxNumber: {0}, aggregateRootId: {1}, evnts: {2}",
+                                eventMailBox.Number,
+                                aggregateRootId,
+                                string.Join(",", committingContextList.Select(x => x.EventStream.ToString())));
+
                             foreach (var committingContext in committingContextList)
                             {
                                 PublishDomainEventAsync(committingContext.ProcessingCommand, committingContext.EventStream);
                             }
-
-                            _logger.InfoFormat("Batch persist events success, mailboxNumber: {0}, aggregateRootId: {1}, evnts: {2}",
-                                eventMailBox.Number,
-                                aggregateRootId,
-                                string.Join(",", committingContextList.Select(x => x.EventStream.ToString())));
                         }
                     }
                 }
@@ -142,7 +145,7 @@ namespace ENode.Eventing.Impl
                         var committingContext = committingContexts.FirstOrDefault(x => x.EventStream.AggregateRootId == entry.Key);
                         if (committingContext != null)
                         {
-                            _logger.WarnFormat("Batch persist events has duplicate commandIds, mailboxNumber: {0}, aggregateRootId: {1}, commandIds: {2}",
+                            _logger.WarnFormat("BatchPersistAggregateEvents has duplicate commandIds, mailboxNumber: {0}, aggregateRootId: {1}, commandIds: {2}",
                                 eventMailBox.Number,
                                 entry.Key,
                                 string.Join(",", entry.Value));
@@ -167,7 +170,7 @@ namespace ENode.Eventing.Impl
                         var committingContext = committingContexts.FirstOrDefault(x => x.EventStream.AggregateRootId == aggregateRootId);
                         if (committingContext != null)
                         {
-                            _logger.WarnFormat("Batch persist events has version confliction, mailboxNumber: {0}, aggregateRootId: {1}, conflictVersion: {2}",
+                            _logger.WarnFormat("BatchPersistAggregateEvents has version confliction, mailboxNumber: {0}, aggregateRootId: {1}, conflictVersion: {2}",
                                 eventMailBox.Number,
                                 committingContext.EventStream.AggregateRootId,
                                 committingContext.EventStream.Version);
@@ -243,7 +246,7 @@ namespace ENode.Eventing.Impl
                     //到这里，说明当前command想添加到eventStore中时，提示command重复，但是尝试从eventStore中取出该command时却找不到该command。
                     //出现这种情况，我们就无法再做后续处理了，这种错误理论上不会出现，除非eventStore的Add接口和Get接口出现读写不一致的情况；
                     //框架会记录错误日志，让开发者排查具体是什么问题。
-                    var errorMessage = string.Format("Command should be exist in the event store, but we cannot find it from the event store, this should not be happen, and we cannot continue again. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
+                    var errorMessage = string.Format("Command should be exist in the event store, but we cannot find it from the event store, this should not be happen, and we just complete the command. commandType:{0}, commandId:{1}, aggregateRootId:{2}",
                         command.GetType().Name,
                         command.Id,
                         command.AggregateRootId);
@@ -292,7 +295,7 @@ namespace ENode.Eventing.Impl
                 }
                 else
                 {
-                    var errorMessage = string.Format("Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore, this should not be happen, and we cannot continue again. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeName:{2}",
+                    var errorMessage = string.Format("Duplicate aggregate creation, but we cannot find the existing eventstream from eventstore, this should not be happen, and we just complete the command. commandId:{0}, aggregateRootId:{1}, aggregateRootTypeName:{2}",
                         context.EventStream.CommandId,
                         context.EventStream.AggregateRootId,
                         context.EventStream.AggregateRootTypeName);

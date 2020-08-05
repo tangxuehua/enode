@@ -68,11 +68,15 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
-            var message = _jsonSerializer.Deserialize<EventStreamMessage>(Encoding.UTF8.GetString(queueMessage.Body));
+            var eventStreamMessageString = Encoding.UTF8.GetString(queueMessage.Body);
+
+            _logger.InfoFormat("Received event stream equeue message: {0}, eventStreamMessage: {1}", queueMessage, eventStreamMessageString);
+
+            var message = _jsonSerializer.Deserialize<EventStreamMessage>(eventStreamMessageString);
             var domainEventStreamMessage = ConvertToDomainEventStream(message);
             var processContext = new DomainEventStreamProcessContext(this, domainEventStreamMessage, queueMessage, context);
             var processingMessage = new ProcessingEvent(domainEventStreamMessage, processContext);
-            _logger.InfoFormat("ENode event stream message received, messageId: {0}, aggregateRootId: {1}, aggregateRootType: {2}, version: {3}, evnts: {4}", domainEventStreamMessage.Id, domainEventStreamMessage.AggregateRootId, domainEventStreamMessage.AggregateRootTypeName, domainEventStreamMessage.Version, _jsonSerializer.Serialize(domainEventStreamMessage.Events.Select(x => x.GetType().Name)));
+
             _messageProcessor.Process(processingMessage);
         }
 

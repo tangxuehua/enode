@@ -46,19 +46,15 @@ namespace ENode.EQueue
         }
         public Task PublishAsync(IApplicationMessage message)
         {
-            var queueMessage = CreateEQueueMessage(message);
-            return _sendMessageService.SendMessageAsync(Producer, "applicationMessage", message.GetType().Name, queueMessage, message.Id, message.Id, message.Items);
-        }
-
-        private EQueueMessage CreateEQueueMessage(IApplicationMessage message)
-        {
             var topic = _messageTopicProvider.GetTopic(message);
             var data = _jsonSerializer.Serialize(message);
-            return new EQueueMessage(
+            var equeueMessage = new EQueueMessage(
                 topic,
                 (int)EQueueMessageTypeCode.ApplicationMessage,
                 Encoding.UTF8.GetBytes(data),
                 _typeNameProvider.GetTypeName(message.GetType()));
+
+            return _sendMessageService.SendMessageAsync(Producer, "applicationMessage", message.GetType().Name, equeueMessage, data, message.Id, message.Id, message.Items);
         }
     }
 }

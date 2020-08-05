@@ -47,12 +47,6 @@ namespace ENode.EQueue
         }
         public Task PublishAsync(IDomainException exception)
         {
-            var message = CreateEQueueMessage(exception);
-            return _sendMessageService.SendMessageAsync(Producer, "exception", exception.GetType().Name, message, exception.Id, exception.Id, exception.Items);
-        }
-
-        private EQueueMessage CreateEQueueMessage(IDomainException exception)
-        {
             var topic = _exceptionTopicProvider.GetTopic(exception);
             var serializableInfo = new Dictionary<string, string>();
             exception.SerializeTo(serializableInfo);
@@ -63,11 +57,13 @@ namespace ENode.EQueue
                 Items = exception.Items,
                 SerializableInfo = serializableInfo
             });
-            return new EQueueMessage(
+            var equeueMessage = new EQueueMessage(
                 topic,
                 (int)EQueueMessageTypeCode.ExceptionMessage,
                 Encoding.UTF8.GetBytes(data),
                 _typeNameProvider.GetTypeName(exception.GetType()));
+
+            return _sendMessageService.SendMessageAsync(Producer, "exception", exception.GetType().Name, equeueMessage, data, exception.Id, exception.Id, exception.Items);
         }
     }
 }

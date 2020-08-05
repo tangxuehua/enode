@@ -5,6 +5,7 @@ using System.Threading;
 using ECommon.IO;
 using ECommon.Logging;
 using ECommon.Scheduling;
+using ECommon.Serializing;
 using ENode.Configurations;
 using ENode.Messaging;
 
@@ -17,6 +18,7 @@ namespace ENode.Eventing.Impl
         private readonly IPublishedVersionStore _publishedVersionStore;
         private readonly IMessageDispatcher _dispatcher;
         private readonly IOHelper _ioHelper;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
         private readonly IScheduleService _scheduleService;
         private readonly int _timeoutSeconds;
@@ -29,7 +31,7 @@ namespace ENode.Eventing.Impl
 
         public string Name { get; }
 
-        public DefaultProcessingEventProcessor(IPublishedVersionStore publishedVersionStore, IMessageDispatcher dispatcher, IOHelper ioHelper, ILoggerFactory loggerFactory, IScheduleService scheduleService)
+        public DefaultProcessingEventProcessor(IPublishedVersionStore publishedVersionStore, IMessageDispatcher dispatcher, IOHelper ioHelper, IJsonSerializer jsonSerializer, ILoggerFactory loggerFactory, IScheduleService scheduleService)
         {
             _mailboxDict = new ConcurrentDictionary<string, ProcessingEventMailBox>();
             _toRefreshAggregateRootMailBoxDict = new ConcurrentDictionary<string, ProcessingEventMailBox>();
@@ -37,6 +39,7 @@ namespace ENode.Eventing.Impl
             _publishedVersionStore = publishedVersionStore;
             _dispatcher = dispatcher;
             _ioHelper = ioHelper;
+            _jsonSerializer = jsonSerializer;
             _logger = loggerFactory.Create(GetType().FullName);
             _scheduleService = scheduleService;
             _scanInactiveMailBoxTaskName = "CleanInactiveProcessingEventMailBoxes_" + DateTime.Now.Ticks + new Random().Next(10000);
@@ -55,7 +58,7 @@ namespace ENode.Eventing.Impl
                 throw new ArgumentException("aggregateRootId of domain event stream cannot be null or empty, domainEventStreamId:" + processingMessage.Message.Id);
             }
 
-            var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x => new ProcessingEventMailBox(processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, y => DispatchProcessingMessageAsync(y, 0), _logger));
+            var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x => new ProcessingEventMailBox(processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, y => DispatchProcessingMessageAsync(y, 0), _jsonSerializer, _logger));
             var mailboxTryUsingCount = 0L;
             while (!mailbox.TryUsing())
             {
@@ -68,7 +71,7 @@ namespace ENode.Eventing.Impl
             }
             if (mailbox.IsRemoved)
             {
-                mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x => new ProcessingEventMailBox(processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, y => DispatchProcessingMessageAsync(y, 0), _logger));
+                mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x => new ProcessingEventMailBox(processingMessage.Message.AggregateRootTypeName, processingMessage.Message.AggregateRootId, y => DispatchProcessingMessageAsync(y, 0), _jsonSerializer, _logger));
             }
             ProcessingEventMailBox.EnqueueMessageResult enqueueResult = mailbox.EnqueueMessage(processingMessage);
             if (enqueueResult == ProcessingEventMailBox.EnqueueMessageResult.Ignored)

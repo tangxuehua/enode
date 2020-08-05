@@ -24,7 +24,7 @@ CREATE TABLE `PublishedVersion` (
   `CreatedOn` datetime NOT NULL,
   `UpdatedOn` datetime NOT NULL,
   PRIMARY KEY (`Sequence`),
-  UNIQUE KEY `IX_PublishedVersion_AggId_Version` (`ProcessorName`,`AggregateRootId`,`Version`)
+  UNIQUE KEY `IX_PublishedVersion_AggId_Version` (`ProcessorName`,`AggregateRootId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `LockKey` (

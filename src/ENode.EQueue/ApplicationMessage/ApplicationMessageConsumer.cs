@@ -57,9 +57,12 @@ namespace ENode.EQueue
 
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
+            var applicationMessageString = Encoding.UTF8.GetString(queueMessage.Body);
+
+            _logger.InfoFormat("Received application message equeue message: {0}, applicationMessage: {1}", queueMessage, applicationMessageString);
+
             var applicationMessageType = _typeNameProvider.GetType(queueMessage.Tag);
-            var message = _jsonSerializer.Deserialize(Encoding.UTF8.GetString(queueMessage.Body), applicationMessageType) as IApplicationMessage;
-            _logger.InfoFormat("ENode application message received, messageId: {0}, messageType: {1}", message.Id, message.GetType().Name);
+            var message = _jsonSerializer.Deserialize(applicationMessageString, applicationMessageType) as IApplicationMessage;
 
             _messageDispatcher.DispatchMessageAsync(message).ContinueWith(x =>
             {

@@ -65,7 +65,8 @@ namespace ENode.EQueue
         }
         public Task SendAsync(ICommand command)
         {
-            return _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, BuildCommandMessage(command, false), command.AggregateRootId, command.Id, command.Items);
+            var equeueMessage = BuildCommandMessage(command, out string messageBody, false);
+            return _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, equeueMessage, messageBody, command.AggregateRootId, command.Id, command.Items);
         }
         public Task<CommandResult> ExecuteAsync(ICommand command)
         {
@@ -79,7 +80,8 @@ namespace ENode.EQueue
 
             try
             {
-                await _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, BuildCommandMessage(command, true), command.AggregateRootId, command.Id, command.Items).ConfigureAwait(false);
+                var equeueMessage = BuildCommandMessage(command, out string messageBody, true);
+                await _sendMessageService.SendMessageAsync(Producer, "command", command.GetType().Name, equeueMessage, messageBody, command.AggregateRootId, command.Id, command.Items).ConfigureAwait(false);
             }
             catch
             {
@@ -90,7 +92,7 @@ namespace ENode.EQueue
             return await taskCompletionSource.Task.ConfigureAwait(false);
         }
 
-        private EQueueMessage BuildCommandMessage(ICommand command, bool needReply = false)
+        private EQueueMessage BuildCommandMessage(ICommand command, out string messageBody, bool needReply = false)
         {
             Ensure.NotNull(command.AggregateRootId, "aggregateRootId");
             var commandData = _jsonSerializer.Serialize(command);
@@ -101,6 +103,7 @@ namespace ENode.EQueue
                 CommandData = commandData,
                 ReplyAddress = replyAddress
             });
+            messageBody = messageData;
             return new EQueueMessage(
                 topic, 
                 (int)EQueueMessageTypeCode.CommandMessage,

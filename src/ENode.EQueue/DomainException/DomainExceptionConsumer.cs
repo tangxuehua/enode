@@ -60,15 +60,16 @@ namespace ENode.EQueue
         void IQueueMessageHandler.Handle(QueueMessage queueMessage, IMessageContext context)
         {
             var exceptionType = _typeNameProvider.GetType(queueMessage.Tag);
-            var exceptionMessage = _jsonSerializer.Deserialize<DomainExceptionMessage>(Encoding.UTF8.GetString(queueMessage.Body));
+            var domainExceptionString = Encoding.UTF8.GetString(queueMessage.Body);
+
+            _logger.InfoFormat("Received domain exception equeue message: {0}, domainExceptionMessage: {1}", queueMessage, domainExceptionString);
+
+            var exceptionMessage = _jsonSerializer.Deserialize<DomainExceptionMessage>(domainExceptionString);
             var exception = FormatterServices.GetUninitializedObject(exceptionType) as IDomainException;
             exception.Id = exceptionMessage.UniqueId;
             exception.Timestamp = exceptionMessage.Timestamp;
             exception.Items = exceptionMessage.Items;
             exception.RestoreFrom(exceptionMessage.SerializableInfo);
-            _logger.InfoFormat("ENode domain exception message received, messageId: {0}, exceptionType: {1}",
-                exceptionMessage.UniqueId,
-                exceptionType.Name);
 
             _messageDispatcher.DispatchMessageAsync(exception).ContinueWith(x =>
             {

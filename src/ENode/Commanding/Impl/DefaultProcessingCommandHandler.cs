@@ -151,7 +151,7 @@ namespace ENode.Commanding.Impl
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(string.Format("Commit aggregate changes has unknown exception, handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
+                        _logger.Error(string.Format("Commit aggregate changes has unknown exception, this should not be happen, and we just complete the command, handlerType:{0}, commandType:{1}, commandId:{2}, aggregateRootId:{3}",
                             commandHandler.GetInnerObject().GetType().Name,
                             command.GetType().Name,
                             command.Id,

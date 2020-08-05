@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ECommon.Logging;
+using ECommon.Serializing;
 
 namespace ENode.Eventing
 {
@@ -25,14 +26,16 @@ namespace ENode.Eventing
         private readonly ConcurrentQueue<ProcessingEvent> _processingEventQueue;
         private readonly ConcurrentDictionary<int, ProcessingEvent> _waitingProcessingEventDict = new ConcurrentDictionary<int, ProcessingEvent>();
         private readonly Action<ProcessingEvent> _handleProcessingEventAction;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
 
         #endregion
 
-        public ProcessingEventMailBox(string aggregateRootTypeName, string aggregateRootId, Action<ProcessingEvent> handleProcessingEventAction, ILogger logger)
+        public ProcessingEventMailBox(string aggregateRootTypeName, string aggregateRootId, Action<ProcessingEvent> handleProcessingEventAction, IJsonSerializer jsonSerializer, ILogger logger)
         {
             _processingEventQueue = new ConcurrentQueue<ProcessingEvent>();
             _handleProcessingEventAction = handleProcessingEventAction;
+            _jsonSerializer = jsonSerializer;
             _logger = logger;
             AggregateRootId = aggregateRootId;
             AggregateRootTypeName = aggregateRootTypeName;
@@ -227,16 +230,7 @@ namespace ENode.Eventing
                 _processingEventQueue.Enqueue(processingEvent);
                 _nextExpectingEventVersion = processingEvent.Message.Version + 1;
 
-                _logger.InfoFormat("{0} enqueued new message, aggregateRootType: {1}, aggregateRootId: {2}, commandId: {3}, eventVersion: {4}, eventStreamId: {5}, eventTypes: {6}, eventIds: {7}",
-                    GetType().Name,
-                    processingEvent.Message.AggregateRootTypeName,
-                    processingEvent.Message.AggregateRootId,
-                    processingEvent.Message.CommandId,
-                    processingEvent.Message.Version,
-                    processingEvent.Message.Id,
-                    string.Join("|", processingEvent.Message.Events.Select(x => x.GetType().Name)),
-                    string.Join("|", processingEvent.Message.Events.Select(x => x.Id))
-                );
+                _logger.InfoFormat("{0} enqueued new message: {1}", GetType().Name, _jsonSerializer.Serialize(processingEvent.Message));
             }
         }
     }

@@ -23,16 +23,18 @@ namespace ENode.EQueue
             _jsonSerializer = ObjectContainer.Resolve<IJsonSerializer>();
         }
 
-        public async Task SendMessageAsync(Producer producer, string messageType, string messageClass, EQueueMessage message, string routingKey, string messageId, IDictionary<string, string> messageExtensionItems)
+        public async Task SendMessageAsync(Producer producer, string messageType, string messageClass, EQueueMessage message, string messageBodyString, string routingKey, string messageId, IDictionary<string, string> messageExtensionItems)
         {
             try
             {
                 var result = await producer.SendAsync(message, routingKey).ConfigureAwait(false);
                 if (result.SendStatus == SendStatus.Success)
                 {
-                    _logger.InfoFormat("ENode {0} message send success, equeueMessageId: {1}, routingKey: {2}, messageType: {3}, messageId: {4}, messageExtensionItems: {5}",
+                    _logger.InfoFormat("ENode {0} message send success, equeueMessageId: {1}, message: {2}, messageBody: {3}, routingKey: {4}, messageType: {5}, messageId: {6}, messageExtensionItems: {7}",
                         messageType,
                         result.MessageStoreResult.MessageId,
+                        message,
+                        messageBodyString,
                         routingKey,
                         messageClass,
                         messageId,
@@ -41,9 +43,10 @@ namespace ENode.EQueue
                 }
                 else
                 {
-                    _logger.ErrorFormat("ENode {0} message send failed, message: {1}, sendResult: {2}, routingKey: {3}, messageType: {4}, messageId: {5}, messageExtensionItems: {6}",
+                    _logger.ErrorFormat("ENode {0} message send failed, message: {1}, messageBody: {2}, sendResult: {3}, routingKey: {4}, messageType: {5}, messageId: {6}, messageExtensionItems: {7}",
                         messageType,
                         message,
+                        messageBodyString,
                         result,
                         routingKey,
                         messageClass,
@@ -55,9 +58,10 @@ namespace ENode.EQueue
             }
             catch (Exception ex)
             {
-                _logger.Error(string.Format("ENode {0} message send has exception, message: {1}, routingKey: {2}, messageType: {3}, messageId: {4}, messageExtensionItems: {5}", 
+                _logger.Error(string.Format("ENode {0} message send has exception, message: {1}, messageBody: {2}, routingKey: {3}, messageType: {4}, messageId: {5}, messageExtensionItems: {6}", 
                     messageType, 
-                    message, 
+                    message,
+                    messageBodyString,
                     routingKey,
                     messageClass,
                     messageId, 

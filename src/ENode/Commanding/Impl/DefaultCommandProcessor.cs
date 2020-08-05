@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using ECommon.Logging;
 using ECommon.Scheduling;
+using ECommon.Serializing;
 using ENode.Configurations;
 
 namespace ENode.Commanding.Impl
@@ -11,6 +12,7 @@ namespace ENode.Commanding.Impl
     public class DefaultCommandProcessor : ICommandProcessor
     {
         private readonly object _lockObj = new object();
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, ProcessingCommandMailbox> _mailboxDict;
         private readonly IProcessingCommandHandler _handler;
@@ -18,11 +20,12 @@ namespace ENode.Commanding.Impl
         private readonly int _timeoutSeconds;
         private readonly string _taskName;
 
-        public DefaultCommandProcessor(IScheduleService scheduleService, IProcessingCommandHandler handler, ILoggerFactory loggerFactory)
+        public DefaultCommandProcessor(IScheduleService scheduleService, IProcessingCommandHandler handler, IJsonSerializer jsonSerializer, ILoggerFactory loggerFactory)
         {
             _scheduleService = scheduleService;
             _mailboxDict = new ConcurrentDictionary<string, ProcessingCommandMailbox>();
             _handler = handler;
+            _jsonSerializer = jsonSerializer;
             _logger = loggerFactory.Create(GetType().FullName);
             _timeoutSeconds = ENodeConfiguration.Instance.Setting.AggregateRootMaxInactiveSeconds;
             _taskName = "CleanInactiveProcessingCommandMailBoxes_" + DateTime.Now.Ticks + new Random().Next(10000);
@@ -38,7 +41,7 @@ namespace ENode.Commanding.Impl
 
             var mailbox = _mailboxDict.GetOrAdd(aggregateRootId, x =>
             {
-                return new ProcessingCommandMailbox(x, _handler, _logger);
+                return new ProcessingCommandMailbox(x, _handler, _jsonSerializer, _logger);
             });
 
             var mailboxTryUsingCount = 0L;
@@ -53,7 +56,7 @@ namespace ENode.Commanding.Impl
             }
             if (mailbox.IsRemoved)
             {
-                mailbox = new ProcessingCommandMailbox(aggregateRootId, _handler, _logger);
+                mailbox = new ProcessingCommandMailbox(aggregateRootId, _handler, _jsonSerializer, _logger);
                 _mailboxDict.TryAdd(aggregateRootId, mailbox);
             }
             mailbox.EnqueueMessage(processingCommand);
