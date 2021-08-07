@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ECommon" Version="2.6.4" />
-    <PackageReference Include="ECommon.Autofac" Version="2.5.2" />
-    <PackageReference Include="ECommon.JsonNet" Version="2.5.1" />
-    <PackageReference Include="ECommon.Serilog" Version="1.0.2" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
+    <PackageReference Include="ECommon" Version="2.6.5" />
+    <PackageReference Include="ECommon.Autofac" Version="2.5.4" />
+    <PackageReference Include="ECommon.JsonNet" Version="2.5.2" />
+    <PackageReference Include="ECommon.Serilog" Version="1.0.4" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

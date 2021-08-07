@@ -1,175 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\NUnit3TestAdapter.3.15.1\build\net35\NUnit3TestAdapter.props" Condition="Exists('..\..\packages\NUnit3TestAdapter.3.15.1\build\net35\NUnit3TestAdapter.props')" />
-  <Import Project="..\..\packages\NUnit.3.12.0\build\NUnit.props" Condition="Exists('..\..\packages\NUnit.3.12.0\build\NUnit.props')" />
-  <Import Project="..\..\packages\MSTest.TestAdapter.2.0.0\build\net45\MSTest.TestAdapter.props" Condition="Exists('..\..\packages\MSTest.TestAdapter.2.0.0\build\net45\MSTest.TestAdapter.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{37F38A7C-422F-46AD-A112-B7B423B45A01}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ENode.Tests</RootNamespace>
-    <AssemblyName>ENode.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
-    <IsCodedUITest>False</IsCodedUITest>
-    <TestProjectType>UnitTest</TestProjectType>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Autofac, Version=5.2.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Autofac.5.2.0\lib\net461\Autofac.dll</HintPath>
-    </Reference>
-    <Reference Include="Autofac.Extensions.DependencyInjection, Version=6.0.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Autofac.Extensions.DependencyInjection.6.0.0\lib\netstandard2.0\Autofac.Extensions.DependencyInjection.dll</HintPath>
-    </Reference>
-    <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Dapper.2.0.30\lib\net461\Dapper.dll</HintPath>
-    </Reference>
-    <Reference Include="ECommon, Version=2.6.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ECommon.2.6.4\lib\netstandard2.0\ECommon.dll</HintPath>
-    </Reference>
-    <Reference Include="ECommon.Autofac, Version=2.5.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ECommon.Autofac.2.5.2\lib\netstandard2.0\ECommon.Autofac.dll</HintPath>
-    </Reference>
-    <Reference Include="ECommon.Dapper, Version=2.5.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ECommon.Dapper.2.5.2\lib\netstandard2.0\ECommon.Dapper.dll</HintPath>
-    </Reference>
-    <Reference Include="ECommon.JsonNet, Version=2.5.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ECommon.JsonNet.2.5.1\lib\netstandard2.0\ECommon.JsonNet.dll</HintPath>
-    </Reference>
-    <Reference Include="ECommon.Serilog, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ECommon.Serilog.1.0.2\lib\netstandard2.0\ECommon.Serilog.dll</HintPath>
-    </Reference>
-    <Reference Include="EQueue, Version=2.6.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\EQueue.2.6.2\lib\netstandard2.0\EQueue.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Bcl.AsyncInterfaces.1.1.0\lib\net461\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=2.1.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.2.1.0\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\MSTest.TestFramework.2.0.0\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\MSTest.TestFramework.2.0.0\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework, Version=3.12.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NUnit.3.12.0\lib\net45\nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Serilog.2.9.0\lib\net46\Serilog.dll</HintPath>
-    </Reference>
-    <Reference Include="Serilog.Sinks.Console, Version=3.1.1.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Serilog.Sinks.Console.3.1.1\lib\net45\Serilog.Sinks.Console.dll</HintPath>
-    </Reference>
-    <Reference Include="Serilog.Sinks.File, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Serilog.Sinks.File.4.1.0\lib\net45\Serilog.Sinks.File.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.SqlClient, Version=4.6.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Data.SqlClient.4.8.1\lib\net461\System.Data.SqlClient.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Threading.Tasks.Extensions.4.5.2\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="ECommon" Version="2.6.5" />
+    <PackageReference Include="ECommon.Autofac" Version="2.5.4" />
+    <PackageReference Include="ECommon.Dapper" Version="2.5.3" />
+    <PackageReference Include="ECommon.JsonNet" Version="2.5.2" />
+    <PackageReference Include="ECommon.Serilog" Version="1.0.4" />
+    <PackageReference Include="EQueue" Version="2.6.3" />
+    <PackageReference Include="NUnit" Version="3.13.2" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="CommandHandlers\TestCommandHandler.cs" />
-    <Compile Include="Commands\TestCommands.cs" />
-    <Compile Include="Constants.cs" />
-    <Compile Include="Domain\InheritTestAggregate.cs" />
-    <Compile Include="Domain\TestAggregate.cs" />
-    <Compile Include="ENodeExtensions.cs" />
-    <Compile Include="EventHandlers\PriorityEventHandlers.cs" />
-    <Compile Include="EventHandlers\TestAggregateEventHandler.cs" />
-    <Compile Include="Mocks\FailedType.cs" />
-    <Compile Include="Mocks\MockApplicationMessagePublisher.cs" />
-    <Compile Include="Mocks\MockDomainEventPublisher.cs" />
-    <Compile Include="Mocks\MockEventStore.cs" />
-    <Compile Include="Mocks\MockDomainExceptionPublisher.cs" />
-    <Compile Include="Mocks\MockPublishedVersionStore.cs" />
-    <Compile Include="Providers\ApplicationMessageTopicProvider.cs" />
-    <Compile Include="Providers\CommandTopicProvider.cs" />
-    <Compile Include="Providers\DomainEventTopicProvider.cs" />
-    <Compile Include="Providers\DomainExceptionTopicProvider.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestClasses\BaseTest.cs" />
-    <Compile Include="TestClasses\CommandAndEventServiceTest.cs" />
-    <Compile Include="TestClasses\IOFailedTests\ApplicationMessagePublisherFailedTest.cs" />
-    <Compile Include="TestClasses\IOFailedTests\DomainExceptionPublisherFailedTest.cs" />
-    <Compile Include="TestClasses\IOFailedTests\EventPublisherFailedTest.cs" />
-    <Compile Include="TestClasses\IOFailedTests\EventStoreFailedTest.cs" />
-    <Compile Include="TestClasses\IOFailedTests\PublishedVersionStoreFailedTest.cs" />
+    <ProjectReference Include="..\src\ENode.EQueue\ENode.EQueue.csproj" />
+    <ProjectReference Include="..\src\ENode.SqlServer\ENode.SqlServer.csproj" />
+    <ProjectReference Include="..\src\ENode\ENode.csproj" />
+    <ProjectReference Include="..\src\Samples\NoteSample\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj" />
+    <ProjectReference Include="..\src\Samples\NoteSample\NoteSample.Commands\NoteSample.Commands.csproj" />
+    <ProjectReference Include="..\src\Samples\NoteSample\NoteSample.Domain\NoteSample.Domain.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ENode.EQueue\ENode.EQueue.csproj">
-      <Project>{1471287a-9af1-4c51-86a1-351c867e01ea}</Project>
-      <Name>ENode.EQueue</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ENode.SqlServer\ENode.SqlServer.csproj">
-      <Project>{44fd45c5-baf3-4305-8720-8d0aeeab2203}</Project>
-      <Name>ENode.SqlServer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ENode\ENode.csproj">
-      <Project>{f853e9b9-924d-4f87-a2d0-fbcf7f7418b5}</Project>
-      <Name>ENode</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\MSTest.TestAdapter.2.0.0\build\net45\MSTest.TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MSTest.TestAdapter.2.0.0\build\net45\MSTest.TestAdapter.props'))" />
-    <Error Condition="!Exists('..\..\packages\MSTest.TestAdapter.2.0.0\build\net45\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MSTest.TestAdapter.2.0.0\build\net45\MSTest.TestAdapter.targets'))" />
-    <Error Condition="!Exists('..\..\packages\NUnit.3.12.0\build\NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NUnit.3.12.0\build\NUnit.props'))" />
-    <Error Condition="!Exists('..\..\packages\NUnit3TestAdapter.3.15.1\build\net35\NUnit3TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\NUnit3TestAdapter.3.15.1\build\net35\NUnit3TestAdapter.props'))" />
-  </Target>
-  <Import Project="..\..\packages\MSTest.TestAdapter.2.0.0\build\net45\MSTest.TestAdapter.targets" Condition="Exists('..\..\packages\MSTest.TestAdapter.2.0.0\build\net45\MSTest.TestAdapter.targets')" />
+
 </Project>

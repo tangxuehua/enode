@@ -74,7 +74,7 @@ namespace ENode.SendCommandPerfTests
             {
                 _commandService.Producer.SendOneway(new Message("NoteCommandTopic", 100, new byte[1]), "1");
                 var availableQueues = _commandService.Producer.GetAvailableMessageQueues("NoteCommandTopic");
-                if (availableQueues.Count == 4)
+                if (availableQueues != null && availableQueues.Count == 4)
                 {
                     waitHandle.Set();
                 }

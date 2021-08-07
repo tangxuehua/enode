@@ -75,7 +75,7 @@ namespace ENode.PublishEventPerfTests
             {
                 _eventPublisher.Producer.SendOneway(new EQueueMessage("NoteEventTopic", 100, new byte[1]), "1");
                 var availableQueues = _eventPublisher.Producer.GetAvailableMessageQueues("NoteEventTopic");
-                if (availableQueues.Count == 4)
+                if (availableQueues != null && availableQueues.Count == 4)
                 {
                     waitHandle.Set();
                 }
