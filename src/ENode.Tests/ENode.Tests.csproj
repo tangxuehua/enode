@@ -17,12 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\ENode.EQueue\ENode.EQueue.csproj" />
-    <ProjectReference Include="..\src\ENode.SqlServer\ENode.SqlServer.csproj" />
-    <ProjectReference Include="..\src\ENode\ENode.csproj" />
-    <ProjectReference Include="..\src\Samples\NoteSample\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj" />
-    <ProjectReference Include="..\src\Samples\NoteSample\NoteSample.Commands\NoteSample.Commands.csproj" />
-    <ProjectReference Include="..\src\Samples\NoteSample\NoteSample.Domain\NoteSample.Domain.csproj" />
+    <ProjectReference Include="..\ENode.EQueue\ENode.EQueue.csproj" />
+    <ProjectReference Include="..\ENode.SqlServer\ENode.SqlServer.csproj" />
+    <ProjectReference Include="..\Samples\NoteSample\NoteSample.CommandHandlers\NoteSample.CommandHandlers.csproj" />
+    <ProjectReference Include="..\Samples\NoteSample\NoteSample.Commands\NoteSample.Commands.csproj" />
+    <ProjectReference Include="..\Samples\NoteSample\NoteSample.Domain\NoteSample.Domain.csproj" />
   </ItemGroup>
 
 </Project>

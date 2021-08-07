@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\ENode.SqlServer\ENode.SqlServer.csproj" />
-    <ProjectReference Include="..\src\ENode\ENode.csproj" />
+    <ProjectReference Include="..\..\ENode.SqlServer\ENode.SqlServer.csproj" />
+    <ProjectReference Include="..\..\ENode\ENode.csproj" />
   </ItemGroup>
 
 </Project>
