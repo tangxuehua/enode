@@ -69,7 +69,6 @@ namespace ENode.Eventing.Impl
         public void PublishDomainEventAsync(ProcessingCommand processingCommand, DomainEventStream eventStream)
         {
             eventStream.MergeItems(processingCommand.Items);
-
             var eventStreamMessage = new DomainEventStreamMessage(processingCommand.Message.Id, eventStream.AggregateRootId, eventStream.Version, eventStream.AggregateRootTypeName, eventStream.Events, eventStream.Items);
             PublishDomainEventAsync(processingCommand, eventStreamMessage, 0);
         }

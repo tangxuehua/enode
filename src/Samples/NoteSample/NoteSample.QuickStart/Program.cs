@@ -25,6 +25,9 @@ namespace NoteSample.QuickStart
             var command1 = new CreateNoteCommand { AggregateRootId = noteId, Title = "Sample Title1" };
             var command2 = new ChangeNoteTitleCommand { AggregateRootId = noteId, Title = "Sample Title2" };
 
+            command1.Items.Add("k1", "v1");
+            command2.Items.Add("k2", "v2");
+
             Console.WriteLine(string.Empty);
 
             commandService.ExecuteAsync(command1, CommandReturnType.EventHandled).Wait();
